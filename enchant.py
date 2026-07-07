@@ -4,7 +4,8 @@ import os
 import re
 from PySide6.QtWidgets import (
     QApplication, QWidget, QListWidget, QTableWidget, QVBoxLayout, QHBoxLayout,
-    QComboBox, QTableWidgetItem, QLabel, QTabWidget , QMessageBox
+    QComboBox, QTableWidgetItem, QLabel, QTabWidget , QMessageBox,
+    QPushButton, QInputDialog
 )
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHeaderView
@@ -409,12 +410,14 @@ from PySide6.QtCore import Qt
 
 
 class EnchantUI(QWidget):
-    def __init__(self, enchant_data, item_data, itemdb):
+    def __init__(self, enchant_data, item_data, itemdb, main_window=None):
         super().__init__()
 
         self.parsed = enchant_data        # EnchantList 解析結果
         self.items = item_data           # iteminfo_new
         self.itemdb = itemdb             # ItemDBNameTbl
+        self.main_window = main_window   # 主視窗參考（供套用至裝備設定）
+        self.current_tid = None          # 目前選取裝備的 table_id
 
         self.setWindowTitle("Enchant Viewer")
         layout = QHBoxLayout(self)
@@ -435,10 +438,17 @@ class EnchantUI(QWidget):
         left_box.addWidget(self.list_items)
 
         # ==============================
-        # 右：附魔資訊（Tab）
+        # 右：附魔資訊（套用按鈕 + Tab）
         # ==============================
+        right_box = QVBoxLayout()
+        layout.addLayout(right_box)
+
+        self.apply_button = QPushButton("套用至裝備設定")
+        self.apply_button.clicked.connect(self.apply_to_equipment_setting)
+        right_box.addWidget(self.apply_button)
+
         self.tabs = QTabWidget()
-        layout.addWidget(self.tabs)
+        right_box.addWidget(self.tabs)
 
         # -----------------------------------------------------------
         # 建立：裝備名稱 → 所屬 Enchant Table 映射
@@ -615,6 +625,40 @@ class EnchantUI(QWidget):
         return display
 
     # ==============================
+    # 附魔能力說明解析（DBName -> id -> description）
+    # ==============================
+    def resolve_item_description(self, key: str) -> str:
+        """回傳該附魔物品的能力說明（多行以換行合併）；查無回空字串。"""
+        item_info = None
+
+        # ① DBName → item_id → 物品
+        item_id = self.itemdb.get(key)
+        if item_id is not None:
+            item_info = self.items.get(item_id)
+
+        # ② kr_name 備援
+        if item_info is None:
+            for info in self.items.values():
+                if info.get("kr_name") == key:
+                    item_info = info
+                    break
+
+        if not item_info:
+            return ""
+
+        desc_lines = item_info.get("description") or []
+        cleaned = [line.strip() for line in desc_lines if line and line.strip()]
+        return "\n".join(cleaned)
+
+    def _make_desc_item(self, key: str) -> QTableWidgetItem:
+        """建立「能力說明」欄的格子，內容為附魔物品說明，並設 tooltip。"""
+        desc = self.resolve_item_description(key)
+        cell = QTableWidgetItem(desc)
+        if desc:
+            cell.setToolTip(desc)
+        return cell
+
+    # ==============================
     # 搜尋 + 重新填入列表
     # ==============================
     def refresh_item_list(self, text):
@@ -643,6 +687,7 @@ class EnchantUI(QWidget):
     # ==============================
     def load_all_slots_tabs(self, tid):
         self.tabs.clear()
+        self.current_tid = tid
 
         info = self.parsed.get(tid)
         if not info:
@@ -660,18 +705,22 @@ class EnchantUI(QWidget):
             v = QVBoxLayout(tab)
 
             table = QTableWidget()
-            table.setColumnCount(3)
-            table.setHorizontalHeaderLabels(["Grade", "Enchant", "機率 (%)"])
+            table.setColumnCount(4)
+            table.setHorizontalHeaderLabels(["Grade", "Enchant", "機率 (%)", "能力說明"])
             table.verticalHeader().setVisible(False)
+            table.setWordWrap(True)
+            # 列高自動貼合內容，讓多行能力說明完整顯示（不再以 ... 截斷）
+            table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
             table.cellClicked.connect(self.show_materials)
 
 
             header = table.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.Fixed)
+            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(2, QHeaderView.Fixed)
+            header.setSectionResizeMode(3, QHeaderView.Stretch)
             header.resizeSection(0, 80)
-            header.resizeSection(2, 80)
-            header.setSectionResizeMode(1, QHeaderView.Stretch)
+            header.resizeSection(2, 70)
 
             v.addWidget(table)
 
@@ -722,6 +771,7 @@ class EnchantUI(QWidget):
                 value = rate / 1000
                 text = f"{value:.3f}".rstrip('0').rstrip('.')
                 table.setItem(row, 2, QTableWidgetItem(f"{text}%"))
+                table.setItem(row, 3, self._make_desc_item(name))
                 row += 1
 
 
@@ -738,6 +788,7 @@ class EnchantUI(QWidget):
                 table.setItem(row, 1, item)
 
                 table.setItem(row, 2, QTableWidgetItem("100%"))
+                table.setItem(row, 3, self._make_desc_item(p["name"]))
                 row += 1
 
             # 升階 目前沒有物品會附魔失敗，都先寫100%
@@ -756,6 +807,7 @@ class EnchantUI(QWidget):
                 table.setItem(row, 1, item)
 
                 table.setItem(row, 2, QTableWidgetItem("100%"))#(f"{up['rate']/1000:.3f}"))
+                table.setItem(row, 3, self._make_desc_item(up["to"]))
 
                 row += 1
 
@@ -774,6 +826,7 @@ class EnchantUI(QWidget):
                 })
                 table.setItem(row, 1, item)
                 table.setItem(row, 2, QTableWidgetItem("100%"))
+                table.setItem(row, 3, self._make_desc_item(up["to"]))
                 row += 1
 
             # 機率升階
@@ -796,7 +849,86 @@ class EnchantUI(QWidget):
                 value = up['rate'] / 1000
                 text = f"{value:.3f}".rstrip('0').rstrip('.')
                 table.setItem(row, 2, QTableWidgetItem(f"{text}%"))
+                table.setItem(row, 3, self._make_desc_item(up["to"]))
                 row += 1
+
+    # ==============================
+    # 套用選取附魔至主視窗裝備設定（對應部位由使用者選）
+    # ==============================
+    def apply_to_equipment_setting(self):
+        if self.main_window is None:
+            QMessageBox.warning(self, "無法套用", "此視窗未連結主程式，無法套用至裝備設定。")
+            return
+
+        # 需已選取裝備
+        current_equip_item = self.list_items.currentItem()
+        if not current_equip_item or self.current_tid is None:
+            QMessageBox.information(self, "提示", "請先在左側選取一件裝備。")
+            return
+
+        # 取得目前分頁 table 與選取列
+        tab_index = self.tabs.currentIndex()
+        if tab_index < 0:
+            QMessageBox.information(self, "提示", "請先選取一個附魔洞分頁。")
+            return
+
+        tab_widget = self.tabs.widget(tab_index)
+        table = tab_widget.findChild(QTableWidget) if tab_widget else None
+        if table is None or table.currentRow() < 0:
+            QMessageBox.information(self, "提示", "請先在附魔列表中選取一列附魔。")
+            return
+
+        row = table.currentRow()
+        cell = table.item(row, 1)
+        data = cell.data(Qt.UserRole) if cell else None
+        if not data:
+            QMessageBox.information(self, "提示", "此列沒有可套用的附魔資料。")
+            return
+
+        # 洞號 sid（= 卡片 index），與 show_materials 一致
+        info = self.parsed.get(self.current_tid, {})
+        slot_order = list(reversed(info.get("slot_order", [])))
+        if tab_index >= len(slot_order):
+            QMessageBox.information(self, "提示", "無法辨識目前附魔洞。")
+            return
+        sid = slot_order[tab_index]
+
+        # 附魔名（升階類用 to，其餘用 name）
+        if data["type"] in ("upgrade", "perfect_upgrade", "random_upgrade"):
+            enchant_name = self.resolve_item_name(data["to"])
+        else:
+            enchant_name = self.resolve_item_name(data["name"])
+
+        equip_name = current_equip_item.text()
+
+        # 部位選單（只列可放卡片的部位）
+        parts = self.main_window.get_enchant_target_parts()
+        if not parts:
+            QMessageBox.warning(self, "無法套用", "找不到可套用的裝備部位。")
+            return
+
+        # 記憶上一次選擇（存在主視窗，僅當前程序有效）
+        last_part = getattr(self.main_window, "last_enchant_target_part", None)
+        default_index = parts.index(last_part) if last_part in parts else 0
+
+        part_name, ok = QInputDialog.getItem(
+            self, "選擇部位",
+            f"將「{equip_name}」與附魔「{enchant_name}」套用至：",
+            parts, default_index, False
+        )
+        if not ok or not part_name:
+            return
+
+        applied = self.main_window.apply_enchant_to_equipment(
+            part_name, equip_name, sid, enchant_name
+        )
+        if applied:
+            QMessageBox.information(
+                self, "已套用",
+                f"已套用至「{part_name}」\n裝備：{equip_name}\n第{sid + 1}洞卡片：{enchant_name}"
+            )
+        else:
+            QMessageBox.warning(self, "套用失敗", f"無法套用至「{part_name}」。")
 
 
 

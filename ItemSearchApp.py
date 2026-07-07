@@ -5413,7 +5413,7 @@ class ItemSearchApp(QWidget):
         enchant_data = enchant.parse_enchant_list("data/EnchantList.lua")
 
         # 建立 UI
-        self.enchant_window = enchant.EnchantUI(enchant_data, item_data, itemdb)
+        self.enchant_window = enchant.EnchantUI(enchant_data, item_data, itemdb, main_window=self)
         self.enchant_window.setWindowTitle(tr("window.enchant_tool"))
         self.enchant_window.resize(900, 600)
         self.enchant_window.show()
@@ -9659,6 +9659,36 @@ class ItemSearchApp(QWidget):
 
 
 
+
+    def get_enchant_target_parts(self):
+        """回傳可套用附魔（有卡片欄）的部位清單，供附魔工具部位選單使用。"""
+        exclude = {"投擲物品", "符文石碑", "寵物蛋", "技能"}
+        return [
+            part_name
+            for part_name, info in refine_parts.items()
+            if info.get("type") in ("裝備", "影子", "服飾") and part_name not in exclude
+        ]
+
+    def apply_enchant_to_equipment(self, part_name, equip_name, card_index, enchant_name):
+        """由附魔工具呼叫：將裝備本體填入部位裝備欄、附魔填入對應卡片欄並重算。"""
+        if part_name not in self.refine_inputs_ui:
+            print(f"❌ 無法辨識部位：{part_name}")
+            return False
+
+        if not (0 <= card_index < 4):
+            print(f"❌ 卡片編號超出範圍：{card_index}")
+            return False
+
+        ui = self.refine_inputs_ui[part_name]
+        ui["equip"].setText(equip_name)
+        ui["cards"][card_index].setText(enchant_name)
+
+        # 記憶本次選擇的部位（僅當前程序有效），供附魔工具下次預設
+        self.last_enchant_target_part = part_name
+
+        self.trigger_total_effect_update()
+        print(f"✅ 已套用至「{part_name}」：裝備={equip_name}，卡片{card_index + 1}={enchant_name}")
+        return True
 
     def apply_selected_equip(self):
 
