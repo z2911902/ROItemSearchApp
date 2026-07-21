@@ -80248,6 +80248,147 @@ Item = {
     end,
     Combiitem = {2000004982, 2000004983}
   },
+  [410609] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      AddDamage_Size(1, 0, 5)
+      AddDamage_Size(1, 1, 5)
+      AddDamage_Size(1, 2, 5)
+      AddMDamage_Size(1, 0, 5)
+      AddMDamage_Size(1, 1, 5)
+      AddMDamage_Size(1, 2, 5)
+      RaceAddDamage(9999, 5)
+      AddMdamage_Race(9999, 5)
+      AddMDamage_Property(1, 10, 5)
+      AddDamage_Property(1, 10, 5)
+      AddEXPPercent_KillRace(9999, 10)
+    end
+  },
+  [401478] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddIgnore_MRES_RacePercent(6, 10)
+      AddIgnore_MRES_RacePercent(8, 10)
+      AddIgnore_MRES_RacePercent(0, 10)
+      AddIgnore_MRES_RacePercent(9, 10)
+      AddIgnore_MRES_RacePercent(3, 10)
+      AddIgnore_MRES_RacePercent(2, 10)
+      AddIgnore_MRES_RacePercent(5, 10)
+      AddIgnore_MRES_RacePercent(4, 10)
+      AddIgnore_MRES_RacePercent(7, 10)
+      AddIgnore_MRES_RacePercent(1, 10)
+      AddExtParam(0, 243, 10)
+      AddMdamage_Class(0, 20)
+      AddMdamage_Class(1, 20)
+      AddMdamage_Class(2, 20)
+    end,
+    Combiitem = {2000004991}
+  },
+  [401479] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddIgnore_RES_RacePercent(6, 10)
+      AddIgnore_RES_RacePercent(8, 10)
+      AddIgnore_RES_RacePercent(0, 10)
+      AddIgnore_RES_RacePercent(9, 10)
+      AddIgnore_RES_RacePercent(3, 10)
+      AddIgnore_RES_RacePercent(2, 10)
+      AddIgnore_RES_RacePercent(5, 10)
+      AddIgnore_RES_RacePercent(4, 10)
+      AddIgnore_RES_RacePercent(7, 10)
+      AddIgnore_RES_RacePercent(1, 10)
+      AddExtParam(0, 52, 10)
+      AddExtParam(0, 54, 1)
+      AddDamage_CRI(1, 20)
+      AddRangeAttackDamage(1, 10)
+      AddMeleeAttackDamage(1, 10)
+    end,
+    Combiitem = {2000004992}
+  },
+  [401480] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddIgnore_RES_RacePercent(6, 10)
+      AddIgnore_RES_RacePercent(8, 10)
+      AddIgnore_RES_RacePercent(0, 10)
+      AddIgnore_RES_RacePercent(9, 10)
+      AddIgnore_RES_RacePercent(3, 10)
+      AddIgnore_RES_RacePercent(2, 10)
+      AddIgnore_RES_RacePercent(5, 10)
+      AddIgnore_RES_RacePercent(4, 10)
+      AddIgnore_RES_RacePercent(7, 10)
+      AddIgnore_RES_RacePercent(1, 10)
+      AddExtParam(0, 242, 10)
+      ClassAddDamage(1, 1, 20)
+      ClassAddDamage(0, 1, 20)
+    end,
+    Combiitem = {2000004993}
+  },
+  [401481] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddIgnore_MRES_RacePercent(6, 10)
+      AddIgnore_MRES_RacePercent(8, 10)
+      AddIgnore_MRES_RacePercent(0, 10)
+      AddIgnore_MRES_RacePercent(9, 10)
+      AddIgnore_MRES_RacePercent(3, 10)
+      AddIgnore_MRES_RacePercent(2, 10)
+      AddIgnore_MRES_RacePercent(5, 10)
+      AddIgnore_MRES_RacePercent(4, 10)
+      AddIgnore_MRES_RacePercent(7, 10)
+      AddIgnore_MRES_RacePercent(1, 10)
+      SubSpellCastTime(10)
+      SubSFCTEquipAmount(401481, 500, 0)
+      AddExtParam(0, 140, 10)
+      AddMdamage_Class(0, 10)
+      AddMdamage_Class(1, 10)
+    end,
+    Combiitem = {2000004994}
+  },
+  [401482] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      Condition(14, 9999, 100)
+      AddEXPPercent_KillRace(9999, 10)
+      AddReceiveItem_Equip(10)
+      AddIgnore_RES_RacePercent(6, 10)
+      AddIgnore_RES_RacePercent(8, 10)
+      AddIgnore_RES_RacePercent(0, 10)
+      AddIgnore_RES_RacePercent(9, 10)
+      AddIgnore_RES_RacePercent(3, 10)
+      AddIgnore_RES_RacePercent(2, 10)
+      AddIgnore_RES_RacePercent(5, 10)
+      AddIgnore_RES_RacePercent(4, 10)
+      AddIgnore_RES_RacePercent(7, 10)
+      AddIgnore_RES_RacePercent(1, 10)
+      AddIgnore_MRES_RacePercent(6, 10)
+      AddIgnore_MRES_RacePercent(8, 10)
+      AddIgnore_MRES_RacePercent(0, 10)
+      AddIgnore_MRES_RacePercent(9, 10)
+      AddIgnore_MRES_RacePercent(3, 10)
+      AddIgnore_MRES_RacePercent(2, 10)
+      AddIgnore_MRES_RacePercent(5, 10)
+      AddIgnore_MRES_RacePercent(4, 10)
+      AddIgnore_MRES_RacePercent(7, 10)
+      AddIgnore_MRES_RacePercent(1, 10)
+      SetIgnoreMdefClass(0, 30)
+      SetIgnoreMdefClass(1, 30)
+      SetIgnoreDefClass_Percent(0, 30)
+      SetIgnoreDefClass_Percent(1, 30)
+      EnableSkill(1013, 1)
+    end,
+    Combiitem = {2000004995}
+  },
   [2278] = {
     Type = "armor",
     Stat = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
@@ -140915,6 +141056,156 @@ Item = {
       AddExtParam(0, 111, 25)
       SubExtParam(0, 112, 25)
     end
+  },
+  [300933] = {
+    Type = "card",
+    OnStartEquip = function()
+      local temp = 0
+      temp = GetRefineLevel(6)
+      RaceAddDamage(9999, 3)
+      AddMdamage_Race(9999, 3)
+      AddSPconsumption(7)
+      if 8 < temp then
+        RaceAddDamage(9999, 3)
+        AddMdamage_Race(9999, 3)
+      end
+      if 13 < temp then
+        RaceAddDamage(9999, 4)
+        AddMdamage_Race(9999, 4)
+      end
+    end
+  },
+  [300915] = {
+    Type = "card",
+    OnStartEquip = function()
+      local temp = 0
+      local temp_agi = 0
+      local temp_dex = 0
+      local temp_int = 0
+      local temp_luk = 0
+      local temp_str = 0
+      local temp_vit = 0
+      temp_str = get(32)
+      temp_agi = get(33)
+      temp_vit = get(34)
+      temp_int = get(35)
+      temp_dex = get(36)
+      temp_luk = get(37)
+      temp = GetRefineLevel(10)
+      if 98 < temp_int then
+        AddSkillMDamage(10, 5)
+      end
+      if 11 < temp then
+        AddSkillMDamage(10, 5)
+      end
+    end,
+    Combiitem = {2000004991}
+  },
+  [300916] = {
+    Type = "card",
+    OnStartEquip = function()
+      local temp = 0
+      local temp_agi = 0
+      local temp_dex = 0
+      local temp_int = 0
+      local temp_luk = 0
+      local temp_str = 0
+      local temp_vit = 0
+      temp_str = get(32)
+      temp_agi = get(33)
+      temp_vit = get(34)
+      temp_int = get(35)
+      temp_dex = get(36)
+      temp_luk = get(37)
+      temp = GetRefineLevel(10)
+      if 98 < temp_luk then
+        AddDamage_CRI(1, 5)
+        AddExtParam(0, 52, 30)
+      end
+      if 11 < temp then
+        AddDamage_CRI(1, 5)
+        AddExtParam(0, 52, 30)
+      end
+    end,
+    Combiitem = {2000004992}
+  },
+  [300930] = {
+    Type = "card",
+    OnStartEquip = function()
+      local temp = 0
+      local temp_agi = 0
+      local temp_dex = 0
+      local temp_int = 0
+      local temp_luk = 0
+      local temp_str = 0
+      local temp_vit = 0
+      temp_str = get(32)
+      temp_agi = get(33)
+      temp_vit = get(34)
+      temp_int = get(35)
+      temp_dex = get(36)
+      temp_luk = get(37)
+      temp = GetRefineLevel(10)
+      if 98 < temp_str then
+        AddDamage_Property(1, 10, 5)
+      end
+      if 11 < temp then
+        AddDamage_Property(1, 10, 5)
+      end
+    end,
+    Combiitem = {2000004993}
+  },
+  [300931] = {
+    Type = "card",
+    OnStartEquip = function()
+      local temp = 0
+      local temp_agi = 0
+      local temp_dex = 0
+      local temp_int = 0
+      local temp_luk = 0
+      local temp_str = 0
+      local temp_vit = 0
+      temp_str = get(32)
+      temp_agi = get(33)
+      temp_vit = get(34)
+      temp_int = get(35)
+      temp_dex = get(36)
+      temp_luk = get(37)
+      temp = GetRefineLevel(10)
+      if 98 < temp_vit then
+        SubSpellDelay(3)
+      end
+      if 11 < temp then
+        SubSpellDelay(4)
+      end
+    end,
+    Combiitem = {2000004994}
+  },
+  [300932] = {
+    Type = "card",
+    OnStartEquip = function()
+      local temp = 0
+      local temp_agi = 0
+      local temp_dex = 0
+      local temp_int = 0
+      local temp_luk = 0
+      local temp_str = 0
+      local temp_vit = 0
+      temp_str = get(32)
+      temp_agi = get(33)
+      temp_vit = get(34)
+      temp_int = get(35)
+      temp_dex = get(36)
+      temp_luk = get(37)
+      temp = GetRefineLevel(10)
+      if 98 < temp_dex then
+        AddDamage_HIT(1, 5)
+      end
+      if 11 < temp then
+        AddDamage_HIT(1, 5)
+      end
+    end,
+    Combiitem = {2000004995}
   },
   [13100] = {
     Type = "Rweapon",
@@ -224981,6 +225272,68 @@ Combiitem = {
       SetIgnoreMdefRace(3, 15)
       temp = GetRefineLevel(3)
       AddDamage_SKID(1, 2040, math.floor(temp / 3) * 20)
+    end
+  },
+  [2000004991] = {
+    Item = {300915, 401478},
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddMDamage_Size(1, 0, 20)
+      AddMDamage_Size(1, 1, 20)
+      AddMDamage_Size(1, 2, 20)
+    end
+  },
+  [2000004992] = {
+    Item = {300916, 401479},
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddDamage_Size(1, 0, 20)
+      AddDamage_Size(1, 1, 20)
+      AddDamage_Size(1, 2, 20)
+    end
+  },
+  [2000004993] = {
+    Item = {300930, 401480},
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddDamage_Size(1, 0, 20)
+      AddDamage_Size(1, 1, 20)
+      AddDamage_Size(1, 2, 20)
+    end
+  },
+  [2000004994] = {
+    Item = {300931, 401481},
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      SubSpellDelay(10)
+      SubSFCTEquipAmount(401481, 500, 0)
+    end
+  },
+  [2000004995] = {
+    Item = {300932, 401482},
+    OnStartEquip = function()
+      AddEXPPercent_KillRace(9999, 10)
+      AddDamage_HIT(1, 10)
+      AddIgnore_RES_RacePercent(6, 10)
+      AddIgnore_RES_RacePercent(8, 10)
+      AddIgnore_RES_RacePercent(0, 10)
+      AddIgnore_RES_RacePercent(9, 10)
+      AddIgnore_RES_RacePercent(3, 10)
+      AddIgnore_RES_RacePercent(2, 10)
+      AddIgnore_RES_RacePercent(5, 10)
+      AddIgnore_RES_RacePercent(4, 10)
+      AddIgnore_RES_RacePercent(7, 10)
+      AddIgnore_RES_RacePercent(1, 10)
+      AddIgnore_MRES_RacePercent(6, 10)
+      AddIgnore_MRES_RacePercent(8, 10)
+      AddIgnore_MRES_RacePercent(0, 10)
+      AddIgnore_MRES_RacePercent(9, 10)
+      AddIgnore_MRES_RacePercent(3, 10)
+      AddIgnore_MRES_RacePercent(2, 10)
+      AddIgnore_MRES_RacePercent(5, 10)
+      AddIgnore_MRES_RacePercent(4, 10)
+      AddIgnore_MRES_RacePercent(7, 10)
+      AddIgnore_MRES_RacePercent(1, 10)
     end
   }
 }
