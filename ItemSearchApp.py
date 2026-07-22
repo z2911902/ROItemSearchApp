@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.19-260722"
+Version = "v0.3.20-260722"
 
 import sys, builtins, time
 import os
@@ -6222,6 +6222,8 @@ class ItemSearchApp(QWidget):
         OLEUM_attack_buff = 1+15/100 if self.special_checkboxes["OLEUM_attack_checkbox"].isChecked() else 0
         #魔力增幅
         SKILL_HW_MAGICPOWER = 10 if int(GUSklv(366)) == 1 else 0  # 366
+        #太陽和月亮和星星的融合 全部吃爆擊
+        sg_mix = 0.5 if int(GUSklv(444)) == 1 else 0  # 444
         #天怒
         PR_LEXAETERNA_buff = 100 if self.special_checkboxes["PR_LEXAETERNA_checkbox"].isChecked() else 0
         
@@ -6714,6 +6716,10 @@ class ItemSearchApp(QWidget):
         # ✅ 新增：Special_Critical_hit 有資料 + skill_buff 命中 -> 取代 Critical_hit
         if trigger_skillbuff and pd.notna(skill_row.get("Special_Critical_hit")):
             Critical_hit = float(skill_row["Special_Critical_hit"])
+        
+        #天帝融合狀態
+        if sg_mix == 0.5:
+            Critical_hit = 0.5
 
         print(f"技能爆傷率：{Critical_hit}")
 

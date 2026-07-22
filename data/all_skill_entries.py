@@ -220,7 +220,8 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "神龜沙雕節": {"buff":"1368","id": "SUM","type": "技能","code":["AddExtParam(1, 235, 10)","AddExtParam(1, 236, 10)","AddExtParam(1, 237, 10)"],"exclusive": "STA.WIS.SPL"},
     "神龜海洋慶典": {"buff":"1367","id": "SUM","type": "技能","code":["AddExtParam(1, 234, 10)","AddExtParam(1, 238, 10)","AddExtParam(1, 239, 10)"],"exclusive": "POW.CON.CRT"},
     # 天帝
-    "天氣正午": {"buff":"","id": "SE","type": "技能","code":["UseSkill(5465)"],"exclusive": "ENCHANTING_SKY"},
-    "天氣午夜": {"buff":"","id": "SE","type": "技能","code":["UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
-    "天機合一": {"buff":"","id": "SE","type": "技能","code":["UseSkill(5465)","UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
+    "天氣正午": {"buff":"1386","id": "SE","type": "技能","code":["UseSkill(5465)"],"exclusive": "ENCHANTING_SKY"},
+    "天氣午夜": {"buff":"1389","id": "SE","type": "技能","code":["UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
+    "天機合一": {"buff":"1392","id": "SE","type": "技能","code":["UseSkill(5465)","UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
+    "太陽和月亮和星星的融合": {"buff":"20444","id": "SE","type": "技能","code":["UseSkill(444)"],},
 }   
