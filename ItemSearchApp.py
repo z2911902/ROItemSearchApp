@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.18-260710"
+Version = "v0.3.19-260722"
 
 import sys, builtins, time
 import os
@@ -10361,11 +10361,12 @@ class ItemSearchApp(QWidget):
             print(f"📦 正在從 GRF 解壓：{relative_path}")
             result = subprocess.run([
                 GRFCL_EXE,
+                "-encoding", "949",
                 "-open", GRF_PATH,
                 "-extractFolder", ".",
                 relative_path,
                 "-exit"
-            ], cwd=BASE_DIR, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            ], cwd=BASE_DIR, text=True)
 
             if result.returncode != 0:
                 print("❌ 解壓失敗：")
