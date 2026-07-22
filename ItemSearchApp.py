@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.20-260722"
+Version = "v0.3.21-260722"
 
 import sys, builtins, time
 import os
@@ -6222,10 +6222,15 @@ class ItemSearchApp(QWidget):
         OLEUM_attack_buff = 1+15/100 if self.special_checkboxes["OLEUM_attack_checkbox"].isChecked() else 0
         #魔力增幅
         SKILL_HW_MAGICPOWER = 10 if int(GUSklv(366)) == 1 else 0  # 366
-        #太陽和月亮和星星的融合 全部吃爆擊
-        sg_mix = 0.5 if int(GUSklv(444)) == 1 else 0  # 444
         #天怒
         PR_LEXAETERNA_buff = 100 if self.special_checkboxes["PR_LEXAETERNA_checkbox"].isChecked() else 0
+        #太陽和月亮和星星的融合 全部吃爆擊
+        sg_mix = 0.5 if int(GUSklv(444)) == 1 else 0  # 444
+        #溫暖風判段
+        SEVENWIND = 1 if int(GUSklv(425)) == 1 else 0  # 425
+        #加油
+        tk_power = int(GSklv(424))*20  # 424
+        print(tk_power)
         
         """
         target_size       # 來自 體型 的數值
@@ -6617,9 +6622,15 @@ class ItemSearchApp(QWidget):
         #前素質總ATK
         if weapon_class in (11,13,14,17,18,19,20,21):#DEX系
             #ATKF = int((FATK*2) * (get_damage_multiplier(User_attack_element, target_element, target_element_lv)/100))
-            ATKF = int((FATK*2) * (get_damage_multiplier(0, target_element, target_element_lv)/100)) #前段強制無屬 除非溫暖風轉屬
+            if SEVENWIND == 1:#判斷暖風轉屬
+                ATKF = int((FATK*2) * (get_damage_multiplier(User_attack_element, target_element, target_element_lv)/100)) #溫暖風轉屬
+            else:
+                ATKF = int((FATK*2) * (get_damage_multiplier(0, target_element, target_element_lv)/100)) #前段強制無屬 除非溫暖風轉屬
         else:#STR系
-            ATKF = int((NATK*2) * (get_damage_multiplier(0, target_element, target_element_lv)/100)) #前段強制無屬 除非溫暖風轉屬
+            if SEVENWIND == 1:#判斷暖風轉屬
+                ATKF = int((NATK*2) * (get_damage_multiplier(User_attack_element, target_element, target_element_lv)/100)) #溫暖風轉屬
+            else:
+                ATKF = int((NATK*2) * (get_damage_multiplier(0, target_element, target_element_lv)/100)) #前段強制無屬 除非溫暖風轉屬
         
         #後武器總ATK
         ATKC_Mweapon_ALL_min = (specialATK_min + ATK_armor + WPINVESTIGATEATK) 
@@ -7037,8 +7048,6 @@ class ItemSearchApp(QWidget):
                             (target_monsterDamage,1,"特定魔物增傷%"),
                             #後總ATK
                             (ATK_percent_sign,ATK_percent_sign_min,"+","ATK%"),
-                            #跆拳加油段
-                            #(tk_power,1,"加油"),
                             #敵人屬性耐性(1+萬紫+毒弱+彗星)
                             ((1 + skill_wanzih4_buff + skill_poison_weak_buff + magic_poison_buff),"raw","屬性耐受性%"),
 
@@ -7062,6 +7071,8 @@ class ItemSearchApp(QWidget):
                                 (total_PATK,1,"PATK"),
                                 #砲彈atk
                                 (Excel_CannonballATK,"+","砲彈ATK"),
+                                #跆拳加油段
+                                (tk_power,1,"加油"),
                                 #物理命中傷害
                                 (excel_Damage_HIT,1,"命中增傷%"),
                                 #爆傷
@@ -7106,6 +7117,8 @@ class ItemSearchApp(QWidget):
                                 (Excel_CannonballATK,"+","砲彈ATK"),
                                 #武器修煉ATK
                                 (WeaponMasteryATK,"+","武器修煉ATK"),
+                                #跆拳加油段
+                                (tk_power,1,"加油"),
                                 #物理命中傷害
                                 (excel_Damage_HIT,1,"命中增傷%"),
                                 #爆傷

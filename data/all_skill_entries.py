@@ -220,6 +220,16 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "神龜沙雕節": {"buff":"1368","id": "SUM","type": "技能","code":["AddExtParam(1, 235, 10)","AddExtParam(1, 236, 10)","AddExtParam(1, 237, 10)"],"exclusive": "STA.WIS.SPL"},
     "神龜海洋慶典": {"buff":"1367","id": "SUM","type": "技能","code":["AddExtParam(1, 234, 10)","AddExtParam(1, 238, 10)","AddExtParam(1, 239, 10)"],"exclusive": "POW.CON.CRT"},
     # 天帝
+    "溫暖的風": {"buff":"474","id": "SE","type": "技能","code":["UseSkill(425)"],},
+    "太陽英姿": {"buff":"1040","id": "SE","type": "技能","code":["temp = GetSkillLevel(2591)","AddExtParam(1, 207, 2 + temp)"],"exclusive": "posture"},
+    "月亮英姿": {"buff":"1038","id": "SE","type": "技能","code":["temp = GetSkillLevel(2575)","AddExtParam(1, 109, 2 + temp)"],"exclusive": "posture"},
+    "星星英姿": {"buff":"1043","id": "SE","type": "技能","code":["temp = GetSkillLevel(2578)","AddExtParam(1, 167, 4 + (temp * 2))"],"exclusive": "posture"},
+    "宇宙英姿": {"buff":"1039","id": "SE","type": "技能","code":["temp = GetSkillLevel(2583)","AddExtParam(1, 103, 2 + temp)","AddExtParam(1, 104, 2 + temp)","AddExtParam(1, 105, 2 + temp)","AddExtParam(1, 106, 2 + temp)","AddExtParam(1, 107, 2 + temp)","AddExtParam(1, 108, 2 + temp)"],"exclusive": "posture"},
+    
+    "太陽光輝": {"buff":"1036","id": "SE","type": "技能","code":["temp = GetSkillLevel(2590)","AddDamage_SKID(1, 2592, temp * 5)"],"exclusive": "Glory"},
+    "月亮光輝": {"buff":"1035","id": "SE","type": "技能","code":["temp = GetSkillLevel(2574)","AddDamage_SKID(1, 2576, temp * 5)"],"exclusive": "Glory"},
+    "星星光輝": {"buff":"1037","id": "SE","type": "技能","code":["temp = GetSkillLevel(2577)","AddDamage_SKID(1, 2584, temp * 5)"],"exclusive": "Glory"},
+
     "天氣正午": {"buff":"1386","id": "SE","type": "技能","code":["UseSkill(5465)"],"exclusive": "ENCHANTING_SKY"},
     "天氣午夜": {"buff":"1389","id": "SE","type": "技能","code":["UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
     "天機合一": {"buff":"1392","id": "SE","type": "技能","code":["UseSkill(5465)","UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
