@@ -1,4 +1,4 @@
-# 額外參數對照表
+# 額外參數對照表 buff規則10開頭狀態ID，20開頭技能ID
 all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":["",""]},
     "掉寶呆(本次)0616-0701": {"buff":"1597","type": "料理","code":["RaceSubDamage(9999, 70)","SubDamage_Property(1, 10, 70)","ClassSubDamage(0, 1, 70)","ClassSubDamage(1, 1, 70)","SubMdamage_Race(9999, 70)","SubMDamage_Property(1, 10, 70)","SubMdamage_Class(0, 70)","SubMdamage_Class(1, 70)","SubSkillMDamage(10, 30)","SubMeleeAttackDamage(1, 30)","SubRangeAttackDamage(1, 30)","SubExtParam(1, 47, 200)"],"exclusive": "itemsugar"},
     "掉寶呆(上次)0506-0519": {"buff":"1597","type": "料理","code":["RaceSubDamage(9999, 70)","SubDamage_Property(1, 10, 70)","ClassSubDamage(0, 1, 70)","ClassSubDamage(1, 1, 70)","SubMdamage_Race(9999, 70)","SubMDamage_Property(1, 10, 70)","SubMdamage_Class(0, 70)","SubMdamage_Class(1, 70)","SubExtParam(1, 52, 300)","SubExtParam(1, 207, 30)","SubExtParam(1, 140, 30)"],"exclusive": "itemsugar"},
@@ -60,7 +60,7 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "集中藥水": {"buff":"37","type": "料理","code":["AddExtParam(1, 301, 10)"],"exclusive": "ASPD_1"},
     "覺醒藥水": {"buff":"38","type": "料理","code":["AddExtParam(1, 301, 15)"],"exclusive": "ASPD_1"},
     "菠色克藥水": {"buff":"39","type": "料理","code":["AddExtParam(1, 301, 20)"],"exclusive": "ASPD_1"},
-    "毒藥瓶": {"buff":"","type": "料理","code":["AddExtParam(1, 301, 20)"]},
+    "毒藥瓶": {"buff":"10391","type": "料理","code":["AddExtParam(1, 301, 20)"]},
 
     "高級戰鬥藥": {"buff":"663","type": "料理","code":["ClassAddDamage(0, 1, 10)","ClassAddDamage(1, 1, 10)","AddExtParam(1, 140, 10)","SubExtParam(1, 111, 5)","SubExtParam(1, 112, 5)"]},
     "揮擊藥水": {"buff":"487","type": "料理","code":["AddExtParam(1, 41, 50)"]},
@@ -72,6 +72,13 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "極限藥水": {"buff":"1065","type": "料理","code":["AddExtParam(1, 111, 5)","AddExtParam(1, 112, 5)","AddRangeAttackDamage(1, 5)","AddDamage_CRI(1, 5)","AddSkillMDamage(10, 5)"]},
     "研磨劑": {"buff":"295","type": "料理","code":["AddExtParam(1, 52, 30)"]},
     "紅色狂暴藥水": {"buff":"664","type": "料理","code":["AddExtParam(1, 41, 30)","AddExtParam(1, 200, 30)","AddExtParam(1, 167, 5)","SubSpellCastTime(5)","SubExtParam(1, 111, 10)","SubExtParam(1, 112, 10)"]},
+    #變身
+    "變身卷軸(幽靈弓箭手/森林妖精)": {"buff":"","type": "料理","code":["AddRangeAttackDamage(1, 25)"],"exclusive": "Transformation"},
+    "變身卷軸(蓋俄斯提/犬妖弓箭手)": {"buff":"","type": "料理","code":["AddRangeAttackDamage(1, 30)"],"exclusive": "Transformation"},
+    "變身卷軸(馬爾杜克/惡耗女妖)": {"buff":"","type": "料理","code":["AddExtParam(1, 200, 25)"],"exclusive": "Transformation"},
+    "變身卷軸(行妖術者/風魔巫師)": {"buff":"","type": "料理","code":["AddExtParam(1, 200, 50)"],"exclusive": "Transformation"},
+
+
 
     #====技能
     #騎領

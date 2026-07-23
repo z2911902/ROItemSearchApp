@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.22-260723"
+Version = "v0.3.24-260723"
 
 import sys, builtins, time
 import os
@@ -5405,6 +5405,9 @@ class ItemSearchApp(QWidget):
             checkbox.setChecked(name in matched_set)
             checkbox.blockSignals(False)
 
+        # 批次勾選時 signals 被暫停，需手動刷新分頁上的已勾選數量。
+        self.update_skill_food_tab_checked_count()
+
 # 附魔選擇後自動轉移至主視窗的相關欄位。 內容參考 https://github.com/z2911902/ROItemSearchApp/pull/3 
 
     def _load_enchant_tool_data(self):
@@ -8588,6 +8591,20 @@ class ItemSearchApp(QWidget):
             ]
         return filtered
     
+    def update_skill_food_tab_checked_count(self, *_args):
+        """更新「增益技能／料理」分頁標題中的已勾選數量。"""
+        tab_widget = getattr(self, "skill_food_tab_widget", None)
+        tab_index = getattr(self, "skill_food_tab_index", None)
+        if tab_widget is None or tab_index is None:
+            return
+
+        checked_count = sum(
+            1 for checkbox in getattr(self, "skill_checkboxes", {}).values()
+            if checkbox.isChecked()
+        )
+        base_title = tr("tab.buff_skill_food")
+        tab_widget.setTabText(tab_index, f"{base_title} ({checked_count})")
+
     def filter_skill_list(self):
         keyword = self.skill_search_bar.text().strip().lower()
 
@@ -8620,6 +8637,9 @@ class ItemSearchApp(QWidget):
         else:
             # 若使用者取消勾選 → 不做任何事（允許取消）
             pass
+
+        # 同組其他項目可能以 blockSignals 取消勾選，因此在此統一刷新數量。
+        self.update_skill_food_tab_checked_count()
 
 
     def try_extract_effect(self, line: str):
@@ -10689,6 +10709,7 @@ class ItemSearchApp(QWidget):
             # 保留原本事件
             checkbox.stateChanged.connect(self.clear_global_state)
             checkbox.stateChanged.connect(self.trigger_total_effect_update)
+            checkbox.stateChanged.connect(self.update_skill_food_tab_checked_count)
 
 
             # exclusive 群組（支援多組，例如 "food_str,food_agi"）
@@ -10709,6 +10730,7 @@ class ItemSearchApp(QWidget):
                         self.handle_exclusive_toggle(c, g, checked)
                     )
 
+        self.update_skill_food_tab_checked_count()
         print("✓ Skill/料理區塊已根據最新資料重新生成")
 
     def reload_job_list(self):
@@ -11036,7 +11058,7 @@ class ItemSearchApp(QWidget):
                     self.jobhp = 0
                     self.jobsp = 0
 
-                    if base_lv and 201 <= base_lv <= 260:
+                    if base_lv and 201 <= base_lv <= 275:
                         idx = base_lv - 201
                         job_table = job_4th_hpsp.get(job_id)
 
@@ -11652,6 +11674,7 @@ class ItemSearchApp(QWidget):
 
             #checkbox.stateChanged.connect(self.clear_global_state)
             checkbox.stateChanged.connect(self.trigger_total_effect_update)
+            checkbox.stateChanged.connect(self.update_skill_food_tab_checked_count)
 
             # 判斷此技能是否有 exclusive 群組
             if "exclusive" in data:
@@ -11678,8 +11701,10 @@ class ItemSearchApp(QWidget):
         # ✅ 讓技能清單填滿底部空間
         skill_layout.addWidget(scroll, stretch=1)
 
-        # 加入主分頁
-        tab_widget.addTab(skill_page, tr("tab.buff_skill_food"))
+        # 加入主分頁，並保存分頁物件與索引供勾選數量即時更新。
+        self.skill_food_tab_widget = tab_widget
+        self.skill_food_tab_index = tab_widget.addTab(skill_page, tr("tab.buff_skill_food"))
+        self.update_skill_food_tab_checked_count()
 
 
 
