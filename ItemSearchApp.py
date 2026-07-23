@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.21-260722"
+Version = "v0.3.22-260723"
 
 import sys, builtins, time
 import os
@@ -6230,8 +6230,8 @@ class ItemSearchApp(QWidget):
         SEVENWIND = 1 if int(GUSklv(425)) == 1 else 0  # 425
         #加油
         tk_power = int(GSklv(424))*20  # 424
-        print(tk_power)
-        
+        #奇蹟/憎惡段
+        SG_HATE = 1 if int(GUSklv(434)) == 1 else 0  # 434
         """
         target_size       # 來自 體型 的數值
         target_element    # 屬性編號
@@ -6591,6 +6591,14 @@ class ItemSearchApp(QWidget):
         globals()["weapon_weapon_size0"] = get_size_penalty(weapon_class, 0)*100
         globals()["weapon_weapon_size1"] = get_size_penalty(weapon_class, 1)*100
         globals()["weapon_weapon_size2"] = get_size_penalty(weapon_class, 2)*100
+        #奇蹟憎惡增傷處理 最大總和增傷75%
+        if SG_HATE == 1:            
+            if target_size == 2:
+                SG_HATE_EXCEL = min(int((total_STR + total_DEX + total_LUK + base_lv) / 3), 75)
+            else:
+                SG_HATE_EXCEL = min(int((total_DEX + total_LUK + base_lv) / 3), 75)
+        else:
+            SG_HATE_EXCEL = 0
 
         #print(f"Ignore_size:{Ignore_size}") 
         #print(f"武器體型修正:{Weaponpunish}")   
@@ -7073,6 +7081,8 @@ class ItemSearchApp(QWidget):
                                 (Excel_CannonballATK,"+","砲彈ATK"),
                                 #跆拳加油段
                                 (tk_power,1,"加油"),
+                                #奇蹟憎惡段
+                                (SG_HATE_EXCEL,1,"奇蹟/憎惡"),
                                 #物理命中傷害
                                 (excel_Damage_HIT,1,"命中增傷%"),
                                 #爆傷
@@ -7119,6 +7129,8 @@ class ItemSearchApp(QWidget):
                                 (WeaponMasteryATK,"+","武器修煉ATK"),
                                 #跆拳加油段
                                 (tk_power,1,"加油"),
+                                #奇蹟憎惡段
+                                (SG_HATE_EXCEL,1,"奇蹟/憎惡"),
                                 #物理命中傷害
                                 (excel_Damage_HIT,1,"命中增傷%"),
                                 #爆傷

@@ -234,4 +234,6 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "天氣午夜": {"buff":"1389","id": "SE","type": "技能","code":["UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
     "天機合一": {"buff":"1392","id": "SE","type": "技能","code":["UseSkill(5465)","UseSkill(5468)"],"exclusive": "ENCHANTING_SKY"},
     "太陽和月亮和星星的融合": {"buff":"20444","id": "SE","type": "技能","code":["UseSkill(444)"],},
+    "太陽和月亮和星星的奇蹟/憎惡": {"buff":"160","id": "SE","type": "技能","code":["UseSkill(434)"],},
+    
 }   
