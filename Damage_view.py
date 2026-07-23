@@ -53,7 +53,7 @@ def apply_round(value: float, factor: float, mode: str, name: str) -> float:
     # 直接加減（特殊）
     if name in ("MDEF減算","DEF減算"):
         return value - factor
-    if name in ("ATK%","前ATK","神威ATK","武器修煉ATK","砲彈ATK"):
+    if name in ("ATK%","前ATK","神威ATK","武器修煉ATK","砲彈ATK","靈氣劍"):
         return value + factor
     # 判斷要不要 +1
 
@@ -215,7 +215,7 @@ class StepDelegate(QStyledItemDelegate):
         painter.drawText(name_rect, Qt.AlignVCenter | Qt.AlignLeft, str(name))
         if name in ("MDEF減算","DEF減算"):
             ftxt = f"- {factor}" 
-        elif name in ("ATK%","前ATK","神威ATK","武器修煉ATK","砲彈ATK"):
+        elif name in ("ATK%","前ATK","神威ATK","武器修煉ATK","砲彈ATK","靈氣劍"):
             ftxt = f"+ {factor}"
         elif name in (NO_PLUS_ONE):
             ftxt = f"× {round(factor,2)}%"

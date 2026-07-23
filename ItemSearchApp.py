@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.24-260723"
+Version = "v0.3.25-260724"
 
 import sys, builtins, time
 import os
@@ -6235,6 +6235,8 @@ class ItemSearchApp(QWidget):
         tk_power = int(GSklv(424))*20  # 424
         #奇蹟/憎惡段
         SG_HATE = 1 if int(GUSklv(434)) == 1 else 0  # 434
+        #靈氣劍
+        LK_AURABLADE = base_lv * (3 + int(GSklv(355))) if int(GUSklv(355)) == 1 else 0  # 355
         """
         target_size       # 來自 體型 的數值
         target_element    # 屬性編號
@@ -7100,6 +7102,8 @@ class ItemSearchApp(QWidget):
                                 (damage_nodef,"raw","DEF減傷%"),
                                 #敵人DEF減算
                                 (target_defc,None,"DEF減算"),
+                                #靈氣劍固定數值
+                                (LK_AURABLADE,"+","靈氣劍"),
                                 #後遠傷% 技能判斷
                                 (delayed_MR_AttackDamage,1,"後計算遠傷%"),
                                 #裝備段技能增傷
@@ -7150,6 +7154,8 @@ class ItemSearchApp(QWidget):
                                 (damage_nodef,"raw","DEF減傷%"),
                                 #敵人DEF減算
                                 (target_defc,None,"DEF減算"),
+                                #靈氣劍固定數值
+                                (LK_AURABLADE,"+","靈氣劍"),
                                 #後遠傷% 技能判斷
                                 (delayed_MR_AttackDamage,1,"後計算遠傷%"),
                                 #裝備段技能增傷
@@ -11058,7 +11064,7 @@ class ItemSearchApp(QWidget):
                     self.jobhp = 0
                     self.jobsp = 0
 
-                    if base_lv and 201 <= base_lv <= 275:
+                    if base_lv and 201 <= base_lv <= 275:#HP/SP表取得範圍
                         idx = base_lv - 201
                         job_table = job_4th_hpsp.get(job_id)
 

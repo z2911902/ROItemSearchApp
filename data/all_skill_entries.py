@@ -87,6 +87,9 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "盧恩石1": {"buff":"318","id": "RK","type": "技能","code":["AddExtParam(1, 103, 30)","AddMeleeAttackDamage(1, 30)"]},
     "盧恩石5": {"buff":"322","id": "RK","type": "技能","code":["temp = GetSkillLevel(2010)","AddExtParam(0,302,temp / 10 * 4)","AddExtParam(1, 41, temp * 7)"]},
     "盧恩石10": {"buff":"1154","id": "RK","type": "技能","code":["AddExtParam(1, 111, 30)","AddExtParam(1, 112, 30)","AddDamage_Size(1, 0, 30)","AddDamage_Size(1, 1, 30)","AddDamage_Size(1, 2, 30)","AddDamage_CRI(1, 30)","AddMeleeAttackDamage(1, 30)","AddRangeAttackDamage(1, 30)"]},
+    "集中攻擊": {"buff":"105","id": "RK","type": "技能","code":["temp = GetSkillLevel(357)","AddExtParam(1, 207, (temp * 2) + 5)"]},
+    "靈氣劍": {"buff":"103","id": "RK","type": "技能","code":["UseSkill(355)"]},
+
     #皇家
     "盾咒LV3": {"buff":"1316","id": "RG","type": "技能","code":["AddExtParam(1, 41, 150)","AddExtParam(1, 200, 150)"]},
     "靈感": {"buff":"407","id": "RG","type": "技能","code":["UseSkill(2325)","temp = GetSkillLevel(2325)","AddExtParam(1, 49, 12 * temp)","AddExtParam(1, 103, 6 * temp)","AddExtParam(1, 104, 6 * temp)","AddExtParam(1, 105, 6 * temp)","AddExtParam(1, 106, 6 * temp)","AddExtParam(1, 107, 6 * temp)","AddExtParam(1, 108, 6 * temp)","AddExtParam(1, 111, 4 * temp)","AddExtParam(1, 41, 40 * temp)","AddExtParam(1, 200, 40 * temp)"]},
