@@ -10975,6 +10975,14 @@ class ItemSearchApp(QWidget):
         for gid, label in stat_fields.items():
             # ✅ MHP / MSP 同一行 + 加滑桿（HP% / SP%）
             if label == "MHP":
+                # 輸入值若來自角色登出畫面，先反推尚未套用 VIT / INT 倍率的基礎 HPSP。
+                self.use_logout_hpsp_checkbox = QCheckBox("使用登出畫面 HPSP 數值")
+                self.use_logout_hpsp_checkbox.setToolTip(
+                    "勾選後，MHP 會以 ceil(MHP / (1 + VIT / 100)) 回推；"
+                    "MSP 會以 ceil(MSP / (1 + INT / 100)) 回推。"
+                )
+                char_layout.addWidget(self.use_logout_hpsp_checkbox)
+
                 row_layout = QHBoxLayout()
                 row_layout.setAlignment(Qt.AlignLeft)
 
@@ -11029,6 +11037,7 @@ class ItemSearchApp(QWidget):
                     self.hp_slider,
                     self.sp_percent_label,
                     self.sp_slider,
+                    self.use_logout_hpsp_checkbox,
                 ]
                 self.MHP_MSP_widgets = [
                     self.hp_percent_label,
@@ -11121,7 +11130,22 @@ class ItemSearchApp(QWidget):
                     SPPercent = globals().get("SPPercent", 0)
                     VIT = globals().get("total_VIT", 0)
                     INT = globals().get("total_INT", 0)
-                    #print(f"{self.jobhp} {self.jobsp} {HP} {SP} {HPPercent} {SPPercent} {VIT} {INT} {mhp_input} {msp_input}")
+                    base_VIT = globals().get("base_VIT", 0)
+                    base_INT = globals().get("base_INT", 0)
+
+                    # 登出畫面顯示值已包含 VIT / INT 倍率。勾選後先回推基礎值，
+                    # 並依需求採無條件進位，之後再套用既有裝備與百分比加成。
+                    if self.use_logout_hpsp_checkbox.isChecked():
+                        hp_stat_multiplier = 1 + (base_VIT / 100)
+                        sp_stat_multiplier = 1 + (base_INT / 100)
+                        print(f"{hp_stat_multiplier}")
+                        if mhp_input > 0 and hp_stat_multiplier > 0:
+                            mhp_input = math.ceil(mhp_input / hp_stat_multiplier)
+                        if msp_input > 0 and sp_stat_multiplier > 0:
+                            msp_input = math.ceil(msp_input / sp_stat_multiplier)
+                            
+
+                    print(f"{self.jobhp} {self.jobsp} {HP} {SP} {HPPercent} {SPPercent} {VIT} {INT} {mhp_input} {msp_input}")
 
                     HP = HP * (1+HPPercent/100)
                     SP = SP * (1+SPPercent/100)
@@ -11168,6 +11192,7 @@ class ItemSearchApp(QWidget):
                 self.sp_slider.valueChanged.connect(update_hp_sp_slider_display)
                 self.input_fields["MHP"].textChanged.connect(update_hp_sp_slider_display)
                 self.input_fields["MSP"].textChanged.connect(update_hp_sp_slider_display)
+                self.use_logout_hpsp_checkbox.toggled.connect(update_hp_sp_slider_display)
                 self.input_fields["JOB"].currentIndexChanged.connect(update_hp_sp_slider_display)
                 
 
