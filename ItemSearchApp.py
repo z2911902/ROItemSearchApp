@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.4.0-260725"
+Version = "v0.4.1-260726"
 
 import sys, builtins, time
 import os
@@ -4434,29 +4434,29 @@ def parse_lua_effects_with_variables(
         #     {"name": "持續時間", "type": "value"},
         #     {"name": "機率", "type": "value"}
         # ])
-        # condition_effect = get_lua_call_args("Condition", line)
-        # if condition_effect and condition_met:
-        #     status_map = {
-        #         13: "霸體",
-        #         14: "移動速度增加",
-        #         15: "攻擊速度增加",
-        #         21: "集中",
-        #         26: "看見隱匿目標",
-        #     }
-        #     try:
-        #         status_id = int(eval_lua_arg(condition_effect, 0, 0))
-        #     except Exception:
-        #         status_id = 0
-        #     status_name = status_map.get(status_id, f"狀態ID {status_id}")
-        #     duration = eval_lua_arg(condition_effect, 1, None)
-        #     chance = eval_lua_arg(condition_effect, 2, None)
-        #     extra = []
-        #     if duration is not None:
-        #         extra.append(f"持續 {duration}")
-        #     if chance is not None:
-        #         extra.append(f"機率 {chance}%")
-        #     results.append(f"賦予狀態：{status_name}" + (f"（{'，'.join(extra)}）" if extra else ""))
-        #     continue
+        condition_effect = get_lua_call_args("Condition", line)
+        if condition_effect and condition_met:
+            status_map = {
+                13: "霸體",
+                14: "移動速度增加",
+                15: "攻擊速度增加",
+                21: "集中",
+                26: "看見隱匿目標",
+            }
+            try:
+                status_id = int(eval_lua_arg(condition_effect, 0, 0))
+            except Exception:
+                status_id = 0
+            status_name = status_map.get(status_id, f"狀態ID {status_id}")
+            duration = eval_lua_arg(condition_effect, 1, None)
+            chance = eval_lua_arg(condition_effect, 2, None)
+            extra = []
+            if duration is not None:
+                extra.append(f"持續 {duration}")
+            if chance is not None:
+                extra.append(f"機率 {chance}%")
+            results.append(f"賦予狀態：{status_name}" + (f"（{'，'.join(extra)}）" if extra else ""))
+            continue
 
 #待處理判斷
 #物理(物理反射%、對屬性減少傷害、對某種族的CRI+%
@@ -9748,13 +9748,144 @@ class ItemSearchApp(QWidget):
         return blocks
 
 
-    def load_equipment_incremental(self, equipment_lua_path: str, *, overwrite: bool = True):
+    @staticmethod
+    def _prefix_combiitem_ids(content: str, prefix):
+        """只替 Combiitem 套裝 ID 加上字首，不修改一般 Item ID。"""
+        if prefix is None:
+            return content
+
+        prefix_text = str(prefix).strip()
+        if not prefix_text:
+            return content
+        if not prefix_text.isdigit():
+            raise ValueError("combiitem_id_prefix 必須是整數或只包含數字的字串")
+
+        # Item 區塊內的 Combiitem = { 2000000001, ... }
+        # 這種清單本身不含巢狀大括號，因此不會誤吃最外層 Combiitem = { ... } 表。
+        inline_pattern = re.compile(
+            r"(\bCombiitem\s*=\s*\{)([^{}]*)(\})",
+            re.DOTALL,
+        )
+
+        def replace_inline_list(match):
+            head, body, tail = match.groups()
+
+            def replace_id(id_match):
+                return prefix_text + id_match.group(1)
+
+            body = re.sub(r"(?<![\w.])(\d+)(?![\w.])", replace_id, body)
+            return head + body + tail
+
+        content = inline_pattern.sub(replace_inline_list, content)
+
+        # 最外層 Combiitem 表中的 [2000000001] = { ... }。
+        # 只處理該表第一層的鍵，避免改到 Item = { ... } 或函式內其他數字。
+        section_pattern = re.compile(r"(?m)^Combiitem\s*=\s*\{")
+        section_match = section_pattern.search(content)
+        if not section_match:
+            return content
+
+        open_brace = content.find("{", section_match.start(), section_match.end())
+        if open_brace < 0:
+            return content
+
+        chars = list(content)
+        replacements = []
+        depth = 0
+        i = open_brace + 1
+        quote = None
+        line_comment = False
+        block_comment = False
+
+        while i < len(content):
+            ch = content[i]
+            nxt = content[i + 1] if i + 1 < len(content) else ""
+
+            if line_comment:
+                if ch == "\n":
+                    line_comment = False
+                i += 1
+                continue
+
+            if block_comment:
+                if ch == "]" and nxt == "]":
+                    block_comment = False
+                    i += 2
+                else:
+                    i += 1
+                continue
+
+            if quote:
+                if ch == "\\":
+                    i += 2
+                    continue
+                if ch == quote:
+                    quote = None
+                i += 1
+                continue
+
+            if ch == "-" and nxt == "-":
+                if content[i + 2:i + 4] == "[[":
+                    block_comment = True
+                    i += 4
+                else:
+                    line_comment = True
+                    i += 2
+                continue
+
+            if ch in ("'", '"'):
+                quote = ch
+                i += 1
+                continue
+
+            if ch == "{":
+                depth += 1
+                i += 1
+                continue
+
+            if ch == "}":
+                if depth == 0:
+                    break
+                depth -= 1
+                i += 1
+                continue
+
+            if depth == 0 and ch == "[":
+                key_match = re.match(r"\[(\d+)\]\s*=\s*\{", content[i:])
+                if key_match:
+                    number_start = i + 1
+                    number_end = number_start + len(key_match.group(1))
+                    replacements.append((number_start, number_end, prefix_text + key_match.group(1)))
+
+            i += 1
+
+        for start, end, replacement in reversed(replacements):
+            chars[start:end] = replacement
+
+        return "".join(chars)
+
+
+    def load_equipment_incremental(
+        self,
+        equipment_lua_path: str,
+        *,
+        overwrite: bool = True,
+        combiitem_id_prefix=None,
+    ):
         # 確保舊資料存在
         if not hasattr(self, "equipment_data") or self.equipment_data is None:
             self.equipment_data = {}
 
         with open(equipment_lua_path, "r", encoding="utf-8") as f:
             content = f.read()
+
+        content = self._prefix_combiitem_ids(
+            content,
+            combiitem_id_prefix,
+        )
+        prefix_text = "" if combiitem_id_prefix is None else str(combiitem_id_prefix).strip()
+        if prefix_text:
+            print(f"🔢 Combiitem ID 已加上字首 {prefix_text}")
 
         new_blocks = self.parse_equipment_blocks(content)
 
@@ -9763,6 +9894,9 @@ class ItemSearchApp(QWidget):
         skipped = 0
 
         for item_id, block in new_blocks.items():
+            current = item_id + 1
+            if (item_id >= 1000 and current % 1000 == 0):
+                print(f"  → 處理中 {item_id+1} 筆", end="\r")
             if item_id not in self.equipment_data:
                 self.equipment_data[item_id] = block
                 added += 1
@@ -10670,18 +10804,20 @@ class ItemSearchApp(QWidget):
 
         # === 載入（無論來源） ===
 
-        print("📖 載入 物品列表 ...")
+        print("📖 載入 TWRO物品列表 ...")
         self.parsed_items = parse_lub_file(iteminfo_path)
         print("📖 載入 自訂物品列表 ...")
         self.parsed_items = parse_lub_file(user_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="skip")
-        #self.parsed_items = parse_lub_file(kro_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="skip")
-        print("📖 載入 物品效果...")
+        print("📖 載入 KRO物品列表 ...")
+        self.parsed_items = parse_lub_file(kro_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="skip")
+        print("📖 載入 TWRO物品效果...")
         with open(equipment_lua_path, "r", encoding="utf-8") as f:
             content = f.read()
         self.equipment_data = self.parse_equipment_blocks(content)
         print("📖 載入 自定義物品效果...")
-        self.load_equipment_incremental(user_equipment_lua_path, overwrite=True) 
-        #self.load_equipment_incremental(kro_equipment_lua_path, overwrite=False) 
+        self.load_equipment_incremental(user_equipment_lua_path,overwrite=True) 
+        print("📖 載入 KRO物品效果...")
+        self.load_equipment_incremental(kro_equipment_lua_path, overwrite=False,combiitem_id_prefix=1) 
         print("📖 載入 技能清單...")
         load_skill_map("data/skillneme.csv") #讀取SKILL列表
         self.update_function_autocomplete_maps()
@@ -11875,8 +12011,28 @@ class ItemSearchApp(QWidget):
         self.btn_recompile.clicked.connect(self.recompile)
         #middle_layout.addWidget(self.btn_recompile)
         #self.btn_recompile.setVisible(False)#重新編譯先隱藏
-        
-       
+
+        # 限制寬度，但允許在範圍內隨視窗伸縮
+        self.result_box.setMinimumWidth(220)
+        self.result_box.setMaximumWidth(420)
+        self.result_box.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Fixed
+        )
+
+        # 不要讓最長的項目決定 ComboBox 的寬度
+        self.result_box.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+        )
+        self.result_box.setMinimumContentsLength(20)
+
+        # 下拉清單文字過長時顯示 ...
+        self.result_box.view().setTextElideMode(Qt.ElideRight)
+
+        self.result_box.currentIndexChanged.connect(self.display_item_info)
+        self.result_box.currentIndexChanged.connect(
+            self.update_total_effect_display
+)
 
         # ====== 技能指令分頁 ======
         function_tab = QWidget()
