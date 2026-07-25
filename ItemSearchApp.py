@@ -178,55 +178,6 @@ class InitWorker(QThread):
         finally:
             builtins.print = original_print
 
-from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QTextBrowser
-)
-from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices
-
-
-class UpdateDialog(QDialog):#顯示更新內容
-    def __init__(self, local_ver: str, remote_ver: str, notes_md: str, release_url: str, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle(tr("window.update_available"))
-        self.setModal(True)
-        self.resize(640, 520)
-
-        layout = QVBoxLayout(self)
-
-        title = QLabel(tr("label.version_info", local_ver=local_ver, remote_ver=remote_ver))
-        title.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        layout.addWidget(title)
-
-        link = QLabel(tr("label.release_link_html", release_url=release_url))
-        link.setOpenExternalLinks(True)
-        layout.addWidget(link)
-
-        self.browser = QTextBrowser()
-        # 讓 QTextBrowser 顯示 markdown（PySide6 支援 setMarkdown）
-        self.browser.setMarkdown(notes_md if notes_md.strip() else tr("update.empty_notes"))
-        self.browser.setReadOnly(True)
-
-        # 點連結開外部瀏覽器（避免某些情況下內建行為不一致）
-        self.browser.setOpenExternalLinks(False)
-        self.browser.anchorClicked.connect(lambda url: QDesktopServices.openUrl(QUrl(url.toString())))
-
-        layout.addWidget(self.browser, 1)
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch(1)
-
-        self.btn_update = QPushButton(tr("button.update_now"))
-        self.btn_cancel = QPushButton(tr("button.later"))
-
-        self.btn_update.clicked.connect(self.accept)
-        self.btn_cancel.clicked.connect(self.reject)
-
-        btn_row.addWidget(self.btn_update)
-        btn_row.addWidget(self.btn_cancel)
-        layout.addLayout(btn_row)
-
 
 from PySide6.QtWidgets import QProgressDialog, QMessageBox, QDialog
 from recompile_service import RecompileService
@@ -1909,10 +1860,6 @@ ZIP_URL_TEMPLATE = (
     "https://github.com/z2911902/ROItemSearchApp/releases/download/{ver}/ROItemSearchApp.zip"
 )
 
-def read_local_version(app_dir: str) -> str:
-    path = os.path.join(app_dir, "data", "version.txt")
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read().strip()
 
 def read_remote_version_github(timeout: int = 8) -> str:
     headers = {
@@ -7787,10 +7734,6 @@ class ItemSearchApp(QWidget):
             self.load_config()
         return self.update_mode or "online_only"
 
-    def get_api_key(self) -> str:
-        if not hasattr(self, "api_key"):
-            self.load_config()
-        return self.api_key or ""
 
     def open_compile_set(self):
         self.load_config()
@@ -11075,13 +11018,6 @@ class ItemSearchApp(QWidget):
 
         # 建立輸入欄位
         self.input_fields = {}
-
-        def get_part_slot_from_source(source_str):
-            for part_name, info in refine_parts.items():
-                if part_name in source_str:
-                    return info["slot"]
-            return 9999  # 未知來源排最後
-
 
         # 三欄主視窗布局
         main_layout = QHBoxLayout()
