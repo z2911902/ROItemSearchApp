@@ -9235,7 +9235,7 @@ class ItemSearchApp(QWidget):
         # 🔁 等所有 stat 欄位都建立後，再註冊 textChanged
         if hasattr(self, "_update_stat_point_callback"):
             for attr in ["STR", "AGI", "VIT", "INT", "DEX", "LUK", "POW", "STA", "WIS", "SPL", "CON", "CRT", "BaseLv"]:
-                self.input_fields[attr].textChanged.connect(self._update_stat_point_callback)
+                self.input_fields[attr].editingFinished.connect(self._update_stat_point_callback)
 
             # 主動執行一次，初始化顯示
             self._update_stat_point_callback()
@@ -10993,7 +10993,7 @@ class ItemSearchApp(QWidget):
 
                 mhp_field = QLineEdit()
                 mhp_field.setPlaceholderText("MHP (get(200))")
-                mhp_field.textChanged.connect(self.trigger_total_effect_update)
+                mhp_field.editingFinished.connect(self.trigger_total_effect_update)
                 mhp_field.setMaximumWidth(100)
                 self.input_fields["MHP"] = mhp_field
                 row_layout.addWidget(mhp_field)
@@ -11005,7 +11005,7 @@ class ItemSearchApp(QWidget):
 
                 msp_field = QLineEdit()
                 msp_field.setPlaceholderText("MSP (get(202))")
-                msp_field.textChanged.connect(self.trigger_total_effect_update)
+                msp_field.editingFinished.connect(self.trigger_total_effect_update)
                 msp_field.setMaximumWidth(100)
                 self.input_fields["MSP"] = msp_field
                 row_layout.addWidget(msp_field)
@@ -11138,14 +11138,14 @@ class ItemSearchApp(QWidget):
                     if self.use_logout_hpsp_checkbox.isChecked():
                         hp_stat_multiplier = 1 + (base_VIT / 100)
                         sp_stat_multiplier = 1 + (base_INT / 100)
-                        print(f"{hp_stat_multiplier}")
+                        # print(f"{hp_stat_multiplier}")
                         if mhp_input > 0 and hp_stat_multiplier > 0:
                             mhp_input = math.ceil(mhp_input / hp_stat_multiplier)
                         if msp_input > 0 and sp_stat_multiplier > 0:
                             msp_input = math.ceil(msp_input / sp_stat_multiplier)
                             
 
-                    print(f"{self.jobhp} {self.jobsp} {HP} {SP} {HPPercent} {SPPercent} {VIT} {INT} {mhp_input} {msp_input}")
+                    # print(f"{self.jobhp} {self.jobsp} {HP} {SP} {HPPercent} {SPPercent} {VIT} {INT} {mhp_input} {msp_input}")
 
                     HP = HP * (1+HPPercent/100)
                     SP = SP * (1+SPPercent/100)
@@ -11190,13 +11190,13 @@ class ItemSearchApp(QWidget):
                 # 連動：滑桿、以及 MHP/MSP 被改時都要更新顯示
                 self.hp_slider.valueChanged.connect(update_hp_sp_slider_display)                
                 self.sp_slider.valueChanged.connect(update_hp_sp_slider_display)
-                self.input_fields["MHP"].textChanged.connect(update_hp_sp_slider_display)
-                self.input_fields["MSP"].textChanged.connect(update_hp_sp_slider_display)
+                self.input_fields["MHP"].editingFinished.connect(update_hp_sp_slider_display)
+                self.input_fields["MSP"].editingFinished.connect(update_hp_sp_slider_display)
                 self.use_logout_hpsp_checkbox.toggled.connect(update_hp_sp_slider_display)
                 self.input_fields["JOB"].currentIndexChanged.connect(update_hp_sp_slider_display)
                 
 
-                self.input_fields["BaseLv"].textChanged.connect(update_hp_sp_slider_display)
+                self.input_fields["BaseLv"].editingFinished.connect(update_hp_sp_slider_display)
 
 
                 update_hp_sp_slider_display()
@@ -11232,7 +11232,7 @@ class ItemSearchApp(QWidget):
                 if label in default_values:
                     field.setText(str(default_values[label]))
                 field.setPlaceholderText(f"{label} (get({gid}))")
-                field.textChanged.connect(self.trigger_total_effect_update)
+                field.editingFinished.connect(self.trigger_total_effect_update)
                 field.setMaximumWidth(50)#調整寬度
                 self.input_fields[label] = field
                 row_layout.addWidget(field)
@@ -11245,9 +11245,9 @@ class ItemSearchApp(QWidget):
                     row_layout.addWidget(bonus_label)
                     self.stat_bonus_labels[label] = bonus_label
                     if label == "VIT":
-                        self.input_fields["VIT"].textChanged.connect(update_hp_sp_slider_display)
+                        self.input_fields["VIT"].editingFinished.connect(update_hp_sp_slider_display)
                     if label == "INT":
-                        self.input_fields["INT"].textChanged.connect(update_hp_sp_slider_display)
+                        self.input_fields["INT"].editingFinished.connect(update_hp_sp_slider_display)
                 
                 if label == "JobLv":
                     bonus_label = QLabel(tr("label.reserved_unused"))
@@ -11472,7 +11472,7 @@ class ItemSearchApp(QWidget):
             refine_input.setPlaceholderText(tr("placeholder.refine"))
             refine_input.setMaximumWidth(40)
             refine_input.setText("0")
-            refine_input.textChanged.connect(self.trigger_total_effect_update)
+            refine_input.editingFinished.connect(self.trigger_total_effect_update)
             equip_row_layout.addWidget(refine_input)
 
             # ▶️ 階級下拉
@@ -12689,8 +12689,8 @@ class ItemSearchApp(QWidget):
         self.on_function_changed()
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
         # 綁定輸入欄事件（動態更新）
-        #self.input_fields["DEX"].textChanged.connect(self.update_dex_int_half_note)
-        #self.input_fields["INT"].textChanged.connect(self.update_dex_int_half_note)
+        #self.input_fields["DEX"].editingFinished.connect(self.update_dex_int_half_note)
+        #self.input_fields["INT"].editingFinished.connect(self.update_dex_int_half_note)
         self.hp_slider.valueChanged.connect(self.replace_custom_calc_content)                
         self.sp_slider.valueChanged.connect(self.replace_custom_calc_content)
         self.unsync_button.clicked.connect(update_hp_sp_slider_display)

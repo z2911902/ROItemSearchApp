@@ -154,7 +154,7 @@ ROItemSearchApp/
 
 ## 問題回報
 
-發現錯誤或資料缺漏時，請至 [Issues](../../issues) 或是[巴哈文章](https://forum.gamer.com.tw/Co.php?bsn=4212&sn=2911367)、站內信、Now回報。
+發現錯誤或資料缺漏時，請至 [Issues](../../issues) 或是[巴哈姆特文章](https://forum.gamer.com.tw/Co.php?bsn=4212&sn=2911367)、站內信、Now回報。
 
 請附上以下資訊：
 
