@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.4.1-260726"
+Version = "v0.4.2-260726"
 
 import sys, builtins, time
 import os
@@ -239,8 +239,8 @@ import json
 import math
 from collections import defaultdict
 import pandas as pd
-from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor
+from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve, QUrl
+from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices
 from sympy import sympify, symbols, Symbol
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
@@ -10986,6 +10986,20 @@ class ItemSearchApp(QWidget):
         self.result_box.currentIndexChanged.connect(self.display_item_info)
         self.result_box.currentIndexChanged.connect(self.update_total_effect_display)#過濾總效果顯示
 
+        self.divine_pride_button = QPushButton(
+            tr("button.open_divine_pride", "開啟目前物品的 Divine Pride 連結")
+        )
+        self.divine_pride_button.setEnabled(False)
+        self.divine_pride_button.setToolTip(
+            tr("tooltip.open_divine_pride", "開啟目前選取物品的 Divine Pride 資料頁")
+        )
+        self.divine_pride_button.clicked.connect(
+            self.open_selected_item_on_divine_pride
+        )
+        self.result_box.currentIndexChanged.connect(
+            self.update_divine_pride_button
+        )
+
         self.name_field = QLineEdit()
         self.name_field.setReadOnly(True)
 
@@ -11052,9 +11066,9 @@ class ItemSearchApp(QWidget):
             # ✅ MHP / MSP 同一行 + 加滑桿（HP% / SP%）
             if label == "MHP":
                 # 輸入值若來自角色登出畫面，先反推尚未套用 VIT / INT 倍率的基礎 HPSP。
-                self.use_logout_hpsp_checkbox = QCheckBox("使用登出畫面 HPSP 數值")
+                self.use_logout_hpsp_checkbox = QCheckBox("輸入的HP/SP 使用登出畫面的 HP/SP 數值")
                 self.use_logout_hpsp_checkbox.setToolTip(
-                    "勾選後，MHP 會以 ceil(MHP / (1 + VIT / 100)) 回推；"
+                    "勾選後，輸入的 MHP 會以 ceil(MHP / (1 + VIT / 100)) 回推；"
                     "MSP 會以 ceil(MSP / (1 + INT / 100)) 回推。"
                 )
                 char_layout.addWidget(self.use_logout_hpsp_checkbox)
@@ -11935,6 +11949,13 @@ class ItemSearchApp(QWidget):
         # 使用函式新增橫向排列項目
         add_labeled_row(middle_layout, "查詢關鍵字", self.search_input)
         add_labeled_row(middle_layout, "符合項目", self.result_box)
+        
+        # 物品下拉選單右側提供 Divine Pride 外部資料連結。
+        result_selector_widget = QWidget()
+        result_selector_layout = QHBoxLayout(result_selector_widget)
+        result_selector_layout.setContentsMargins(0, 0, 0, 0)
+        result_selector_layout.setSpacing(6)
+        middle_layout.addWidget(self.divine_pride_button)
         #add_labeled_row(middle_layout, "中文名稱", self.name_field)
         #add_labeled_row(middle_layout, "韓文名稱", self.kr_name_field)
         #add_labeled_row(middle_layout, "鑲嵌孔數", self.slot_field)
@@ -13287,6 +13308,56 @@ class ItemSearchApp(QWidget):
         self.global_grade_combo.setVisible(False)
         self.trigger_total_effect_update()
 
+
+    def update_divine_pride_button(self, *_):
+        """依目前下拉選項更新 Divine Pride 按鈕狀態。"""
+        if not hasattr(self, "divine_pride_button"):
+            return
+
+        item_id = self.result_box.currentData()
+        try:
+            item_id = int(item_id)
+        except (TypeError, ValueError):
+            item_id = 0
+
+        enabled = item_id > 0
+        self.divine_pride_button.setEnabled(enabled)
+
+        if enabled:
+            self.divine_pride_button.setToolTip(
+                f"開啟物品 ID {item_id} 的 Divine Pride 資料頁"
+            )
+        else:
+            self.divine_pride_button.setToolTip(
+                tr("tooltip.open_divine_pride", "請先選擇一個物品")
+            )
+
+    def open_selected_item_on_divine_pride(self):
+        """使用系統預設瀏覽器開啟目前物品的 Divine Pride 頁面。"""
+        item_id = self.result_box.currentData()
+        try:
+            item_id = int(item_id)
+        except (TypeError, ValueError):
+            QMessageBox.information(
+                self,
+                tr("message.title.notice", "提示"),
+                tr("message.select_item_first", "請先選擇一個有效物品。"),
+            )
+            return
+
+        url = QUrl(
+            f"https://www.divine-pride.net/database/item/{item_id}"
+        )
+        if not QDesktopServices.openUrl(url):
+            QMessageBox.warning(
+                self,
+                tr("message.title.notice", "提示"),
+                tr(
+                    "message.open_link_failed",
+                    "無法開啟瀏覽器連結：{url}",
+                    url=url.toString(),
+                ),
+            )
 
     def update_combobox(self, initial=False):
         keyword_text = self.search_input.text().strip()
