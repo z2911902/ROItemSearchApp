@@ -1234,13 +1234,7 @@ def get_job_info(job_dict, job_id):
 
     return None, None
 
-def run_rrf_main():
-       # 0. 載入 iteminfo
-    iteminfo_dict = parse_lub_file("data/iteminfo_new.lua")
-    with open("data/EquipmentProperties.lua", "r", encoding="utf-8") as f:
-        content = f.read()
-    sequipment_data = parse_equipment_blocks(content)
-    iteminfo_dict = resolve_name_conflicts(iteminfo_dict ,sequipment_data)#重複物品名稱加上id
+def run_rrf_main(iteminfo_dict=None, sequipment_data=None):
     def get_itemname(item_id):
         info = iteminfo_dict.get(item_id)
         if info:

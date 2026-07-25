@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.4.2-260726"
+Version = "v0.4.3-260726"
 
 import sys, builtins, time
 import os
@@ -13211,7 +13211,10 @@ class ItemSearchApp(QWidget):
 
         # 執行 rrf_to_App.py
         #subprocess.run(["python", "rrf_to_App.py"])
-        json_path = run_rrf_main()
+        json_path = run_rrf_main(
+            iteminfo_dict=self.parsed_items,
+            sequipment_data=self.equipment_data,
+        )
         if not json_path:
             return
         bridge_file = "tmp/rrf_output_path.txt"
