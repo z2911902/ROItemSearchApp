@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.3.25-260724"
+Version = "v0.4.0-260725"
 
 import sys, builtins, time
 import os
@@ -277,7 +277,7 @@ def compile_ui_files(ui_dir="UI"):
                 print(f"[UI] 轉換失敗: {e}")
 
 # === 主程式執行前，先自動轉換 UI ===
-compile_ui_files()
+#compile_ui_files() #應該是不會再用這個了 先註解掉
 
 import importlib.util
 import sys
@@ -4614,7 +4614,8 @@ def parse_lub_file(filename, existing_items=None, duplicate_mode="skip"):  # 字
 
     for index, (item_id, body) in enumerate(item_entries, start=1):
         try:
-            print(f"  → 正在讀取第 {index}/{total} 筆", end="\r")
+            if index % 1000 == 0 or index == total:
+                print(f"  → 正在讀取第 {index}/{total} 筆", end="\r")
             item_id = int(item_id)
 
             identified_name = re.search(
@@ -9729,6 +9730,9 @@ class ItemSearchApp(QWidget):
         print(f"📦 開始解析裝備區塊，共 {total} 筆資料")
 
         for i, match in enumerate(matches):
+            current = i + 1
+            if (total >= 1000 and current % 1000 == 0) or current == total:
+                print(f"  → 處理中 {i+1}/{total} 筆", end="\r")
             item_id = int(match.group(1))
             start = match.end()
             end = matches[i+1].start() if i+1 < len(matches) else len(content)
@@ -9739,7 +9743,7 @@ class ItemSearchApp(QWidget):
             block_text_full = "{" + block_text.rstrip(",") + "}"
 
             blocks[item_id] = block_text_full
-            print(f"  → 處理中 {i+1}/{total} 筆", end="\r")
+
         print(f"\n✅ 解析完成，共 {len(blocks)} 筆裝備。")
         return blocks
 
@@ -11782,8 +11786,6 @@ class ItemSearchApp(QWidget):
         
 
         # ===== 中間：裝備查詢區塊 =====
-        middle_widget = QWidget()
-        middle_layout = QVBoxLayout(middle_widget)
         # 建立 TabWidget
         self.tab_widget = QTabWidget()
 
@@ -12329,9 +12331,6 @@ class ItemSearchApp(QWidget):
         self.skillEditor_button = QPushButton(tr("button.edit_skill"))
         self.skillEditor_button.clicked.connect(lambda: open_skill_editor(self))
         button_row.addWidget(self.skillEditor_button)
-
-
-        layout.addLayout(button_row)
 
         # 把這整排按鈕加進主 layout（通常是 QVBoxLayout）
         layout.addLayout(button_row)
@@ -13453,45 +13452,81 @@ class ItemSearchApp(QWidget):
             
 
 if __name__ == "__main__":
-    # 必須在建立 QApplication 前設定，否則 Qt 不會套用新的縮放倍率。
+    # 必須在建立 QApplication 前設定縮放倍率
     startup_ui_scale = get_startup_ui_scale_factor(sys.argv)
     os.environ["QT_SCALE_FACTOR"] = format_ui_scale_factor(startup_ui_scale)
 
     app = QApplication(sys.argv)
 
-
     if len(sys.argv) > 1 and sys.argv[1] == "rrf":
         from RRF_compile_damage_view import MainUI
+
         window = MainUI()
         window.show()
         sys.exit(app.exec())
 
-    # 預設：原本流程
+    # 保留參考，避免被 Python 回收
     loading = LoadingDialog()
-    loading.show()    
+    window = None
+    worker = None
 
-    window = ItemSearchApp()
-    worker = InitWorker(app_instance=window)
-    DataRegistry.window = window
+    # 先顯示小視窗
+    loading.show()
+    loading.raise_()
+    loading.activateWindow()
+    loading.repaint()
 
-    worker.log_signal.connect(loading.append_text)
-    worker.progress_signal.connect(loading.update_progress)
+    # 強制 Qt 先處理視窗顯示事件
+    app.processEvents()
+
+    def start_initialization():
+        global window, worker
+
+        loading.update_progress("正在建立主程式介面...")
+        loading.append_text("正在建立主程式介面...")
+        app.processEvents()
+
+        # QWidget 必須在主執行緒建立
+        window = ItemSearchApp()
+        DataRegistry.window = window
+
+        loading.update_progress("正在載入資料...")
+        loading.append_text("主介面建立完成，開始載入資料...")
+        app.processEvents()
+
+        worker = InitWorker(app_instance=window)
+
+        worker.log_signal.connect(loading.append_text)
+        worker.progress_signal.connect(loading.update_progress)
+        worker.done_signal.connect(on_done)
+
+        worker.start()
 
     def on_done(data):
-        print("📖 載入 外部MAP ...")
+        global window
+
+        loading.update_progress("正在更新外部資料...")
+        loading.append_text("載入外部 MAP...")
+        app.processEvents()
+
         DataRegistry.reload_all()
+
+        loading.update_progress("正在更新主介面...")
         loading.append_text("初始化完成，正在更新介面...")
+        app.processEvents()
 
         window.parsed_items = data or {}
         window.update_combobox()
 
         window.resize(1650, 900)
         window.show()
+        window.raise_()
+        window.activateWindow()
 
         QTimer.singleShot(1000, loading.close)
 
-    worker.done_signal.connect(on_done)
-    worker.start()
+    # 先讓 Qt 事件迴圈開始，再執行後續初始化
+    QTimer.singleShot(0, start_initialization)
 
     sys.exit(app.exec())
 
