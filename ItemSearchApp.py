@@ -1,5 +1,5 @@
 #部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.4.3-260726"
+Version = "v0.4.4-260726"
 
 import sys, builtins, time
 import os
@@ -4721,11 +4721,12 @@ class PreferencesDialog(QDialog):
         current_mode: str,
         current_api_key: str = "",
         current_ui_scale: float = DEFAULT_UI_SCALE_FACTOR,
+        current_load_kro_data: bool = False,
         parent=None,
     ):
         super().__init__(parent)
         self.setWindowTitle(tr("window.preferences"))
-        self.resize(340, 250)
+        self.resize(360, 300)
 
         layout = QVBoxLayout(self)
 
@@ -4745,6 +4746,23 @@ class PreferencesDialog(QDialog):
 
         hl.addWidget(self.mode_combo)
         layout.addLayout(hl)
+        
+        # 說明
+        tip = QLabel(tr("label.update_mode_tip"))
+        tip.setWordWrap(True)
+        layout.addWidget(tip)
+        # KRO 裝備資料為選用來源；未勾選時不下載、不檢查也不載入兩個 KRO 檔案。
+        self.load_kro_cb = QCheckBox(
+            tr("checkbox.load_kro_equipment_data", "載入 KRO 裝備資料")
+        )
+        self.load_kro_cb.setChecked(bool(current_load_kro_data))
+        self.load_kro_cb.setToolTip(
+            tr(
+                "tooltip.load_kro_equipment_data",
+                "啟用後會下載並載入 KRO_itemInfo_true.lua 與 KRO_equipmentproperties.lua。",
+            )
+        )
+        layout.addWidget(self.load_kro_cb)
 
         # 介面縮放倍率（Qt 需在 QApplication 建立前套用，因此下次啟動生效）
         scale_row = QHBoxLayout()
@@ -4776,10 +4794,6 @@ class PreferencesDialog(QDialog):
         scale_tip.setWordWrap(True)
         layout.addWidget(scale_tip)
 
-        # 說明
-        tip = QLabel(tr("label.update_mode_tip"))
-        tip.setWordWrap(True)
-        layout.addWidget(tip)
         # ✅ 新增：API Key
         ak = QHBoxLayout()
         ak.addWidget(QLabel(tr("label.api_key")))
@@ -4823,6 +4837,9 @@ class PreferencesDialog(QDialog):
 
     def selected_ui_scale(self) -> float:
         return normalize_ui_scale_factor(self.ui_scale_combo.currentData())
+
+    def should_load_kro_data(self) -> bool:
+        return self.load_kro_cb.isChecked()
 
 
 
@@ -7706,6 +7723,7 @@ class ItemSearchApp(QWidget):
         self.update_mode = "online_only"
         self.api_key = ""
         self.ui_scale_factor = DEFAULT_UI_SCALE_FACTOR
+        self.load_kro_equipment_data = False
 
         cfg = load_config_data()
         self.update_mode = cfg.get("update_mode", self.update_mode)
@@ -7714,12 +7732,25 @@ class ItemSearchApp(QWidget):
             cfg.get("ui_scale_factor", self.ui_scale_factor)
         )
 
+        kro_setting = cfg.get(
+            "load_kro_equipment_data", self.load_kro_equipment_data
+        )
+        if isinstance(kro_setting, str):
+            self.load_kro_equipment_data = kro_setting.strip().lower() in (
+                "1", "true", "yes", "on"
+            )
+        else:
+            self.load_kro_equipment_data = bool(kro_setting)
+
     def save_config(self):
         cfg = {
             "update_mode": getattr(self, "update_mode", "online_only"),
             "api_key": getattr(self, "api_key", ""),
             "ui_scale_factor": normalize_ui_scale_factor(
                 getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
+            ),
+            "load_kro_equipment_data": bool(
+                getattr(self, "load_kro_equipment_data", False)
             ),
         }
         try:
@@ -7734,32 +7765,53 @@ class ItemSearchApp(QWidget):
             self.load_config()
         return self.update_mode or "online_only"
 
+    def should_load_kro_equipment_data(self) -> bool:
+        if not hasattr(self, "load_kro_equipment_data"):
+            self.load_config()
+        return bool(self.load_kro_equipment_data)
+
 
     def open_compile_set(self):
         self.load_config()
         previous_ui_scale = normalize_ui_scale_factor(
             getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
         )
+        previous_load_kro = self.should_load_kro_equipment_data()
         dlg = PreferencesDialog(
             current_mode=self.update_mode,
             current_api_key=getattr(self, "api_key", ""),
             current_ui_scale=previous_ui_scale,
+            current_load_kro_data=previous_load_kro,
             parent=self
         )
         if dlg.exec() == QDialog.Accepted:
             self.update_mode = dlg.selected_mode()
             self.api_key = dlg.api_key()
             self.ui_scale_factor = dlg.selected_ui_scale()
+            self.load_kro_equipment_data = dlg.should_load_kro_data()
             self.save_config()
 
+            restart_messages = []
             if self.ui_scale_factor != previous_ui_scale:
-                QMessageBox.information(
-                    self,
-                    tr("window.preferences"),
+                restart_messages.append(
                     tr(
                         "message.ui_scale_restart_required",
                         "介面縮放已儲存，請重新啟動程式以套用新倍率。",
-                    ),
+                    )
+                )
+            if self.load_kro_equipment_data != previous_load_kro:
+                restart_messages.append(
+                    tr(
+                        "message.kro_data_restart_required",
+                        "KRO 裝備資料設定已儲存，請重新啟動程式以套用。",
+                    )
+                )
+
+            if restart_messages:
+                QMessageBox.information(
+                    self,
+                    tr("window.preferences"),
+                    "\n".join(restart_messages),
                 )
 
 
@@ -8955,6 +9007,13 @@ class ItemSearchApp(QWidget):
             ("EnchantName.lua",         "data/EnchantName.lua"),
 
         ]
+
+        # 未啟用時不把 KRO 檔案放進更新清單，因此 UI 不顯示，也不會檢查。
+        if self.should_load_kro_equipment_data():
+            items.extend([
+                ("KRO_itemInfo_true.lua", "data/KRO_itemInfo_true.lua"),
+                ("KRO_equipmentproperties.lua", "data/KRO_equipmentproperties.lua"),
+            ])
 
         # 建一次 service 重用：放成 self 屬性，避免被 GC
         if not hasattr(self, "_recompile_service"):
@@ -10314,12 +10373,15 @@ class ItemSearchApp(QWidget):
         from urllib.error import URLError, HTTPError
 
         self.current_file = None
+        load_kro_data = self.should_load_kro_equipment_data()
 
         # === 線上來源（已整理好的 Lua） ===
         ONLINE_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/iteminfo_new.lua"
         ONLINE_USER_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/User_iteminfo_new.lua"
         ONLINE_EQUIP_URL    = "https://z2911902.github.io/ROItemSearchApp/data/EquipmentProperties.lua"
         ONLINE_User_EQUIP_URL    = "https://z2911902.github.io/ROItemSearchApp/data/User_EquipmentProperties.lua"
+        ONLINE_KRO_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/KRO_itemInfo_true.lua"
+        ONLINE_KRO_EQUIP_URL = "https://z2911902.github.io/ROItemSearchApp/data/KRO_equipmentproperties.lua"
         ONLINE_EnchantList_URL = "https://z2911902.github.io/ROItemSearchApp/data/EnchantList.lua"
         ONLINE_ItemDBNameTbl_URL = "https://z2911902.github.io/ROItemSearchApp/data/ItemDBNameTbl.lua"
         ONLINE_ItemReformSystem_URL = "https://z2911902.github.io/ROItemSearchApp/data/ItemReformSystem.lua"
@@ -10670,6 +10732,8 @@ class ItemSearchApp(QWidget):
         miss_User_item  = not os.path.exists(user_iteminfo_path)
         miss_equip = not os.path.exists(equipment_lua_path)
         miss_user_equip = not os.path.exists(user_equipment_lua_path)
+        miss_kro_item = load_kro_data and not os.path.exists(kro_iteminfo_path)
+        miss_kro_equip = load_kro_data and not os.path.exists(kro_equipment_lua_path)
         miss_EnchantList  = not os.path.exists(EnchantList_path)
         miss_ItemDBNameTbl  = not os.path.exists(ItemDBNameTbl_path)
         miss_ItemReformSystem  = not os.path.exists(ItemReformSystem_path)
@@ -10690,9 +10754,34 @@ class ItemSearchApp(QWidget):
         # === 模式分流 ===
         if mode == "local_only":
             print(f"編譯方式 📖 本機模式")
-            if not (os.path.exists(iteminfo_path) and os.path.exists(equipment_lua_path) and os.path.exists(EnchantList_path) and os.path.exists(ItemDBNameTbl_path) and os.path.exists(ItemReformSystem_path) and os.path.exists(EFSTIDs_path) and os.path.exists(stateiconinfo_path)):
+            local_required_files = [
+                iteminfo_path,
+                equipment_lua_path,
+                EnchantList_path,
+                ItemDBNameTbl_path,
+                ItemReformSystem_path,
+                EFSTIDs_path,
+                stateiconinfo_path,
+            ]
+            if not all(os.path.exists(path) for path in local_required_files):
                 if not local_fill_missing():
-                    print("❌ 本地補齊失敗"); return
+                    print("❌ 本地補齊失敗")
+                    return
+
+            # KRO 檔案不是 TWRO GRF 的本地反編譯來源；啟用時必須已存在。
+            if load_kro_data:
+                kro_required_files = [kro_iteminfo_path, kro_equipment_lua_path]
+                missing_kro_files = [
+                    os.path.basename(path)
+                    for path in kro_required_files
+                    if not os.path.exists(path)
+                ]
+                if missing_kro_files:
+                    print(
+                        "❌ 本機模式缺少 KRO 資料檔："
+                        + "、".join(missing_kro_files)
+                    )
+                    return
         else:
             print(f"編譯方式 ☁️ 線上模式")
             # 只線上：若本地已存在就不下載；只有缺檔才下載。失敗則停止。            
@@ -10701,6 +10790,8 @@ class ItemSearchApp(QWidget):
             if miss_User_item:  targets.append((ONLINE_USER_ITEMINFO_URL, user_iteminfo_path))
             if miss_equip: targets.append((ONLINE_EQUIP_URL,    equipment_lua_path))
             if miss_user_equip: targets.append((ONLINE_User_EQUIP_URL,    user_equipment_lua_path))
+            if miss_kro_item: targets.append((ONLINE_KRO_ITEMINFO_URL, kro_iteminfo_path))
+            if miss_kro_equip: targets.append((ONLINE_KRO_EQUIP_URL, kro_equipment_lua_path))
             if miss_EnchantList: targets.append((ONLINE_EnchantList_URL,    EnchantList_path))
             if miss_ItemDBNameTbl: targets.append((ONLINE_ItemDBNameTbl_URL,    ItemDBNameTbl_path))
             if miss_ItemReformSystem: targets.append((ONLINE_ItemReformSystem_URL,    ItemReformSystem_path))
@@ -10741,6 +10832,11 @@ class ItemSearchApp(QWidget):
                 stateiconinfo_path,
 
             ]
+            if load_kro_data:
+                required_files.extend([
+                    kro_iteminfo_path,
+                    kro_equipment_lua_path,
+                ])
             if not all(os.path.exists(path) for path in required_files):
                 print("❌ online_only 模式：仍有檔案缺失，停止")
                 return
@@ -10751,16 +10847,26 @@ class ItemSearchApp(QWidget):
         self.parsed_items = parse_lub_file(iteminfo_path)
         print("📖 載入 自訂物品列表 ...")
         self.parsed_items = parse_lub_file(user_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="skip")
-        print("📖 載入 KRO物品列表 ...")
-        self.parsed_items = parse_lub_file(kro_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="skip")
+        if load_kro_data:
+            print("📖 載入 KRO物品列表 ...")
+            self.parsed_items = parse_lub_file(
+                kro_iteminfo_path,
+                existing_items=self.parsed_items,
+                duplicate_mode="skip",
+            )
         print("📖 載入 TWRO物品效果...")
         with open(equipment_lua_path, "r", encoding="utf-8") as f:
             content = f.read()
         self.equipment_data = self.parse_equipment_blocks(content)
         print("📖 載入 自定義物品效果...")
         self.load_equipment_incremental(user_equipment_lua_path,overwrite=True) 
-        print("📖 載入 KRO物品效果...")
-        self.load_equipment_incremental(kro_equipment_lua_path, overwrite=False,combiitem_id_prefix=1) 
+        if load_kro_data:
+            print("📖 載入 KRO物品效果...")
+            self.load_equipment_incremental(
+                kro_equipment_lua_path,
+                overwrite=False,
+                combiitem_id_prefix=1,
+            )
         print("📖 載入 技能清單...")
         load_skill_map("data/skillneme.csv") #讀取SKILL列表
         self.update_function_autocomplete_maps()
