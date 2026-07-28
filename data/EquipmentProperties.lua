@@ -78559,20 +78559,7 @@ Item = {
   },
   [410556] = {
     Type = "armor",
-    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-    OnStartEquip = function()
-      AddDamage_Size(1, 0, 5)
-      AddDamage_Size(1, 1, 5)
-      AddDamage_Size(1, 2, 5)
-      AddMDamage_Size(1, 0, 5)
-      AddMDamage_Size(1, 1, 5)
-      AddMDamage_Size(1, 2, 5)
-      RaceAddDamage(9999, 5)
-      AddMdamage_Race(9999, 5)
-      AddDamage_Property(1, 10, 5)
-      AddMDamage_Property(1, 10, 5)
-      AddEXPPercent_KillRace(9999, 10)
-    end
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
   },
   [31705] = {
     Type = "armor",
@@ -80283,7 +80270,6 @@ Item = {
       AddExtParam(0, 243, 10)
       AddMdamage_Class(0, 20)
       AddMdamage_Class(1, 20)
-      AddMdamage_Class(2, 20)
     end,
     Combiitem = {2000004991}
   },
@@ -80302,7 +80288,7 @@ Item = {
       AddIgnore_RES_RacePercent(4, 10)
       AddIgnore_RES_RacePercent(7, 10)
       AddIgnore_RES_RacePercent(1, 10)
-      AddExtParam(0, 52, 10)
+      AddExtParam(0, 52, 100)
       AddExtParam(0, 54, 1)
       AddDamage_CRI(1, 20)
       AddRangeAttackDamage(1, 10)
@@ -80349,8 +80335,7 @@ Item = {
       SubSpellCastTime(10)
       SubSFCTEquipAmount(401481, 500, 0)
       AddExtParam(0, 140, 10)
-      AddMdamage_Class(0, 10)
-      AddMdamage_Class(1, 10)
+      AddMDamage_Property(1, 10, 10)
     end,
     Combiitem = {2000004994}
   },
@@ -141091,12 +141076,12 @@ Item = {
       temp_int = get(35)
       temp_dex = get(36)
       temp_luk = get(37)
-      temp = GetRefineLevel(10)
+      temp = GetRefineLevel(GetLocation())
       if 98 < temp_int then
-        AddSkillMDamage(10, 5)
+        AddMDamage_Property(1, 10, 5)
       end
       if 11 < temp then
-        AddSkillMDamage(10, 5)
+        AddMDamage_Property(1, 10, 5)
       end
     end,
     Combiitem = {2000004991}
@@ -141117,7 +141102,7 @@ Item = {
       temp_int = get(35)
       temp_dex = get(36)
       temp_luk = get(37)
-      temp = GetRefineLevel(10)
+      temp = GetRefineLevel(GetLocation())
       if 98 < temp_luk then
         AddDamage_CRI(1, 5)
         AddExtParam(0, 52, 30)
@@ -141145,7 +141130,7 @@ Item = {
       temp_int = get(35)
       temp_dex = get(36)
       temp_luk = get(37)
-      temp = GetRefineLevel(10)
+      temp = GetRefineLevel(GetLocation())
       if 98 < temp_str then
         AddDamage_Property(1, 10, 5)
       end
@@ -141171,7 +141156,7 @@ Item = {
       temp_int = get(35)
       temp_dex = get(36)
       temp_luk = get(37)
-      temp = GetRefineLevel(10)
+      temp = GetRefineLevel(GetLocation())
       if 98 < temp_vit then
         SubSpellDelay(3)
       end
@@ -141197,7 +141182,7 @@ Item = {
       temp_int = get(35)
       temp_dex = get(36)
       temp_luk = get(37)
-      temp = GetRefineLevel(10)
+      temp = GetRefineLevel(GetLocation())
       if 98 < temp_dex then
         AddDamage_HIT(1, 5)
       end
@@ -225287,9 +225272,8 @@ Combiitem = {
     Item = {300916, 401479},
     OnStartEquip = function()
       AddEXPPercent_KillRace(9999, 10)
-      AddDamage_Size(1, 0, 20)
-      AddDamage_Size(1, 1, 20)
-      AddDamage_Size(1, 2, 20)
+      ClassAddDamage(1, 1, 20)
+      ClassAddDamage(0, 1, 20)
     end
   },
   [2000004993] = {
@@ -225306,7 +225290,7 @@ Combiitem = {
     OnStartEquip = function()
       AddEXPPercent_KillRace(9999, 10)
       SubSpellDelay(10)
-      SubSFCTEquipAmount(401481, 500, 0)
+      SubSFCTEquipAmount(2000004994, 500, 0)
     end
   },
   [2000004995] = {
