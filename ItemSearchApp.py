@@ -1,5 +1,5 @@
-#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.4.4-260726"
+﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
+Version = "v0.4.5-260802"
 
 import sys, builtins, time
 import os
@@ -10846,7 +10846,7 @@ class ItemSearchApp(QWidget):
         print("📖 載入 TWRO物品列表 ...")
         self.parsed_items = parse_lub_file(iteminfo_path)
         print("📖 載入 自訂物品列表 ...")
-        self.parsed_items = parse_lub_file(user_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="skip")
+        self.parsed_items = parse_lub_file(user_iteminfo_path, existing_items=self.parsed_items,duplicate_mode="overwrite")
         if load_kro_data:
             print("📖 載入 KRO物品列表 ...")
             self.parsed_items = parse_lub_file(
