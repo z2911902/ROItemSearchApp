@@ -9,13 +9,14 @@ import difflib
 import unicodedata
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QCheckBox,
     QComboBox,
     QCompleter,
     QDialog,
@@ -796,8 +797,8 @@ class LapineProbabilityEditor(QDialog):
         self.enchant_names = dict(enchant_names or {})
         self.box_item_id = int(box_item_id or 0)
         self.default_title = str(default_title or self.table_key)
-        self.setWindowTitle("Lapine 附魔機率編輯器")
-        self.resize(1280, 900)
+        self.setWindowTitle("附加能力附魔機率編輯器")
+        self.resize(1480, 900)
 
         root = QVBoxLayout(self)
         meta = QFormLayout()
@@ -1455,20 +1456,33 @@ class LapineProbabilityEditor(QDialog):
         return {"groups": parsed_groups, "rows": rows, "warnings": warnings}
 
     @staticmethod
+    def _row_has_any_input(table: QTableWidget, row: int) -> bool:
+        """Return whether an editor row contains any user-entered enchant data."""
+        combo = table.cellWidget(row, LapineProbabilityEditor.COL_CODE)
+        min_spin = table.cellWidget(row, LapineProbabilityEditor.COL_MIN)
+        max_spin = table.cellWidget(row, LapineProbabilityEditor.COL_MAX)
+        rate_spin = table.cellWidget(row, LapineProbabilityEditor.COL_RATE)
+        note_item = table.item(row, LapineProbabilityEditor.COL_NOTE)
+        raw_effect = note_item.data(Qt.UserRole) if note_item is not None else ""
+        value_choices = (
+            _normalize_value_choices(getattr(min_spin, "_lapine_value_choices", []))
+            if isinstance(min_spin, QSpinBox) else []
+        )
+        return bool(
+            (isinstance(combo, QComboBox) and combo.currentText().strip())
+            or (isinstance(min_spin, QSpinBox) and min_spin.value() != 0)
+            or (isinstance(max_spin, QSpinBox) and max_spin.value() != 0)
+            or (isinstance(rate_spin, QDoubleSpinBox) and abs(rate_spin.value()) > 1e-12)
+            or value_choices
+            or (note_item is not None and note_item.text().strip())
+            or str(raw_effect or "").strip()
+        )
+
+    @staticmethod
     def _table_has_only_blank_row(table: QTableWidget) -> bool:
-        if table.rowCount() != 1:
-            return False
-        combo = table.cellWidget(0, LapineProbabilityEditor.COL_CODE)
-        min_spin = table.cellWidget(0, LapineProbabilityEditor.COL_MIN)
-        max_spin = table.cellWidget(0, LapineProbabilityEditor.COL_MAX)
-        rate_spin = table.cellWidget(0, LapineProbabilityEditor.COL_RATE)
-        note_item = table.item(0, LapineProbabilityEditor.COL_NOTE)
         return (
-            (not isinstance(combo, QComboBox) or not combo.currentText().strip())
-            and (not isinstance(min_spin, QSpinBox) or min_spin.value() == 0)
-            and (not isinstance(max_spin, QSpinBox) or max_spin.value() == 0)
-            and (not isinstance(rate_spin, QDoubleSpinBox) or rate_spin.value() == 0)
-            and (note_item is None or not note_item.text().strip())
+            table.rowCount() == 1
+            and not LapineProbabilityEditor._row_has_any_input(table, 0)
         )
 
     def _reset_groups_for_bulk_import(self):
@@ -2238,6 +2252,41 @@ class LapineProbabilityEditor(QDialog):
         self.add_row({"group": group_name}, table=table, group_name=group_name)
 
     def save_and_accept(self):
+        rows: List[Dict[str, Any]] = []
+        for _key, group_name, table in self._all_group_contexts():
+            for row_index in range(table.rowCount()):
+                if self._row_has_any_input(table, row_index):
+                    rows.append(self._get_row_data(row_index, table, group_name))
+
+        # 所有詞條列都完全空白時，將「目前 Lapine 鍵值」視為刪除操作。
+        # 只移除 tables[self.table_key]，保留 JSON 中其他物品與全域欄位。
+        if not rows:
+            store = load_probability_store(self.probability_path)
+            tables = store.setdefault("tables", {})
+            removed = tables.pop(self.table_key, None)
+            try:
+                if removed is not None:
+                    save_probability_store(self.probability_path, store)
+            except OSError as exc:
+                QMessageBox.warning(self, "刪除失敗", f"無法更新機率檔：\n{exc}")
+                return
+
+            if removed is not None:
+                QMessageBox.information(
+                    self,
+                    "附魔資料已刪除",
+                    "目前物品的附魔機率表已從 JSON 移除；其他物品資料不受影響。",
+                )
+            else:
+                QMessageBox.information(
+                    self,
+                    "沒有附魔資料",
+                    "目前物品原本就沒有已儲存的附魔機率表。",
+                )
+            self.saved.emit(self.table_key)
+            self.accept()
+            return
+
         groups = [self._get_group_data(row) for row in range(self.group_table.rowCount())]
         group_names = [group["name"] for group in groups]
         if any(not name for name in group_names):
@@ -2245,16 +2294,6 @@ class LapineProbabilityEditor(QDialog):
             return
         if len(set(group_names)) != len(group_names):
             QMessageBox.warning(self, "群組重複", "群組名稱不可重複。")
-            return
-
-        rows: List[Dict[str, Any]] = []
-        for _key, group_name, table in self._all_group_contexts():
-            for row_index in range(table.rowCount()):
-                row_data = self._get_row_data(row_index, table, group_name)
-                if row_data.get("option_code") or row_data.get("note"):
-                    rows.append(row_data)
-        if not rows:
-            QMessageBox.information(self, "無資料", "請至少建立一列附魔資料。")
             return
 
         missing_group_rows = [
@@ -2399,6 +2438,17 @@ class LapineUpgradeUI(QWidget):
         self.search_box.textChanged.connect(self.refresh_item_list)
         left_layout.addWidget(self.search_box)
 
+        self.show_all_enchantable_checkbox = QCheckBox("顯示所有附魔選項")
+        self.show_all_enchantable_checkbox.setChecked(False)
+        self.show_all_enchantable_checkbox.setToolTip(
+            "預設只顯示已設定附魔機率表的裝備；勾選後顯示 LapineUpgradeBox 內所有可附魔裝備，"
+            "並顯示建立／編輯機率表與重新載入按鈕。"
+        )
+        self.show_all_enchantable_checkbox.toggled.connect(
+            self._on_show_all_enchantable_toggled
+        )
+        left_layout.addWidget(self.show_all_enchantable_checkbox)
+
         self.list_items = QListWidget()
         self.list_items.setMinimumWidth(230)
         self.list_items.currentItemChanged.connect(self._on_current_item_changed)
@@ -2467,6 +2517,63 @@ class LapineUpgradeUI(QWidget):
             initial_target_item_id,
             self.initial_equipment_name,
         )
+
+    def _probability_management_buttons_visible(self) -> bool:
+        """Only expose probability-table management while all options are shown."""
+        checkbox = getattr(self, "show_all_enchantable_checkbox", None)
+        return bool(checkbox is not None and checkbox.isChecked())
+
+    def _sync_probability_management_buttons(self):
+        """Apply the checkbox state to management buttons on all open tabs."""
+        visible = self._probability_management_buttons_visible()
+        tabs = getattr(self, "tabs", None)
+        if tabs is None:
+            return
+        for index in range(tabs.count()):
+            page = tabs.widget(index)
+            if page is None:
+                continue
+            for attribute in (
+                "_lapine_probability_edit_button",
+                "_lapine_probability_reload_button",
+            ):
+                button = getattr(page, attribute, None)
+                if isinstance(button, QPushButton):
+                    button.setVisible(visible)
+
+    def _on_show_all_enchantable_toggled(self, _checked: bool):
+        """Refresh equipment, tab visibility, and management controls together."""
+        self.refresh_item_list(self.search_box.text())
+        self._sync_probability_management_buttons()
+
+    def _show_all_enchantable_options(self) -> bool:
+        """Return whether equipment and Lapine tabs without saved data are visible."""
+        checkbox = getattr(self, "show_all_enchantable_checkbox", None)
+        return bool(checkbox is not None and checkbox.isChecked())
+
+    def _visible_boxes_for_target(
+        self,
+        target_item_id: int,
+        configured_keys: Optional[Set[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Filter one equipment's Lapine tabs by saved probability-table data."""
+        boxes = [dict(box) for box in self.target_map.get(target_item_id, [])]
+        if self._show_all_enchantable_options():
+            return boxes
+
+        keys = configured_keys
+        if keys is None:
+            keys = self._configured_probability_table_keys()
+        return [
+            box for box in boxes
+            if str(box.get("key") or "") in keys
+        ]
+
+    def _refresh_after_probability_change(self):
+        """Rebuild list/tabs after saving or deleting the current probability table."""
+        self.refresh_item_list(self.search_box.text())
+        self._sync_probability_management_buttons()
+        self._sync_current_random_button()
 
     def _current_probability_context(self):
         """取得目前 Lapine 分頁所對應的機率表與結果元件。"""
@@ -2637,15 +2744,56 @@ class LapineUpgradeUI(QWidget):
         rows.sort(key=lambda row: (row["display_name"].casefold(), row["item_id"]))
         return rows
 
+    def _configured_probability_table_keys(self) -> Set[str]:
+        """Return Lapine keys that currently contain a saved enchant table."""
+        store = load_probability_store(self.probability_data_path)
+        tables = store.get("tables", {})
+        if not isinstance(tables, Mapping):
+            return set()
+
+        configured: Set[str] = set()
+        for raw_key, profile in tables.items():
+            if not isinstance(profile, Mapping):
+                continue
+            rows = profile.get("rows", [])
+            has_enchant_data = isinstance(rows, list) and any(
+                isinstance(row, Mapping)
+                and bool(str(row.get("option_code") or "").strip())
+                for row in rows
+            )
+            if has_enchant_data:
+                configured.add(str(raw_key))
+        return configured
+
+    def _list_row_has_probability_table(
+        self,
+        row: Mapping[str, Any],
+        configured_keys: Set[str],
+    ) -> bool:
+        target_item_id = _coerce_item_id(row.get("item_id"))
+        if target_item_id is None:
+            return False
+        return any(
+            str(box.get("key") or "") in configured_keys
+            for box in self.target_map.get(target_item_id, [])
+        )
+
     def refresh_item_list(self, keyword: str = ""):
         keyword = str(keyword or "").strip().casefold()
         selected_id = self.current_target_item_id
+        show_all = bool(
+            getattr(self, "show_all_enchantable_checkbox", None)
+            and self.show_all_enchantable_checkbox.isChecked()
+        )
+        configured_keys = set() if show_all else self._configured_probability_table_keys()
 
         self.list_items.blockSignals(True)
         self.list_items.clear()
         selected_item: Optional[QListWidgetItem] = None
 
         for row in self._list_rows:
+            if not show_all and not self._list_row_has_probability_table(row, configured_keys):
+                continue
             if keyword and keyword not in row["search_text"]:
                 continue
             item = QListWidgetItem(f'{row["display_name"]}  [{row["item_id"]}]')
@@ -2681,11 +2829,11 @@ class LapineUpgradeUI(QWidget):
             )
             self.target_hint_label.setText(
                 f"主畫面目標：{self.target_part_name}{equipment_text}。"
-                "下方分頁列出可作用於此裝備的 Lapine 附魔箱／材料。"
+                "下方分頁列出可作用於此裝備的 附魔箱／材料。"
             )
         else:
             self.target_hint_label.setText(
-                "未鎖定主畫面部位；左側可瀏覽所有 LapineUpgradeBox 目標裝備。"
+                "未鎖定主畫面部位；左側可瀏覽所有可附魔目標裝備。"
             )
 
         if target_item_id is not None:
@@ -2733,12 +2881,27 @@ class LapineUpgradeUI(QWidget):
 
         if target_item_id is None or target_item_id not in self.target_map:
             self.summary_label.setText("沒有符合的 LapineUpgradeBox 資料。")
+            self._sync_current_random_button()
             return
 
-        boxes = self.target_map[target_item_id]
+        all_boxes = list(self.target_map[target_item_id])
+        boxes = self._visible_boxes_for_target(target_item_id)
         target_name = get_item_display_name(self.items, target_item_id)
+
+        if not boxes:
+            self.summary_label.setText(
+                f"目標裝備：{target_name}  [ItemID: {target_item_id}]｜"
+                "目前沒有已設定附魔機率表的分頁。"
+            )
+            self._sync_current_random_button()
+            return
+
+        if self._show_all_enchantable_options():
+            count_text = f"可用資料：{len(boxes)} 組"
+        else:
+            count_text = f"已設定資料：{len(boxes)}／{len(all_boxes)} 組"
         self.summary_label.setText(
-            f"目標裝備：{target_name}  [ItemID: {target_item_id}]｜可用資料：{len(boxes)} 組"
+            f"目標裝備：{target_name}  [ItemID: {target_item_id}]｜{count_text}"
         )
 
         for box in boxes:
@@ -2746,6 +2909,7 @@ class LapineUpgradeUI(QWidget):
                 self._create_box_tab(target_item_id, box),
                 self._box_tab_title(box),
             )
+        self._sync_probability_management_buttons()
         self._sync_current_random_button()
 
     def _box_tab_title(self, box: Mapping[str, Any]) -> str:
@@ -2764,7 +2928,7 @@ class LapineUpgradeUI(QWidget):
             self.items, source_item_id, str(box.get("key") or "")
         )
 
-        info_group = QGroupBox("Lapine 附魔資料")
+        info_group = QGroupBox("附加能力附魔資料")
         form = QFormLayout(info_group)
         form.addRow("資料鍵值", self._selectable_label(str(box.get("key") or "")))
         form.addRow(
@@ -2840,6 +3004,9 @@ class LapineUpgradeUI(QWidget):
         status_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         edit_button = QPushButton("建立／編輯機率表")
         reload_button = QPushButton("重新載入")
+        management_visible = self._probability_management_buttons_visible()
+        edit_button.setVisible(management_visible)
+        reload_button.setVisible(management_visible)
         button_row.addWidget(status_label, 1)
         button_row.addWidget(edit_button)
         button_row.addWidget(reload_button)
@@ -2872,6 +3039,8 @@ class LapineUpgradeUI(QWidget):
             owner_page._lapine_result_label = result_label
             owner_page._lapine_probability_table = table
             owner_page._lapine_probability_status_label = status_label
+            owner_page._lapine_probability_edit_button = edit_button
+            owner_page._lapine_probability_reload_button = reload_button
 
         edit_button.clicked.connect(
             lambda: self._open_probability_editor(box, table, status_label, None)
@@ -3005,18 +3174,18 @@ class LapineUpgradeUI(QWidget):
             row = result.get("row") or {}
             result_parts.append(
                 f"群組 {result.get('group')}：{result.get('display_text')}"
-                f"［{result.get('option_code')}］"
-                f"（群組 Roll {float(result.get('group_roll', 0.0)):.4f} / "
-                f"組內 Roll {float(result.get('option_roll', 0.0)):.4f} / "
-                f"該列 {format_probability_display(row.get('probability', 0.0))}%）"
+                #f"［{result.get('option_code')}］"
+                #f"（群組 Roll {float(result.get('group_roll', 0.0)):.4f} / "
+                #f"組內 Roll {float(result.get('option_roll', 0.0)):.4f} / "
+                #f"該列 {format_probability_display(row.get('probability', 0.0))}%）"
             )
         missed_groups = [
             f"群組 {attempt.get('group')}：{attempt.get('reason')}"
             for attempt in attempts if not attempt.get("success")
         ]
-        missed_note = "；未產生：" + "、".join(missed_groups) if missed_groups else ""
+        missed_note = "\n" + "、".join(missed_groups) if missed_groups else ""
         result_label.setText(
-            "隨機結果：" + "｜".join(result_parts) + missed_note + "；" + apply_note
+            "隨機結果：\n" + "\n".join(result_parts) + missed_note + "\n" + apply_note
         )
         self._log_random_outcome(box, outcome, apply_note)
 
@@ -3072,17 +3241,13 @@ class LapineUpgradeUI(QWidget):
             box_item_id=source_item_id,
             default_title=source_name,
         )
-        editor.saved.connect(
-            lambda _key: (
-                self._refresh_probability_table(box, table, status_label, None),
-                self._sync_current_random_button(),
-            )
-        )
         if editor.exec() == QDialog.DialogCode.Accepted:
             self.option_names = dict(editor.option_names)
             self.enchant_names = dict(editor.enchant_names)
-            self._refresh_probability_table(box, table, status_label, None)
-            self._sync_current_random_button()
+            # Saving may create a previously hidden tab; saving an all-empty editor
+            # may delete the current JSON entry. Rebuild both the equipment list and
+            # its tabs so empty pages disappear immediately in the default view.
+            self._refresh_after_probability_change()
 
 
     @staticmethod

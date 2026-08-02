@@ -4,7 +4,7 @@
     "Magic_of_Cruel_Wounds": {
       "title": "粗暴者傷口的魔力",
       "box_item_id": 106080,
-      "updated_at": "2026-08-02T14:27:22+08:00",
+      "updated_at": "2026-08-02T21:28:00+08:00",
       "groups": [
         {
           "name": "1",
@@ -25,6 +25,7 @@
           "option_code": "VAR_MAXHPAMOUNT",
           "min_value": 1000,
           "max_value": 5000,
+          "value_choices": [],
           "probability": 8.0,
           "raw_effect": "",
           "note": ""
@@ -34,6 +35,7 @@
           "option_code": "VAR_STRAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -43,6 +45,7 @@
           "option_code": "VAR_AGIAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -52,6 +55,7 @@
           "option_code": "VAR_VITAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -61,6 +65,7 @@
           "option_code": "VAR_INTAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -70,6 +75,7 @@
           "option_code": "VAR_DEXAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -79,6 +85,7 @@
           "option_code": "VAR_LUKAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -88,6 +95,7 @@
           "option_code": "VAR_ATTMPOWER",
           "min_value": 50,
           "max_value": 120,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -97,6 +105,7 @@
           "option_code": "VAR_MAGICATKPERCENT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 6.5,
           "raw_effect": "",
           "note": ""
@@ -106,6 +115,7 @@
           "option_code": "RACE_MDAMAGE_NOTHING",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -115,6 +125,7 @@
           "option_code": "RACE_MDAMAGE_UNDEAD",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -124,6 +135,7 @@
           "option_code": "RACE_MDAMAGE_ANIMAL",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -133,6 +145,7 @@
           "option_code": "RACE_MDAMAGE_PLANT",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -142,6 +155,7 @@
           "option_code": "RACE_MDAMAGE_INSECT",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -150,7 +164,8 @@
           "group": "1",
           "option_code": "RACE_MDAMAGE_FISHS",
           "min_value": 3,
-          "max_value": 9,
+          "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -160,6 +175,7 @@
           "option_code": "RACE_MDAMAGE_DEVIL",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -169,6 +185,7 @@
           "option_code": "RACE_MDAMAGE_HUMAN",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -178,6 +195,7 @@
           "option_code": "RACE_MDAMAGE_ANGEL",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -187,6 +205,7 @@
           "option_code": "RACE_MDAMAGE_DRAGON",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -196,6 +215,7 @@
           "option_code": "VAR_MAXHPAMOUNT",
           "min_value": 1000,
           "max_value": 5000,
+          "value_choices": [],
           "probability": 8.0,
           "raw_effect": "",
           "note": ""
@@ -205,6 +225,7 @@
           "option_code": "VAR_SPLAMOUNT",
           "min_value": 3,
           "max_value": 8,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "",
           "note": ""
@@ -214,6 +235,7 @@
           "option_code": "VAR_CONAMOUNT",
           "min_value": 3,
           "max_value": 8,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "",
           "note": ""
@@ -223,6 +245,7 @@
           "option_code": "HEAL_VALUE",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "",
           "note": ""
@@ -232,6 +255,7 @@
           "option_code": "VAR_PLUSASPDPERCENT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "",
           "note": ""
@@ -241,15 +265,17 @@
           "option_code": "VAR_ATTMPOWER",
           "min_value": 50,
           "max_value": 120,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "",
           "note": ""
         },
         {
           "group": "2",
-          "option_code": "VAR_ATTMPOWER",
+          "option_code": "VAR_MAGICATKPERCENT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "",
           "note": ""
@@ -259,6 +285,7 @@
           "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -268,6 +295,7 @@
           "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -277,6 +305,7 @@
           "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -286,6 +315,7 @@
           "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -295,6 +325,7 @@
           "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -304,6 +335,7 @@
           "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -313,6 +345,7 @@
           "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -322,6 +355,7 @@
           "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -331,6 +365,7 @@
           "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -340,6 +375,7 @@
           "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "",
           "note": ""
@@ -349,6 +385,7 @@
           "option_code": "VAR_PLUSASPD",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 16.0,
           "raw_effect": "",
           "note": ""
@@ -358,6 +395,7 @@
           "option_code": "CLASS_MDAMAGE_NORMAL",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -367,6 +405,7 @@
           "option_code": "CLASS_MDAMAGE_BOSS",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 2.0,
           "raw_effect": "",
           "note": ""
@@ -376,6 +415,7 @@
           "option_code": "ADDSKILLMDAMAGE_ALL",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "",
           "note": ""
@@ -385,6 +425,7 @@
           "option_code": "DEC_SPELL_CAST_TIME",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 10.0,
           "raw_effect": "",
           "note": ""
@@ -394,6 +435,7 @@
           "option_code": "DEC_SPELL_DELAY_TIME",
           "min_value": 3,
           "max_value": 7,
+          "value_choices": [],
           "probability": 10.0,
           "raw_effect": "",
           "note": ""
@@ -403,6 +445,7 @@
           "option_code": "VAR_SMATKAMOUNT",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 3.0,
           "raw_effect": "",
           "note": ""
@@ -412,6 +455,7 @@
           "option_code": "VAR_RESAMOUNT",
           "min_value": 10,
           "max_value": 20,
+          "value_choices": [],
           "probability": 14.0,
           "raw_effect": "",
           "note": ""
@@ -421,6 +465,7 @@
           "option_code": "VAR_MRESAMOUNT",
           "min_value": 10,
           "max_value": 20,
+          "value_choices": [],
           "probability": 14.0,
           "raw_effect": "",
           "note": ""
@@ -430,6 +475,7 @@
           "option_code": "VAR_HEAL_PLUS",
           "min_value": 5,
           "max_value": 10,
+          "value_choices": [],
           "probability": 14.0,
           "raw_effect": "",
           "note": ""
@@ -439,6 +485,7 @@
           "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 3.0,
           "raw_effect": "",
           "note": ""
@@ -448,6 +495,7 @@
           "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 3.0,
           "raw_effect": "",
           "note": ""
@@ -457,6 +505,7 @@
           "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
           "min_value": 5,
           "max_value": 15,
+          "value_choices": [],
           "probability": 3.0,
           "raw_effect": "",
           "note": ""
@@ -11338,29 +11387,6 @@
         }
       ]
     },
-    "Shadow_9_Refine_Hammer": {
-      "title": "忽克連高級影子精煉鎚",
-      "box_item_id": 23926,
-      "updated_at": "2026-08-02T17:03:29+08:00",
-      "groups": [
-        {
-          "name": "1",
-          "probability": 100.0
-        }
-      ],
-      "rows": [
-        {
-          "group": "1",
-          "option_code": "EnumVAR_LAST",
-          "min_value": 0,
-          "max_value": 0,
-          "value_choices": [],
-          "probability": 0.0,
-          "raw_effect": "",
-          "note": ""
-        }
-      ]
-    },
     "Mammoth_Shadow_Up": {
       "title": "影子神力猛瑪屬性咒語",
       "box_item_id": 101264,
@@ -15520,7 +15546,7 @@
     "ClassShadow_ATTR_N": {
       "title": "影子職業屬性箱",
       "box_item_id": 100228,
-      "updated_at": "2026-08-02T16:45:10+08:00",
+      "updated_at": "2026-08-02T21:15:13+08:00",
       "groups": [
         {
           "name": "1",
@@ -15537,6 +15563,7 @@
           "option_code": "ATTR_TOLERACE_NOTHING",
           "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "對無屬性攻擊的抗性+1~2%",
           "note": "對無屬性攻擊的抗性+1~2%"
@@ -15546,6 +15573,7 @@
           "option_code": "ATTR_TOLERACE_WATER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.5,
           "raw_effect": "對水屬性攻擊的抗性+2~3%",
           "note": "對水屬性攻擊的抗性+2~3%"
@@ -15555,6 +15583,7 @@
           "option_code": "ATTR_TOLERACE_GROUND",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.5,
           "raw_effect": "對地屬性攻擊的抗性+2~3%",
           "note": "對地屬性攻擊的抗性+2~3%"
@@ -15564,6 +15593,7 @@
           "option_code": "ATTR_TOLERACE_FIRE",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.5,
           "raw_effect": "對火屬性攻擊的抗性+2~3%",
           "note": "對火屬性攻擊的抗性+2~3%"
@@ -15573,6 +15603,7 @@
           "option_code": "ATTR_TOLERACE_WIND",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對風屬性攻擊的抗性+2~3%",
           "note": "對風屬性攻擊的抗性+2~3%"
@@ -15582,6 +15613,7 @@
           "option_code": "ATTR_TOLERACE_POISON",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對毒屬性攻擊的抗性+2~3%",
           "note": "對毒屬性攻擊的抗性+2~3%"
@@ -15591,6 +15623,7 @@
           "option_code": "ATTR_TOLERACE_SAINT",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對聖屬性攻擊的抗性+2~3%",
           "note": "對聖屬性攻擊的抗性+2~3%"
@@ -15600,6 +15633,7 @@
           "option_code": "ATTR_TOLERACE_DARKNESS",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對暗屬性攻擊的抗性+2~3%",
           "note": "對暗屬性攻擊的抗性+2~3%"
@@ -15609,6 +15643,7 @@
           "option_code": "ATTR_TOLERACE_TELEKINESIS",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對念屬性攻擊的抗性+2~3%",
           "note": "對念屬性攻擊的抗性+2~3%"
@@ -15618,6 +15653,7 @@
           "option_code": "ATTR_TOLERACE_UNDEAD",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對不死屬性攻擊的抗性+2~3%",
           "note": "對不死屬性攻擊的抗性+2~3%"
@@ -15627,6 +15663,7 @@
           "option_code": "DAMAGE_SIZE_SMALL_USER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "遭受小型怪的傷害-2~3%",
           "note": "未自動配對 EnumVAR"
@@ -15636,6 +15673,7 @@
           "option_code": "DAMAGE_SIZE_MIDIUM_USER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "遭受中型怪的傷害-2~3%",
           "note": "未自動配對 EnumVAR"
@@ -15645,6 +15683,7 @@
           "option_code": "DAMAGE_SIZE_LARGE_USER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "遭受大型怪的傷害-2~3%",
           "note": "未自動配對 EnumVAR"
@@ -15654,6 +15693,7 @@
           "option_code": "MDAMAGE_SIZE_SMALL_USER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "遭受小型怪的魔法傷害-2~3%",
           "note": "遭受小型怪的魔法傷害-2~3%"
@@ -15663,6 +15703,7 @@
           "option_code": "MDAMAGE_SIZE_MIDIUM_USER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 3.0,
           "raw_effect": "遭受中型怪的魔法傷害 -2~3%",
           "note": "遭受中型怪的魔法傷害 -2~3%"
@@ -15672,6 +15713,7 @@
           "option_code": "MDAMAGE_SIZE_LARGE_USER",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "遭受大型怪的魔法傷害 -2~3%",
           "note": "遭受大型怪的魔法傷害 -2~3%"
@@ -15681,6 +15723,7 @@
           "option_code": "ATTR_TOLERACE_ALL",
           "min_value": 2,
           "max_value": 3,
+          "value_choices": [],
           "probability": 0.5,
           "raw_effect": "對所有屬性攻擊的抗性 +2~3%",
           "note": "未自動配對 EnumVAR"
@@ -15688,8 +15731,9 @@
         {
           "group": "2",
           "option_code": "CLASS_DAMAGE_NORMAL_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受一般怪的物理傷害 -1~2%",
           "note": "遭受一般怪的物理傷害 -1~2%"
@@ -15697,8 +15741,9 @@
         {
           "group": "2",
           "option_code": "CLASS_DAMAGE_BOSS_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受BOSS怪的物理傷害 -1~2%",
           "note": "未自動配對 EnumVAR"
@@ -15706,8 +15751,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_NOTHING_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受無屬性怪的物理傷害 -1~2%",
           "note": "遭受無屬性怪的物理傷害 -1~2%"
@@ -15715,8 +15761,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_WATER_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受水屬性怪的物理傷害 -1~2%",
           "note": "遭受水屬性怪的物理傷害 -1~2%"
@@ -15724,8 +15771,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_GROUND_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受地屬性怪的物理傷害 -1~2%",
           "note": "遭受地屬性怪的物理傷害 -1~2%"
@@ -15733,8 +15781,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_FIRE_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受火屬性怪的物理傷害 -1~2%",
           "note": "遭受火屬性怪的物理傷害 -1~2%"
@@ -15742,8 +15791,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_WIND_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受風屬性怪的物理傷害 -1~2%",
           "note": "遭受風屬性怪的物理傷害 -1~2%"
@@ -15751,8 +15801,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_POISON_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受毒屬性怪的物理傷害 -1~2%",
           "note": "遭受毒屬性怪的物理傷害 -1~2%"
@@ -15760,8 +15811,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_SAINT_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受聖屬性怪的物理傷害 -1~2%",
           "note": "遭受聖屬性怪的物理傷害 -1~2%"
@@ -15769,8 +15821,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_DARKNESS_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受暗屬性怪的物理傷害 -1~2%",
           "note": "遭受暗屬性怪的物理傷害 -1~2%"
@@ -15778,8 +15831,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_TELEKINESIS_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受念屬性怪的物理傷害 -1~2%",
           "note": "遭受念屬性怪的物理傷害 -1~2%"
@@ -15787,8 +15841,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_UNDEAD_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受不死屬性怪的物理傷害 -1~2%",
           "note": "遭受不死屬性怪的物理傷害 -1~2%"
@@ -15796,8 +15851,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_NOTHING_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.6,
           "raw_effect": "遭受無屬性怪的魔法傷害 -1~2%",
           "note": "遭受無屬性怪的魔法傷害 -1~2%"
@@ -15805,8 +15861,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_WATER_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受水屬性怪的魔法傷害 -1~2%",
           "note": "遭受水屬性怪的魔法傷害 -1~2%"
@@ -15814,8 +15871,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_GROUND_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受地屬性怪的魔法傷害 -1~2%",
           "note": "遭受地屬性怪的魔法傷害 -1~2%"
@@ -15823,8 +15881,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_FIRE_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受火屬性怪的魔法傷害 -1~2%",
           "note": "遭受火屬性怪的魔法傷害 -1~2%"
@@ -15832,8 +15891,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_WIND_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受風屬性怪的魔法傷害 -1~2%",
           "note": "遭受風屬性怪的魔法傷害 -1~2%"
@@ -15841,8 +15901,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_POISON_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受毒屬性怪的魔法傷害 -1~2%",
           "note": "遭受毒屬性怪的魔法傷害 -1~2%"
@@ -15850,8 +15911,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_SAINT_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受聖屬性怪的魔法傷害 -1~2%",
           "note": "遭受聖屬性怪的魔法傷害 -1~2%"
@@ -15859,8 +15921,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_DARKNESS_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受暗屬性怪的魔法傷害 -1~2%",
           "note": "遭受暗屬性怪的魔法傷害 -1~2%"
@@ -15868,8 +15931,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受念屬性怪的魔法傷害 -1~2%",
           "note": "遭受念屬性怪的魔法傷害 -1~2%"
@@ -15877,8 +15941,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_UNDEAD_USER",
-          "min_value": -1,
+          "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 4.5,
           "raw_effect": "遭受不死屬性怪的魔法傷害 -1~2%",
           "note": "遭受不死屬性怪的魔法傷害 -1~2%"
@@ -15888,7 +15953,7 @@
     "ClassShadow_ATTR_S": {
       "title": "影子職業高級屬性箱",
       "box_item_id": 100229,
-      "updated_at": "2026-08-02T16:44:44+08:00",
+      "updated_at": "2026-08-02T21:14:33+08:00",
       "groups": [
         {
           "name": "1",
@@ -15909,6 +15974,7 @@
           "option_code": "ATTR_TOLERACE_NOTHING",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "對無屬性攻擊的抗性+3~5%",
           "note": "對無屬性攻擊的抗性+3~5%"
@@ -15918,6 +15984,7 @@
           "option_code": "ATTR_TOLERACE_WATER",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.5,
           "raw_effect": "對水屬性攻擊的抗性+3~5%",
           "note": "對水屬性攻擊的抗性+3~5%"
@@ -15927,6 +15994,7 @@
           "option_code": "ATTR_TOLERACE_GROUND",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.5,
           "raw_effect": "對地屬性攻擊的抗性+3~5%",
           "note": "對地屬性攻擊的抗性+3~5%"
@@ -15936,6 +16004,7 @@
           "option_code": "ATTR_TOLERACE_FIRE",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.5,
           "raw_effect": "對火屬性攻擊的抗性+3~5%",
           "note": "對火屬性攻擊的抗性+3~5%"
@@ -15945,6 +16014,7 @@
           "option_code": "ATTR_TOLERACE_WIND",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對風屬性攻擊的抗性+3~5%",
           "note": "對風屬性攻擊的抗性+3~5%"
@@ -15954,6 +16024,7 @@
           "option_code": "ATTR_TOLERACE_POISON",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對毒屬性攻擊的抗性+3~5%",
           "note": "對毒屬性攻擊的抗性+3~5%"
@@ -15963,6 +16034,7 @@
           "option_code": "ATTR_TOLERACE_SAINT",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對聖屬性攻擊的抗性+3~5%",
           "note": "對聖屬性攻擊的抗性+3~5%"
@@ -15972,6 +16044,7 @@
           "option_code": "ATTR_TOLERACE_DARKNESS",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對暗屬性攻擊的抗性+3~5%",
           "note": "對暗屬性攻擊的抗性+3~5%"
@@ -15981,6 +16054,7 @@
           "option_code": "ATTR_TOLERACE_TELEKINESIS",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對念屬性攻擊的抗性+3~5%",
           "note": "對念屬性攻擊的抗性+3~5%"
@@ -15990,6 +16064,7 @@
           "option_code": "ATTR_TOLERACE_UNDEAD",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "對不死屬性攻擊的抗性+3~5%",
           "note": "對不死屬性攻擊的抗性+3~5%"
@@ -15997,8 +16072,9 @@
         {
           "group": "1",
           "option_code": "DAMAGE_SIZE_SMALL_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "遭受小型怪的傷害-3~5%",
           "note": "未自動配對 EnumVAR"
@@ -16006,8 +16082,9 @@
         {
           "group": "1",
           "option_code": "DAMAGE_SIZE_MIDIUM_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.0,
           "raw_effect": "遭受中型怪的傷害-3~5%",
           "note": "未自動配對 EnumVAR"
@@ -16015,8 +16092,9 @@
         {
           "group": "1",
           "option_code": "DAMAGE_SIZE_LARGE_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 7.0,
           "raw_effect": "遭受大型怪的傷害-3~5%",
           "note": "未自動配對 EnumVAR"
@@ -16024,8 +16102,9 @@
         {
           "group": "1",
           "option_code": "MDAMAGE_SIZE_SMALL_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "遭受小型怪的魔法傷害-3~5%",
           "note": "遭受小型怪的魔法傷害-3~5%"
@@ -16033,8 +16112,9 @@
         {
           "group": "1",
           "option_code": "MDAMAGE_SIZE_MIDIUM_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 3.0,
           "raw_effect": "遭受中型怪的魔法傷害 -3~5%",
           "note": "遭受中型怪的魔法傷害 -3~5%"
@@ -16042,8 +16122,9 @@
         {
           "group": "1",
           "option_code": "MDAMAGE_SIZE_LARGE_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.0,
           "raw_effect": "遭受大型怪的魔法傷害 -3~5%",
           "note": "遭受大型怪的魔法傷害 -3~5%"
@@ -16053,6 +16134,7 @@
           "option_code": "ATTR_TOLERACE_ALL",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 0.5,
           "raw_effect": "對所有屬性攻擊的抗性 +3~5%",
           "note": "未自動配對 EnumVAR"
@@ -16060,8 +16142,9 @@
         {
           "group": "2",
           "option_code": "CLASS_DAMAGE_NORMAL_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 0.051,
           "raw_effect": "遭受一般怪的物理傷害 -3~5%",
           "note": "遭受一般怪的物理傷害 -3~5%"
@@ -16069,8 +16152,9 @@
         {
           "group": "2",
           "option_code": "CLASS_DAMAGE_BOSS_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 0.051,
           "raw_effect": "遭受BOSS怪的物理傷害 -3~5%",
           "note": "未自動配對 EnumVAR"
@@ -16078,8 +16162,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_NOTHING_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受無屬性怪的物理傷害 -3~5%",
           "note": "遭受無屬性怪的物理傷害 -3~5%"
@@ -16087,8 +16172,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_WATER_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受水屬性怪的物理傷害 -3~5%",
           "note": "遭受水屬性怪的物理傷害 -3~5%"
@@ -16096,8 +16182,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_GROUND_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受地屬性怪的物理傷害 -3~5%",
           "note": "遭受地屬性怪的物理傷害 -3~5%"
@@ -16105,8 +16192,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_FIRE_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受火屬性怪的物理傷害 -3~5%",
           "note": "遭受火屬性怪的物理傷害 -3~5%"
@@ -16114,8 +16202,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_WIND_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受風屬性怪的物理傷害 -3~5%",
           "note": "遭受風屬性怪的物理傷害 -3~5%"
@@ -16123,8 +16212,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_POISON_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受毒屬性怪的物理傷害 -3~5%",
           "note": "遭受毒屬性怪的物理傷害 -3~5%"
@@ -16132,8 +16222,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_SAINT_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受聖屬性怪的物理傷害 -3~5%",
           "note": "遭受聖屬性怪的物理傷害 -3~5%"
@@ -16141,8 +16232,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_DARKNESS_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 5.056,
           "raw_effect": "遭受暗屬性怪的物理傷害 -3~5%",
           "note": "遭受暗屬性怪的物理傷害 -3~5%"
@@ -16150,8 +16242,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_TELEKINESIS_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受念屬性怪的物理傷害 -3~5%",
           "note": "遭受念屬性怪的物理傷害 -3~5%"
@@ -16159,8 +16252,9 @@
         {
           "group": "2",
           "option_code": "DAMAGE_PROPERTY_UNDEAD_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受不死屬性怪的物理傷害 -3~5%",
           "note": "遭受不死屬性怪的物理傷害 -3~5%"
@@ -16168,8 +16262,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_NOTHING_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受無屬性怪的魔法傷害 -3~5%",
           "note": "遭受無屬性怪的魔法傷害 -3~5%"
@@ -16177,8 +16272,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_WATER_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受水屬性怪的魔法傷害 -3~5%",
           "note": "遭受水屬性怪的魔法傷害 -3~5%"
@@ -16186,8 +16282,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_GROUND_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受地屬性怪的魔法傷害 -3~5%",
           "note": "遭受地屬性怪的魔法傷害 -3~5%"
@@ -16195,8 +16292,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_FIRE_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受火屬性怪的魔法傷害 -3~5%",
           "note": "遭受火屬性怪的魔法傷害 -3~5%"
@@ -16204,8 +16302,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_WIND_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受風屬性怪的魔法傷害 -3~5%",
           "note": "遭受風屬性怪的魔法傷害 -3~5%"
@@ -16213,8 +16312,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_POISON_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受毒屬性怪的魔法傷害 -3~5%",
           "note": "遭受毒屬性怪的魔法傷害 -3~5%"
@@ -16222,8 +16322,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_SAINT_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受聖屬性怪的魔法傷害 -3~5%",
           "note": "遭受聖屬性怪的魔法傷害 -3~5%"
@@ -16231,8 +16332,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_DARKNESS_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受暗屬性怪的魔法傷害 -3~5%",
           "note": "遭受暗屬性怪的魔法傷害 -3~5%"
@@ -16240,8 +16342,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受念屬性怪的魔法傷害 -3~5%",
           "note": "遭受念屬性怪的魔法傷害 -3~5%"
@@ -16249,8 +16352,9 @@
         {
           "group": "2",
           "option_code": "MDAMAGE_PROPERTY_UNDEAD_USER",
-          "min_value": -3,
+          "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 4.946,
           "raw_effect": "遭受不死屬性怪的魔法傷害 -3~5%",
           "note": "遭受不死屬性怪的魔法傷害 -3~5%"
@@ -16260,6 +16364,7 @@
           "option_code": "VAR_MAXHPAMOUNT",
           "min_value": 400,
           "max_value": 400,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MHP + 200,400",
           "note": "MHP + 200,400"
@@ -16269,6 +16374,7 @@
           "option_code": "VAR_MAXSPAMOUNT",
           "min_value": 50,
           "max_value": 50,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MSP + 25,50",
           "note": "MSP + 25,50"
@@ -16278,6 +16384,7 @@
           "option_code": "VAR_STRAMOUNT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.9,
           "raw_effect": "STR + 1",
           "note": "STR + 1"
@@ -16287,6 +16394,7 @@
           "option_code": "VAR_AGIAMOUNT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.9,
           "raw_effect": "AGI + 1",
           "note": "AGI + 1"
@@ -16296,6 +16404,7 @@
           "option_code": "VAR_VITAMOUNT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.9,
           "raw_effect": "VIT + 1",
           "note": "VIT + 1"
@@ -16305,6 +16414,7 @@
           "option_code": "VAR_INTAMOUNT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.9,
           "raw_effect": "INT + 1",
           "note": "INT + 1"
@@ -16314,6 +16424,7 @@
           "option_code": "VAR_DEXAMOUNT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.9,
           "raw_effect": "DEX + 1",
           "note": "DEX + 1"
@@ -16323,6 +16434,7 @@
           "option_code": "VAR_LUKAMOUNT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.9,
           "raw_effect": "LUK + 1",
           "note": "LUK + 1"
@@ -16332,6 +16444,7 @@
           "option_code": "VAR_MAXHPPERCENT",
           "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MHP + 1~2%",
           "note": "MHP + 1~2%"
@@ -16341,6 +16454,7 @@
           "option_code": "VAR_MAXSPPERCENT",
           "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MSP + 1~2%",
           "note": "MSP + 1~2%"
@@ -16350,6 +16464,7 @@
           "option_code": "VAR_HPACCELERATION",
           "min_value": 5,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "HP 自然恢復速度 + 5~10%",
           "note": "HP 自然恢復速度 + 5~10%"
@@ -16359,6 +16474,7 @@
           "option_code": "VAR_SPACCELERATION",
           "min_value": 5,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "SP 自然恢復速度 + 5~10%",
           "note": "SP 自然恢復速度 + 5~10%"
@@ -16368,6 +16484,7 @@
           "option_code": "VAR_ATKPERCENT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "ATK + 1%",
           "note": "ATK + 1%"
@@ -16377,6 +16494,7 @@
           "option_code": "VAR_MAGICATKPERCENT",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MATK + 1%",
           "note": "MATK + 1%"
@@ -16386,6 +16504,7 @@
           "option_code": "VAR_PLUSASPDPERCENT",
           "min_value": -3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "攻擊速度增加(攻擊後延遲-3~5%)",
           "note": "攻擊速度增加(攻擊後延遲-3~5%)"
@@ -16395,6 +16514,7 @@
           "option_code": "VAR_ATTPOWER",
           "min_value": 10,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "ATK + 5,10",
           "note": "ATK + 5,10"
@@ -16404,6 +16524,7 @@
           "option_code": "VAR_HITSUCCESSVALUE",
           "min_value": 10,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "HIT + 5,10",
           "note": "HIT + 5,10"
@@ -16413,6 +16534,7 @@
           "option_code": "VAR_ATTMPOWER",
           "min_value": 10,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MATK + 5,10",
           "note": "MATK + 5,10"
@@ -16422,6 +16544,7 @@
           "option_code": "VAR_ITEMDEFPOWER",
           "min_value": 30,
           "max_value": 30,
+          "value_choices": [],
           "probability": 2.6,
           "raw_effect": "DEF + 10,20,30",
           "note": "DEF + 10,20,30"
@@ -16431,6 +16554,7 @@
           "option_code": "VAR_MDEFPOWER",
           "min_value": 3,
           "max_value": 3,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "MDEF + 2,3",
           "note": "MDEF + 2,3"
@@ -16440,6 +16564,7 @@
           "option_code": "VAR_AVOIDSUCCESSVALUE",
           "min_value": 3,
           "max_value": 5,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "FLEE + 3~5",
           "note": "FLEE + 3~5"
@@ -16449,6 +16574,7 @@
           "option_code": "VAR_CRITICALSUCCESSVALUE",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "CRI + 1,2",
           "note": "CRI + 1,2"
@@ -16458,6 +16584,7 @@
           "option_code": "HEAL_VALUE",
           "min_value": 3,
           "max_value": 3,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "治癒量 + 2,3%",
           "note": "治癒量 + 2,3%"
@@ -16467,6 +16594,7 @@
           "option_code": "HEAL_MODIFY_PERCENT",
           "min_value": 10,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "遭受治癒量 + 5,10%",
           "note": "未自動配對 EnumVAR"
@@ -16476,6 +16604,7 @@
           "option_code": "DEC_SPELL_CAST_TIME",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "變詠時間 -1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16485,6 +16614,7 @@
           "option_code": "DEC_SP_CONSUMPTION",
           "min_value": 3,
           "max_value": 3,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "施放技能時SP消耗量 - 2,3%",
           "note": "施放技能時SP消耗量 - 2,3%"
@@ -16494,6 +16624,7 @@
           "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "遠距離物理傷害 + 1,2%",
           "note": "遠距離物理傷害 + 1,2%"
@@ -16503,6 +16634,7 @@
           "option_code": "RACE_TOLERACE_NOTHING",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對無形怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16512,6 +16644,7 @@
           "option_code": "RACE_TOLERACE_UNDEAD",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對不死形怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16521,6 +16654,7 @@
           "option_code": "RACE_TOLERACE_ANIMAL",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對動物型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16530,6 +16664,7 @@
           "option_code": "RACE_TOLERACE_PLANT",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對植物型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16539,6 +16674,7 @@
           "option_code": "RACE_TOLERACE_INSECT",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對昆蟲型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16548,6 +16684,7 @@
           "option_code": "RACE_TOLERACE_FISHS",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對魚貝型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16557,6 +16694,7 @@
           "option_code": "RACE_TOLERACE_DEVIL",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對惡魔型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16566,6 +16704,7 @@
           "option_code": "RACE_TOLERACE_ANGEL",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對天使型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16575,6 +16714,7 @@
           "option_code": "RACE_TOLERACE_DRAGON",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對龍族怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16584,6 +16724,7 @@
           "option_code": "RACE_TOLERACE_HUMAN",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "對人類型怪的抗性 + 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16593,6 +16734,7 @@
           "option_code": "CLASS_IGNORE_DEF_PERCENT_BOSS",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "BOSS怪的物理防禦率忽視 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -16602,6 +16744,7 @@
           "option_code": "CLASS_IGNORE_MDEF_PERCENT_BOSS",
           "min_value": 2,
           "max_value": 2,
+          "value_choices": [],
           "probability": 2.5,
           "raw_effect": "BOSS怪的魔法防禦率忽視 1,2%",
           "note": "未自動配對 EnumVAR"
@@ -19157,29 +19300,6 @@
           "probability": 3.704,
           "raw_effect": "對人類型怪的抗性 + 1,2%",
           "note": "對人類型怪的抗性 + 1,2%"
-        }
-      ]
-    },
-    "Shadow_Refine_Hammer": {
-      "title": "忽克連影子精煉鎚",
-      "box_item_id": 23436,
-      "updated_at": "2026-08-02T17:09:19+08:00",
-      "groups": [
-        {
-          "name": "1",
-          "probability": 100.0
-        }
-      ],
-      "rows": [
-        {
-          "group": "1",
-          "option_code": "EnumVAR_LAST",
-          "min_value": 0,
-          "max_value": 0,
-          "value_choices": [],
-          "probability": 0.0,
-          "raw_effect": "",
-          "note": ""
         }
       ]
     },
@@ -28325,6 +28445,1102 @@
           "probability": 2.778,
           "raw_effect": "給予不死屬性怪的魔法傷害+10~20%",
           "note": "給予不死屬性怪的魔法傷害+10~20%"
+        }
+      ]
+    },
+    "Sakray_Regret2": {
+      "title": "精華薩克萊悔恨",
+      "box_item_id": 100486,
+      "updated_at": "2026-08-02T22:16:18+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        },
+        {
+          "name": "3",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 200,
+          "max_value": 500,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxHP + 200~500",
+          "note": "MaxHP + 200~500"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 30,
+          "max_value": 120,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxSP + 30~120",
+          "note": "MaxSP + 30~120"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 10,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "DEF + 10~50",
+          "note": "DEF + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "FLEE + 10~30",
+          "note": "FLEE + 10~30"
+        },
+        {
+          "group": "1",
+          "option_code": "HEAL_VALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "治癒系技能HP恢復量+10~30%",
+          "note": "治癒系技能HP恢復量+10~30%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "ASPD + 1~2",
+          "note": "ASPD + 1~2"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 20,
+          "max_value": 70,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MATK + 20~70",
+          "note": "MATK + 20~70"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 10,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "ASPD + 10~18%",
+          "note": "ASPD + 10~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "MATK + 5~10%",
+          "note": "MATK + 5~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "變動詠唱-5~15%",
+          "note": "變動詠唱-5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SP_CONSUMPTION",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "技能SP消耗-5~10%",
+          "note": "技能SP消耗-5~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對無屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對水屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對地屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對火屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對風屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對毒屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對聖屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對暗屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對念屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對不死屬目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 30,
+          "max_value": 100,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "DEF + 30~100",
+          "note": "DEF + 30~100"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MDEFPOWER",
+          "min_value": 10,
+          "max_value": 40,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "MDEF + 10~40",
+          "note": "MDEF + 10~40"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "MaxHP + 1~5%",
+          "note": "MaxHP + 1~5%"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "MaxSP + 1~5%",
+          "note": "MaxSP + 1~5%"
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對小型體型的魔法傷害+5~10%",
+          "note": "對小型體型的魔法傷害+5~10%"
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對中型體型的魔法傷害+5~10%",
+          "note": "對中型體型的魔法傷害+5~10%"
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對大型體型的魔法傷害+5~10%",
+          "note": "對大型體型的魔法傷害+5~10%"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_MDAMAGE_NORMAL",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對普通階級的魔法傷害+5~10%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_MDAMAGE_BOSS",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對首領階級的魔法傷害+5~10%",
+          "note": "對首領階級的魔法傷害+5~10%"
+        }
+      ]
+    },
+    "Sakray_Fury2": {
+      "title": "精華薩克萊憤怒",
+      "box_item_id": 100480,
+      "updated_at": "2026-08-02T22:22:02+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        },
+        {
+          "name": "3",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 200,
+          "max_value": 500,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxHP + 200~500",
+          "note": "MaxHP + 200~500"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 30,
+          "max_value": 120,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxSP + 30~120",
+          "note": "MaxSP + 30~120"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "CRITICAL + 3~10",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "FLEE + 10~30",
+          "note": "FLEE + 10~30"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "HIT + 10~30",
+          "note": "HIT + 10~30"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "ASPD + 1~2",
+          "note": "ASPD + 1~2"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 20,
+          "max_value": 70,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "ATK + 20~70",
+          "note": "ATK + 20~70"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 10,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "ASPD + 10~18%",
+          "note": "ASPD + 10~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "ATK + 5~10%",
+          "note": "ATK + 5~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對近距離的物理傷害+5~15%",
+          "note": "對近距離的物理傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對遠距離的物理傷害+5~15%",
+          "note": "對遠距離的物理傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對無屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對水屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對地屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對火屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對風屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對毒屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對聖屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對暗屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對念屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對不死屬目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 30,
+          "max_value": 100,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "DEF + 30~100",
+          "note": "DEF + 30~100"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MDEFPOWER",
+          "min_value": 10,
+          "max_value": 40,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "MDEF + 10~40",
+          "note": "MDEF + 10~40"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "MaxHP + 1~5%",
+          "note": "MaxHP + 1~5%"
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "MaxSP + 1~5%",
+          "note": "MaxSP + 1~5%"
+        },
+        {
+          "group": "3",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對小型體型的物理傷害+5~10%",
+          "note": "對小型體型的物理傷害+5~10%"
+        },
+        {
+          "group": "3",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對中型體型的物理傷害+5~10%",
+          "note": "對中型體型的物理傷害+5~10%"
+        },
+        {
+          "group": "3",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對大型體型的物理傷害+5~10%",
+          "note": "對大型體型的物理傷害+5~10%"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_DAMAGE_NORMAL_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對普通階級的物理傷害+5~10%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_DAMAGE_BOSS_TARGET",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 11.11,
+          "raw_effect": "對首領階級的物理傷害+5~10%",
+          "note": "對首領階級的物理傷害+5~10%"
+        }
+      ]
+    },
+    "Sakray_Fury": {
+      "title": "薩克萊憤怒",
+      "box_item_id": 100479,
+      "updated_at": "2026-08-02T22:24:14+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 200,
+          "max_value": 500,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxHP + 200~500",
+          "note": "MaxHP + 200~500"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 30,
+          "max_value": 120,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxSP + 30~120",
+          "note": "MaxSP + 30~120"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "CRITICAL + 3~10",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "FLEE + 10~30",
+          "note": "FLEE + 10~30"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "HIT + 10~30",
+          "note": "HIT + 10~30"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "ASPD + 1~2",
+          "note": "ASPD + 1~2"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 20,
+          "max_value": 70,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "ATK + 20~70",
+          "note": "ATK + 20~70"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 10,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "ASPD + 10~18%",
+          "note": "ASPD + 10~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "ATK + 5~10%",
+          "note": "ATK + 5~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對近距離的物理傷害+5~15%",
+          "note": "對近距離的物理傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對遠距離的物理傷害+5~15%",
+          "note": "對遠距離的物理傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對無屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對水屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對地屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對火屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對風屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對毒屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對聖屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對暗屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對念屬性目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對不死屬目標的物傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        }
+      ]
+    },
+    "Sakray_Regret": {
+      "title": "薩克萊悔恨",
+      "box_item_id": 100485,
+      "updated_at": "2026-08-02T22:25:22+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 200,
+          "max_value": 500,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxHP + 200~500",
+          "note": "MaxHP + 200~500"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 30,
+          "max_value": 120,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MaxSP + 30~120",
+          "note": "MaxSP + 30~120"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 10,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "DEF + 10~50",
+          "note": "DEF + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "FLEE + 10~30",
+          "note": "FLEE + 10~30"
+        },
+        {
+          "group": "1",
+          "option_code": "HEAL_VALUE",
+          "min_value": 10,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "治癒系技能HP恢復量+10~30%",
+          "note": "治癒系技能HP恢復量+10~30%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "ASPD + 1~2",
+          "note": "ASPD + 1~2"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 20,
+          "max_value": 70,
+          "value_choices": [],
+          "probability": 14.28,
+          "raw_effect": "MATK + 20~70",
+          "note": "MATK + 20~70"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 10,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "ASPD + 10~18%",
+          "note": "ASPD + 10~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "MATK + 5~10%",
+          "note": "MATK + 5~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "變動詠唱-5~15%",
+          "note": "變動詠唱-5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SP_CONSUMPTION",
+          "min_value": 5,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "技能SP消耗-5~10%",
+          "note": "技能SP消耗-5~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對無屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對水屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對地屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對火屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對風屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對毒屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對聖屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對暗屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對念屬性目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 7.0,
+          "raw_effect": "對不死屬目標的魔傷+5~15%",
+          "note": "未自動配對 EnumVAR"
         }
       ]
     }

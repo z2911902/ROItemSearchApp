@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.0-260802"
+Version = "v0.5.1-260802"
 
 import sys, builtins, time
 import os
@@ -5962,7 +5962,7 @@ class ItemSearchApp(QWidget):
             QMessageBox.warning(
                 self,
                 tr("message.title.notice", "提示"),
-                f"無法開啟 Lapine 附魔工具：\n{exc}",
+                f"無法開啟 附加功能附魔工具：\n{exc}",
             )
             return
 
@@ -5977,7 +5977,7 @@ class ItemSearchApp(QWidget):
         self.lapine_upgrade_window.randomEnchantApplyRequested.connect(
             self.apply_lapine_random_options_from_tool
         )
-        self.lapine_upgrade_window.setWindowTitle("Lapine 附魔工具")
+        self.lapine_upgrade_window.setWindowTitle("附加功能附魔工具")
         # 最右側新增固定寬度的隨機附魔 LOG，視窗同步加寬，避免壓縮中間分頁。
         self.lapine_upgrade_window.resize(1480, 700)
         self.lapine_upgrade_window.show()
@@ -13317,7 +13317,7 @@ class ItemSearchApp(QWidget):
 
         # === 建立選單：Lapine 附魔工具 ===
         lapine_upgrade_action = QAction(
-            tr("menu.lapine_upgrade_tool", "Lapine 附魔工具"), self
+            tr("menu.lapine_upgrade_tool", "附加能力附魔工具"), self
         )
         lapine_upgrade_action.triggered.connect(self.open_lapine_upgrade_tool)
         gamedata_menu.addAction(lapine_upgrade_action)
