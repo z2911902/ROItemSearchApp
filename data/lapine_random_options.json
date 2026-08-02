@@ -1,0 +1,1082 @@
+{
+  "version": 2,
+  "tables": {
+    "Magic_of_Cruel_Wounds": {
+      "title": "粗暴者傷口的魔力",
+      "box_item_id": 106080,
+      "updated_at": "2026-08-02T14:27:22+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        },
+        {
+          "name": "3",
+          "probability": 10.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 1000,
+          "max_value": 5000,
+          "probability": 8.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_STRAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AGIAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_VITAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_INTAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_DEXAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_LUKAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 50,
+          "max_value": 120,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 6.5,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 9,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 1000,
+          "max_value": 5000,
+          "probability": 8.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_SPLAMOUNT",
+          "min_value": 3,
+          "max_value": 8,
+          "probability": 7.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CONAMOUNT",
+          "min_value": 3,
+          "max_value": 8,
+          "probability": 7.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "HEAL_VALUE",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 7.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 7.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 50,
+          "max_value": 120,
+          "probability": 7.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 7.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 1,
+          "probability": 16.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_MDAMAGE_NORMAL",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_MDAMAGE_BOSS",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 2.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "ADDSKILLMDAMAGE_ALL",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 4.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 10.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 3,
+          "max_value": 7,
+          "probability": 10.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_SMATKAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 3.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_RESAMOUNT",
+          "min_value": 10,
+          "max_value": 20,
+          "probability": 14.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_MRESAMOUNT",
+          "min_value": 10,
+          "max_value": 20,
+          "probability": 14.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "VAR_HEAL_PLUS",
+          "min_value": 5,
+          "max_value": 10,
+          "probability": 14.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 3.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 3.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "probability": 3.0,
+          "raw_effect": "",
+          "note": ""
+        }
+      ]
+    },
+    "Time_Unseal_Key": {
+      "title": "時光封印鑰匙",
+      "box_item_id": 9551,
+      "updated_at": "2026-08-02T14:44:35+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 5,
+          "max_value": 40,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 5,
+          "max_value": 40,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 1,
+          "max_value": 6,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 1,
+          "max_value": 6,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 50,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 500,
+          "max_value": 2000,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 50,
+          "max_value": 1000,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "HEAL_VALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 3,
+          "max_value": 15,
+          "probability": 5.8,
+          "raw_effect": "",
+          "note": ""
+        }
+      ]
+    },
+    "Key_Of_Timeless_TW": {
+      "title": "時光超越鑰匙",
+      "box_item_id": 107373,
+      "updated_at": "2026-08-02T14:48:40+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 500,
+          "max_value": 2000,
+          "probability": 7.0,
+          "raw_effect": "MHP + 500~2000",
+          "note": "MHP + 500~2000"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 50,
+          "max_value": 1000,
+          "probability": 7.0,
+          "raw_effect": "MSP + 50~1000",
+          "note": "MSP + 50~1000"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 7.0,
+          "raw_effect": "MHP + 3~10%",
+          "note": "MHP + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 7.0,
+          "raw_effect": "MSP + 3~10%",
+          "note": "MSP + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 30,
+          "max_value": 100,
+          "probability": 4.0,
+          "raw_effect": "ATK + 30~100",
+          "note": "ATK + 30~100"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 30,
+          "max_value": 100,
+          "probability": 4.0,
+          "raw_effect": "MATK + 30~100",
+          "note": "MATK + 30~100"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 3,
+          "max_value": 8,
+          "probability": 4.0,
+          "raw_effect": "ATK + 3~8%",
+          "note": "ATK + 3~8%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 3,
+          "max_value": 8,
+          "probability": 4.0,
+          "raw_effect": "MATK + 3~8%",
+          "note": "MATK + 3~8%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 15,
+          "probability": 7.0,
+          "raw_effect": "攻擊速度增加(減少攻擊後延遲 3~15%),",
+          "note": "攻擊速度增加(減少攻擊後延遲 3~15%),"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 50,
+          "probability": 7.0,
+          "raw_effect": "HIT + 10~50",
+          "note": "HIT + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 50,
+          "probability": 7.0,
+          "raw_effect": "FLEE + 10~50",
+          "note": "FLEE + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "CRI + 3~10",
+          "note": "CRI + 3~10"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "暴擊傷害+ 3~10%",
+          "note": "暴擊傷害+ 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "遠距離物理傷害 + 3~10%",
+          "note": "遠距離物理傷害 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "近距離物理傷害 + 3~10%",
+          "note": "近距離物理傷害 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_HIT_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "命中物理傷害 + 3~10%",
+          "note": "命中物理傷害 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_ALL",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 6.0,
+          "raw_effect": "全屬性魔法傷害 + 3~10%",
+          "note": "全屬性魔法傷害 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "HEAL_VALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 7.0,
+          "raw_effect": "治癒量 + 3~10%",
+          "note": "治癒量 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "變動詠唱時間 - 3~10%",
+          "note": "變動詠唱時間 - 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 3,
+          "max_value": 15,
+          "probability": 4.0,
+          "raw_effect": "技能後延遲 - 3~15%",
+          "note": "技能後延遲 - 3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 500,
+          "max_value": 2000,
+          "probability": 7.0,
+          "raw_effect": "MHP + 500~2000",
+          "note": "MHP + 500~2000"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 50,
+          "max_value": 1000,
+          "probability": 7.0,
+          "raw_effect": "MSP + 50~1000",
+          "note": "MSP + 50~1000"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 7.0,
+          "raw_effect": "MHP + 3~10%",
+          "note": "MHP + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 7.0,
+          "raw_effect": "MSP + 3~10%",
+          "note": "MSP + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 30,
+          "max_value": 100,
+          "probability": 4.0,
+          "raw_effect": "ATK + 30~100",
+          "note": "ATK + 30~100"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 30,
+          "max_value": 100,
+          "probability": 4.0,
+          "raw_effect": "MATK + 30~100",
+          "note": "MATK + 30~100"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 3,
+          "max_value": 8,
+          "probability": 4.0,
+          "raw_effect": "ATK + 3~8%",
+          "note": "ATK + 3~8%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 3,
+          "max_value": 8,
+          "probability": 4.0,
+          "raw_effect": "MATK + 3~8%",
+          "note": "MATK + 3~8%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 15,
+          "probability": 7.0,
+          "raw_effect": "攻擊速度增加(減少攻擊後延遲 3~15%),",
+          "note": "攻擊速度增加(減少攻擊後延遲 3~15%),"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 50,
+          "probability": 7.0,
+          "raw_effect": "HIT + 10~50",
+          "note": "HIT + 10~50"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 10,
+          "max_value": 50,
+          "probability": 7.0,
+          "raw_effect": "FLEE + 10~50",
+          "note": "FLEE + 10~50"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 4.0,
+          "raw_effect": "CRI + 3~10",
+          "note": "CRI + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "暴擊傷害+ 3~10%",
+          "note": "暴擊傷害+ 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "遠距離物理傷害 + 3~10%",
+          "note": "遠距離物理傷害 + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "近距離物理傷害 + 3~10%",
+          "note": "近距離物理傷害 + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_HIT_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 2.5,
+          "raw_effect": "命中物理傷害 + 3~10%",
+          "note": "命中物理傷害 + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_ALL",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 6.0,
+          "raw_effect": "全屬性魔法傷害 + 3~10%",
+          "note": "全屬性魔法傷害 + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "HEAL_VALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 7.0,
+          "raw_effect": "治癒量 + 3~10%",
+          "note": "治癒量 + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_POWAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "POW + 3~10",
+          "note": "POW + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_SPLAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "SPL + 3~10",
+          "note": "SPL + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_STAAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "STA +3~10",
+          "note": "STA +3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_WISAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "WIS + 3~10",
+          "note": "WIS + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CONAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "CON + 3~10",
+          "note": "CON + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CRTAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "CRT + 3~10",
+          "note": "CRT + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PATKAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "P.ATK + 3~10",
+          "note": "P.ATK + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_SMATKAMOUNT",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.975,
+          "raw_effect": "S.MATK + 3~10",
+          "note": "S.MATK + 3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "CLASS_MDAMAGE_BOSS",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.1,
+          "raw_effect": "對首領階級魔物的魔法傷害 + 3~10%",
+          "note": "對首領階級魔物的魔法傷害 + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "CLASS_DAMAGE_BOSS_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "probability": 0.1,
+          "raw_effect": "對首領階級魔物的物理傷害 + 3~10%",
+          "note": "對首領階級魔物的物理傷害 + 3~10%"
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.4.5-260802"
+Version = "v0.5.0-260802"
 
 import sys, builtins, time
 import os
@@ -7,6 +7,7 @@ import json
 from PySide6.QtCore import QThread, Signal, Qt, QMetaObject, QTimer
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPlainTextEdit, QLabel
 import enchant #載入附魔工具
+import lapine_upgrade #載入 LapineUpgradeBox 附魔工具
 import skill_tree #載入技能樹
 import reform_viewer #載入改造工具
 from rrf_to_App import run_rrf_main#載入rrf轉換
@@ -5659,6 +5660,328 @@ class ItemSearchApp(QWidget):
         #self.enchant_window.move(300, 200)出現視窗可能會超出畫面外，預留移動。
         self.enchant_window.show()
 
+
+    # ------------------------------------------------------------------
+    # LapineUpgradeBox：以 TargetItems 的 ItemID 對應主程式裝備 ItemID
+    # ------------------------------------------------------------------
+    def _load_lapine_upgrade_tool_data(self):
+        """載入並快取 lapineupgradebox.lub 與裝備名稱索引。"""
+        if self._lapine_upgrade_data_cache is None or self._lapine_target_map_cache is None:
+            lapine_path = lapine_upgrade.find_lapine_upgrade_file(get_app_base_dir())
+            if not lapine_path:
+                raise FileNotFoundError(
+                    "找不到 lapineupgradebox.lub；請放在程式根目錄或 data 資料夾。"
+                )
+
+            lapine_data = lapine_upgrade.parse_lapine_upgrade_box(lapine_path)
+            target_map = lapine_upgrade.build_target_item_map(lapine_data)
+            self._lapine_upgrade_data_cache = lapine_data
+            self._lapine_target_map_cache = target_map
+
+        item_count = len(getattr(self, "parsed_items", {}) or {})
+        if (
+            self._lapine_item_name_index_cache is None
+            or self._lapine_item_index_size != item_count
+        ):
+            self._lapine_item_name_index_cache = lapine_upgrade.build_item_name_index(
+                self.parsed_items
+            )
+            self._lapine_item_index_size = item_count
+
+        return (
+            self._lapine_upgrade_data_cache,
+            self._lapine_target_map_cache,
+            self._lapine_item_name_index_cache,
+        )
+
+    def _get_equipment_lapine_context(self, equipment_name):
+        """回傳 (裝備 ItemID, 可用 Lapine 附魔箱清單)。"""
+        equipment_name = str(equipment_name or "").strip()
+        if not equipment_name:
+            return None, []
+
+        try:
+            _, target_map, name_index = self._load_lapine_upgrade_tool_data()
+        except Exception as exc:
+            print(f"⚠️ 載入 LapineUpgradeBox 資料失敗：{exc}")
+            return None, []
+
+        item_id = lapine_upgrade.resolve_item_id_by_display_name(
+            equipment_name,
+            self.parsed_items,
+            name_index,
+        )
+        if item_id is None:
+            return None, []
+
+        return item_id, list(target_map.get(item_id, []))
+
+    def _update_lapine_upgrade_button_for_part(self, part_name, equipment_name=None):
+        """TargetItems 包含目前裝備時，在詞條 box 右側顯示 Lapine 附魔按鈕。"""
+        ui = getattr(self, "refine_inputs_ui", {}).get(part_name)
+        if not ui:
+            return
+
+        equip_input = ui.get("equip")
+        button = ui.get("lapine_upgrade_button")
+        note_ui = ui.get("note_ui")
+        if equip_input is None or button is None:
+            return
+
+        if equipment_name is None:
+            equipment_name = equip_input.text()
+
+        _, entries = self._get_equipment_lapine_context(equipment_name)
+        visible = bool(entries)
+        button.setVisible(visible)
+        button.setEnabled(visible)
+
+        # 詞條列外層固定 300px，不因新增按鈕拉寬裝備分頁。
+        # 無按鈕：255 + 5 + 40 = 300；有按鈕：210 + 5 + 40 + 5 + 40 = 300。
+        if note_ui is not None:
+            note_ui.setFixedWidth(210 if visible else 255)
+
+    def _activate_equipment_edit_for_lapine(self, part_name):
+        """由詞條列按鈕鎖定目前裝備，並準備開啟 Lapine 檢視器。"""
+        ui = getattr(self, "refine_inputs_ui", {}).get(part_name)
+        if not ui:
+            return False
+
+        equipment_name = ui["equip"].text().strip()
+        _, entries = self._get_equipment_lapine_context(equipment_name)
+        if not entries:
+            self._update_lapine_upgrade_button_for_part(part_name, equipment_name)
+            return False
+
+        self.clear_current_edit()
+        self.current_edit_part = f"{part_name} - 裝備"
+        self.current_edit_label.setText(
+            tr("label.current_part_detail", part=part_name, label="裝備")
+        )
+        self.unsync_button.setVisible(True)
+        self.unsync_button2.setVisible(True)
+        self.apply_to_note_button.setVisible(True)
+        self.clear_field_button2.setVisible(True)
+        self.apply_equip_button.setVisible(True)
+        self.clear_field_button.setVisible(True)
+        self.set_edit_lock(part_name, "裝備")
+        ui["equip"].setStyleSheet("background-color: #ff0000;")
+        self._set_lapine_upgrade_tool_target(part_name, "裝備", equipment_name)
+        return True
+
+    def _set_lapine_upgrade_tool_target(self, part_name="", field_type="", equipment_name=""):
+        """同步主畫面目前紅底裝備到已開啟的 Lapine 工具。"""
+        window = getattr(self, "lapine_upgrade_window", None)
+        if window is None:
+            return
+
+        try:
+            if field_type == "裝備" and part_name:
+                item_id, _ = self._get_equipment_lapine_context(equipment_name)
+                window.set_target_context(part_name, item_id, equipment_name)
+            else:
+                window.set_target_context("", None, "")
+        except RuntimeError:
+            self.lapine_upgrade_window = None
+
+    def _sync_open_lapine_upgrade_tool_context(self, part_name):
+        """裝備名稱變更時，同步已開啟的 Lapine 工具。"""
+        window = getattr(self, "lapine_upgrade_window", None)
+        if window is None:
+            return
+
+        try:
+            if getattr(window, "target_part_name", "") != part_name:
+                return
+            ui = getattr(self, "refine_inputs_ui", {}).get(part_name)
+            if not ui:
+                return
+            equipment_name = ui["equip"].text().strip()
+            item_id, _ = self._get_equipment_lapine_context(equipment_name)
+            window.set_target_context(part_name, item_id, equipment_name)
+        except RuntimeError:
+            self.lapine_upgrade_window = None
+
+    def _refresh_lapine_note_display(self, part_name):
+        """立即依詞條 Lua 更新主畫面可見的詞條 box。"""
+        ui = getattr(self, "refine_inputs_ui", {}).get(part_name)
+        if not ui:
+            return
+        note_widget = ui.get("note")
+        note_ui = ui.get("note_ui")
+        if note_widget is None or note_ui is None:
+            return
+        try:
+            parsed_results = parse_lua_effects_with_variables(
+                block_text=note_widget.toPlainText(),
+                refine_inputs={},
+                get_values={},
+                grade=0,
+                unit_map=unit_map,
+                size_map=size_map,
+                effect_map=effect_map,
+                hide_unrecognized=False,
+            )
+            output = "\n".join(parsed_results)
+        except Exception as exc:
+            output = f"⚠️ 錯誤：{exc}"
+        note_ui.setPlainText(output)
+        QTimer.singleShot(0, lambda w=note_ui: self.adjust_textedit_height(w))
+
+    def apply_lapine_random_options_from_tool(self, part_name, random_results):
+        """只寫入本次隨機附魔的詞條函式本體，不建立任何相容包裝。"""
+        part_name = str(part_name or "").strip()
+        ui = getattr(self, "refine_inputs_ui", {}).get(part_name)
+        if not ui:
+            return
+        note_widget = ui.get("note")
+        if note_widget is None:
+            return
+
+        if isinstance(random_results, dict):
+            random_results = [random_results]
+        if not isinstance(random_results, (list, tuple)):
+            return
+
+        valid_results = []
+        effect_lines = []
+        for result in random_results:
+            if not isinstance(result, dict):
+                continue
+            lua_effect = str(result.get("lua_effect") or "").strip()
+            if not lua_effect:
+                continue
+            lines = [
+                line.strip()
+                for line in lua_effect.splitlines()
+                if line.strip()
+            ]
+            if not lines:
+                continue
+            valid_results.append(dict(result, lua_effect="\n".join(lines)))
+            effect_lines.extend(lines)
+        if not valid_results:
+            return
+
+        # 不在詞條中寫入 BEGIN/END、EnumVAR 註解或 LapineRandomOption 包裝。
+        # 上一次由本工具加入的內容只存在 QWidget property；重新附魔時，僅在它仍位於
+        # 詞條尾端且完整相符時移除，避免誤刪使用者手動建立的相同函式。
+        previous_lines = note_widget.property("lapine_random_effect_lines") or []
+        previous_lines = [str(line).strip() for line in previous_lines if str(line).strip()]
+        current_lines = note_widget.toPlainText().splitlines()
+
+        while current_lines and not current_lines[-1].strip():
+            current_lines.pop()
+
+        if previous_lines and len(current_lines) >= len(previous_lines):
+            tail = [line.strip() for line in current_lines[-len(previous_lines):]]
+            if tail == previous_lines:
+                del current_lines[-len(previous_lines):]
+                while current_lines and not current_lines[-1].strip():
+                    current_lines.pop()
+
+        if current_lines:
+            current_lines.append("")
+        current_lines.extend(effect_lines)
+
+        note_widget.setProperty("lapine_random_effect_lines", list(effect_lines))
+        note_widget.setPlainText("\n".join(current_lines))
+
+        # textChanged 通常會刷新；再直接刷新一次，確保可見詞條立即更新。
+        self._refresh_lapine_note_display(part_name)
+        self.clear_global_state()
+        self._last_calc_state = None
+        self.replace_custom_calc_content()
+        self.trigger_total_effect_update()
+        self._refresh_lapine_note_display(part_name)
+        self._set_lapine_upgrade_tool_target(
+            part_name, "裝備", ui.get("equip").text().strip() if ui.get("equip") else ""
+        )
+        summary = "、".join(
+            str(result.get("display_text") or result.get("option_code") or "")
+            for result in valid_results
+        )
+        print(f"✅ 已將 Lapine 隨機附魔套用至「{part_name}」詞條：{summary}")
+
+    def open_part_lapine_upgrade_tool(self, part_name):
+        """從指定部位詞條 box 右側的附魔按鈕開啟 Lapine 工具。"""
+        if not self._activate_equipment_edit_for_lapine(part_name):
+            return
+
+        equipment_name = self.refine_inputs_ui[part_name]["equip"].text().strip()
+        item_id, _ = self._get_equipment_lapine_context(equipment_name)
+        self.open_lapine_upgrade_tool(
+            target_part=part_name,
+            initial_equipment=equipment_name,
+            initial_item_id=item_id,
+        )
+
+    def open_lapine_upgrade_tool(
+        self,
+        checked=False,
+        target_part=None,
+        initial_equipment=None,
+        initial_item_id=None,
+    ):
+        """開啟 LapineUpgradeBox 檢視器；介面採 EnchantUI 的左右欄／分頁配置。"""
+        target_part = target_part or ""
+        initial_equipment = initial_equipment or ""
+
+        if not target_part:
+            current_edit = getattr(self, "current_edit_part", None)
+            if current_edit:
+                try:
+                    part_name, field_type = current_edit.rsplit(" - ", 1)
+                    if field_type == "裝備" and part_name in self.refine_inputs_ui:
+                        target_part = part_name
+                        initial_equipment = self.refine_inputs_ui[part_name]["equip"].text().strip()
+                except ValueError:
+                    pass
+
+        if initial_item_id is None and initial_equipment:
+            initial_item_id, _ = self._get_equipment_lapine_context(initial_equipment)
+
+        window = getattr(self, "lapine_upgrade_window", None)
+        if window is not None:
+            try:
+                window.set_target_context(
+                    target_part,
+                    initial_item_id,
+                    initial_equipment,
+                )
+                window.show()
+                window.raise_()
+                window.activateWindow()
+                return
+            except RuntimeError:
+                self.lapine_upgrade_window = None
+
+        try:
+            lapine_data, _, _ = self._load_lapine_upgrade_tool_data()
+        except Exception as exc:
+            QMessageBox.warning(
+                self,
+                tr("message.title.notice", "提示"),
+                f"無法開啟 Lapine 附魔工具：\n{exc}",
+            )
+            return
+
+        self.lapine_upgrade_window = lapine_upgrade.LapineUpgradeUI(
+            lapine_data,
+            self.parsed_items,
+            initial_target_item_id=initial_item_id,
+            initial_equipment_name=initial_equipment,
+            target_part_name=target_part,
+            base_dir=get_app_base_dir(),
+        )
+        self.lapine_upgrade_window.randomEnchantApplyRequested.connect(
+            self.apply_lapine_random_options_from_tool
+        )
+        self.lapine_upgrade_window.setWindowTitle("Lapine 附魔工具")
+        # 最右側新增固定寬度的隨機附魔 LOG，視窗同步加寬，避免壓縮中間分頁。
+        self.lapine_upgrade_window.resize(1480, 700)
+        self.lapine_upgrade_window.show()
+
     def open_reform_tool(self):#改造工具
         # 載入所需資料
         item_data = self.parsed_items
@@ -9986,6 +10309,7 @@ class ItemSearchApp(QWidget):
         # 批次載入時 textChanged 被暫停，這裡補做各洞位附魔按鈕刷新。
         for part_name, info in self.refine_inputs_ui.items():
             self._update_enchant_button_for_part(part_name, info["equip"].text())
+            self._update_lapine_upgrade_button_for_part(part_name, info["equip"].text())
 
         self.clear_global_state()
         # ===== 依 JSON buff 自動勾選技能/料理 =====
@@ -11069,6 +11393,11 @@ class ItemSearchApp(QWidget):
         self._enchant_data_cache = None
         self._enchant_itemdb_cache = None
         self._enchant_target_map_cache = None
+        self.lapine_upgrade_window = None
+        self._lapine_upgrade_data_cache = None
+        self._lapine_target_map_cache = None
+        self._lapine_item_name_index_cache = None
+        self._lapine_item_index_size = -1
         # 把子視窗存成成員變數，避免被 Python 回收導致閃退/秒關
         self._damage_win = None
         self.preset_folder = "equip_presets"
@@ -11521,6 +11850,9 @@ class ItemSearchApp(QWidget):
                 self._set_enchant_tool_target(
                     part_label, label_name, input_field.text().strip()
                 )
+                self._set_lapine_upgrade_tool_target(
+                    part_label, label_name, input_field.text().strip()
+                )
                 self.search_input.setFocus()  # ✅ 把焦點移到搜尋欄
                 # ✅ 若不是詞條，就切回裝備查詢分頁
                 if label_name != "note":
@@ -11655,6 +11987,16 @@ class ItemSearchApp(QWidget):
             equip_input.setMinimumWidth(100)
             equip_input.mousePressEvent = make_focus_func_focus(part_name, equip_input, "裝備")
 
+            lapine_upgrade_btn = QPushButton(tr("button.enchant", "附魔"))
+            lapine_upgrade_btn.setFixedWidth(40)
+            lapine_upgrade_btn.setToolTip(
+                "此裝備存在於 lapineupgradebox.lub 的 TargetItems；開啟 Lapine 附魔資料"
+            )
+            lapine_upgrade_btn.setVisible(False)
+            lapine_upgrade_btn.clicked.connect(
+                lambda _, p=part_name: self.open_part_lapine_upgrade_tool(p)
+            )
+
             clear_equip_btn = QPushButton(tr("button.clear"))
             clear_equip_btn.setFixedWidth(40)
             clear_equip_btn.clicked.connect(self.clear_global_state)
@@ -11689,6 +12031,7 @@ class ItemSearchApp(QWidget):
             part_layout.addWidget(equip_container)
 
             part_ui["equip"] = equip_input
+            part_ui["lapine_upgrade_button"] = lapine_upgrade_btn
             part_ui["equip_container"] = equip_container
             part_ui["refine"] = refine_input
             part_ui["grade"] = grade_combo
@@ -11794,7 +12137,8 @@ class ItemSearchApp(QWidget):
             note_text_ui = QTextEdit()
             note_text_ui.setPlaceholderText(tr("placeholder.custom_option_effect"))
             note_text_ui.setObjectName(f"{part_name}-詞條")
-            note_text_ui.setFixedSize(260, 20)
+            # 詞條列總寬固定為 300px；Lapine 按鈕顯示時只縮小詞條 box。
+            note_text_ui.setFixedSize(255, 20)
             note_text_ui.setContentsMargins(0, 0, 0, 0)
             note_text_ui.setReadOnly(True)
             note_text_ui.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -11811,6 +12155,7 @@ class ItemSearchApp(QWidget):
             note_row_layout.setSpacing(5)
             note_row_layout.addWidget(note_text)
             note_row_layout.addWidget(note_text_ui)
+            note_row_layout.addWidget(lapine_upgrade_btn)
             note_row_layout.addWidget(clear_note_btn)
 
             note_container = QWidget()
@@ -11834,13 +12179,20 @@ class ItemSearchApp(QWidget):
                 lambda text, p=part_name: self._update_enchant_button_for_part(p, text)
             )
             equip_input.textChanged.connect(
+                lambda text, p=part_name: self._update_lapine_upgrade_button_for_part(p, text)
+            )
+            equip_input.textChanged.connect(
                 lambda _text, p=part_name: self._sync_open_enchant_tool_context(p)
+            )
+            equip_input.textChanged.connect(
+                lambda _text, p=part_name: self._sync_open_lapine_upgrade_tool_context(p)
             )
             for card_input in card_inputs:
                 card_input.textChanged.connect(
                     lambda _text, p=part_name: self._sync_open_enchant_tool_context(p)
                 )
             self._update_enchant_button_for_part(part_name, equip_input.text())
+            self._update_lapine_upgrade_button_for_part(part_name, equip_input.text())
             self.refresh_presets(part_name)
 
             # 🟢 特例：符文石碑 / 寵物蛋 / 投擲物品 → 隱藏卡片與詞條欄位
@@ -12963,6 +13315,13 @@ class ItemSearchApp(QWidget):
 
         gamedata_menu.addAction(enchant_action)
 
+        # === 建立選單：Lapine 附魔工具 ===
+        lapine_upgrade_action = QAction(
+            tr("menu.lapine_upgrade_tool", "Lapine 附魔工具"), self
+        )
+        lapine_upgrade_action.triggered.connect(self.open_lapine_upgrade_tool)
+        gamedata_menu.addAction(lapine_upgrade_action)
+
         # === 建立選單：改造工具 ===
         reform_action = QAction(tr("menu.reform_tool"), self)
         reform_action.triggered.connect(self.open_reform_tool)
@@ -13404,6 +13763,7 @@ class ItemSearchApp(QWidget):
         self.global_refine_input.setVisible(True)
         self.global_grade_combo.setVisible(True)
         self._set_enchant_tool_target()
+        self._set_lapine_upgrade_tool_target()
 
 
 
