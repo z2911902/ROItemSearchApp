@@ -489,14 +489,38 @@ def _replace_lua_percent_tokens(template: str, value_text: str) -> str:
     return rendered.replace(percent_token, "%").strip()
 
 
-def render_option_preview(template: str, minimum: int, maximum: int) -> str:
-    """Render a ``%d`` placeholder as one value or a min-max range."""
+def _normalize_value_choices(value: Any) -> List[int]:
+    """Return unique integer choices while preserving their original order."""
+    if not isinstance(value, (list, tuple)):
+        return []
+    result: List[int] = []
+    for raw in value:
+        try:
+            number = int(raw)
+        except (TypeError, ValueError):
+            continue
+        if number not in result:
+            result.append(number)
+    return result
+
+
+def render_option_preview(
+    template: str,
+    minimum: int,
+    maximum: int,
+    value_choices: Optional[Iterable[int]] = None,
+) -> str:
+    """Render a value, continuous range, or exact comma-separated choices."""
     template = str(template or "")
     if not template:
         return ""
-    value_text = str(int(minimum))
-    if int(minimum) != int(maximum):
-        value_text = f"{int(minimum)}～{int(maximum)}"
+    choices = _normalize_value_choices(list(value_choices or []))
+    if choices:
+        value_text = "、".join(str(value) for value in choices)
+    else:
+        value_text = str(int(minimum))
+        if int(minimum) != int(maximum):
+            value_text = f"{int(minimum)}～{int(maximum)}"
     return _replace_lua_percent_tokens(template, value_text)
 
 
@@ -506,12 +530,11 @@ def render_option_value(template: str, value: int) -> str:
 
 
 def format_probability_display(value: Any) -> str:
-    """Display at most one decimal while keeping the stored numeric precision."""
+    """Display probability values with three decimal places."""
     try:
-        text = f"{float(value):.1f}"
+        return f"{float(value):.3f}"
     except (TypeError, ValueError):
-        text = "0.0"
-    return text.rstrip("0").rstrip(".")
+        return "0.000"
 
 
 def preview_probability_row(row: Mapping[str, Any], option_names: Mapping[str, str]) -> str:
@@ -524,7 +547,9 @@ def preview_probability_row(row: Mapping[str, Any], option_names: Mapping[str, s
         maximum = int(row.get("max_value", minimum))
     except (TypeError, ValueError):
         minimum = maximum = 0
-    return render_option_preview(template, minimum, maximum)
+    return render_option_preview(
+        template, minimum, maximum, row.get("value_choices", [])
+    )
 
 
 def preview_enchant_lua_row(row: Mapping[str, Any], enchant_names: Mapping[str, str]) -> str:
@@ -537,7 +562,9 @@ def preview_enchant_lua_row(row: Mapping[str, Any], enchant_names: Mapping[str, 
         maximum = int(row.get("max_value", minimum))
     except (TypeError, ValueError):
         minimum = maximum = 0
-    return render_option_preview(template, minimum, maximum)
+    return render_option_preview(
+        template, minimum, maximum, row.get("value_choices", [])
+    )
 
 
 def normalize_profile_groups(profile: Mapping[str, Any]) -> List[Dict[str, Any]]:
@@ -620,6 +647,7 @@ def roll_grouped_probability_options(
             minimum = maximum = 0
         if minimum > maximum:
             minimum, maximum = maximum, minimum
+        value_choices = _normalize_value_choices(raw_row.get("value_choices", []))
         row = dict(raw_row)
         row.update({
             "group": group_name,
@@ -627,6 +655,7 @@ def roll_grouped_probability_options(
             "probability": probability,
             "min_value": minimum,
             "max_value": maximum,
+            "value_choices": value_choices,
         })
         normalized_rows[group_name].append(row)
 
@@ -663,10 +692,6 @@ def roll_grouped_probability_options(
             continue
 
         option_total = sum(float(row["probability"]) for row in group_rows)
-        if option_total > 100.0 + 1e-9:
-            raise ValueError(
-                f"群組「{group_name}」的組內機率合計為 {option_total:g}%，超過 100%。"
-            )
 
         group_roll = float(generator.random()) * 100.0
         if group_roll >= group_probability:
@@ -679,7 +704,11 @@ def roll_grouped_probability_options(
             })
             continue
 
-        option_roll = float(generator.random()) * 100.0
+        # 合計不超過 100% 時，剩餘區間代表「未抽中」。
+        # 合計超過 100% 時，改以所有列的機率總和作為權重範圍；
+        # 如此仍能正常抽選，且各列間的相對機率保持不變。
+        option_roll_limit = option_total if option_total > 100.0 + 1e-9 else 100.0
+        option_roll = float(generator.random()) * option_roll_limit
         cumulative = 0.0
         selected: Optional[Dict[str, Any]] = None
         for row in group_rows:
@@ -694,13 +723,19 @@ def roll_grouped_probability_options(
                 "group_probability": group_probability,
                 "group_roll": group_roll,
                 "option_roll": option_roll,
+                "option_roll_limit": option_roll_limit,
                 "option_total": option_total,
                 "success": False,
                 "reason": "組內未抽中任何詞條",
             })
             continue
 
-        value = int(generator.randint(int(selected["min_value"]), int(selected["max_value"])))
+        selected_choices = _normalize_value_choices(selected.get("value_choices", []))
+        value = (
+            int(generator.choice(selected_choices))
+            if selected_choices
+            else int(generator.randint(int(selected["min_value"]), int(selected["max_value"])))
+        )
         code = str(selected["option_code"])
         display_template = str(option_names.get(code) or code)
         lua_template = str(enchant_names.get(code) or "")
@@ -709,6 +744,7 @@ def roll_grouped_probability_options(
             "group_probability": group_probability,
             "group_roll": group_roll,
             "option_roll": option_roll,
+            "option_roll_limit": option_roll_limit,
             "option_total": option_total,
             "row": selected,
             "option_code": code,
@@ -900,15 +936,176 @@ class LapineProbabilityEditor(QDialog):
         self._reload_code_combos_and_previews()
 
     @staticmethod
+    def _repair_import_effect_text(text: Any) -> Tuple[str, Optional[str]]:
+        """Repair a few common copy/paste mistakes before parsing values.
+
+        The original text is still kept in ``raw_effect``.  The repaired form is
+        used only for value extraction and EnumVAR matching, and a warning is
+        returned so the user can review any heuristic correction.
+        """
+        original = unicodedata.normalize("NFKC", str(text or "")).strip()
+        repaired = original
+
+        # Some GNJOY tables have been copied as ``5~%0`` instead of ``5~10%``.
+        # Keep this deliberately narrow and report it to the user.
+        repaired = re.sub(
+            r"([~～〜])\s*%\s*0(?!\d)",
+            lambda match: f"{match.group(1)}10%",
+            repaired,
+        )
+        # For other misplaced percent signs, move the sign behind the number.
+        repaired = re.sub(
+            r"([~～〜])\s*%\s*(\d+(?:\.\d+)?)",
+            lambda match: f"{match.group(1)}{match.group(2)}%",
+            repaired,
+        )
+
+        warning = None
+        if repaired != original:
+            warning = f"已自動修正效果文字：{original} → {repaired}"
+        return repaired, warning
+
+    @staticmethod
     def _normalize_import_effect_text(text: Any) -> str:
         """Normalize pasted effect text and AddRandomOptionNameTable templates."""
         value = unicodedata.normalize("NFKC", str(text or ""))
         value = value.replace("％", "%").replace("＋", "+").replace("－", "-")
+
+        # English stat names are often used by announcements, while the client
+        # display table uses the shorter MHP / MSP spelling.
+        value = re.sub(r"\bMaxHP\b", "MHP", value, flags=re.I)
+        value = re.sub(r"\bMaxSP\b", "MSP", value, flags=re.I)
+
         # Common announcement wording differs slightly from the client table.
         value = value.replace("首領階級", "首領型").replace("首領級", "首領型")
         value = value.replace("減少攻擊後延遲", "攻擊後延遲-")
         value = value.replace("攻擊後延遲減少", "攻擊後延遲-")
+        value = value.replace("變動施法時間減少", "變動詠唱時間-")
+        value = value.replace("變動詠唱時間減少", "變動詠唱時間-")
+        value = value.replace("變動施法時間", "變動詠唱時間")
+        value = value.replace("變詠時間", "變動詠唱時間")
+        value = value.replace("施放技能時SP消耗量", "使用技能時SP消耗量")
+        value = value.replace("遭受治癒量", "所受治癒量")
+
+        # Announcements often say 抗性 while the client table uses 耐性.
+        value = re.sub(
+            r"對(無|水|地|火|風|毒|聖|暗|念|不死)屬性攻擊的?抗性",
+            r"\1屬性攻擊耐性",
+            value,
+        )
+        value = re.sub(r"對(?:所有|全)屬性攻擊的?抗性", "全屬性攻擊耐性", value)
+
+        # The table wraps ASPD percentage in "攻擊速度增加(...)" while many
+        # announcements only write "減少攻擊後延遲".  Compare both as the
+        # same canonical effect.
+        value = re.sub(
+            r"攻擊速度增加\(\s*(攻擊後延遲\s*-\s*[^)]*)\)",
+            r"\1",
+            value,
+        )
         value = value.replace("，", ",").replace("),", ")")
+
+        # Received-damage wording: 遭受/怪 are announcement aliases for 受到/敵人.
+        value = re.sub(r"遭受", "受到", value)
+        value = re.sub(r"受到BOSS(?:怪物|怪|魔物|敵人)?的", "受到首領型魔物的", value, flags=re.I)
+        value = re.sub(r"受到一般(?:階級)?(?:怪物|怪|魔物|敵人|對象)的", "受到一般敵人的", value)
+        value = re.sub(
+            r"受到(無|水|地|火|風|毒|聖|暗|念|不死)屬性(?:怪物|怪|魔物|敵人|對象)的",
+            r"受到\1屬性敵人的",
+            value,
+        )
+        for size_name in ("小型", "中型", "大型"):
+            value = re.sub(
+                rf"受到{size_name}(?:型)?(?:怪物|怪|魔物|敵人|對象)的(?:物理)?傷害",
+                f"受到{size_name}敵人的物理傷害",
+                value,
+            )
+            value = re.sub(
+                rf"受到{size_name}(?:型)?(?:怪物|怪|魔物|敵人|對象)的魔法傷害",
+                f"受到{size_name}敵人的魔法傷害",
+                value,
+            )
+
+        # Class wording used by announcements versus the client name table.
+        value = re.sub(
+            r"對一般(?:階級)?(?:魔物|怪物|敵人|對象)的",
+            "對一般敵人的",
+            value,
+        )
+        value = re.sub(
+            r"無視一般(?:階級)?(?:魔物|怪物|敵人|對象)的",
+            "無視一般敵人的",
+            value,
+        )
+        value = re.sub(
+            r"對首領型(?:魔物|怪物|敵人|對象)的",
+            "對首領型魔物的",
+            value,
+        )
+        value = re.sub(
+            r"無視首領型(?:魔物|怪物|敵人|對象)的",
+            "無視首領型魔物的",
+            value,
+        )
+
+        # Size wording: announcements often include an extra leading ``對``
+        # and call the target 魔物, while the table uses 小型/中型/大型敵人.
+        for size_name in ("小型", "中型", "大型"):
+            value = re.sub(
+                rf"對{size_name}(?:型)?(?:魔物|怪物|敵人|對象)的",
+                f"{size_name}敵人的",
+                value,
+            )
+
+        # Elemental target wording: 給予/對 and 怪/怪物/魔物/對象 all
+        # describe damage against an elemental target.  Canonicalize this before
+        # fuzzy matching so it cannot collapse into the shorter self-element
+        # magic-damage label (for example ADDSKILLMDAMAGE_WIND).
+        value = re.sub(
+            r"(?:給予|對)(無|水|地|火|風|毒|聖|暗|念|不死)屬性(?:怪物|怪|魔物|敵人|對象)的",
+            r"對\1屬性敵人的",
+            value,
+        )
+
+        # Race resistance wording used by copied tables.
+        race_aliases = {
+            "無形": "無型",
+            "無型": "無型",
+            "不死形": "不死型",
+            "不死型": "不死型",
+            "動物型": "動物型",
+            "植物型": "植物型",
+            "昆蟲型": "昆蟲型",
+            "魚貝型": "魚貝型",
+            "惡魔型": "惡魔型",
+            "天使型": "天使型",
+            "人類型": "人類型",
+            "龍族": "龍族",
+            "龍族型": "龍族",
+        }
+        for source_race, target_race in race_aliases.items():
+            value = re.sub(
+                rf"對{source_race}(?:怪物|怪|魔物|敵人|對象)的?抗性",
+                f"對{target_race}魔物耐性",
+                value,
+            )
+
+        # BOSS defence-ignore wording is reversed in some announcements.
+        value = re.sub(
+            r"BOSS(?:怪物|怪|魔物|敵人)?的物理防禦(?:力)?率?忽視",
+            "無視首領型魔物的物理防禦力",
+            value, flags=re.I,
+        )
+        value = re.sub(
+            r"BOSS(?:怪物|怪|魔物|敵人)?的魔法防禦(?:力)?率?忽視",
+            "無視首領型魔物的魔法防禦力",
+            value, flags=re.I,
+        )
+
+        # The client table includes the trailing 力 in physical/magical defence.
+        value = re.sub(r"物理防禦(?!力|率)", "物理防禦力", value)
+        value = re.sub(r"魔法防禦(?!力|率)", "魔法防禦力", value)
+
         value = re.sub(r"\s+", "", value)
         return value.strip(",;；。").casefold()
 
@@ -932,15 +1129,36 @@ class LapineProbabilityEditor(QDialog):
                 "#",
                 value,
             )
+            # Exact value lists such as 200,400 or 10,20,30 still describe
+            # one random-option placeholder, not multiple placeholders.
+            value = re.sub(
+                r"\d+(?:\.\d+)?(?:\s*,\s*\d+(?:\.\d+)?)+",
+                "#",
+                value,
+            )
             value = re.sub(r"\d+(?:\.\d+)?", "#", value)
         return value
 
     @staticmethod
-    def _extract_import_value_range(effect_text: str) -> Tuple[int, int]:
-        """Extract the first integer value or integer range from pasted effect text."""
+    def _extract_import_value_choices(effect_text: str) -> List[int]:
+        """Extract exact comma-separated values such as ``200,400``."""
+        normalized = unicodedata.normalize("NFKC", str(effect_text or ""))
+        match = re.search(
+            r"(\d+(?:\.\d+)?(?:\s*,\s*\d+(?:\.\d+)?)+)",
+            normalized,
+        )
+        if not match:
+            return []
+        return _normalize_value_choices(
+            [int(float(value)) for value in re.findall(r"\d+(?:\.\d+)?", match.group(1))]
+        )
+
+    @classmethod
+    def _extract_import_value_range(cls, effect_text: str) -> Tuple[int, int]:
+        """Extract the continuous range, exact choices bounds, or one integer value."""
         normalized = unicodedata.normalize("NFKC", str(effect_text or ""))
         range_match = re.search(
-            r"(-?\d+(?:\.\d+)?)\s*[~～〜]\s*(-?\d+(?:\.\d+)?)",
+            r"(\d+(?:\.\d+)?)\s*[~～〜]\s*(\d+(?:\.\d+)?)",
             normalized,
         )
         if range_match:
@@ -948,7 +1166,11 @@ class LapineProbabilityEditor(QDialog):
             maximum = int(float(range_match.group(2)))
             return (minimum, maximum) if minimum <= maximum else (maximum, minimum)
 
-        values = re.findall(r"-?\d+(?:\.\d+)?", normalized)
+        choices = cls._extract_import_value_choices(normalized)
+        if choices:
+            return min(choices), max(choices)
+
+        values = re.findall(r"\d+(?:\.\d+)?", normalized)
         if values:
             value = int(float(values[-1]))
             return value, value
@@ -985,17 +1207,132 @@ class LapineProbabilityEditor(QDialog):
             return stripped or None
         return None
 
+    @staticmethod
+    def _infer_import_semantic_code(effect_text: Any) -> str:
+        """Resolve target-element damage before generic fuzzy text matching.
+
+        Phrases such as ``給予風屬性怪的魔法傷害`` contain the shorter text
+        ``風屬性魔法傷害``.  A plain similarity score can therefore prefer
+        ADDSKILLMDAMAGE_WIND even though the announcement explicitly describes
+        damage *to a wind-element target*.  These semantic patterns are
+        unambiguous, so route them directly to the TARGET/USER EnumVAR family.
+        """
+        value = unicodedata.normalize("NFKC", str(effect_text or ""))
+        value = value.replace("％", "%").replace("＋", "+").replace("－", "-")
+        value = re.sub(r"\s+", "", value)
+
+        element_suffix = {
+            "無": "NOTHING",
+            "水": "WATER",
+            "地": "GROUND",
+            "火": "FIRE",
+            "風": "WIND",
+            "毒": "POISON",
+            "聖": "SAINT",
+            "暗": "DARKNESS",
+            "念": "TELEKINESIS",
+            "不死": "UNDEAD",
+        }
+        element_pattern = r"(無|水|地|火|風|毒|聖|暗|念|不死)"
+        target_noun = r"(?:怪物|怪|魔物|敵人|對象)"
+
+        # Class and size phrases are also semantically unambiguous.  Resolve
+        # them before fuzzy comparison so words such as 魔法攻擊增加 do not
+        # drift toward a shorter, unrelated magic-damage template.
+        normal_target = r"一般(?:階級|類|型)?(?:怪物|怪|魔物|敵人|對象)"
+        boss_target = r"(?:首領|BOSS)(?:階級|類|型)?(?:怪物|怪|魔物|敵人|對象)"
+        if re.search(
+            rf"(?:給予|對){normal_target}的魔法(?:攻擊|傷害)(?:增加|\+)?",
+            value, flags=re.I,
+        ):
+            return "CLASS_MDAMAGE_NORMAL"
+        if re.search(
+            rf"(?:給予|對){boss_target}的魔法(?:攻擊|傷害)(?:增加|\+)?",
+            value, flags=re.I,
+        ):
+            return "CLASS_MDAMAGE_BOSS"
+        if re.search(
+            rf"(?:無視)?{normal_target}的魔法防禦(?:力)?率?(?:忽視|無視)",
+            value, flags=re.I,
+        ):
+            return "CLASS_IGNORE_MDEF_PERCENT_NORMAL"
+        if re.search(
+            rf"(?:無視)?{boss_target}的魔法防禦(?:力)?率?(?:忽視|無視)",
+            value, flags=re.I,
+        ):
+            return "CLASS_IGNORE_MDEF_PERCENT_BOSS"
+
+        size_suffix = {"小": "SMALL", "中": "MIDIUM", "大": "LARGE"}
+        size_magic = re.search(
+            rf"(?:給予|對)(小|中|大)型{target_noun}的魔法(?:攻擊|傷害)(?:增加|\+)?",
+            value,
+        )
+        if size_magic:
+            return f"MDAMAGE_SIZE_{size_suffix[size_magic.group(1)]}_TARGET"
+
+        if re.search(r"技能的?後延遲(?:時間)?(?:減少|-)", value):
+            return "DEC_SPELL_DELAY_TIME"
+        if re.search(r"(?:使用|施放)技能時SP消耗量(?:減少|-)", value, flags=re.I):
+            return "DEC_SP_CONSUMPTION"
+        if re.search(r"(?:恢復量|治癒量)(?:增加|\+)", value):
+            return "HEAL_VALUE"
+
+        target_magic = re.search(
+            rf"(?:給予|對){element_pattern}屬性{target_noun}的魔法(?:攻擊|傷害)",
+            value,
+        )
+        if target_magic:
+            return f"MDAMAGE_PROPERTY_{element_suffix[target_magic.group(1)]}_TARGET"
+
+        target_physical = re.search(
+            rf"(?:給予|對){element_pattern}屬性{target_noun}的(?:物理)?(?:攻擊|傷害)",
+            value,
+        )
+        if target_physical:
+            return f"DAMAGE_PROPERTY_{element_suffix[target_physical.group(1)]}_TARGET"
+
+        received_magic = re.search(
+            rf"(?:遭受|受到){element_pattern}屬性{target_noun}的魔法(?:攻擊|傷害)",
+            value,
+        )
+        if received_magic:
+            return f"MDAMAGE_PROPERTY_{element_suffix[received_magic.group(1)]}_USER"
+
+        received_physical = re.search(
+            rf"(?:遭受|受到){element_pattern}屬性{target_noun}的(?:物理)?(?:攻擊|傷害)",
+            value,
+        )
+        if received_physical:
+            return f"DAMAGE_PROPERTY_{element_suffix[received_physical.group(1)]}_USER"
+
+        # No target noun means the option increases the character's own
+        # elemental magic damage, rather than damage against an elemental enemy.
+        own_magic = re.match(
+            rf"^{element_pattern}屬性魔法(?:攻擊|傷害)(?:增加|\+)",
+            value,
+        )
+        if own_magic:
+            return f"ADDSKILLMDAMAGE_{element_suffix[own_magic.group(1)]}"
+        if re.match(r"^(?:所有|全)屬性魔法(?:攻擊|傷害)(?:增加|\+)", value):
+            return "ADDSKILLMDAMAGE_ALL"
+        return ""
+
     def _infer_import_option_code(self, effect_text: str) -> Tuple[str, float]:
         """Infer one EnumVAR from pasted effect text using exact/fuzzy template matching."""
+        available_codes = sorted(set(self.option_names) & set(self.enchant_names))
+        if not available_codes:
+            available_codes = sorted(self.option_names)
+
+        semantic_code = self._infer_import_semantic_code(effect_text)
+        if semantic_code and semantic_code in available_codes:
+            return semantic_code, 1.0
+
         source_shape = self._import_effect_shape(effect_text)
         if not source_shape:
             return "", 0.0
 
         candidates: List[Tuple[float, str]] = []
         exact_codes: List[str] = []
-        available_codes = sorted(set(self.option_names) & set(self.enchant_names))
-        if not available_codes:
-            available_codes = sorted(self.option_names)
 
         for code in available_codes:
             template_shape = self._import_effect_shape(
@@ -1085,9 +1422,16 @@ class LapineProbabilityEditor(QDialog):
 
             if not current_group:
                 current_group = ensure_group(self._first_group_name() or "1", 100.0)
-            minimum, maximum = self._extract_import_value_range(first)
-            option_code, match_score = self._infer_import_option_code(first)
+
+            repaired_effect, repair_warning = self._repair_import_effect_text(first)
+            if repair_warning:
+                warnings.append(f"第 {line_number} 行：{repair_warning}")
+            minimum, maximum = self._extract_import_value_range(repaired_effect)
+            value_choices = self._extract_import_value_choices(repaired_effect)
+            option_code, match_score = self._infer_import_option_code(repaired_effect)
             note = columns[2].strip() if len(columns) >= 3 else ""
+            if repair_warning:
+                note = f"{note}｜{repair_warning}" if note else repair_warning
             if not option_code:
                 marker = "未自動配對 EnumVAR"
                 note = f"{note}｜{marker}" if note else marker
@@ -1098,6 +1442,7 @@ class LapineProbabilityEditor(QDialog):
                 "option_code": option_code,
                 "min_value": minimum,
                 "max_value": maximum,
+                "value_choices": value_choices,
                 "probability": probability,
                 "raw_effect": first,
                 "note": note,
@@ -1228,8 +1573,7 @@ class LapineProbabilityEditor(QDialog):
         layout.addWidget(editor, 1)
 
         precision_note = QLabel(
-            "機率欄位畫面維持一位小數；批次貼上的原始精度（例如 0.975%）會保留於資料中，"
-            "手動修改該欄後才改用一位小數值。"
+            "機率欄位統一使用小數點後三位；例如 0.975% 會顯示並儲存為 0.975%。"
         )
         precision_note.setWordWrap(True)
         layout.addWidget(precision_note)
@@ -1642,20 +1986,15 @@ class LapineProbabilityEditor(QDialog):
     def _new_probability_spin(value: Any = 0.0) -> QDoubleSpinBox:
         spin = _NoWheelDoubleSpinBox()
         spin.setRange(0.0, 100.0)
-        spin.setDecimals(1)
-        spin.setSingleStep(0.1)
+        spin.setDecimals(3)
+        spin.setSingleStep(0.001)
         spin.setSuffix(" %")
         try:
-            exact_value = float(value)
+            exact_value = round(float(value), 3)
         except (TypeError, ValueError):
             exact_value = 0.0
         spin._lapine_exact_probability = exact_value
         spin.setValue(exact_value)
-        if abs(exact_value - round(exact_value, 1)) > 1e-9:
-            spin.setToolTip(
-                f"批次匯入原始機率：{exact_value:g}%。畫面顯示一位小數；"
-                "手動修改後會改用畫面值。"
-            )
         return spin
 
     @staticmethod
@@ -1668,9 +2007,23 @@ class LapineProbabilityEditor(QDialog):
             return float(spin.value())
 
     def _on_probability_spin_changed(self, spin: QDoubleSpinBox, value: float):
-        spin._lapine_exact_probability = float(value)
+        spin._lapine_exact_probability = round(float(value), 3)
         spin.setToolTip("")
         self._update_probability_total()
+
+    def _on_value_spin_changed(
+        self,
+        owner_spin: QSpinBox,
+        other_spin: QSpinBox,
+    ):
+        """Manual min/max edits switch imported discrete values back to a range."""
+        if getattr(owner_spin, "_lapine_loading_value", False):
+            return
+        if _normalize_value_choices(getattr(owner_spin, "_lapine_value_choices", [])):
+            owner_spin._lapine_value_choices = []
+            owner_spin.setToolTip("")
+            other_spin.setToolTip("")
+        self._update_row_preview_by_widget(owner_spin)
 
     def add_row(
         self,
@@ -1703,6 +2056,12 @@ class LapineProbabilityEditor(QDialog):
         table.setCellWidget(row, self.COL_CODE, combo)
         min_spin = self._new_value_spin(data.get("min_value", 0))
         max_spin = self._new_value_spin(data.get("max_value", data.get("min_value", 0)))
+        value_choices = _normalize_value_choices(data.get("value_choices", []))
+        min_spin._lapine_value_choices = value_choices
+        if value_choices:
+            choice_text = "、".join(str(value) for value in value_choices)
+            min_spin.setToolTip(f"批次匯入離散值：{choice_text}")
+            max_spin.setToolTip(f"批次匯入離散值：{choice_text}")
         rate_spin = self._new_probability_spin(data.get("probability", 0.0))
         table.setCellWidget(row, self.COL_MIN, min_spin)
         table.setCellWidget(row, self.COL_MAX, max_spin)
@@ -1717,8 +2076,12 @@ class LapineProbabilityEditor(QDialog):
         table.item(row, self.COL_NOTE).setData(Qt.UserRole, str(data.get("raw_effect") or ""))
 
         combo.currentTextChanged.connect(lambda _text, w=combo: self._update_row_preview_by_widget(w))
-        min_spin.valueChanged.connect(lambda _value, w=min_spin: self._update_row_preview_by_widget(w))
-        max_spin.valueChanged.connect(lambda _value, w=max_spin: self._update_row_preview_by_widget(w))
+        min_spin.valueChanged.connect(
+            lambda _value, w=min_spin, other=max_spin: self._on_value_spin_changed(w, other)
+        )
+        max_spin.valueChanged.connect(
+            lambda _value, w=max_spin, owner=min_spin: self._on_value_spin_changed(owner, w)
+        )
         rate_spin.valueChanged.connect(
             lambda value, w=rate_spin: self._on_probability_spin_changed(w, value)
         )
@@ -1753,12 +2116,16 @@ class LapineProbabilityEditor(QDialog):
         )
         minimum = min_spin.value() if isinstance(min_spin, QSpinBox) else 0
         maximum = max_spin.value() if isinstance(max_spin, QSpinBox) else minimum
+        value_choices = _normalize_value_choices(
+            getattr(min_spin, "_lapine_value_choices", [])
+            if isinstance(min_spin, QSpinBox) else []
+        )
         raw_item = table.item(row, self.COL_NOTE)
         raw_effect = raw_item.data(Qt.UserRole) if raw_item else ""
 
         display_template = self.option_names.get(code, "")
         display_text = (
-            render_option_preview(display_template, minimum, maximum)
+            render_option_preview(display_template, minimum, maximum, value_choices)
             if display_template else str(raw_effect or code or "（未知代碼）")
         )
         display_item = table.item(row, self.COL_PREVIEW)
@@ -1767,7 +2134,7 @@ class LapineProbabilityEditor(QDialog):
 
         lua_template = self.enchant_names.get(code, "")
         lua_text = (
-            render_option_preview(lua_template, minimum, maximum)
+            render_option_preview(lua_template, minimum, maximum, value_choices)
             if lua_template else "（EnchantName.lua 無對應格式）"
         )
         lua_item = table.item(row, self.COL_LUA)
@@ -1799,6 +2166,10 @@ class LapineProbabilityEditor(QDialog):
             ),
             "min_value": min_spin.value() if isinstance(min_spin, QSpinBox) else 0,
             "max_value": max_spin.value() if isinstance(max_spin, QSpinBox) else 0,
+            "value_choices": _normalize_value_choices(
+                getattr(min_spin, "_lapine_value_choices", [])
+                if isinstance(min_spin, QSpinBox) else []
+            ),
             "probability": self._probability_spin_value(rate_spin) if isinstance(rate_spin, QDoubleSpinBox) else 0.0,
             "raw_effect": str(note_item.data(Qt.UserRole) or "") if note_item else "",
             "note": note_item.text().strip() if note_item else "",
@@ -1821,7 +2192,7 @@ class LapineProbabilityEditor(QDialog):
         _key, current_name, _table = context
         current_total = totals.get(current_name or "（未命名）", 0.0)
         self.total_rate_label.setText(
-            f"目前群組「{current_name or '未命名'}」組內合計：{current_total:.1f}%"
+            f"目前群組「{current_name or '未命名'}」組內合計：{format_probability_display(current_total)}%"
         )
 
     def delete_selected_rows(self):
@@ -1919,13 +2290,20 @@ class LapineProbabilityEditor(QDialog):
         totals: Dict[str, float] = defaultdict(float)
         for row in rows:
             totals[str(row.get("group"))] += float(row.get("probability", 0.0) or 0.0)
-        overflow = [f"{name}={total:g}%" for name, total in totals.items() if total > 100.0 + 1e-9]
+        overflow = [f"{name}={format_probability_display(total)}%" for name, total in totals.items() if total > 100.0 + 1e-9]
         if overflow:
-            QMessageBox.warning(
-                self, "組內機率超過 100%",
-                "以下群組的組內機率合計超過 100%：" + "、".join(overflow),
+            answer = QMessageBox.warning(
+                self,
+                "組內機率超過 100%",
+                "以下群組的組內機率合計超過 100%："
+                + "、".join(overflow)
+                + "\n\n仍要儲存這份機率表嗎？\n"
+                  "超過 100% 時，隨機附魔會依各列機率的相對比例作為權重抽選。",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
             )
-            return
+            if answer != QMessageBox.StandardButton.Yes:
+                return
 
         missing_formats = sorted({
             str(row.get("option_code")) for row in rows
@@ -2007,16 +2385,25 @@ class LapineUpgradeUI(QWidget):
         self.setWindowTitle("Lapine Upgrade Viewer")
         root_layout = QHBoxLayout(self)
 
-        left_layout = QVBoxLayout()
+        # 左側搜尋／裝備清單保持可讀寬度，避免中間資料表與右側 LOG
+        # 擴張時將搜尋欄壓縮成狹窄直條。
+        self.left_panel = QWidget()
+        self.left_panel.setMinimumWidth(250)
+        self.left_panel.setMaximumWidth(360)
+        left_layout = QVBoxLayout(self.left_panel)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+
         self.search_box = QLineEdit()
+        self.search_box.setMinimumWidth(230)
         self.search_box.setPlaceholderText("搜尋裝備名稱、ItemID 或內部名稱...")
         self.search_box.textChanged.connect(self.refresh_item_list)
         left_layout.addWidget(self.search_box)
 
         self.list_items = QListWidget()
+        self.list_items.setMinimumWidth(230)
         self.list_items.currentItemChanged.connect(self._on_current_item_changed)
         left_layout.addWidget(self.list_items, 1)
-        root_layout.addLayout(left_layout)
+        root_layout.addWidget(self.left_panel, 0)
 
         right_layout = QVBoxLayout()
         self.target_hint_label = QLabel()
@@ -2067,6 +2454,11 @@ class LapineUpgradeUI(QWidget):
         self.random_log_view.setPlaceholderText("本次與歷次隨機附魔結果會顯示在這裡。")
         random_log_layout.addWidget(self.random_log_view, 1)
         root_layout.addWidget(self.random_log_panel)
+
+        # 中央內容吸收多餘空間；左右工具區維持各自的可讀寬度。
+        root_layout.setStretch(0, 0)
+        root_layout.setStretch(1, 1)
+        root_layout.setStretch(2, 0)
 
         self._list_rows = self._build_list_rows()
         self.refresh_item_list("")
@@ -2539,13 +2931,13 @@ class LapineUpgradeUI(QWidget):
 
         if rows:
             title = str(profile.get("title") or table_key)
-            group_text = "；".join(
-                f"{group.get('name')} 出現 {format_probability_display(group.get('probability', 100.0))}%/組內 {format_probability_display(per_group_total.get(str(group.get('name')), 0.0))}%"
+            group_text = "".join(
+                f"{group.get('name')} 出現 {format_probability_display(group.get('probability', 100.0))}%/組內 {format_probability_display(per_group_total.get(str(group.get('name')), 0.0))}%\n"
                 for group in groups
             )
             extra = f"｜EnchantName 缺少 {missing_format_count} 列" if missing_format_count else ""
             status_label.setText(
-                f"{title}｜{len(groups)} 組／{len(rows)} 列｜{group_text}{extra}"
+                f"{title}｜{len(groups)} 組／{len(rows)} 列｜\n{group_text}{extra}"
             )
         else:
             status_label.setText("尚未建立機率表。")
@@ -2616,7 +3008,7 @@ class LapineUpgradeUI(QWidget):
                 f"［{result.get('option_code')}］"
                 f"（群組 Roll {float(result.get('group_roll', 0.0)):.4f} / "
                 f"組內 Roll {float(result.get('option_roll', 0.0)):.4f} / "
-                f"該列 {float(row.get('probability', 0.0) or 0.0):g}%）"
+                f"該列 {format_probability_display(row.get('probability', 0.0))}%）"
             )
         missed_groups = [
             f"群組 {attempt.get('group')}：{attempt.get('reason')}"

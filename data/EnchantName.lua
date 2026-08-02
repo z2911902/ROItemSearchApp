@@ -1,4 +1,4 @@
-
+﻿
 EnchantName = {
 	[EnumVAR.VAR_MAXHPAMOUNT[1]] = "AddExtParam(1, 109, %d)",
 	[EnumVAR.VAR_MAXSPAMOUNT[1]] = "AddExtParam(1, 110, %d)",
@@ -34,7 +34,7 @@ EnchantName = {
 	[EnumVAR.ATTR_TOLERACE_DARKNESS[1]] = "AddAttrTolerace(7, %d)",
 	[EnumVAR.ATTR_TOLERACE_TELEKINESIS[1]] = "AddAttrTolerace(8, %d)",
 	[EnumVAR.ATTR_TOLERACE_UNDEAD[1]] = "AddAttrTolerace(9, %d)",
-	[Enum-VAR.ATTR_TOLERACE_ALLBUTNOTHING[1]] = "對全屬性(無屬性除外)攻擊的抗性 + %d%%",
+	[EnumVAR.ATTR_TOLERACE_ALLBUTNOTHING[1]] = "AddAttrTolerace(10, %d) \n SubAttrTolerace(0, %d)",
 	[EnumVAR.DAMAGE_PROPERTY_NOTHING_USER[1]] = "SubDamage_Property(0, 0, %d)",
 	[EnumVAR.DAMAGE_PROPERTY_NOTHING_TARGET[1]] = "AddDamage_Property(1, 0, %d)",
 	[EnumVAR.DAMAGE_PROPERTY_WATER_USER[1]] = "SubDamage_Property(0, 1, %d)",
