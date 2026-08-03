@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.2-260803"
+Version = "v0.5.3-260803"
 
 import sys, builtins, time
 import os
@@ -9338,6 +9338,8 @@ class ItemSearchApp(QWidget):
             ("all_skill_entries.py",    "data/all_skill_entries.py"),
             ("job_dict.py",             "data/job_dict.py"),
             ("EnchantName.lua",         "data/EnchantName.lua"),
+            ("lapine_random_options.json",         "data/lapine_random_options.json"),
+
 
         ]
 
@@ -10728,6 +10730,7 @@ class ItemSearchApp(QWidget):
         ONLINE_EnchantName_URL = "https://z2911902.github.io/ROItemSearchApp/data/EnchantName.lua"
         ONLINE_stateiconinfo_URL = "https://z2911902.github.io/ROItemSearchApp/data/stateiconinfo.lua"
         ONLINE_EFSTIDs_URL = "https://z2911902.github.io/ROItemSearchApp/data/EFSTIDs.lua"
+        ONLINE_lapine_random_options_URL = "https://z2911902.github.io/ROItemSearchApp/data/lapine_random_options.json"
 
         # === 路徑設定 ===
         if getattr(sys, 'frozen', False):
@@ -10755,6 +10758,7 @@ class ItemSearchApp(QWidget):
         EnchantName_path  = os.path.join(data_dir, "EnchantName.lua")
         stateiconinfo_path  = os.path.join(data_dir, "stateiconinfo.lua")
         EFSTIDs_path  = os.path.join(data_dir, "EFSTIDs.lua")
+        lapine_random_options_path = os.path.join(data_dir, "lapine_random_options.json")
         
 
         # === 內嵌小工具 ===
@@ -10864,6 +10868,15 @@ class ItemSearchApp(QWidget):
                 # CSV
                 return ("," in txt or ";" in txt) and "\n" in txt
 
+            elif ext == ".json":
+                # Lapine 隨機附魔機率表：確認不是錯誤頁，且符合讀取端需要的基本結構。
+                try:
+                    with open(path, "r", encoding="utf-8-sig") as f:
+                        data = json.load(f)
+                    return isinstance(data, dict) and isinstance(data.get("tables"), dict)
+                except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+                    return False
+
             else:
                 # 未知類型 → 保守返回 True（你可改成 False）
                 return True
@@ -10874,7 +10887,12 @@ class ItemSearchApp(QWidget):
             for url, dest in targets:
                 ok = _download_with_progress(url, dest)
                 if ok and not _looks_like_file_quick(dest):
-                    print(f"⚠️ 檔案格式可疑（非 Lua？）：{os.path.basename(dest)}")
+                    print(f"⚠️ 線上檔案格式或內容不正確：{os.path.basename(dest)}")
+                    try:
+                        os.remove(dest)
+                    except OSError:
+                        pass
+                    ok = False
                 updated = updated or ok
             return updated
 
@@ -11080,6 +11098,7 @@ class ItemSearchApp(QWidget):
         miss_EnchantName = not os.path.exists(EnchantName_path)
         miss_EFSTIDs = not os.path.exists(EFSTIDs_path)
         miss_stateiconinfo = not os.path.exists(stateiconinfo_path)
+        miss_lapine_random_options = not os.path.exists(lapine_random_options_path)
 
         
         
@@ -11138,15 +11157,17 @@ class ItemSearchApp(QWidget):
             if miss_EnchantName: targets.append((ONLINE_EnchantName_URL,    EnchantName_path))
             if miss_EFSTIDs: targets.append((ONLINE_EFSTIDs_URL,    EFSTIDs_path))
             if miss_stateiconinfo: targets.append((ONLINE_stateiconinfo_URL,    stateiconinfo_path))
+            if miss_lapine_random_options: targets.append((ONLINE_lapine_random_options_URL, lapine_random_options_path))
             
             if targets:
-                _try_online_for(targets)
-                # ⭐⭐⭐ 下載完成 → 強制重新啟動 ⭐⭐⭐
-                print("🔄 線上資料已更新，重新啟動程式以避免舊快取造成錯誤...")
+                updated = _try_online_for(targets)
+                if updated:
+                    # ⭐⭐⭐ 下載完成 → 強制重新啟動 ⭐⭐⭐
+                    print("🔄 線上資料已更新，重新啟動程式以避免舊快取造成錯誤...")
 
-                import sys, os
-                python = sys.executable
-                os.execv(python, [python] + sys.argv)
+                    import sys, os
+                    python = sys.executable
+                    os.execv(python, [python] + sys.argv)
             # 下載後再檢查一次，若仍缺則停止（不回退本地）
             required_files = [
                 iteminfo_path,
@@ -11164,6 +11185,7 @@ class ItemSearchApp(QWidget):
                 EnchantName_path,
                 EFSTIDs_path,
                 stateiconinfo_path,
+                lapine_random_options_path,
 
             ]
             if load_kro_data:
