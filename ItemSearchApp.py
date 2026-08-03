@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.3-260803"
+Version = "v0.5.4-260803"
 
 import sys, builtins, time
 import os
@@ -9338,8 +9338,8 @@ class ItemSearchApp(QWidget):
             ("all_skill_entries.py",    "data/all_skill_entries.py"),
             ("job_dict.py",             "data/job_dict.py"),
             ("EnchantName.lua",         "data/EnchantName.lua"),
-            ("lapine_random_options.json",         "data/lapine_random_options.json"),
-
+            ("lapine_random_options.json", "data/lapine_random_options.json"),
+            ("lapineupgradebox.lub",       "data/lapineupgradebox.lub"),
 
         ]
 
@@ -10731,6 +10731,7 @@ class ItemSearchApp(QWidget):
         ONLINE_stateiconinfo_URL = "https://z2911902.github.io/ROItemSearchApp/data/stateiconinfo.lua"
         ONLINE_EFSTIDs_URL = "https://z2911902.github.io/ROItemSearchApp/data/EFSTIDs.lua"
         ONLINE_lapine_random_options_URL = "https://z2911902.github.io/ROItemSearchApp/data/lapine_random_options.json"
+        ONLINE_lapineupgradebox_URL = "https://z2911902.github.io/ROItemSearchApp/data/lapineupgradebox.lub"
 
         # === 路徑設定 ===
         if getattr(sys, 'frozen', False):
@@ -10759,6 +10760,7 @@ class ItemSearchApp(QWidget):
         stateiconinfo_path  = os.path.join(data_dir, "stateiconinfo.lua")
         EFSTIDs_path  = os.path.join(data_dir, "EFSTIDs.lua")
         lapine_random_options_path = os.path.join(data_dir, "lapine_random_options.json")
+        lapineupgradebox_path = os.path.join(data_dir, "lapineupgradebox.lub")
         
 
         # === 內嵌小工具 ===
@@ -11099,6 +11101,7 @@ class ItemSearchApp(QWidget):
         miss_EFSTIDs = not os.path.exists(EFSTIDs_path)
         miss_stateiconinfo = not os.path.exists(stateiconinfo_path)
         miss_lapine_random_options = not os.path.exists(lapine_random_options_path)
+        miss_lapineupgradebox = not os.path.exists(lapineupgradebox_path)
 
         
         
@@ -11158,6 +11161,7 @@ class ItemSearchApp(QWidget):
             if miss_EFSTIDs: targets.append((ONLINE_EFSTIDs_URL,    EFSTIDs_path))
             if miss_stateiconinfo: targets.append((ONLINE_stateiconinfo_URL,    stateiconinfo_path))
             if miss_lapine_random_options: targets.append((ONLINE_lapine_random_options_URL, lapine_random_options_path))
+            if miss_lapineupgradebox: targets.append((ONLINE_lapineupgradebox_URL, lapineupgradebox_path))
             
             if targets:
                 updated = _try_online_for(targets)
@@ -11186,6 +11190,7 @@ class ItemSearchApp(QWidget):
                 EFSTIDs_path,
                 stateiconinfo_path,
                 lapine_random_options_path,
+                lapineupgradebox_path,
 
             ]
             if load_kro_data:
