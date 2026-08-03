@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.1-260802"
+Version = "v0.5.2-260803"
 
 import sys, builtins, time
 import os
@@ -3419,6 +3419,16 @@ def parse_lua_effects_with_variables(
             continue
 
             
+        # 增減「指定技能傷害(技能段)」合併處理
+        register_function("AddSkillDelay", "增加技能固定冷卻", [
+            {"name": "技能", "map": "skill_map"},
+            {"name": "數值%", "type": "value"}
+        ])
+        register_function("SubSkillDelay", "減少技能固定冷卻", [
+            {"name": "技能", "map": "skill_map"},
+            {"name": "數值%", "type": "value"}
+        ])
+
         # 指定技能冷卻時間（毫秒）增加/減少 合併處理
         skill_delay = re.match(r"(Add|Sub)SkillDelay\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
         if skill_delay and condition_met:
