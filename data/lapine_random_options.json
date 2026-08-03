@@ -11107,7 +11107,7 @@
     "Nature_Life": {
       "title": "自然之力",
       "box_item_id": 102644,
-      "updated_at": "2026-08-02T16:09:36+08:00",
+      "updated_at": "2026-08-03T07:13:24+08:00",
       "groups": [
         {
           "name": "1",
@@ -11120,6 +11120,7 @@
           "option_code": "VAR_MAXHPAMOUNT",
           "min_value": 1000,
           "max_value": 5000,
+          "value_choices": [],
           "probability": 5.426,
           "raw_effect": "MaxHP+1000~5000",
           "note": "MaxHP+1000~5000"
@@ -11129,6 +11130,7 @@
           "option_code": "VAR_MAXHPPERCENT",
           "min_value": 5,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.426,
           "raw_effect": "MaxHP+5~10%",
           "note": "MaxHP+5~10%"
@@ -11138,6 +11140,7 @@
           "option_code": "VAR_PLUSASPD",
           "min_value": 1,
           "max_value": 1,
+          "value_choices": [],
           "probability": 1.55,
           "raw_effect": "ASPD+1",
           "note": "ASPD+1"
@@ -11147,6 +11150,7 @@
           "option_code": "VAR_ITEMDEFPOWER",
           "min_value": 20,
           "max_value": 50,
+          "value_choices": [],
           "probability": 5.426,
           "raw_effect": "DEF+20~50",
           "note": "DEF+20~50"
@@ -11156,6 +11160,7 @@
           "option_code": "VAR_MDEFPOWER",
           "min_value": 5,
           "max_value": 10,
+          "value_choices": [],
           "probability": 5.426,
           "raw_effect": "MDEF+5~10",
           "note": "MDEF+5~10"
@@ -11165,6 +11170,7 @@
           "option_code": "VAR_AVOIDSUCCESSVALUE",
           "min_value": 20,
           "max_value": 50,
+          "value_choices": [],
           "probability": 5.426,
           "raw_effect": "FLEE+20~50",
           "note": "FLEE+20~50"
@@ -11174,6 +11180,7 @@
           "option_code": "CLASS_MDAMAGE_NORMAL",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "對一般魔物的魔法攻擊增加3~10%",
           "note": "未自動配對 EnumVAR"
@@ -11183,15 +11190,17 @@
           "option_code": "CLASS_MDAMAGE_BOSS",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 1.55,
           "raw_effect": "對首領類魔物的魔法攻擊增加3~10%",
           "note": "未自動配對 EnumVAR"
         },
         {
           "group": "1",
-          "option_code": "CLASS_MDAMAGE_NORMAL",
+          "option_code": "CLASS_IGNORE_MDEF_PERCENT_NORMAL",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "一般怪的魔法防禦率忽視3~10%",
           "note": "未自動配對 EnumVAR"
@@ -11201,6 +11210,7 @@
           "option_code": "CLASS_IGNORE_MDEF_PERCENT_BOSS",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 1.55,
           "raw_effect": "首領類怪的魔法防禦率忽視3~10%",
           "note": "未自動配對 EnumVAR"
@@ -11210,6 +11220,7 @@
           "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "對小型魔物的魔法攻擊增加3~10%",
           "note": "未自動配對 EnumVAR"
@@ -11219,6 +11230,7 @@
           "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "對中型魔物的魔法攻擊增加3~10%",
           "note": "未自動配對 EnumVAR"
@@ -11228,6 +11240,7 @@
           "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "對大型魔物的魔法攻擊增加3~10%",
           "note": "未自動配對 EnumVAR"
@@ -11237,6 +11250,7 @@
           "option_code": "DEC_SP_CONSUMPTION",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "使用技能時SP消耗量減少3~10%",
           "note": "使用技能時SP消耗量減少3~10%"
@@ -11246,6 +11260,7 @@
           "option_code": "VAR_MAGICATKPERCENT",
           "min_value": 3,
           "max_value": 8,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "MATK+3~8%",
           "note": "MATK+3~8%"
@@ -11255,6 +11270,7 @@
           "option_code": "DEC_SPELL_DELAY_TIME",
           "min_value": 3,
           "max_value": 8,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "技能的後延遲減少3~8%",
           "note": "未自動配對 EnumVAR"
@@ -11264,6 +11280,7 @@
           "option_code": "DEC_SPELL_CAST_TIME",
           "min_value": 5,
           "max_value": 12,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "變動施法時間減少5~12%",
           "note": "未自動配對 EnumVAR"
@@ -11273,6 +11290,7 @@
           "option_code": "HEAL_VALUE",
           "min_value": 10,
           "max_value": 20,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "恢復量增加10~20%",
           "note": "未自動配對 EnumVAR"
@@ -11282,6 +11300,7 @@
           "option_code": "ADDSKILLMDAMAGE_WATER",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "水屬性魔法傷害增加3~10%",
           "note": "水屬性魔法傷害增加3~10%"
@@ -11291,6 +11310,7 @@
           "option_code": "ADDSKILLMDAMAGE_GROUND",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 3.876,
           "raw_effect": "地屬性魔法傷害增加3~10%",
           "note": "地屬性魔法傷害增加3~10%"
@@ -11300,6 +11320,7 @@
           "option_code": "ADDSKILLMDAMAGE_NOTHING",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予無屬性怪的魔法傷害+3~10%",
           "note": "給予無屬性怪的魔法傷害+3~10%"
@@ -11309,6 +11330,7 @@
           "option_code": "ADDSKILLMDAMAGE_WATER",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予水屬性怪的魔法傷害+3~10%",
           "note": "給予水屬性怪的魔法傷害+3~10%"
@@ -11318,6 +11340,7 @@
           "option_code": "ADDSKILLMDAMAGE_GROUND",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予地屬性怪的魔法傷害+3~10%",
           "note": "給予地屬性怪的魔法傷害+3~10%"
@@ -11327,6 +11350,7 @@
           "option_code": "ADDSKILLMDAMAGE_FIRE",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予火屬性怪的魔法傷害3~10%",
           "note": "給予火屬性怪的魔法傷害3~10%"
@@ -11336,6 +11360,7 @@
           "option_code": "ADDSKILLMDAMAGE_WIND",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予風屬性怪的魔法傷害+3~10%",
           "note": "給予風屬性怪的魔法傷害+3~10%"
@@ -11345,6 +11370,7 @@
           "option_code": "ADDSKILLMDAMAGE_POISON",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予毒屬性怪的魔法傷害+3~10%",
           "note": "給予毒屬性怪的魔法傷害+3~10%"
@@ -11354,6 +11380,7 @@
           "option_code": "ADDSKILLMDAMAGE_SAINT",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予聖屬性怪的魔法傷害+3~10%",
           "note": "給予聖屬性怪的魔法傷害+3~10%"
@@ -11363,6 +11390,7 @@
           "option_code": "ADDSKILLMDAMAGE_DARKNESS",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予暗屬性怪的魔法傷害+3~10%",
           "note": "給予暗屬性怪的魔法傷害+3~10%"
@@ -11372,6 +11400,7 @@
           "option_code": "ADDSKILLMDAMAGE_TELEKINESIS",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予念屬性怪的魔法傷害+3~10%",
           "note": "給予念屬性怪的魔法傷害+3~10%"
@@ -11381,6 +11410,7 @@
           "option_code": "ADDSKILLMDAMAGE_UNDEAD",
           "min_value": 3,
           "max_value": 10,
+          "value_choices": [],
           "probability": 2.326,
           "raw_effect": "給予不死屬性怪的魔法傷害+3~10%",
           "note": "給予不死屬性怪的魔法傷害+3~10%"
@@ -16754,7 +16784,7 @@
     "Joy_Of_Victory": {
       "title": "勝利喜悅",
       "box_item_id": 100009,
-      "updated_at": "2026-08-02T16:47:49+08:00",
+      "updated_at": "2026-08-03T07:08:05+08:00",
       "groups": [
         {
           "name": "1",
@@ -16771,6 +16801,7 @@
           "option_code": "VAR_MAXHPAMOUNT",
           "min_value": 50,
           "max_value": 200,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "MAXHP+50~200",
           "note": "MAXHP+50~200"
@@ -16780,6 +16811,7 @@
           "option_code": "VAR_MAXSPAMOUNT",
           "min_value": 10,
           "max_value": 100,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "MAXSP+10~100",
           "note": "MAXSP+10~100"
@@ -16789,6 +16821,7 @@
           "option_code": "VAR_ATTPOWER",
           "min_value": 1,
           "max_value": 10,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "ATK+1~10",
           "note": "ATK+1~10"
@@ -16796,8 +16829,9 @@
         {
           "group": "1",
           "option_code": "VAR_ATTMPOWER",
-          "min_value": 0,
-          "max_value": 1,
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "MATK+1~0",
           "note": "MATK+1~0"
@@ -16807,6 +16841,7 @@
           "option_code": "VAR_HITSUCCESSVALUE",
           "min_value": 5,
           "max_value": 10,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "HIT+5~10",
           "note": "HIT+5~10"
@@ -16816,6 +16851,7 @@
           "option_code": "VAR_AVOIDSUCCESSVALUE",
           "min_value": 5,
           "max_value": 20,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "FLEE+5~20",
           "note": "FLEE+5~20"
@@ -16825,6 +16861,7 @@
           "option_code": "VAR_CRITICALSUCCESSVALUE",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "CRI+1~3",
           "note": "CRI+1~3"
@@ -16834,6 +16871,7 @@
           "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "遠距離物理傷害+1~3%",
           "note": "遠距離物理傷害+1~3%"
@@ -16843,6 +16881,7 @@
           "option_code": "HEAL_VALUE",
           "min_value": 1,
           "max_value": 5,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "治癒量+1~5%",
           "note": "治癒量+1~5%"
@@ -16852,6 +16891,7 @@
           "option_code": "DEC_SPELL_CAST_TIME",
           "min_value": -1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "變動詠唱-1~3%",
           "note": "變動詠唱-1~3%"
@@ -16861,6 +16901,7 @@
           "option_code": "DEC_SPELL_DELAY_TIME",
           "min_value": -1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 6.249,
           "raw_effect": "技能後延遲-1~3%",
           "note": "技能後延遲-1~3%"
@@ -16870,6 +16911,7 @@
           "option_code": "VAR_MAXHPPERCENT",
           "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "MAXHP+1~2%",
           "note": "MAXHP+1~2%"
@@ -16879,6 +16921,7 @@
           "option_code": "VAR_MAXSPPERCENT",
           "min_value": 1,
           "max_value": 2,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "MAXSP+1~2%",
           "note": "MAXSP+1~2%"
@@ -16888,6 +16931,7 @@
           "option_code": "VAR_ATKPERCENT",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "ATK+1~3%",
           "note": "ATK+1~3%"
@@ -16897,6 +16941,7 @@
           "option_code": "VAR_MAGICATKPERCENT",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "MATK+1~3%",
           "note": "MATK+1~3%"
@@ -16906,6 +16951,7 @@
           "option_code": "VAR_PLUSASPD",
           "min_value": 1,
           "max_value": 5,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "ASPD+1~5%",
           "note": "ASPD+1~5%"
@@ -16915,6 +16961,7 @@
           "option_code": "VAR_CRITICALSUCCESSVALUE",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "CRI+1~3",
           "note": "CRI+1~3"
@@ -16924,6 +16971,7 @@
           "option_code": "DAMAGE_CRI_TARGET",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "暴擊傷害+1~3%",
           "note": "暴擊傷害+1~3%"
@@ -16933,6 +16981,7 @@
           "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
           "min_value": 1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "遠距離物理傷害+1~3%",
           "note": "遠距離物理傷害+1~3%"
@@ -16942,6 +16991,7 @@
           "option_code": "HEAL_VALUE",
           "min_value": 1,
           "max_value": 7,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "治癒量+1~7%",
           "note": "治癒量+1~7%"
@@ -16951,6 +17001,7 @@
           "option_code": "DEC_SPELL_CAST_TIME",
           "min_value": -1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 9.375,
           "raw_effect": "變動詠唱-1~3%",
           "note": "變動詠唱-1~3%"
@@ -16960,6 +17011,7 @@
           "option_code": "DEC_SPELL_DELAY_TIME",
           "min_value": -1,
           "max_value": 3,
+          "value_choices": [],
           "probability": 6.249,
           "raw_effect": "技能後延遲-1~3%",
           "note": "技能後延遲-1~3%"

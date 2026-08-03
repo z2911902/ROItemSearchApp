@@ -1,4 +1,4 @@
-
+﻿
 # ROItemSearchApp <img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/z2911902/ROItemSearchApp/total"> <img alt="GitHub Release" src="https://img.shields.io/github/v/release/z2911902/ROItemSearchApp">
 ROItemSearchApp 是一款用於《RO 仙境傳說 Online》`台灣伺服器(TWRO)` 的非官方桌面工具，可查詢裝備資料、解析並統整裝備效果。
 
@@ -125,6 +125,7 @@ ROItemSearchApp/
 ├─ Damage_view.py               # 重播檔傷害檢視器
 ├─ monster_lookup_dialog.py     # 怪物能力查詢模組
 ├─ enchant.py                   # 附魔資料查詢模組
+├─ lapine_upgrade.py            # 附加能力附魔查詢模組
 ├─ reform_viewer.py             # 裝備改造查詢模組
 ├─ skill_tree.py                # 技能樹功能
 ├─ update.py                    # 更新主程式模組
