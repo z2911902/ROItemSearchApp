@@ -1,4 +1,4 @@
--- Decompiled using luadec 2.1 UNICODE by sztupy (http://winmo.sztupy.hu) and viruscamp 
+﻿-- Decompiled using luadec 2.1 UNICODE by sztupy (http://winmo.sztupy.hu) and viruscamp 
 -- Command line was: C:\Users\Administrator\source\repos\z2911902\ROItemSearchApp\data\LuaFiles514\Lua Files\stateicon\stateiconinfo.lub 
 
 COLOR_TITLE_BUFF = {155, 202, 155}
@@ -8,1317 +8,1317 @@ COLOR_TIME = {255, 176, 98}
 StateIconList = {}
 StateIconList[EFST_IDs.EFST_OVERTHRUSTMAX] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����̤j�� (Overthrust Max)", COLOR_TITLE_BUFF}, 
+{"凶砍最大值 (Overthrust Max)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�������O�W�["}}}
+{"武器攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_SUFFRAGIUM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�묹���(Suffragium)", COLOR_TITLE_BUFF}, 
+{"犧牲祈福(Suffragium)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���۳t�׭��C"}}}
+{"詠唱速度降低"}}}
 StateIconList[EFST_IDs.EFST_OVERTHRUST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����(Over Thrust)", COLOR_TITLE_BUFF}, 
+{"凶砍(Over Thrust)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�������O�W�["}}}
+{"武器攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_AUTOBERSERK] = {
 descript = {
-{"�g�ɪ��A (Auto Berserk)", COLOR_TITLE_BUFF}, 
-{"�{�����p�ɷ|����"}}}
+{"狂暴狀態 (Auto Berserk)", COLOR_TITLE_BUFF}, 
+{"臨死情況時會憤怒"}}}
 StateIconList[EFST_IDs.EFST_BEYOND_OF_WARCRY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���z������", COLOR_TITLE_BUFF}, 
+{"戰嚎的彼端", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP���"}, 
-{"STR���"}}}
+{"MHP減少"}, 
+{"STR減少"}}}
 StateIconList[EFST_IDs.EFST_SWORDREJECT] = {
 descript = {
-{"�Q����", COLOR_TITLE_BUFF}, 
-{"����誱�a�C�t�Z��������"}, 
-{"(�����Ǫ����Ҧ�����)"}, 
-{"�̾��v�ˮ`�U���� 1/2"}, 
-{"�ѤU1/2 ���������"}}}
+{"霸王魂", COLOR_TITLE_BUFF}, 
+{"對於對方玩家劍系武器的攻擊"}, 
+{"(對於對方怪物的所有攻擊)"}, 
+{"依機率傷害下降為 1/2"}, 
+{"剩下1/2 返環給對方"}}}
 StateIconList[EFST_IDs.EFST_MANU_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]��J���N��", COLOR_TITLE_BUFF}, 
+{"魔怒克的意志", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���]��J�쳥�D���Ǫ���"}, 
-{"���z, �]�k�ˮ`���C"}}}
+{"於魔怒克原野遭受怪物的"}, 
+{"物理, 魔法傷害降低"}}}
 StateIconList[EFST_IDs.EFST_ENERVATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���� : �L�O ", COLOR_TITLE_BUFF}, 
+{"面具 : 無力 ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O���C"}, 
-{"���`�������Ӯ�y"}}}
+{"攻擊力降低"}, 
+{"受害瞬間消耗氣球"}}}
 StateIconList[EFST_IDs.EFST_CONCENTRATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�߯����E(Attention concentrate)", COLOR_TITLE_BUFF}, 
+{"心神凝聚(Attention concentrate)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"DEX, AGI�W�["}, 
-{"�ϥ������i�o�{���ê��񪺼ĤH"}}}
+{"DEX, AGI增加"}, 
+{"使用瞬間可發現隱藏附近的敵人"}}}
 StateIconList[EFST_IDs.EFST_GRIFFON] = {
 descript = {
-{"���l�~�f����", COLOR_TITLE_BUFF}}}
+{"獅鷲獸搭乘中", COLOR_TITLE_BUFF}}}
 StateIconList[EFST_IDs.EFST_GS_MADNESSCANCEL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƨg�ʹ���(Madness Canceler)", COLOR_TITLE_BUFF}, 
+{"瘋狂凱斯樂(Madness Canceler)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�W�["}, 
-{"�����t�׼W�["}, 
-{"���i����"}}}
+{"ATK增加"}, 
+{"攻擊速度增加"}, 
+{"不可移動"}}}
 StateIconList[EFST_IDs.EFST_GS_ACCURACY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R���v���W(Increasing Accuracy)", COLOR_TITLE_BUFF}, 
+{"命中率遞增(Increasing Accuracy)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v�W�["}, 
-{"DEX�W�["}, 
-{"AGI�W�["}}}
+{"命中率增加"}, 
+{"DEX增加"}, 
+{"AGI增加"}}}
 StateIconList[EFST_IDs.EFST_FOOD_STR] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"STR����"}}}
+{"STR提升"}}}
 StateIconList[EFST_IDs.EFST_HALLUCINATIONWALK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۼv�B (HALLUCINATIONWALK)", COLOR_TITLE_BUFF}, 
+{"幻影步 (HALLUCINATIONWALK)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�ײv����"}, 
-{"���@�w���v���z�|�]�k�ˮ`"}}}
+{"迴避率提升"}, 
+{"有一定機率不理會魔法傷害"}}}
 StateIconList[EFST_IDs.EFST_STORMKICK_ON] = {
 descript = {
-{"�j�۷ǳ�", COLOR_TITLE_BUFF}, 
-{"�����R���ĤH��"}, 
-{"�̾��v�|�İj�۽�ǳƫ���"}}}
+{"迴旋準備", COLOR_TITLE_BUFF}, 
+{"攻擊命中敵人時"}, 
+{"依機率會採迴旋踢準備姿勢"}}}
 StateIconList[EFST_IDs.EFST_KAUPE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ͻz��", COLOR_TITLE_BUFF}, 
+{"凱誣僕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̾��v�j�׼ĤH������"}}}
+{"依機率迴避敵人的攻擊"}}}
 StateIconList[EFST_IDs.EFST_SHIELDSPELL_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ީG - ��", COLOR_TITLE_BUFF}, 
+{"盾咒 - 防", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̬޵P���m�צӵo���]�k"}}}
+{"依盾牌防禦度而發動魔法"}}}
 StateIconList[EFST_IDs.EFST_WARMER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�[����", COLOR_TITLE_BUFF}, 
+{"加熱器", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ѱ��N��, �B��, ���B���A"}, 
-{"���|���N��, �B��, ���B"}, 
-{"�C3���i��_�@�w�q�� HP"}}}
+{"解除冷凍, 冰凍, 結冰狀態"}, 
+{"不會中冷凍, 冰凍, 結冰"}, 
+{"每3秒可恢復一定量的 HP"}}}
 StateIconList[EFST_IDs.EFST_PROTECT_MDEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�k���m�Ĥ�", COLOR_TITLE_BUFF}, 
+{"魔法防禦藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k�����@�ʼW�["}}}
+{"魔法攻擊耐性增加"}}}
 StateIconList[EFST_IDs.EFST_STAR_COMFORT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�P�����w�P", COLOR_TITLE_BUFF}, 
+{"星星的平安感", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�״���"}}}
+{"攻擊速度提升"}}}
 StateIconList[EFST_IDs.EFST_FOOD_CRITICALSUCCESSVALUE] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���������v����"}}}
+{"必殺攻擊率提升"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYTELEKINESIS] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���ݩʾA��"}}}
+{"念屬性適用"}}}
 StateIconList[EFST_IDs.EFST_GLOOMYDAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۩Ĥ@�Ѫ��~�{", COLOR_TITLE_BUFF}, 
+{"羞怯一天的憂鬱", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�T�w���ۼW�[�BSP���ӼW�[�C"}, 
-{"�j�ײv�P�����t�״��"}}}
+{"固定詠唱增加、SP消耗增加。"}, 
+{"迴避率與攻擊速度減少"}}}
 StateIconList[EFST_IDs.EFST_SIRCLEOFNATURE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�`�����j�۵M����", COLOR_TITLE_BUFF}, 
+{"循環的大自然之音", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HP�۵M��_�O�W�["}}}
+{"HP自然恢復力增加"}}}
 StateIconList[EFST_IDs.EFST_DEADLYINFECT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�R�P�V", COLOR_TITLE_BUFF}, 
+{"致命感染", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ۤv�h������"}, 
-{"�ӧ����ۤv���ĤH"}, 
-{"�ǬV�Ҧ������`���A"}}}
+{"自己去攻擊或"}, 
+{"來攻擊自己的敵人"}, 
+{"傳染所有的異常狀態"}}}
 StateIconList[EFST_IDs.EFST_SYMPHONY_LOVE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{" �ʤH���T��", COLOR_TITLE_BUFF}, 
+{" 戀人交響樂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k���m�v�W��"}}}
+{"魔法防禦率上升"}}}
 StateIconList[EFST_IDs.EFST_BANDING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�E��", COLOR_TITLE_BUFF}, 
+{"聚集", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�E�����A"}}}
+{"聚集狀態"}}}
 StateIconList[EFST_IDs.EFST_NJ_BUNSINJYUTSU] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۼv����", COLOR_TITLE_BUFF}, 
+{"幻影分身", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�j�פ@�w���ƪ���Z��, ���Z�����z������"}, 
-{"���i���m�]�k����"}}}
+{"可迴避一定次數的近距離, 遠距離物理的攻擊"}, 
+{"不可防禦魔法攻擊"}}}
 StateIconList[EFST_IDs.EFST_WUGRIDER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�M�T�N (WUG RIDER)", COLOR_TITLE_BUFF}, 
+{"騎狼術 (WUG RIDER)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�ϥΤ}"}, 
-{"���ϥίT�M�ݧޯ�"}}}
+{"不可使用弓"}, 
+{"限使用狼專屬技能"}}}
 StateIconList[EFST_IDs.EFST_ATKER_BLOOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"SP ���Ӷq����Ĥ�", COLOR_TITLE_BUFF}, 
+{"SP 消耗量減少藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥΧޯ�� SP ���Ӷq���C"}}}
+{"使用技能時 SP 消耗量降低"}}}
 StateIconList[EFST_IDs.EFST_BODYPAINT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�H��mø   ", COLOR_TITLE_BUFF}, 
+{"人體彩繪   ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ѱ����˪��A"}, 
-{"�̾��v�|�o�Ͷ·t"}, 
-{"�̾��v�����t�׭��C"}}}
+{"解除偽裝狀態"}, 
+{"依機率會發生黑暗"}, 
+{"依機率攻擊速度降低"}}}
 StateIconList[EFST_IDs.EFST_NJ_UTSUSEMI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ͳ��", COLOR_TITLE_BUFF}, 
+{"金蟬脫殼", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�j�פ@�w���ƪ�����"}, 
-{"�§����̪��Ϥ�V����"}}}
+{"可迴避一定次數的攻擊"}, 
+{"朝攻擊者的反方向移動"}}}
 StateIconList[EFST_IDs.EFST_POISONINGWEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�@�r�Z�� (POISONING WEAPON )", COLOR_TITLE_BUFF}, 
+{"劇毒武器 (POISONING WEAPON )", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ɦV�ؼЬI�H��r�Z�����r�ĪG"}}}
+{"攻擊時向目標施以塗毒武器的毒效果"}}}
 StateIconList[EFST_IDs.EFST_CASH_DEATHPENALTY] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���`�ɸg��Ȥ��|�l��"}}}
+{"死亡時經驗值不會損失"}}}
 StateIconList[EFST_IDs.EFST_GS_ADJUSTMENT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׷��{��(Adjustment)", COLOR_TITLE_BUFF}, 
+{"終極閃躲(Adjustment)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v���C"}, 
-{"�j�ײv�W�["}, 
-{"�Ӧۻ��Z�����z�������ˮ`���C"}}}
+{"命中率降低"}, 
+{"迴避率增加"}, 
+{"來自遠距離物理攻擊的傷害降低"}}}
 StateIconList[EFST_IDs.EFST_AUTOSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʩ��G (Auto Spell)", COLOR_TITLE_BUFF}, 
+{"自動念咒 (Auto Spell)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�@��������̾��v"}, 
-{"�ҿ諸�ޯण�ݵ��ۥi�����I��"}, 
-{"SP ���Ӭ��@��ϥήɪ� 2/3"}, 
-{"SP �����ɵL�k�o�ʧޯ�"}}}
+{"一般攻擊中依機率"}, 
+{"所選的技能不需詠唱可直接施放"}, 
+{"SP 消耗為一般使用時的 2/3"}, 
+{"SP 不足時無法發動技能"}}}
 StateIconList[EFST_IDs.EFST_DEC_AGI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ӱ����C(Decrease agility)", COLOR_TITLE_BUFF}, 
+{"敏捷降低(Decrease agility)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׭��C"}, 
-{"�����t�׭��C"}}}
+{"移動速度降低"}, 
+{"攻擊速度降低"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPWEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����Z��", COLOR_TITLE_BUFF}, 
+{"卸除武器", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�˸m�Z��"}}}
+{"無法裝置武器"}}}
 StateIconList[EFST_IDs.EFST_SHIELDSPELL_MDEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ީG - �]", COLOR_TITLE_BUFF}, 
+{"盾咒 - 魔", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̬޵P�]�k���m�Ȧӵo���]�k"}}}
+{"依盾牌魔法防禦值而發動魔法"}}}
 StateIconList[EFST_IDs.EFST_AUTOGUARD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʨ��m (Auto Guard)", COLOR_TITLE_BUFF}, 
+{"自動防禦 (Auto Guard)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z��, ���Z�����z�����̤@�w���v����"}}}
+{"近距離, 遠距離物理攻擊依一定機率阻擋"}}}
 StateIconList[EFST_IDs.EFST_TAROTCARD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R�B����ù�P (Tarot Card of Fate)", COLOR_TITLE_BUFF}, 
+{"命運的塔羅牌 (Tarot Card of Fate)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��ĤH�ᤩ14�إd�����@���ĪG"}}}
+{"對敵人賦予14種卡片之一的效果"}}}
 StateIconList[EFST_IDs.EFST_FEARBREEZE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�L������ (FEAR BREEZE)", COLOR_TITLE_BUFF}, 
+{"微風恐懼 (FEAR BREEZE)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}�����ɨ̾��v"}, 
-{"�B�~�o�ʧ���"}}}
+{"弓攻擊時依機率"}, 
+{"額外發動攻擊"}}}
 StateIconList[EFST_IDs.EFST_GN_CARTBOOST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������[�t", COLOR_TITLE_BUFF}, 
+{"手推車加速", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�˸m������ɳt�׼W�["}}}
+{"裝置手推車時速度增加"}}}
 StateIconList[EFST_IDs.EFST_SHIELDSPELL_REF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ީG - ��", COLOR_TITLE_BUFF}, 
+{"盾咒 - 鍊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̬޵P��m�Ȧӵo���]�k"}}}
+{"依盾牌精練值而發動魔法"}}}
 StateIconList[EFST_IDs.EFST_FOOD_INT_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"INT����"}}}
+{"INT提升"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPSHIELD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����޵P", COLOR_TITLE_DEBUFF}, 
+{"卸除盾牌", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�˸m�޵P"}}}
+{"不可裝置盾牌"}}}
 StateIconList[EFST_IDs.EFST_MELTDOWN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Z���� (Meltdown)", COLOR_TITLE_BUFF}, 
+{"野蠻凶砍 (Meltdown)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������a��"}, 
-{"���@�w���v�|�}�a���a���Z���Ψ���"}, 
-{"�����Ǫ���"}, 
-{"�|���C�Ǫ��������O�Ψ��m�v"}}}
+{"當攻擊玩家時"}, 
+{"有一定機率會破壞玩家的武器或防具"}, 
+{"攻擊怪物時"}, 
+{"會降低怪物的攻擊力或防禦率"}}}
 StateIconList[EFST_IDs.EFST_QUAGMIRE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�d�h�a(Quagmire)", COLOR_TITLE_DEBUFF}, 
+{"泥沼地(Quagmire)", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׭��C"}, 
-{"AGI, DEX���C"}}}
+{"移動速度降低"}, 
+{"AGI, DEX降低"}}}
 StateIconList[EFST_IDs.EFST_KAIZEL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ͩ���", COLOR_TITLE_BUFF}, 
+{"凱易哲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ۮɶ����|��DEX���v�T"}, 
-{"���`�ɥߧY�_��, ���� 2������"}}}
+{"詠唱時間不會受DEX的影響"}, 
+{"死亡時立即復活, 維持 2秒長度"}}}
 StateIconList[EFST_IDs.EFST_CR_SHRINK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�Y(Shrink)", COLOR_TITLE_BUFF}, 
+{"退縮(Shrink)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�H�۰ʨ��m�ޯ�Ө��m��"}, 
-{"�̾��v�ӱ��}���"}}}
+{"以自動防禦技能來防禦時"}, 
+{"依機率來推開對方"}}}
 StateIconList[EFST_IDs.EFST_FOOD_VIT] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"VIT����"}}}
+{"VIT提升"}}}
 StateIconList[EFST_IDs.EFST_PARRYING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���C�ݾ� (Parrying)", COLOR_TITLE_BUFF}, 
+{"雙劍挌擋 (Parrying)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̾��v�H�M�Ӫ��׹�誺����"}}}
+{"依機率以刀來阻擋對方的攻擊"}}}
 StateIconList[EFST_IDs.EFST_PROTECTWEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƾǪZ���O�@ (Chemical Protection Weapon)", COLOR_TITLE_BUFF}, 
+{"化學武器保護 (Chemical Protection Weapon)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�������|���l"}}}
+{"武器絕不會受損"}}}
 StateIconList[EFST_IDs.EFST_FOOD_AGI] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"AGI����"}}}
+{"AGI提升"}}}
 StateIconList[EFST_IDs.EFST_INC_AGI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�[�t�N(Increase agility)", COLOR_TITLE_BUFF}, 
+{"加速術(Increase agility)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}, 
-{"�����t�׼W�["}}}
+{"移動速度增加"}, 
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_SHOUT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j�n�o��", COLOR_TITLE_BUFF}, 
+{"大聲吶喊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"STR�W�["}}}
+{"STR增加"}}}
 StateIconList[EFST_IDs.EFST_CASH_RECEIVEITEM] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"�򥻱��_�v�W�["}, 
-{"(���_���W�}�W�[1��)"}, 
-{"(�W�H���_�}�W�[2��)"}}}
+{"打怪時"}, 
+{"基本掉寶率增加"}, 
+{"(掉寶倍增糖增加1倍)"}, 
+{"(超黏掉寶糖增加2倍)"}}}
 StateIconList[EFST_IDs.EFST_SPL_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�|�שԪ��e��", COLOR_TITLE_BUFF}, 
+{"魯修拉的蜜醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D���v�i�����R�쳥�Ǫ���"}, 
-{"���z, �]�k�ˮ`�|���C"}}}
+{"遭受史波浪壯麗原野怪物的"}, 
+{"物理, 魔法傷害會降低"}}}
 StateIconList[EFST_IDs.EFST_ILLUSION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ı", COLOR_TITLE_DEBUFF}, 
+{"幻覺", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�e���ᦱ"}, 
-{"�ˮ`�Хܲ��`"}, 
-{"�]���w�Ӥ��_����"}}}
+{"畫面扭曲"}, 
+{"傷害標示異常"}, 
+{"因僵硬而中斷詠唱"}}}
 StateIconList[EFST_IDs.EFST_HOVERING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a��", COLOR_TITLE_BUFF}, 
+{"懸停", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������γ����a���ؼ��]�k���ĪG"}}}
+{"不受陷阱或部分地面目標魔法的效果"}}}
 StateIconList[EFST_IDs.EFST_BENEDICTIO] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�ᤩ����t�ݩ�"}}}
+{"賦予防具聖屬性"}}}
 StateIconList[EFST_IDs.EFST_WEAPONBLOCKING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Z����m (WEAPON BLOCKING)", COLOR_TITLE_BUFF}, 
+{"武器抵禦 (WEAPON BLOCKING)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D���񨭪��z������"}, 
-{"�̾��v�ˮ`�����L��"}}}
+{"遭受近身物理攻擊時"}, 
+{"依機率傷害完全無效"}}}
 StateIconList[EFST_IDs.EFST_ANGELUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѨϤ��پ�(Angelus)", COLOR_TITLE_BUFF}, 
+{"天使之障壁(Angelus)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v�W�["}}}
+{"防禦率增加"}}}
 StateIconList[EFST_IDs.EFST_MARSHOFABYSS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�`�W�h�a  (MARSH OF ABYSS)", COLOR_TITLE_BUFF}, 
+{"深淵沼地  (MARSH OF ABYSS)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׭��C"}, 
-{"���m�v, �j�ײv���C"}}}
+{"移動速度降低"}, 
+{"防禦率, 迴避率降低"}}}
 StateIconList[EFST_IDs.EFST_STEALTHFIELD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ΤO��", COLOR_TITLE_BUFF}, 
+{"隱形力場", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�N�P�򪺥����ؼ��ܦ����˪��A"}, 
-{"�|����P�� SP"}, 
-{"���ʳt�׭��C"}}}
+{"將周圍的全部目標變成偽裝狀態"}, 
+{"會持續銷耗 SP"}, 
+{"移動速度降低"}}}
 StateIconList[EFST_IDs.EFST_ADRENALINE2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ҧ��t�׿E�o", COLOR_TITLE_BUFF}, 
+{"所有速度激發", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}�H�~���Z�������t�׼W�["}}}
+{"弓以外的武器攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_MANU_MATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]��J���H��", COLOR_TITLE_BUFF}, 
+{"魔怒克的信念", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���]��J�쳥�a�Ϫ��Ǫ�"}, 
-{"�]�k�����ˮ`�|�W�["}}}
+{"對魔怒克原野地區的怪物"}, 
+{"魔法攻擊傷害會增加"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPARMOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����Z��", COLOR_TITLE_DEBUFF}, 
+{"卸除鎧甲", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�˸m�Z��"}}}
+{"無法裝置鎧甲"}}}
 StateIconList[EFST_IDs.EFST_ENERGYCOAT] = {
 descript = {
-{"��q�~�M (Energy Coat)", COLOR_TITLE_BUFF}, 
-{"��ӥثe�� SP �q"}, 
-{"���C�ӦۼĤH���ˮ`"}}}
+{"能量外套 (Energy Coat)", COLOR_TITLE_BUFF}, 
+{"比照目前的 SP 量"}, 
+{"降低來自敵人的傷害"}}}
 StateIconList[EFST_IDs.EFST_RENOVATIO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�b�� (RENOVATIO)", COLOR_TITLE_BUFF}, 
+{"淨化 (RENOVATIO)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"5������_�@�w�q��HP"}, 
-{"�藍���ݩʪ����a�L�ġC"}}}
+{"5秒內恢復一定量的HP"}, 
+{"對不死屬性的玩家無效。"}}}
 StateIconList[EFST_IDs.EFST_HIDING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����(Hiding)", COLOR_TITLE_BUFF}, 
+{"隱匿(Hiding)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"?�J�a���H�j�׼ĤH������"}, 
-{"�|�Q�ĤH�������ޯ�ӵo�{"}}}
+{"?入地底以迴避敵人的攻擊"}, 
+{"會被敵人的探測技能而發現"}}}
 StateIconList[EFST_IDs.EFST_WEIGHTOVER50] = {
 descript = {
-{"���q 70% �H�W", COLOR_TITLE_DEBUFF}, 
-{"HP, SP ���i�۵M��_"}}}
+{"重量 70% 以上", COLOR_TITLE_DEBUFF}, 
+{"HP, SP 不可自然恢復"}}}
 StateIconList[EFST_IDs.EFST_STRUP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ĩ�", COLOR_TITLE_BUFF}, 
+{"衝刺", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"STR�W�["}, 
-{"�Z�����˸m��"}, 
-{"�̶]�B���ŦӼW�[�����O"}}}
+{"STR增加"}, 
+{"武器未裝置時"}, 
+{"依跑步等級而增加攻擊力"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPHELM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����Y��", COLOR_TITLE_DEBUFF}, 
+{"卸除頭盔", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�˸m�Y��"}}}
+{"不可裝置頭盔"}}}
 StateIconList[EFST_IDs.EFST_ATTHASTE_POTION3] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}}}
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_ENDURE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Q��(Endure)", COLOR_TITLE_BUFF}, 
+{"霸體(Endure)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Y�ϳQ�����ɤ��i���ʩΧ���"}, 
-{"�Q�����@�w���ƥH�W�ɸѰ����A"}}}
+{"即使被攻擊時仍可移動或攻擊"}, 
+{"被攻擊一定次數以上時解除狀態"}}}
 StateIconList[EFST_IDs.EFST_TURNKICK_ON] = {
 descript = {
-{"��ǳ�", COLOR_TITLE_BUFF}, 
-{"�����R���ĤH��"}, 
-{"�̾��v�ਭ��ǳƫ���"}}}
+{"踢準備", COLOR_TITLE_BUFF}, 
+{"攻擊命中敵人時"}, 
+{"依機率轉身踢準備姿勢"}}}
 StateIconList[EFST_IDs.EFST_ENCHANTPOISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��r(Enchant Poison)", COLOR_TITLE_BUFF}, 
+{"塗毒(Enchant Poison)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�Z���r�ݩ�"}}}
+{"賦予武器毒屬性"}}}
 StateIconList[EFST_IDs.EFST_SPL_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Ի���G��", COLOR_TITLE_BUFF}, 
+{"捕蟲堇妖果醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��v�i�����R�쳥���Ǫ�"}, 
-{"�W�[�����ˮ`"}}}
+{"對史波浪壯麗原野的怪物"}, 
+{"增加攻擊傷害"}}}
 StateIconList[EFST_IDs.EFST_BLESSING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѨϤ����(Blessing)", COLOR_TITLE_BUFF}, 
+{"天使之賜福(Blessing)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"DEX, INT, STR�W�["}, 
-{"�ϥΫ�i�q�A�G�Υۤƪ��A��_"}}}
+{"DEX, INT, STR增加"}, 
+{"使用後可從詛咒或石化狀態恢復"}}}
 StateIconList[EFST_IDs.EFST_ONEHANDQUICKEN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���C�����t�׼W�[", COLOR_TITLE_BUFF}, 
+{"單手劍攻擊速度增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥγ��C�ɼW�[�����t��"}}}
+{"使用單手劍時增加攻擊速度"}}}
 StateIconList[EFST_IDs.EFST_SPEARQUICKEN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���٥[�t�N (Spear Quicken)", COLOR_TITLE_BUFF}, 
+{"長矛加速術 (Spear Quicken)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥκj��"}, 
-{"�����t�׼W�["}, 
-{"���������O�W�["}, 
-{"�j�ײv�W�["}}}
+{"使用槍時"}, 
+{"攻擊速度增加"}, 
+{"必殺攻擊力增加"}, 
+{"迴避率增加"}}}
 StateIconList[EFST_IDs.EFST_BROKENWEAPON] = {
 descript = {
-{"�Z���}�a", COLOR_TITLE_DEBUFF}}}
+{"武器破壞", COLOR_TITLE_DEBUFF}}}
 StateIconList[EFST_IDs.EFST_ASSUMPTIO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t������� (Assumptio)", COLOR_TITLE_BUFF}, 
+{"聖母之祈福 (Assumptio)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v�W�["}}}
+{"防禦率增加"}}}
 StateIconList[EFST_IDs.EFST_MAXIMIZE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Z���ȳ̤j��(Maximize Power)", COLOR_TITLE_BUFF}, 
+{"武器值最大化(Maximize Power)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ޥX�Z�����̤j�ʯ�"}, 
-{"����P�� SP"}}}
+{"引出武器的最大性能"}, 
+{"持續銷耗 SP"}}}
 StateIconList[EFST_IDs.EFST_LG_REFLECTDAMAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�å[�@", COLOR_TITLE_BUFF}, 
+{"聖冕加護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�N�D�������z/�]�k�ˮ`���@�����Ϯg��P��"}, 
-{"�C�����Ӥ@�w�q�� SP "}}}
+{"將遭受的物理/魔法傷害的一部分反射到周圍"}, 
+{"每秒消耗一定量的 SP "}}}
 StateIconList[EFST_IDs.EFST_PROTECTSHIELD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƾǬ޵P�O�@(Chemical Protection Shield)", COLOR_TITLE_BUFF}, 
+{"化學盾牌保護(Chemical Protection Shield)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�޵P���藍�|�l�a"}}}
+{"盾牌絕對不會損壞"}}}
 StateIconList[EFST_IDs.EFST_MAGNIFICAT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�����|�q(Magnificat)", COLOR_TITLE_BUFF}, 
+{"聖母之頌歌(Magnificat)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"SP ��_�t�״���"}}}
+{"SP 恢復速度提升"}}}
 StateIconList[EFST_IDs.EFST_ATTHASTE_POTION1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����Ĥ�", COLOR_TITLE_BUFF}, 
+{"集中藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}}}
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_POISONREACT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�r�ʤϼu(Poison React)", COLOR_TITLE_BUFF}, 
+{"毒性反彈(Poison React)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ϯg�r�ݩʪ�����"}, 
-{"�D���@��������ˮ`��"}, 
-{"�V���ϥάI�r��"}}}
+{"反射毒屬性的攻擊"}, 
+{"遭受一般攻擊的傷害時"}, 
+{"向對方使用施毒技"}}}
 StateIconList[EFST_IDs.EFST_MOVHASTE_HORSE] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}}}
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_CRESCENTELBOW] = {
 descript = {
-{"�}�H�W", COLOR_TITLE_BUFF}, 
-{"�ϥؼЭ˰h�óy���ˮ`"}, 
-{"�Ӧۤv�]�|�D�������ˮ`"}}}
+{"破碎柱", COLOR_TITLE_BUFF}, 
+{"使目標倒退並造成傷害"}, 
+{"而自己也會遭受部分傷害"}}}
 StateIconList[EFST_IDs.EFST_SONG_OF_MANA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�O���q", COLOR_TITLE_BUFF}, 
+{"魔力之歌", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"SP�۵M��_�q�W�[�C"}}}
+{"SP自然恢復量增加。"}}}
 StateIconList[EFST_IDs.EFST_KAAHI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ͪ���", COLOR_TITLE_BUFF}, 
+{"凱阿希", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D���ޯ�H�~��������"}, 
-{"����SP�ӫ�_ HP "}}}
+{"遭受技能以外的攻擊時"}, 
+{"消耗SP來恢復 HP "}}}
 StateIconList[EFST_IDs.EFST_ECHOSONG] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�^�����q", COLOR_TITLE_BUFF}, 
+{"回音之歌", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v�W�["}}}
+{"防禦率增加"}}}
 StateIconList[EFST_IDs.EFST_PRESERVE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۥѫO�@ (Preserve)", COLOR_TITLE_BUFF}, 
+{"自由保護 (Preserve)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Q�ޯ�����]���i��ŧ"}}}
+{"被技能攻擊也不可抄襲"}}}
 StateIconList[EFST_IDs.EFST_WEAPONPERFECT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�L���髬����(Weapon Perfection)", COLOR_TITLE_BUFF}, 
+{"無視體型攻擊(Weapon Perfection)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��p��, ����, �j���Ǫ�"}, 
-{"�U�y�� 100%���ˮ`"}}}
+{"對小型, 中型, 大型怪物"}, 
+{"各造成 100%的傷害"}}}
 StateIconList[EFST_IDs.EFST_PROVOKE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�D�](Provoke)", COLOR_TITLE_BUFF}, 
+{"挑釁(Provoke)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v�U��"}, 
-{"�����O�W�["}}}
+{"防禦率下降"}, 
+{"攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_MOVHASTE_POTION] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}}}
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_EDP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�R��r (Enchant Deadly Poison)", COLOR_TITLE_BUFF}, 
+{"致命塗毒 (Enchant Deadly Poison)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Q���Z������ɨ̾��v�|���@�r"}, 
-{"��BOSS�Ǫ��B�~�ˮ`�h�L��"}}}
+{"被此武器打到時依機率會中劇毒"}, 
+{"對BOSS怪物額外傷害則無效"}}}
 StateIconList[EFST_IDs.EFST_JOINTBEAT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����(Joint Beat)", COLOR_TITLE_BUFF}, 
+{"巧打(Joint Beat)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̨��l�����`"}, 
-{"���H�U���A"}}}
+{"依受損的關節"}, 
+{"有以下狀態"}}}
 StateIconList[EFST_IDs.EFST_PROVIDENCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������� (Providence)", COLOR_TITLE_BUFF}, 
+{"神祐之光 (Providence)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��c�]�t, �t�ݩʩǪ���"}, 
-{"�@�ʼW�["}}}
+{"對惡魔系, 聖屬性怪物的"}, 
+{"耐性增加"}}}
 StateIconList[EFST_IDs.EFST_FIGHTINGSPIRIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���˯��c����:���ɰ���  (Fighting Spirit)", COLOR_TITLE_BUFF}, 
+{"艾伊瓦茲盧恩石:提升鬥志  (Fighting Spirit)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�W�["}, 
-{"�I�i�̪������t�׼W�["}}}
+{"ATK增加"}, 
+{"施展者的攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_FOOD_VIT_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"VIT����"}}}
+{"VIT提升"}}}
 StateIconList[EFST_IDs.EFST_SATURDAY_NIGHT_FEVER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƨg", COLOR_TITLE_DEBUFF}, 
+{"瘋狂", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C3������HP/SP"}, 
-{"HIT/FLEE��֡C"}}}
+{"每3秒消耗HP/SP"}, 
+{"HIT/FLEE減少。"}}}
 StateIconList[EFST_IDs.EFST_TRUESIGHT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����˷� (True Sight)", COLOR_TITLE_BUFF}, 
+{"狙殺瞄準 (True Sight)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������W�["}, 
-{"�R���v, �ˮ`, ���������O�W�["}}}
+{"全部素質增加"}, 
+{"命中率, 傷害, 必殺攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_CASH_PLUSONLYJOBEXP] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"JOB�g��ȼW�[��1.5��"}, 
-{"�Y�ϥά��ʱM�ή���oJOB�g��ȫh��1.25��"}}}
+{"打怪時"}, 
+{"JOB經驗值增加為1.5倍"}, 
+{"若使用活動專用時獲得JOB經驗值則為1.25倍"}}}
 StateIconList[EFST_IDs.EFST_ARMOR_PROPERTY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩ��ܤƨ��b", COLOR_TITLE_BUFF}, 
+{"屬性變化卷軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ݩ��ܤƪ��A"}}}
+{"屬性變化狀態"}}}
 StateIconList[EFST_IDs.EFST_TENSIONRELAX] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t�^�_ (Tension Relax)", COLOR_TITLE_BUFF}, 
+{"極速回復 (Tension Relax)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HP ��_�t�״���"}}}
+{"HP 恢復速度提升"}}}
 StateIconList[EFST_IDs.EFST_DEATHHURT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ìV���r", COLOR_TITLE_DEBUFF}, 
+{"污染之毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D����_�ޯ�ɮĪG���C"}}}
+{"遭受恢復技能時效果降低"}}}
 StateIconList[EFST_IDs.EFST_IMPOSITIO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���¬��(Impositio Manus)", COLOR_TITLE_BUFF}, 
+{"神威祈福(Impositio Manus)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�������O�W�["}}}
+{"武器攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_LEECHESEND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�l�大�r", COLOR_TITLE_BUFF}, 
+{"吸血之毒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C������ HP "}}}
+{"每秒消耗 HP "}}}
 StateIconList[EFST_IDs.EFST_REPRODUCE] = {
 descript = {
-{"�c��", COLOR_TITLE_BUFF}, 
-{"���Ƥ��i�ǲߦۤv�]�w�ؼЪ��ޯ�"}, 
-{"�i�ǲߪ��ޯ�u��1��"}}}
+{"繁殖", COLOR_TITLE_BUFF}, 
+{"活化中可學習自己設定目標的技能"}, 
+{"可學習的技能只有1個"}}}
 StateIconList[EFST_IDs.EFST_ACCELERATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�ɾ��ҥ[�t", COLOR_TITLE_BUFF}, 
+{"魔導機甲加速", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�ɾ��Ҫ����ʳt�׼W�["}}}
+{"魔導機甲的移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_NJ_NEN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��", COLOR_TITLE_BUFF}, 
+{"念", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���O�P�O�q�W�["}}}
+{"智力與力量增加"}}}
 StateIconList[EFST_IDs.EFST_FORCEOFVANGUARD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���W����", COLOR_TITLE_BUFF}, 
+{"先鋒部隊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP, ���m�v�W�["}, 
-{"�C���D���ˮ`�ɷ|�֭p���㦸��"}, 
-{"���Ƥ�����P�� SP"}}}
+{"MHP, 防禦率增加"}, 
+{"每次遭受傷害時會累計憤怒次數"}, 
+{"活化中持續銷耗 SP"}}}
 StateIconList[EFST_IDs.EFST_RG_CCONFINE_M] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��K������(Close Confine)", COLOR_TITLE_BUFF}, 
+{"緊密的約束(Close Confine)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�P��1�H�P�ɳ��J���i���ʪ��A"}, 
-{"�j�ײv�W�["}, 
-{"��BOSS�L��"}}}
+{"與敵1人同時陷入不可移動狀態"}, 
+{"迴避率增加"}, 
+{"對BOSS無效"}}}
 StateIconList[EFST_IDs.EFST_TRICKDEAD] = {
 descript = {
-{"�˦�", COLOR_TITLE_TOGGLE}, 
-{"�������A"}}}
+{"裝死", COLOR_TITLE_TOGGLE}, 
+{"假死狀態"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYWATER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ݩʪ��[ (Frost Weapon)", COLOR_TITLE_BUFF}, 
+{"水屬性附加 (Frost Weapon)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�b�Z���ᤩ���ݩ�"}}}
+{"在武器賦予水屬性"}}}
 StateIconList[EFST_IDs.EFST_ADORAMUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݺq", COLOR_TITLE_BUFF}, 
+{"謳歌", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�B��·t�P�ӱ����C"}}}
+{"處於黑暗與敏捷降低"}}}
 StateIconList[EFST_IDs.EFST_GENTLETOUCH_ENERGYGAIN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I��-�y", COLOR_TITLE_BUFF}, 
+{"點穴-球", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�����Ψ���l�`��"}, 
-{"�ͦ�1�Ӯ�y��"}, 
-{"�r�s�رj�B�𵴱Y���B��ꮱ�ˮ`�W�["}}}
+{"近距離物理攻擊或受到損害時"}, 
+{"生成1個氣球體"}, 
+{"猛龍誇強、氣絕崩擊、伏虎拳傷害增加"}}}
 StateIconList[EFST_IDs.EFST_NEUTRALBARRIER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ʨ��@�n", COLOR_TITLE_BUFF}, 
+{"中性防護罩", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z, �]�k���m�v����"}, 
-{"���Z�������L�Ĥ�"}}}
+{"物理, 魔法防禦率提升"}, 
+{"遠距離攻擊無效化"}}}
 StateIconList[EFST_IDs.EFST_EARTHSCROLL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ּ֪���", COLOR_TITLE_BUFF}, 
+{"快樂的休息", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥ��]�k��(�a�_�N)��"}, 
-{"�|���Ӥ@�w�q�� SP"}, 
-{"�H���C���v�|���өG�y��"}}}
+{"使用魔法書(地震術)時"}, 
+{"會消耗一定量的 SP"}, 
+{"以較低機率會消耗咒語書"}}}
 StateIconList[EFST_IDs.EFST_FALCON] = {
 descript = {
-{"���N�N(Falconry Mastery)", COLOR_TITLE_BUFF}, 
-{"�N�X����"}}}
+{"馴鷹術(Falconry Mastery)", COLOR_TITLE_BUFF}, 
+{"鷹出租中"}}}
 StateIconList[EFST_IDs.EFST_TWOHANDQUICKEN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����C�����t�׼W�[(Two Hand Quicken)", COLOR_TITLE_BUFF}, 
+{"雙手劍攻擊速度增加(Two Hand Quicken)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥ�����C��"}, 
-{"�����t�׼W�["}}}
+{"使用雙手劍時"}, 
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_SUN_COMFORT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӷ������w�P", COLOR_TITLE_BUFF}, 
+{"太陽的平安感", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v����"}}}
+{"防禦率提升"}}}
 StateIconList[EFST_IDs.EFST_KYRIE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Q�����}(Kyrie Eleison)", COLOR_TITLE_BUFF}, 
+{"霸邪之陣(Kyrie Eleison)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i���m�m�ī̻٩ҳ]�w����������"}}}
+{"可防禦禦敵屏障所設定的攻擊次數"}}}
 StateIconList[EFST_IDs.EFST_PROTECTARMOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƾ��Z�ҫO�@ (Chemical Protection armor)", COLOR_TITLE_BUFF}, 
+{"化學鎧甲保護 (Chemical Protection armor)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�ҵ����|���l"}}}
+{"鎧甲絕不會受損"}}}
 StateIconList[EFST_IDs.EFST_GIANTGROWTH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���į��c����:�O�q���� (Giant Growth)  (Giant Growth)", COLOR_TITLE_BUFF}, 
+{"突里薩茲盧恩石:力量成長 (Giant Growth)  (Giant Growth)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"STR�W�[30"}, 
-{"�D�ޯફ�z�����ˮ`�W�["}, 
-{"�B15%���v�y����H2���ˮ`"}, 
-{"�C���v�|�Ϧۤv���Z���Q�}�a"}}}
+{"STR增加30"}, 
+{"非技能物理攻擊傷害增加"}, 
+{"且15%機率造成對象2倍傷害"}, 
+{"低機率會使自己的武器被破壞"}}}
 StateIconList[EFST_IDs.EFST_STR_SCROLL] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"STR����"}}}
+{"STR提升"}}}
 StateIconList[EFST_IDs.EFST_AB_SECRAMENT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t��", COLOR_TITLE_BUFF}, 
+{"聖典", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ۮɶ��Y�u"}}}
+{"詠唱時間縮短"}}}
 StateIconList[EFST_IDs.EFST_PARALYSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�·����r", COLOR_TITLE_BUFF}, 
+{"麻痺之毒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׭��C"}, 
-{"�j�׭��C"}, 
-{"���ʳt�׭��C"}}}
+{"攻擊速度降低"}, 
+{"迴避降低"}, 
+{"移動速度降低"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYGROUND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a�ݩʪ��[ (Seismic Weapon)", COLOR_TITLE_BUFF}, 
+{"地屬性附加 (Seismic Weapon)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�b�Z���W�ᤩ�a�ݩ�"}}}
+{"在武器上賦予地屬性"}}}
 StateIconList[EFST_IDs.EFST_DOUBLECASTING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������Y (Double Casting)", COLOR_TITLE_BUFF}, 
+{"雙倍投擲 (Double Casting)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥνb�N�t�ޯ��"}, 
-{"�̾��v�b�N�t�ޯ�|�A���I�i"}}}
+{"使用箭術系技能時"}, 
+{"依機率箭術系技能會再次施展"}}}
 StateIconList[EFST_IDs.EFST_RG_CCONFINE_S] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��K������(Close Confine)", COLOR_TITLE_BUFF}, 
+{"緊密的約束(Close Confine)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�P��1�H�P�ɳ��J���i���ʪ��A"}, 
-{"�j�ײv�W�["}, 
-{"��BOSS�L��"}}}
+{"與敵1人同時陷入不可移動狀態"}, 
+{"迴避率增加"}, 
+{"對BOSS無效"}}}
 StateIconList[EFST_IDs.EFST_OVERHEAT] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
-{"�L�� (Over Heat)", COLOR_TITLE_BUFF}, 
-{"�]�ɾ��ҹL�����A"}, 
-{"�C����֤@�w�q�� HP"}}}
+{"過熱 (Over Heat)", COLOR_TITLE_BUFF}, 
+{"魔導機甲過熱狀態"}, 
+{"每秒減少一定量的 HP"}}}
 StateIconList[EFST_IDs.EFST_SPL_MATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�W��������?", COLOR_TITLE_BUFF}, 
+{"獨角飛馬之?", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��v�i�����R�쳥�Ǫ���"}, 
-{"�]�k�����ˮ`�W�["}}}
+{"對史波浪壯麗原野怪物的"}, 
+{"魔法攻擊傷害增加"}}}
 StateIconList[EFST_IDs.EFST_DEEP_SLEEP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I��", COLOR_TITLE_BUFF}, 
+{"沉睡", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�q�`�ˮ`�� 1.5��"}, 
-{"�C2���i��_�@�w�q�� HP/SP "}}}
+{"通常傷害的 1.5倍"}, 
+{"每2秒可恢復一定量的 HP/SP "}}}
 StateIconList[EFST_IDs.EFST_RECOGNIZEDSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�k�ٮ�", COLOR_TITLE_BUFF}, 
+{"魔法省悟", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�H�̤j���]�k�ˮ`����"}, 
-{"SP ���Ӷq�W�["}}}
+{"以最大的魔法傷害來擊"}, 
+{"SP 消耗量增加"}}}
 StateIconList[EFST_IDs.EFST_TARGET_ASPD] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"MSP�W�[, SP ���Ӷq���C"}}}
+{"MSP增加, SP 消耗量降低"}}}
 StateIconList[EFST_IDs.EFST_FOOD_BASICAVOIDANCE] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�j�ײv����"}}}
+{"迴避率提升"}}}
 StateIconList[EFST_IDs.EFST_DEFENDER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������ (Defender)", COLOR_TITLE_BUFF}, 
+{"光之盾 (Defender)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ﻷ�Z�����z�������ˮ`���C"}, 
-{"���ʳt��, �����t�׭��C"}}}
+{"對遠距離物理攻擊的傷害降低"}, 
+{"移動速度, 攻擊速度降低"}}}
 StateIconList[EFST_IDs.EFST_WEAPONPROPERTY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������(Aspersio)", COLOR_TITLE_BUFF}, 
+{"撒水祈福(Aspersio)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�b�Z���W�ᤩ�t�ݩ�"}}}
+{"在武器上賦予聖屬性"}}}
 StateIconList[EFST_IDs.EFST_S_LIFEPOTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p���ͩR��", COLOR_TITLE_BUFF}, 
+{"小型生命水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C5���i��_�@�w�q�� HP "}, 
-{"�g�㤧�j���A�����L��"}}}
+{"每5秒可恢復一定量的 HP "}, 
+{"狂怒之槍狀態中為無效"}}}
 StateIconList[EFST_IDs.EFST_FOOD_LUK] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"LUK����"}}}
+{"LUK提升"}}}
 StateIconList[EFST_IDs.EFST_BLOODING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�X��", COLOR_TITLE_BUFF}, 
+{"出血", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HP, SP �����_"}, 
-{"�C10��ø�y���@�w�q�� HP "}}}
+{"HP, SP 不能恢復"}, 
+{"每10秒繪流失一定量的 HP "}}}
 StateIconList[EFST_IDs.EFST_REFRESH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���S�u���c����:��_ (Refresh)", COLOR_TITLE_BUFF}, 
+{"那特席茲盧恩石:恢復 (Refresh)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥήɥi�Ѱ��j�������`���A�PDEBUFF"}, 
-{"���|���J�j�������`���A�PDEBUFF"}, 
-{"��_�@�w�q�� HP "}}}
+{"使用時可解除大部分異常狀態與DEBUFF"}, 
+{"不會陷入大部分異常狀態與DEBUFF"}, 
+{"恢復一定量的 HP "}}}
 StateIconList[EFST_IDs.EFST_FOOD_LUK_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"LUK����"}}}
+{"LUK提升"}}}
 StateIconList[EFST_IDs.EFST_BROKENARMOR] = {
 descript = {
-{"����}�a", COLOR_TITLE_DEBUFF}}}
+{"防具破壞", COLOR_TITLE_DEBUFF}}}
 StateIconList[EFST_IDs.EFST_DODGE_ON] = {
 descript = {
-{"���k", COLOR_TITLE_BUFF}, 
-{" ���}��ǳƫ���"}, 
-{"�D���ĤH�����Z��, �]�k������"}, 
-{"�̾��v�j�ק���"}, 
-{"�]�B��"}, 
-{"���Z���o�ʧ���"}}}
+{"落法", COLOR_TITLE_BUFF}, 
+{" 飛腳踢準備姿勢"}, 
+{"遭受敵人的遠距離, 魔法攻擊時"}, 
+{"依機率迴避攻擊"}, 
+{"跑步時"}, 
+{"於近距離發動攻擊"}}}
 StateIconList[EFST_IDs.EFST_TARGET_BLOOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���`���A����Ĥ�", COLOR_TITLE_BUFF}, 
+{"異常狀態抵抗藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��U�C���A����ܤO�W�["}, 
-{"�w�t, �B��, �ۤ�, �ίv, �I�q"}, 
-{"�·t, �A�G, �r, �X��, �V��"}}}
+{"對下列狀態的抵抗力增加"}, 
+{"暈眩, 冰凍, 石化, 睡眠, 沉默"}, 
+{"黑暗, 詛咒, 毒, 出血, 混亂"}}}
 StateIconList[EFST_IDs.EFST_MELODYOFSINK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���H�۫�", COLOR_TITLE_BUFF}, 
+{"消沈旋律", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������SP�C"}, 
-{"INT��֡C"}}}
+{"持續消耗SP。"}, 
+{"INT減少。"}}}
 StateIconList[EFST_IDs.EFST_CRUCIS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѨϤ���(Signum Crucis)", COLOR_TITLE_BUFF}, 
+{"天使之光(Signum Crucis)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t, �t�ݩʩǪ������m�v���C"}}}
+{"不死系, 暗屬性怪物的防禦率降低"}}}
 StateIconList[EFST_IDs.EFST_SLOWCAST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��w_����", COLOR_TITLE_DEBUFF}, 
+{"減緩_詠唱", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ۮɶ��W�["}}}
+{"詠唱時間增加"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYWIND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ݩʪ��[ (Lightning Loader)", COLOR_TITLE_BUFF}, 
+{"風屬性附加 (Lightning Loader)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�b�Z���W�ᤩ���ݩ�"}}}
+{"在武器上賦予風屬性"}}}
 StateIconList[EFST_IDs.EFST_ENCHANTBLADE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�O�C (Enchant Blade)", COLOR_TITLE_BUFF}, 
+{"魔力劍 (Enchant Blade)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��񨭪��z�����W�W�[�]�k�����O"}}}
+{"於近身物理攻擊上增加魔法攻擊力"}}}
 StateIconList[EFST_IDs.EFST_ADRENALINE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�׿E�o(Adrenaline Rush)", COLOR_TITLE_BUFF}, 
+{"速度激發(Adrenaline Rush)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Y�P�w�������Z��"}, 
-{"�����t�׼W�["}}}
+{"斧頭與鈍器類的武器"}, 
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_MAGICMUSHROOM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�g�����r ", COLOR_TITLE_BUFF}, 
+{"狂笑之毒 ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�g�������Ÿ�"}, 
-{"�C4���H���ϥΧޯ�"}, 
-{"�C4�����Ӥ@�w�q�� HP"}}}
+{"狂笑表情符號"}, 
+{"每4秒隨機使用技能"}, 
+{"每4秒消耗一定量的 HP"}}}
 StateIconList[EFST_IDs.EFST_CASH_PLUSEXP] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"��o�g��ȼW�["}}}
+{"獲得經驗值增加"}}}
 StateIconList[EFST_IDs.EFST_ATTHASTE_POTION2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"ı���Ĥ�", COLOR_TITLE_BUFF}, 
+{"覺醒藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}}}
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_TOXIN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�¾K���r", COLOR_TITLE_BUFF}, 
+{"麻醉之毒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C10����ê����, �ޯ�ʧ@"}, 
-{"�C���d���ĪG�L��"}, 
-{"�C10�����Ӥ@�w�q�� SP "}}}
+{"每10秒防礙詠唱, 技能動作"}, 
+{"劍魚卡片效果無效"}, 
+{"每10秒消耗一定量的 SP "}}}
 StateIconList[EFST_IDs.EFST_RAISINGDRAGON] = {
 descript = {
-{"���s�@��", COLOR_TITLE_BUFF}, 
-{"�W�[�̤j��y��"}, 
-{"�W�[�̤j HP�P SP"}, 
-{"�����t�׼W�["}, 
-{"�����z��"}, 
-{"�C�����Ӥ@�w�q�� HP "}}}
+{"潛龍昇天", COLOR_TITLE_BUFF}, 
+{"增加最大氣球數"}, 
+{"增加最大 HP與 SP"}, 
+{"攻擊速度增加"}, 
+{"維持爆氣"}, 
+{"每秒消耗一定量的 HP "}}}
 StateIconList[EFST_IDs.EFST_HARMONIZE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�M�n�t��", COLOR_TITLE_BUFF}, 
+{"和聲演奏", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�վ����[����"}}}
+{"調整素質加重值"}}}
 StateIconList[EFST_IDs.EFST_CHASEWALK2] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"STR�W�["}}}
+{"STR增加"}}}
 StateIconList[EFST_IDs.EFST_FOOD_STR_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"STR����"}}}
+{"STR提升"}}}
 StateIconList[EFST_IDs.EFST_CLOAKINGEXCEED] = {
 descript = {
-{"���˱j�� (CLOAKING EXCEED)", COLOR_TITLE_BUFF}, 
-{"���|�Q���Ψt, �c�]�t�o�{"}, 
-{"�i�Ө��ܤ@�w���ƪ��ˮ`"}, 
-{"���ʳt�״���"}}}
+{"偽裝強化 (CLOAKING EXCEED)", COLOR_TITLE_BUFF}, 
+{"不會被昆蟲系, 惡魔系發現"}, 
+{"可承受至一定次數的傷害"}, 
+{"移動速度提升"}}}
 StateIconList[EFST_IDs.EFST_ASSUMPTIO2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t������� (Assumptio)", COLOR_TITLE_BUFF}, 
+{"聖母之祈福 (Assumptio)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v�W�["}}}
+{"防禦率增加"}}}
 StateIconList[EFST_IDs.EFST_THORNS_TRAP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��Ƴ���", COLOR_TITLE_BUFF}, 
+{"荊棘陷阱", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�@�I�@�I���ˮ`"}}}
+{"一點一點受傷害"}}}
 StateIconList[EFST_IDs.EFST_SLOWPOISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w�r�N(Slow Poison)", COLOR_TITLE_BUFF}, 
+{"緩毒術(Slow Poison)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�Ȱ��r�ʵo�@"}}}
+{"可暫停毒性發作"}}}
 StateIconList[EFST_IDs.EFST_CLOAKING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����(Cloaking)", COLOR_TITLE_BUFF}, 
+{"偽裝(Cloaking)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���|�Q�O�H�o�{"}}}
+{"不會被別人發現"}}}
 StateIconList[EFST_IDs.EFST_PARTYFLEE] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�j�ײv�W�["}}}
+{"迴避率增加"}}}
 StateIconList[EFST_IDs.EFST_CRITICALPERCENT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��i��", COLOR_TITLE_BUFF}, 
+{"研磨劑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������v�W�["}}}
+{"必殺攻擊率增加"}}}
 StateIconList[EFST_IDs.EFST_INSPIRATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F�P", COLOR_TITLE_BUFF}, 
+{"靈感", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v, ����W�[, �����O, MHP�W�["}, 
-{"�S�w BUFF, ���`���A�L�Ĥ�"}, 
-{"����ʪ����C HP, SP"}, 
-{"�o�ʮɸѰ��Ҧ� BUFF �β��`���A"}, 
-{"�o�ʮɷl���@�w�q���g���"}}}
+{"命中率, 素質增加, 攻擊力, MHP增加"}, 
+{"特定 BUFF, 異常狀態無效化"}, 
+{"持續性的降低 HP, SP"}, 
+{"發動時解除所有 BUFF 及異常狀態"}, 
+{"發動時損失一定量的經驗值"}}}
 StateIconList[EFST_IDs.EFST_UNLIMITED_HUMMING_VOICE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�L������n", COLOR_TITLE_BUFF}, 
+{"無限哼唱聲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ݩ��]�k�ˮ`�W�[�C"}}}
+{"屬性魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_FOOD_DEX] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"DEX����"}}}
+{"DEX提升"}}}
 StateIconList[EFST_IDs.EFST_ANALYZE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѪR", COLOR_TITLE_BUFF}, 
+{"解析", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z, �]�k���m�v���C"}}}
+{"物理, 魔法防禦率降低"}}}
 StateIconList[EFST_IDs.EFST_GENTLETOUCH_REVITALIZE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I��-��", COLOR_TITLE_BUFF}, 
+{"點穴-活", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�ɡB���z���m�O�W��"}, 
-{"HP�۵M��_�t�׼W�["}, 
-{"���ʡB�����ɫ�_HP"}, 
-{"�ꯥ�Bù�b�}�����ˮ`�W�["}}}
+{"MHP上升、物理防禦力上升"}, 
+{"HP自然恢復速度增加"}, 
+{"移動、攻擊時恢復HP"}, 
+{"虎砲、羅剎破凰擊傷害增加"}}}
 StateIconList[EFST_IDs.EFST_COUNTER_ON] = {
 descript = {
-{"�����ǳ�", COLOR_TITLE_BUFF}, 
-{"�����R���ĤH��"}, 
-{"�̾��v��������ǳƫ���"}}}
+{"還擊準備", COLOR_TITLE_BUFF}, 
+{"攻擊命中敵人時"}, 
+{"依機率採還擊踢準備姿勢"}}}
 StateIconList[EFST_IDs.EFST_GLORIA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���B���|�q(Gloria)", COLOR_TITLE_BUFF}, 
+{"幸運之頌歌(Gloria)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"LUK�W�["}}}
+{"LUK增加"}}}
 StateIconList[EFST_IDs.EFST_RUSH_WINDMILL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�­�������", COLOR_TITLE_BUFF}, 
+{"朝風車突擊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O�W�["}, 
-{"���ʳt�׼W�["}}}
+{"攻擊力增加"}, 
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_PYREXIA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���f���r", COLOR_TITLE_BUFF}, 
+{"熱病之毒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�·t, ��ı���A"}}}
+{"黑暗, 幻覺狀態"}}}
 StateIconList[EFST_IDs.EFST_DANCE_WITH_WUG] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�T�@�R", COLOR_TITLE_BUFF}, 
+{"與狼共舞", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�T�w���ۮɶ���֡C"}, 
-{"���Z���ˮ`�W�[�C"}}}
+{"固定詠唱時間減少。"}, 
+{"遠距離傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_SWING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�n�\\�R", COLOR_TITLE_BUFF}, 
+{"搖擺\舞", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}, 
-{"�����t�׼W�["}, 
-{"�T�w���۴��"}}}
+{"移動速度增加"}, 
+{"攻擊速度增加"}, 
+{"固定詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_MOON_COMFORT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��G�����w�P", COLOR_TITLE_BUFF}, 
+{"月亮的平安感", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�ײv����"}}}
+{"迴避率提升"}}}
 StateIconList[EFST_IDs.EFST_MOONLIT_SERENADE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����p�]��", COLOR_TITLE_BUFF}, 
+{"月光小夜曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k�����O�W�["}}}
+{"魔法攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_GENTLETOUCH_CHANGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I��-��", COLOR_TITLE_BUFF}, 
+{"點穴-反", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O�B�����t�׼W�["}, 
-{"�z�𴲼u�B��ù���u�ˮ`�W�["}}}
+{"攻擊力、攻擊速度增加"}, 
+{"爆氣散彈、修羅身彈傷害增加"}}}
 StateIconList[EFST_IDs.EFST_STRIPACCESSARY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����t��", COLOR_TITLE_BUFF}, 
+{"卸除配件", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�˸m�t��"}}}
+{"不可裝置配件"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYUNDEAD] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�ᤩ�����t�ݩ�"}}}
+{"賦予不死系屬性"}}}
 StateIconList[EFST_IDs.EFST_INVISIBILITY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�z���N", COLOR_TITLE_BUFF}, 
+{"透明術", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��z�����A�U�i�i�����"}, 
-{"�����ݩ��ܩ��ݩ� 1��"}, 
-{"����ʪ� SP���C"}, 
-{"���i�ϥΧޯ�, ���~"}}}
+{"於透明狀態下可進行攻擊"}, 
+{"攻擊屬性變念屬性 1級"}, 
+{"持續性的 SP降低"}, 
+{"不可使用技能, 物品"}}}
 StateIconList[EFST_IDs.EFST_ABUNDANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Q�|���c����:�ר� (Abundance)", COLOR_TITLE_BUFF}, 
+{"烏魯茲盧恩石:豐足 (Abundance)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C10����_�@�w�q�� SP "}}}
+{"每10秒恢復一定量的 SP "}}}
 StateIconList[EFST_IDs.EFST_FOOD_BASICHIT] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�R���v����"}}}
+{"命中率提升"}}}
 StateIconList[EFST_IDs.EFST_FOOD_AGI_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"AGI����"}}}
+{"AGI提升"}}}
 StateIconList[EFST_IDs.EFST_SHADOWFORM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�y�v�κA   ", COLOR_TITLE_BUFF}, 
+{"魅影形態   ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���@�w���ƱN�ۤv���ˮ`"}, 
-{"�|�ಾ��ؼЪ��a�����W"}}}
+{"有一定次數將自己的傷害"}, 
+{"會轉移到目標玩家的身上"}}}
 StateIconList[EFST_IDs.EFST_AUTOSHADOWSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʾy�v���G", COLOR_TITLE_BUFF}, 
+{"自動魅影念咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�H�ϥΥH��ŧ, �c�ީҾǪ�"}, 
-{"�]�k�ޯ�"}}}
+{"可以使用以抄襲, 繁殖所學的"}, 
+{"魔法技能"}}}
 StateIconList[EFST_IDs.EFST_SHAPESHIFT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�κA�ഫ", COLOR_TITLE_BUFF}, 
+{"形態轉換", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�z�L�]�ɾԥҪ������ܴ��ݩ�"}}}
+{"可透過魔導戰甲的機身變換屬性"}}}
 StateIconList[EFST_IDs.EFST_MANU_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]��J���}��", COLOR_TITLE_BUFF}, 
+{"魔怒克的良機", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���]��J�쳥���Ǫ�"}, 
-{"�W�[�����ˮ`"}}}
+{"對魔怒克原野的怪物"}, 
+{"增加攻擊傷害"}}}
 StateIconList[EFST_IDs.EFST_MARIONETTE_MASTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���w�v������ (�I�i)", COLOR_TITLE_BUFF}, 
+{"傀儡師的把戲 (施展)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�V�ؼЪ��a"}, 
-{"�ಾ����"}}}
+{"向目標玩家"}, 
+{"轉移素質"}}}
 StateIconList[EFST_IDs.EFST_MARIONETTE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���w�v������ (�ؼ�)", COLOR_TITLE_BUFF}, 
+{"傀儡師的把戲 (目標)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�V�I�i���a"}, 
-{"��������"}}}
+{"向施展玩家"}, 
+{"接受素質"}}}
 StateIconList[EFST_IDs.EFST_WZ_SIGHTBLASTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������(Sight Blaster)", COLOR_TITLE_BUFF}, 
+{"火狩芽(Sight Blaster)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�V������ĤH�y���]�k�����O��"}, 
-{"�ˮ`��h�}"}}}
+{"向纏住的敵人造成魔法攻擊力的"}, 
+{"傷害後退開"}}}
 StateIconList[EFST_IDs.EFST_LEXAETERNA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѨϤ���(Lex Aeterna)", COLOR_TITLE_DEBUFF}, 
+{"天使之怒(Lex Aeterna)", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"1���������D���⭿���ˮ`"}}}
+{"1次的攻擊遭受兩倍的傷害"}}}
 StateIconList[EFST_IDs.EFST_INFRAREDSCAN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���~�u����", COLOR_TITLE_BUFF}, 
+{"紅外線掃瞄", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i��X���Ϊ��ĤH"}, 
-{"�̾��v�d�򤺪��Ҧ��ؼЪ��j�ײv���C"}}}
+{"可找出隱匿的敵人"}, 
+{"依機率範圍內的所有目標的迴避率降低"}}}
 StateIconList[EFST_IDs.EFST_INT_SCROLL] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"INT����"}}}
+{"INT提升"}}}
 StateIconList[EFST_IDs.EFST_ASPERSIO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������(Aspersio)", COLOR_TITLE_BUFF}, 
+{"撒水祈福(Aspersio)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�b�Z���W�ᤩ�t�ݩ�"}}}
+{"在武器上賦予聖屬性"}}}
 StateIconList[EFST_IDs.EFST_MOVHASTE_INFINITY] = {
 descript = {
-{"���ʳt�׼W�["}}}
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_LERADS_DEW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p�Ԧh�S��", COLOR_TITLE_BUFF}, 
+{"雷拉多露水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}}}
+{"MHP增加"}}}
 StateIconList[EFST_IDs.EFST_FOOD_INT] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"INT����"}}}
+{"INT提升"}}}
 StateIconList[EFST_IDs.EFST_VENOMBLEED] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I�z���r", COLOR_TITLE_DEBUFF}, 
+{"衰弱之毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�T�w�U��"}}}
+{"MHP固定下降"}}}
 StateIconList[EFST_IDs.EFST_GS_GATLINGFEVER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��L�g��(Gatling Fever)", COLOR_TITLE_BUFF}, 
+{"格林狂熱(Gatling Fever)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t��, �ˮ`����"}, 
-{"�j�ײv, ���ʳt�׭��C"}}}
+{"攻擊速度, 傷害提升"}, 
+{"迴避率, 移動速度降低"}}}
 StateIconList[EFST_IDs.EFST_VITALITYACTIVATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�쥾�c����:�ͩR�E�� (Vitality Activation)", COLOR_TITLE_BUFF}, 
+{"伊札盧恩石:生命激化 (Vitality Activation)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�W�[��ۤv�Φۤv�ҨϥΪ�"}, 
-{"HP ��_�ޯ�, ���~���ĪG"}, 
-{"SP ���i�۵M��_"}, 
-{"SP ��_�Ĥ����ĪG���C"}}}
+{"增加對自己或自己所使用的"}, 
+{"HP 恢復技能, 物品的效果"}, 
+{"SP 不可自然恢復"}, 
+{"SP 恢復藥水的效果降低"}}}
 StateIconList[EFST_IDs.EFST_STONEHARDSKIN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���d�ԯ��c����:���ۥֽ� (Stone Hard Skin)", COLOR_TITLE_BUFF}, 
+{"哈卡拉茲盧恩石:岩石皮膚 (Stone Hard Skin)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�l���@�w�q��HP��i����DEF�PMDEF"}, 
-{"����L���a�񨭪��z������"}, 
-{"�̾��v�i�}�a�i����������a�Z��"}, 
-{"�Ǫ��h�̾��v10���� ATK�U��"}}}
+{"損失一定量的HP後可提升DEF與MDEF"}, 
+{"當其他玩家近身物理攻擊時"}, 
+{"依機率可破壞進行攻擊的玩家武器"}, 
+{"怪物則依機率10秒內 ATK下降"}}}
 StateIconList[EFST_IDs.EFST_WEIGHTOVER90] = {
 descript = {
-{"���q 90% �H�W", COLOR_TITLE_DEBUFF}, 
-{"HP, SP ���i�۵M��_"}, 
-{"���i�ϥΧ���, �ޯ�"}}}
+{"重量 90% 以上", COLOR_TITLE_DEBUFF}, 
+{"HP, SP 不可自然恢復"}, 
+{"不可使用攻擊, 技能"}}}
 StateIconList[EFST_IDs.EFST_PROTECTHELM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƾ��Y���O�@ (Chemical Protection Helm)", COLOR_TITLE_BUFF}, 
+{"化學頭盔保護 (Chemical Protection Helm)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Y�����藍�|�l�a"}}}
+{"頭盔絕對不會損壞"}}}
 StateIconList[EFST_IDs.EFST_PLUSAVOIDVALUE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۼv���s�M", COLOR_TITLE_BUFF}, 
+{"幻影的酒杯", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����j�׼W�["}}}
+{"完全迴避增加"}}}
 StateIconList[EFST_IDs.EFST_OBLIVIONCURSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ф��r", COLOR_TITLE_BUFF}, 
+{"失憶之毒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����"}}}
+{"失憶"}}}
 StateIconList[EFST_IDs.EFST_HEALPLUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��_�O�����Ĥ�", COLOR_TITLE_BUFF}, 
+{"恢復力提升藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���쪺�v¡�N�P������_���~��"}, 
-{"�ϥήĪG�|����"}}}
+{"受到的治癒術與部份恢復物品的"}, 
+{"使用效果會提升"}}}
 StateIconList[EFST_IDs.EFST_PROTECT_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���z���m�Ĥ�", COLOR_TITLE_BUFF}, 
+{"物理防禦藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�����@�ʼW�["}}}
+{"物理攻擊耐性增加"}}}
 StateIconList[EFST_IDs.EFST_CRITICALWOUND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�R�ˤf", COLOR_TITLE_DEBUFF}, 
+{"致命傷口", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���쪺��_�t�ޯ઺�ĪG�|���C"}}}
+{"受到的恢復系技能的效果會降低"}}}
 StateIconList[EFST_IDs.EFST_PRESTIGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�«H", COLOR_TITLE_BUFF}, 
+{"威信", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̯���M�Ω��]�k�j�ײv"}, 
-{"���m�v�W�["}}}
+{"依素質套用於魔法迴避率"}, 
+{"防禦率增加"}}}
 StateIconList[EFST_IDs.EFST_FOOD_DEX_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"DEX����"}}}
+{"DEX提升"}}}
 StateIconList[EFST_IDs.EFST_CARTBOOST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������[�t (Cart Boost)", COLOR_TITLE_BUFF}, 
+{"手推車加速 (Cart Boost)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥΤ�����ɲ��ʳt�׼W�["}}}
+{"使用手推車時移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_L_LIFEPOTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����ͩR��", COLOR_TITLE_BUFF}, 
+{"中型生命水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C4����_�@�w�q�� HP "}, 
-{"��g�㤧�j�ɵL�� "}}}
+{"每4秒恢復一定量的 HP "}, 
+{"於狂怒之槍時無效 "}}}
 StateIconList[EFST_IDs.EFST_WINDWALK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����B (Wind Walk)", COLOR_TITLE_BUFF}, 
+{"風之步 (Wind Walk)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt��, �j�ײv����"}}}
+{"移動速度, 迴避率提升"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYFIRE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���K�ݩʪ��[ (Flame Launcher)", COLOR_TITLE_BUFF}, 
+{"火焰屬性附加 (Flame Launcher)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z���W�ᤩ���ݩ�"}}}
+{"於武器上賦予火屬性"}}}
 StateIconList[EFST_IDs.EFST_STRIKING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����j��", COLOR_TITLE_BUFF}, 
+{"打擊強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�������O, ���������v�W�["}}}
+{"武器攻擊力, 必殺攻擊率增加"}}}
 StateIconList[EFST_IDs.EFST_DOWNKICK_ON] = {
 descript = {
-{"�{��ǳ�", COLOR_TITLE_BUFF}, 
-{"�����R���ĤH��"}, 
-{"�̾��v�{��ǳƫ���"}}}
+{"砸踢準備", COLOR_TITLE_BUFF}, 
+{"攻擊命中敵人時"}, 
+{"依機率砸踢準備姿勢"}}}
 StateIconList[EFST_IDs.EFST_PROPERTYDARK] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�M�Ω�t�ݩ�"}}}
+{"套用於暗屬性"}}}
 StateIconList[EFST_IDs.EFST_REFLECTSHIELD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ϯg�� (Reflect Shield)", COLOR_TITLE_BUFF}, 
+{"反射盾 (Reflect Shield)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��ۤv�i���Z�����z�������ĤH"}, 
-{"�Ϯg�@�w�q���ˮ`"}}}
+{"對自己進行近距離物理攻擊的敵人"}, 
+{"反射一定量的傷害"}}}
 StateIconList[EFST_IDs.EFST_RIDING] = {
 descript = {
-{"�M�d�X����", COLOR_TITLE_TOGGLE}}}
+{"騎寵出租中", COLOR_TITLE_TOGGLE}}}
 StateIconList[EFST_IDs.EFST_LIGHTNINGWALK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�{�q�B", COLOR_TITLE_BUFF}, 
+{"閃電步", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Y�O���Z�����z, �]�k�������ؼЮ�"}, 
-{"�b�@�w���v�j�ק�����"}, 
-{"�N�ಾ�ʦܹ�ۤv�������ؼЭ��e"}}}
+{"若是遠距離物理, 魔法攻擊的目標時"}, 
+{"在一定機率迴避攻擊後"}, 
+{"就能移動至對自己攻擊的目標面前"}}}
 StateIconList[EFST_IDs.EFST_FROSTMISTY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���B", COLOR_TITLE_DEBUFF}, 
+{"結冰", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�v, ���ʳt��, �����t�׭��C"}, 
-{"�T�w���ۮɶ��W�["}}}
+{"防禦率, 移動速度, 攻擊速度降低"}, 
+{"固定詠唱時間增加"}}}
 StateIconList[EFST_IDs.EFST_COLD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�N��", COLOR_TITLE_DEBUFF}, 
+{"冷凍", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʶˮ`�P"}, 
-{"���B, �B�Ყ�`���A"}}}
+{"水屬性傷害與"}, 
+{"結冰, 冰凍異常狀態"}}}
 StateIconList[EFST_IDs.EFST_GROUNDMAGIC] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�M�Φa���ޯ઺�ĪG"}}}
+{"套用地面技能的效果"}}}
 StateIconList[EFST_IDs.EFST_HELLPOWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a�����v��", COLOR_TITLE_BUFF}, 
+{"地獄之權威", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�_��"}, 
-{"���i�ϥα˩R����"}, 
-{"���i�ϥέ�a�_������"}}}
+{"不可復活"}, 
+{"不可使用捨命攻擊"}, 
+{"不可使用原地復活之證"}}}
 StateIconList[EFST_IDs.EFST_SAVAGE_STEAK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�N�p���ޱ�", COLOR_TITLE_BUFF}, 
+{"烤小野豬排", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"STR�W�["}}}
+{"STR增加"}}}
 StateIconList[EFST_IDs.EFST_COCKTAIL_WARG_BLOOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����s�T��", COLOR_TITLE_BUFF}, 
+{"雞尾酒狼血", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"INT�W�["}}}
+{"INT增加"}}}
 StateIconList[EFST_IDs.EFST_MINOR_BBQ] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�̬����N�N", COLOR_TITLE_BUFF}, 
+{"米洛斯燒烤", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"VIT�W�["}}}
+{"VIT增加"}}}
 StateIconList[EFST_IDs.EFST_SIROMA_ICE_TEA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p���~�B��", COLOR_TITLE_BUFF}, 
+{"小雪獸冰茶", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"DEX�W�["}}}
+{"DEX增加"}}}
 StateIconList[EFST_IDs.EFST_DROCERA_HERB_STEAMED] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ί��į��", COLOR_TITLE_BUFF}, 
+{"捕蟲草藥草煎", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"AGI�W�["}}}
+{"AGI增加"}}}
 StateIconList[EFST_IDs.EFST_PUTTI_TAILS_NOODLES] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���үS�s����", COLOR_TITLE_BUFF}, 
+{"畢帝特龍尾麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"LUK�W�["}}}
+{"LUK增加"}}}
 StateIconList[EFST_IDs.EFST_STOMACHACHE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���h", COLOR_TITLE_BUFF}, 
+{"腹痛", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ�����[���ȭ��C"}, 
-{"���ʳt�׭��C"}, 
-{"�C10���X�{�@�����U�ʧ@"}, 
-{"�C10�����Ӥ@�w�q�� SP"}}}
+{"所有素質加重值降低"}, 
+{"移動速度降低"}, 
+{"每10秒出現一次坐下動作"}, 
+{"每10秒消耗一定量的 SP"}}}
 StateIconList[EFST_IDs.EFST_PROTECTEXP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����ڷR�z", COLOR_TITLE_BUFF}, 
+{"爸媽我愛您", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Y�ϰ}�`�]���|�l���g���"}}}
+{"即使陣亡也不會損失經驗值"}}}
 StateIconList[EFST_IDs.EFST_ANGEL_PROTECT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
 {"??? ??", COLOR_TITLE_BUFF}, 
@@ -1326,16 +1326,16 @@ descript = {
 {"HP, SP ???? ??"}}}
 StateIconList[EFST_IDs.EFST_MORA_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p�Ԥ��G", COLOR_TITLE_BUFF}, 
+{"穆拉水果", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�p�ԧ��񭥳��~"}, 
-{"��S�w�Ǫ����ܩʼW�["}}}
+{"穆拉村近郊野外"}, 
+{"對特定怪物的抗性增加"}}}
 StateIconList[EFST_IDs.EFST_POPECOOKIE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ьӻ氮", COLOR_TITLE_BUFF}, 
+{"教皇餅乾", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK �W�["}, 
-{"�Ҧ��ݩʭ@�ʼW�["}}}
+{"ATK, MATK 增加"}, 
+{"所有屬性耐性增加"}}}
 StateIconList[EFST_IDs.EFST_VITALIZE_POTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
 {"VITALIZE_POTION", COLOR_TITLE_BUFF}, 
@@ -1352,14 +1352,14 @@ StateIconList[EFST_IDs.EFST_ODINS_POWER] = {haveTimeLimit = 1, posTimeLimitStr =
 descript = {
 {"ODINS_POWER", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK �W�["}, 
-{"DEF, MDEF ���"}}}
+{"ATK, MATK 增加"}, 
+{"DEF, MDEF 減少"}}}
 StateIconList[EFST_IDs.EFST_ATKER_ASPD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P��", COLOR_TITLE_BUFF}, 
+{"仙丹", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}, 
-{"HP��_�O�W�["}}}
+{"MHP增加"}, 
+{"HP恢復力增加"}}}
 StateIconList[EFST_IDs.EFST_ATKER_MOVESPEED] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
 {"???", COLOR_TITLE_BUFF}, 
@@ -1369,690 +1369,690 @@ descript = {
 StateIconList[EFST_IDs.EFST_PLUSATTACKPOWER] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"ATK ����"}}}
+{"ATK 提升"}}}
 StateIconList[EFST_IDs.EFST_PLUSMAGICPOWER] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"MATK ����"}}}
+{"MATK 提升"}}}
 StateIconList[EFST_IDs.EFST_MACRO_PERMIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʽm�\\�t�Ψϥ�", COLOR_TITLE_SYSTEM}, 
+{"自動練功\系統使用", COLOR_TITLE_SYSTEM}, 
 {"%s", COLOR_TIME}, 
-{"�۰ʽm�\\�t�ΨϥΤ�"}}}
+{"自動練功\系統使用中"}}}
 StateIconList[EFST_IDs.EFST_MACRO_POSTDELAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʽm�\\�t��", COLOR_TITLE_SYSTEM}, 
+{"自動練功\系統", COLOR_TITLE_SYSTEM}, 
 {"%s", COLOR_TIME}, 
-{"�۰ʽm�\\�t��"}}}
+{"自動練功\系統"}}}
 StateIconList[EFST_IDs.EFST_MONSTER_TRANSFORM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ܨ��Ǫ�", COLOR_TITLE_BUFF}, 
+{"變身怪物", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܨ��Ǫ���"}}}
+{"變身怪物中"}}}
 StateIconList[EFST_IDs.EFST_SIT] = {
 descript = {
-{"���U", COLOR_TITLE_TOGGLE}}}
+{"坐下", COLOR_TITLE_TOGGLE}}}
 StateIconList[EFST_IDs.EFST_ALL_RIDING] = {
 descript = {
-{"�f����", COLOR_TITLE_TOGGLE}}}
+{"搭乘中", COLOR_TITLE_TOGGLE}}}
 StateIconList[EFST_IDs.EFST_SKF_MATK] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"MATK�W�["}}}
+{"MATK增加"}}}
 StateIconList[EFST_IDs.EFST_SKF_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"ATK�W�["}}}
+{"ATK增加"}}}
 StateIconList[EFST_IDs.EFST_SKF_ASPD] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}}}
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_SKF_CAST] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"��D�P�ˮ`+10%"}}}
+{"對蛇仙傷害+10%"}}}
 StateIconList[EFST_IDs.EFST_REWARD_PLUSONLYJOBEXP] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"JOB�g����B�~��o"}}}
+{"JOB經驗值額外獲得"}}}
 StateIconList[EFST_IDs.EFST_ENERVATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����:�L�O", COLOR_TITLE_DEBUFF}, 
+{"面具:無力", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O���C"}, 
-{"�Q�����ɷ|���h��y��"}}}
+{"攻擊力降低"}, 
+{"被攻擊時會失去氣球體"}}}
 StateIconList[EFST_IDs.EFST_GROOMY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���� : �~�{", COLOR_TITLE_DEBUFF}, 
+{"面具 : 憂鬱", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t��, �R���v���C"}, 
-{"�Q�����ɸѰ��l�彿��"}, 
-{"�l�彿�����i�ϥ�"}}}
+{"攻擊速度, 命中率降低"}, 
+{"被攻擊時解除吸血蝙蝠"}, 
+{"吸血蝙蝠不可使用"}}}
 StateIconList[EFST_IDs.EFST_IGNORANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���� : �L��", COLOR_TITLE_DEBUFF}, 
+{"面具 : 無知", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Q�����ɷ|�l���@�w�q��SP"}, 
-{"�ޯ�, �]�k���i�ϥ�"}}}
+{"被攻擊時會損失一定量的SP"}, 
+{"技能, 魔法不可使用"}}}
 StateIconList[EFST_IDs.EFST_LAZINESS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���� : �i��)", COLOR_TITLE_DEBUFF}, 
+{"面具 : 懶散)", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt��, �j�ײv���C"}, 
-{"���ۮɶ��W�["}, 
-{"�ϥΧޯ�ɮɷ|�B�~���Ӥ@�w�q��SP "}}}
+{"移動速度, 迴避率降低"}, 
+{"詠唱時間增加"}, 
+{"使用技能時時會額外消耗一定量的SP "}}}
 StateIconList[EFST_IDs.EFST_UNLUCKY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���� : ����", COLOR_TITLE_DEBUFF}, 
+{"面具 : 不幸", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����v���C"}, 
-{"�����j�ײv���C"}, 
-{"�ϥΧޯ�ɷ|���Ӥ@�w�q������"}, 
-{"�Q�����ɷ|�o�ͯS�w���`���p"}}}
+{"暴擊率降低"}, 
+{"完全迴避率降低"}, 
+{"使用技能時會消耗一定量的金幣"}, 
+{"被攻擊時會發生特定異常狀況"}}}
 StateIconList[EFST_IDs.EFST_WEAKNESS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���� : �I�z", COLOR_TITLE_DEBUFF}, 
+{"面具 : 衰弱", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��֤@�w�q��MHP "}, 
-{"�Q�����ɷ|�����Z��, �޵P�˳�"}, 
-{"�Z��, �޵P���i�˳�"}}}
+{"減少一定量的MHP "}, 
+{"被攻擊時會卸除武器, 盾牌裝備"}, 
+{"武器, 盾牌不可裝備"}}}
 StateIconList[EFST_IDs.EFST_STEELBODY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���褣�a", COLOR_TITLE_BUFF}, 
+{"金剛不壞", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{" DEF, MDEF�T�w���������ƭ�"}, 
-{"���ʳt��, �����t�׭��C"}, 
-{"�ޯण�i�ϥ�"}}}
+{" DEF, MDEF固定成較高的數值"}, 
+{"移動速度, 攻擊速度降低"}, 
+{"技能不可使用"}}}
 StateIconList[EFST_IDs.EFST_LG_REFLECTDAMAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�å[�@", COLOR_TITLE_TOGGLE}, 
+{"聖冕加護", COLOR_TITLE_TOGGLE}, 
 {"%s", COLOR_TIME}, 
-{"��D���������ˮ`������P��"}, 
-{"�C���|���Ӥ@�w�q��SP"}}}
+{"把遭受的部分傷害分散到周圍"}, 
+{"每秒會消耗一定量的SP"}}}
 StateIconList[EFST_IDs.EFST_MVPCARD_TAOGUNKA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����s�d���b", COLOR_TITLE_BUFF}, 
+{"塔奧群卡捲軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}, 
-{"DEF/MDEF���"}}}
+{"MHP增加"}, 
+{"DEF/MDEF減少"}}}
 StateIconList[EFST_IDs.EFST_MVPCARD_MISTRESS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Z���b", COLOR_TITLE_BUFF}, 
+{"蜂后捲軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������]�O�q�ۤU�i�ϥ��]�k"}, 
-{"SP���Ӷq�W�["}}}
+{"不消耗魔力礦石下可使用魔法"}, 
+{"SP消耗量增加"}}}
 StateIconList[EFST_IDs.EFST_MVPCARD_ORCHERO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�~�H�^�����b", COLOR_TITLE_BUFF}, 
+{"獸人英雄卷軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���|���J�w�t"}}}
+{"不會陷入暈眩"}}}
 StateIconList[EFST_IDs.EFST_MVPCARD_ORCLORD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�~�H�������b", COLOR_TITLE_BUFF}, 
+{"獸人酋長捲軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�|�Ϯg������Z�����z����"}}}
+{"會反射部分近距離物理攻擊"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_NORECOVER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���i��_���A", COLOR_TITLE_DEBUFF}, 
+{"不可恢復狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"HP, SP �ܤ��i��_���A"}}}
+{"HP, SP 變不可恢復狀態"}}}
 StateIconList[EFST_IDs.EFST_SET_NUM_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"DEF �T�w���S�w���ƭ�"}}}
+{"DEF 固定成特定的數值"}}}
 StateIconList[EFST_IDs.EFST_SET_NUM_MDEF] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"MDEF�T�w���S�w���ƭ�"}}}
+{"MDEF固定成特定的數值"}}}
 StateIconList[EFST_IDs.EFST_SET_PER_DEF] = {
 descript = {
-{"DEF�T�w���S�w�ʤ���"}}}
+{"DEF固定成特定百分比"}}}
 StateIconList[EFST_IDs.EFST_SET_PER_MDEF] = {
 descript = {
-{"MDEF�T�w���S�w�ʤ���"}}}
+{"MDEF固定成特定百分比"}}}
 StateIconList[EFST_IDs.EFST_EXTREMITYFIST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����ù�Q�Į�", COLOR_TITLE_DEBUFF}, 
+{"阿修羅霸凰拳", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"SP���i��_"}}}
+{"SP不可恢復"}}}
 StateIconList[EFST_IDs.EFST_ATTHASTE_CASH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"ASPD �j���Ĥ�", COLOR_TITLE_BUFF}, 
+{"ASPD 強化藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}}}
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_2011RWC] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�[�o�@��", COLOR_TITLE_BUFF}, 
+{"加油鞭炮", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������W�["}, 
-{"ATK, MATK �W�["}}}
+{"全部素質增加"}, 
+{"ATK, MATK 增加"}}}
 StateIconList[EFST_IDs.EFST_PHI_DEMON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j�N���F���w��", COLOR_TITLE_BUFF}, 
+{"古代神靈平安符", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��c�]�t�Ǫ�"}, 
-{"���z, �]�k�ˮ`�W�["}}}
+{"對惡魔系怪的"}, 
+{"物理, 魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_GM_BATTLE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�԰��F��", COLOR_TITLE_BUFF}, 
+{"戰鬥靈藥", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK �W�["}, 
-{"MHP, MSP���"}}}
+{"ATK, MATK 增加"}, 
+{"MHP, MSP減少"}}}
 StateIconList[EFST_IDs.EFST_GM_BATTLE2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ž԰��F��", COLOR_TITLE_BUFF}, 
+{"高級戰鬥靈藥", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK �W�["}, 
-{"MHP, MSP ���"}}}
+{"ATK, MATK 增加"}, 
+{"MHP, MSP 減少"}}}
 StateIconList[EFST_IDs.EFST_2011RWC_SCROLL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����g���Ĥ�", COLOR_TITLE_BUFF}, 
+{"紅色狂暴藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK �W�["}, 
-{"�����t�׼W�["}, 
-{"�ܰʵ��ۭ��C"}, 
-{"���z, �]�k�����ɦ����v"}, 
-{"�o�ʤ߯����E�ޯ�"}}}
+{"ATK, MATK 增加"}, 
+{"攻擊速度增加"}, 
+{"變動詠唱降低"}, 
+{"物理, 魔法攻擊時有機率"}, 
+{"發動心神凝聚技能"}}}
 StateIconList[EFST_IDs.EFST_MEIKYOUSISUI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������", COLOR_TITLE_BUFF}, 
+{"明鏡止水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i��_�@�w�q�� HP "}, 
-{"�i��_�@�w�q�� SP "}, 
-{"���i����"}, 
-{"�����v������ˮ`"}, 
-{"�ϥΧޯ�ɷ|�H���Ѱ�Debuff "}, 
-{"�D���ˮ`�ɷ|�Ѱ��ĪG"}}}
+{"可恢復一定量的 HP "}, 
+{"可恢復一定量的 SP "}, 
+{"不可移動"}, 
+{"有機率不受到傷害"}, 
+{"使用技能時會隨機解除Debuff "}, 
+{"遭受傷害時會解除效果"}}}
 StateIconList[EFST_IDs.EFST_IZAYOI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��16�ө]��", COLOR_TITLE_BUFF}, 
+{"第16個夜晚", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ѱ��T�w����"}, 
-{"�ܰʵ��ۭ��C"}, 
-{"���~�� MATK �W�["}}}
+{"解除固定詠唱"}, 
+{"變動詠唱降低"}, 
+{"物品的 MATK 增加"}}}
 StateIconList[EFST_IDs.EFST_KG_KAGEHUMI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��v", COLOR_TITLE_DEBUFF}, 
+{"踏影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ಾ��"}, 
-{"�Ѱ��S�w�ޯ�"}, 
-{"�����B�������ʧޯ�B�D�㵥�Ҥ��i�ϥ�"}, 
-{"���I�s�ޯण�i�ϥ�"}}}
+{"不能移動"}, 
+{"解除特定技能"}, 
+{"隱身、瞬間移動技能、道具等皆不可使用"}, 
+{"緊急呼叫技能不可使用"}}}
 StateIconList[EFST_IDs.EFST_KYOMU] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��L�Ƨ����v", COLOR_TITLE_DEBUFF}, 
+{"虛無飄妙之影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�N���z�M�]�k�����Ϯg�ĪG�ܵL��"}, 
-{"�ϥΧޯ�ɦ����v�ϥΧޯ�|����"}}}
+{"將物理和魔法攻擊反射效果變無效"}, 
+{"使用技能時有機率使用技能會失敗"}}}
 StateIconList[EFST_IDs.EFST_KAGEMUSYA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�v�l�Z�h", COLOR_TITLE_BUFF}, 
+{"影子武士", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�G�M�s���ĪG"}, 
-{"�C���|���Ӥ@�w�q��SP"}, 
-{"�K�譸�M�B���u���M���ˮ`�W�["}, 
-{"���]���𤧭��R�B�Q�r�٪��ˮ`�W�["}}}
+{"賦予二刀連擊效果"}, 
+{"每秒會消耗一定量的SP"}, 
+{"八方飛刀、炸彈飛刀的傷害增加"}, 
+{"風魔飛鏢之飛舞、十字斬的傷害增加"}}}
 StateIconList[EFST_IDs.EFST_ZANGETSU] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ܧΪ��W����", COLOR_TITLE_BUFF}, 
+{"變形的上弦月", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̷�Base Lv�ᤩ�ĪG"}}}
+{"依照Base Lv賦予效果"}}}
 StateIconList[EFST_IDs.EFST_GENSOU] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���몺�ۼv", COLOR_TITLE_BUFF}, 
+{"陰月的幻影", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HP�MSP�|�H���W�[�δ��"}, 
-{"�D���]�k������,"}, 
-{"���@�b���ˮ`�|�ಾ���設�W"}}}
+{"HP和SP會隨機增加或減少"}, 
+{"遭受魔法攻擊時,"}, 
+{"有一半的傷害會轉移到對方身上"}}}
 StateIconList[EFST_IDs.EFST_AKAITSUKI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����������", COLOR_TITLE_DEBUFF}, 
+{"不祥的紅月", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�S�w��_HP�ޯ�"}, 
-{"�ä��|��_�A�ӬO�D��"}}}
+{"特定恢復HP技能"}, 
+{"並不會恢復，而是遭受"}}}
 StateIconList[EFST_IDs.EFST_MYSTICPOWDER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���_����", COLOR_TITLE_BUFF}, 
+{"神奇粉末", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"FLEE, LUK �W�["}}}
+{"FLEE, LUK 增加"}}}
 StateIconList[EFST_IDs.EFST_ACARAJE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���d�ԳǪo����", COLOR_TITLE_BUFF}, 
+{"阿卡拉傑油炸餅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t��, HIT �W�["}}}
+{"攻擊速度, HIT 增加"}}}
 StateIconList[EFST_IDs.EFST_M_LIFEPOTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���_�ͩR��", COLOR_TITLE_BUFF}, 
+{"神奇生命水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C3���W�[�@�w�q��HP"}, 
-{"�g�㤧�j���ɵL��"}}}
+{"每3秒增加一定量之HP"}, 
+{"狂怒之槍中時無效"}}}
 StateIconList[EFST_IDs.EFST_ZONGZI_POUCH_TRANS] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�ݤȸ`�y��", COLOR_TITLE_BUFF}, 
-{"�W�[�Ҧ����ݩ�."}, 
+{"端午節慶典", COLOR_TITLE_BUFF}, 
+{"增加所有的屬性."}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE1] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�j�P��30��", COLOR_TITLE_BUFF}, 
-{"ATK �W�["}, 
+{"強烈的30秒", COLOR_TITLE_BUFF}, 
+{"ATK 增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE2] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�o����30��", COLOR_TITLE_BUFF}, 
-{"MATK�W�["}, 
+{"聰明的30秒", COLOR_TITLE_BUFF}, 
+{"MATK增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE3] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"��O��30��", COLOR_TITLE_BUFF}, 
-{"MHP�W�["}, 
+{"體力的30秒", COLOR_TITLE_BUFF}, 
+{"MHP增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE4] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�]�O��30��", COLOR_TITLE_BUFF}, 
-{"MSP�W�["}, 
+{"魔力的30秒", COLOR_TITLE_BUFF}, 
+{"MSP增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE5] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"���ժ�30��", COLOR_TITLE_BUFF}, 
-{"FLEE�W�["}, 
+{"輕盈的30秒", COLOR_TITLE_BUFF}, 
+{"FLEE增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE6] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�ܧ֪�30��", COLOR_TITLE_BUFF}, 
-{"ASPD�W�["}, 
+{"變快的30秒", COLOR_TITLE_BUFF}, 
+{"ASPD增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE7] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�i�a��30��", COLOR_TITLE_BUFF}, 
-{"DEF�W�["}, 
+{"可靠的30秒", COLOR_TITLE_BUFF}, 
+{"DEF增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE8] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�w����30��", COLOR_TITLE_BUFF}, 
-{"MDEF�W�["}, 
+{"安全的30秒", COLOR_TITLE_BUFF}, 
+{"MDEF增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE9] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"���B��30��", COLOR_TITLE_BUFF}, 
-{"CRI�W�["}, 
+{"幸運的30秒", COLOR_TITLE_BUFF}, 
+{"CRI增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PACKING_ENVELOPE10] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�M�ӱo30��", COLOR_TITLE_BUFF}, 
-{"HIT�W�["}, 
+{"和諧得30秒", COLOR_TITLE_BUFF}, 
+{"HIT增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_B_TRAP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�¦a��", COLOR_TITLE_DEBUFF}, 
+{"暗黑地獄", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�״�C"}}}
+{"移動速度減慢"}}}
 StateIconList[EFST_IDs.EFST_E_CHAIN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�L���s��", COLOR_TITLE_BUFF}, 
+{"無限連鎖", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����v�o�ʳs�����"}}}
+{"有機率發動連鎖衝擊"}}}
 StateIconList[EFST_IDs.EFST_C_MARKER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���O�L", COLOR_TITLE_DEBUFF}, 
+{"血色烙印", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"FLEE ���"}}}
+{"FLEE 減少"}}}
 StateIconList[EFST_IDs.EFST_P_ALTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ժ�����", COLOR_TITLE_BUFF}, 
+{"白金祭壇", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK �W�["}, 
-{"�ܤ����ݩʼW�["}}}
+{"ATK 增加"}, 
+{"抗不死屬性增加"}}}
 StateIconList[EFST_IDs.EFST_HEAT_BARREL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�[�t�l�u", COLOR_TITLE_BUFF}, 
+{"加速子彈", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK �W�["}, 
-{"�����᩵����"}}}
+{"ATK 增加"}, 
+{"攻擊後延遲減少"}}}
 StateIconList[EFST_IDs.EFST_ANTI_M_BLAST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_DEBUFF}, 
+{"毀滅重擊", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܩʴ��"}}}
+{"抗性減少"}}}
 StateIconList[EFST_IDs.EFST_HEAT_BARREL_AFTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���g", COLOR_TITLE_DEBUFF}, 
+{"後遺症", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�ϥιD��"}, 
-{"���i�ϥΧޯ�"}, 
-{"���i����"}}}
+{"不可使用道具"}, 
+{"不可使用技能"}, 
+{"不可攻擊"}}}
 StateIconList[EFST_IDs.EFST_VITALIZE_POTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ʤ��Ĥ�", COLOR_TITLE_BUFF}, 
+{"活性化藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK�W�["}, 
-{"�v¡�M�D���_�į�W�["}}}
+{"ATK, MATK增加"}, 
+{"治癒和道具恢復效能增加"}}}
 StateIconList[EFST_IDs.EFST_MAGIC_CANDY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�k�}�G", COLOR_TITLE_BUFF}, 
+{"魔法糖果", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MATK�W�["}, 
-{"�T�w���۳t�״��"}, 
-{"���ۤ��|���_"}, 
-{"�C10���|��֤@�w�q��SP"}}}
+{"MATK增加"}, 
+{"固定詠唱速度減少"}, 
+{"詠唱不會中斷"}, 
+{"每10秒會減少一定量的SP"}}}
 StateIconList[EFST_IDs.EFST_ALMIGHTY] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�U��~�|", COLOR_TITLE_BUFF}, 
-{"ATK, MATK�W�["}, 
+{"萬能年糕", COLOR_TITLE_BUFF}, 
+{"ATK, MATK增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_SWORDCLAN] = {
 descript = {
-{"���C�Զ�", COLOR_TITLE_BUFF}, 
+{"長劍戰隊", COLOR_TITLE_BUFF}, 
 {"STR + 1, VIT + 1"}, 
 {"MHP + 30, MSP + 10"}}}
 StateIconList[EFST_IDs.EFST_ARCWANDCLAN] = {
 descript = {
-{"���F�]���Զ�", COLOR_TITLE_BUFF}, 
+{"言靈魔杖戰隊", COLOR_TITLE_BUFF}, 
 {"INT + 1, DEX + 1"}, 
 {"MHP + 30, MSP + 10"}}}
 StateIconList[EFST_IDs.EFST_GOLDENMACECLAN] = {
 descript = {
-{"��������Զ�", COLOR_TITLE_BUFF}, 
+{"黃金之錘戰隊", COLOR_TITLE_BUFF}, 
 {"LUK + 1, INT + 1"}, 
 {"MHP + 30, MSP + 10"}}}
 StateIconList[EFST_IDs.EFST_CROSSBOWCLAN] = {
 descript = {
-{"�Q�r�}�Զ�", COLOR_TITLE_BUFF}, 
+{"十字弓戰隊", COLOR_TITLE_BUFF}, 
 {"DEX + 1, AGI + 1"}, 
 {"MHP + 30, MSP + 10"}}}
 StateIconList[EFST_IDs.EFST_EXPIATIO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"ū�o", COLOR_TITLE_BUFF}, 
+{"贖罪", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��H�����m��������"}}}
+{"對象的防禦部份忽視"}}}
 StateIconList[EFST_IDs.EFST_STASIS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�O�ᵲ", COLOR_TITLE_DEBUFF}, 
+{"魔力凍結", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�d�򤺪��Ҧ���H�L�k�ϥ��]�k, �q�ΦX��"}}}
+{"範圍內的所有對象無法使用魔法, 歌及合唱"}}}
 StateIconList[EFST_IDs.EFST_FULL_THROTTLE] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�[�j�o��", COLOR_TITLE_BUFF}, 
-{"�������ʳt��"}, 
-{"All State�W�["}, 
+{"加大油門", COLOR_TITLE_BUFF}, 
+{"提高移動速度"}, 
+{"All State增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_REBOUND] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�^�u", COLOR_TITLE_DEBUFF}, 
-{"��ֲ��ʳt��"}, 
-{"�L�k�۵M��_HP, SP"}, 
+{"回彈", COLOR_TITLE_DEBUFF}, 
+{"減少移動速度"}, 
+{"無法自然恢復HP, SP"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_PROMOTE_HEALTH_RESERCH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"HP �W�[�Ĥ�", COLOR_TITLE_BUFF}, 
+{"HP 增加藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP �W�["}}}
+{"MHP 增加"}}}
 StateIconList[EFST_IDs.EFST_ENERGY_DRINK_RESERCH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"SP �W�[�Ĥ�", COLOR_TITLE_BUFF}, 
+{"SP 增加藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MSP �W�["}}}
+{"MSP 增加"}}}
 StateIconList[EFST_IDs.EFST_QUEST_BUFF1] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�ֿn��q��", COLOR_TITLE_BUFF}, 
-{"ATK, MATK �W�["}, 
+{"累積能量中", COLOR_TITLE_BUFF}, 
+{"ATK, MATK 增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_QUEST_BUFF2] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�ֿn��q��", COLOR_TITLE_BUFF}, 
-{"ATK, MATK �W�["}, 
+{"累積能量中", COLOR_TITLE_BUFF}, 
+{"ATK, MATK 增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_QUEST_BUFF3] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�ֿn��q��", COLOR_TITLE_BUFF}, 
-{"ATK, MATK �W�["}, 
+{"累積能量中", COLOR_TITLE_BUFF}, 
+{"ATK, MATK 增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_DORAM_BUF_01] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�d�|�z����", COLOR_TITLE_BUFF}, 
+{"卡魯哇牛奶", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"3�����C10��HP��_10"}}}
+{"3分內每10秒HP恢復10"}}}
 StateIconList[EFST_IDs.EFST_DORAM_BUF_02] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"ù��", COLOR_TITLE_BUFF}, 
+{"羅勒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"3�����C10��SP��_5"}}}
+{"3分內每10秒SP恢復5"}}}
 StateIconList[EFST_IDs.EFST_SPRITEMABLE] = {haveTimeLimit = 0, posTimeLimitStr = 0, 
 descript = {
-{"�F���]�]", COLOR_SYSTEMF}}}
+{"靈魂魔珠", COLOR_SYSTEMF}}}
 StateIconList[EFST_IDs.EFST_SUHIDE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_BUFF}, 
+{"躲藏", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_FRESHSHRIMP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_BUFF}, 
+{"活蝦", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��_�@�w�q�� HP"}}}
+{"恢復一定量的 HP"}}}
 StateIconList[EFST_IDs.EFST_SHRIMP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s", COLOR_TITLE_BUFF}, 
+{"蝦群", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ATK, MATK + 10%"}}}
 StateIconList[EFST_IDs.EFST_TUNAPARTY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�C������", COLOR_TITLE_BUFF}, 
+{"鮪魚派對", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�@�w�q���ˮ`"}}}
+{"防禦一定量的傷害"}}}
 StateIconList[EFST_IDs.EFST_ARCLOUSEDASH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����μɽ�", COLOR_TITLE_BUFF}, 
+{"捲甲蟲暴衝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}, 
-{"AGI�W�["}}}
+{"移動速度增加"}, 
+{"AGI增加"}}}
 StateIconList[EFST_IDs.EFST_BITESCAR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�չ��ж�", COLOR_TITLE_DEBUFF}, 
+{"白鼠創傷", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"2�����w�t"}, 
-{"�C����֤@�w�q��MHP"}}}
+{"2秒內暈眩"}, 
+{"每妙減少一定量的MHP"}}}
 StateIconList[EFST_IDs.EFST_SV_ROOTTWIST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�n�U��ڲ���¶", COLOR_TITLE_DEBUFF}, 
+{"獼猴桃根莖纏繞", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i����"}, 
-{"�C��100���r�ݩʶˮ`"}}}
+{"不可移動"}, 
+{"每秒100的毒屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_CATNIPPOWDER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������x��", COLOR_TITLE_DEBUFF}, 
+{"貓薄荷灑粉", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK ���"}, 
-{"���ʳt�״��"}, 
-{"HP, SP��_�O�W�["}}}
+{"ATK, MATK 減少"}, 
+{"移動速度減少"}, 
+{"HP, SP恢復力增加"}}}
 StateIconList[EFST_IDs.EFST_SU_STOOP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_BUFF}, 
+{"俯身", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������ۥ�ɩҨ����ˮ`���"}}}
+{"捲取身體蹲伏時所受的傷害減少"}}}
 StateIconList[EFST_IDs.EFST_HISS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R�R�n", COLOR_TITLE_BUFF}, 
+{"嘶嘶聲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����j��, ���ʳt�׼W�["}}}
+{"完全迴避, 移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_NYANGGRASS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p�p��", COLOR_TITLE_BUFF}, 
+{"喵喵草", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���˳ƹD�㪺���m�O�ܵL�ġC"}}}
+{"讓裝備道具的防禦力變無效。"}}}
 StateIconList[EFST_IDs.EFST_CHATTERING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p�p����", COLOR_TITLE_BUFF}, 
+{"喵喵不休", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"5���� ATK, MATK + 100"}, 
-{"10�������ʳt�׼W�["}}}
+{"5秒內 ATK, MATK + 100"}, 
+{"10秒內移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_GROOMING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Q��", COLOR_TITLE_BUFF}, 
+{"舔毛", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"FLEE +100"}}}
 StateIconList[EFST_IDs.EFST_PROTECTIONOFSHRIMP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�n�����u�@", COLOR_TITLE_BUFF}, 
+{"好蝦的守護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"SP ��_�O�W�["}}}
+{"SP 恢復力增加"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Z�K����K", COLOR_TITLE_BUFF}, 
+{"茂密櫻花樹枝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"Flee �W�["}, 
-{"�����j�׼W�["}}}
+{"Flee 增加"}, 
+{"完全迴避增加"}}}
 StateIconList[EFST_IDs.EFST_CHEERUP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������}�Х[�o", COLOR_TITLE_BUFF}, 
+{"爸比媽咪請加油", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ��ݩʼW�[��3"}}}
+{"所有屬性增加至3"}}}
 StateIconList[EFST_IDs.EFST_EP16_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�{ģ�t��", COLOR_TITLE_BUFF}, 
-{"�b�������ΡB�����w�ԫI�J�}�ީҾD�����ˮ` -10%�C"}, 
+{"閃耀聖水", COLOR_TITLE_BUFF}, 
+{"在儀式之屋、普隆德拉侵入洞穴所遭受的傷害 -10%。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_BEEF_RIB_STEW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���N���p��", COLOR_TITLE_BUFF}, 
+{"紅燒牛小排", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܰʵ��۴��"}, 
-{"SP���Ӷq���"}}}
+{"變動詠唱減少"}, 
+{"SP消耗量減少"}}}
 StateIconList[EFST_IDs.EFST_PORK_RIB_STEW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���N�ޤp��", COLOR_TITLE_BUFF}, 
+{"紅燒豬小排", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}, 
-{"SP���Ӷq���"}}}
+{"攻擊速度增加"}, 
+{"SP消耗量減少"}}}
 StateIconList[EFST_IDs.EFST_CHUSEOK_MONDAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩʱj��", COLOR_TITLE_BUFF}, 
+{"屬性強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�t�ݩʩǪ��l�[�ˮ`"}, 
-{"�W�[�ܸt�ݩʶˮ`"}}}
+{"暗屬性怪物追加傷害"}, 
+{"增加抗聖屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_CHUSEOK_TUESDAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩʱj��", COLOR_TITLE_BUFF}, 
+{"屬性強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�a�ݩʩǪ��l�[�ˮ`"}, 
-{"�W�[�ܤ��ݩʶˮ`"}}}
+{"地屬性怪物追加傷害"}, 
+{"增加抗火屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_CHUSEOK_WEDNESDAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩʱj��", COLOR_TITLE_BUFF}, 
+{"屬性強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʩǪ��l�[�ˮ`"}, 
-{"�W�[�ܤ��ݩʶˮ`"}}}
+{"火屬性怪物追加傷害"}, 
+{"增加抗水屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_CHUSEOK_THURSDAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩʱj��", COLOR_TITLE_BUFF}, 
+{"屬性強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʩǪ��l�[�ˮ`"}, 
-{"�W�[�ܦa�ݩʶˮ`"}}}
+{"風屬性怪物追加傷害"}, 
+{"增加抗地屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_CHUSEOK_FRIDAY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩʱj��", COLOR_TITLE_BUFF}, 
+{"屬性強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʩǪ��l�[�ˮ`"}, 
-{"�W�[�ܭ��ݩʶˮ`"}}}
+{"水屬性怪物追加傷害"}, 
+{"增加抗風屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_CHUSEOK_WEEKEND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ݩʱj��", COLOR_TITLE_BUFF}, 
+{"屬性強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�ݩʩǪ��l�[�ˮ`"}, 
-{"�W�[�ܵL�ݩʶˮ`"}}}
+{"無屬性怪物追加傷害"}, 
+{"增加抗無屬性傷害"}}}
 StateIconList[EFST_IDs.EFST_GLORY_OF_RETURN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�^�k�@�g�~����BUFF", COLOR_TITLE_BUFF}, 
+{"回歸一週年活動BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK 5% �W�[."}}}
+{"ATK, MATK 5% 增加."}}}
 StateIconList[EFST_IDs.EFST_GEFFEN_MAGIC3] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�D���H���t�Ǫ���"}, 
-{"�ˮ`���"}, 
+{"遭受人類系怪物的"}, 
+{"傷害減少"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_LIMIT_POWER_BOOSTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���q�j�O���U��", COLOR_TITLE_BUFF}, 
+{"限量強力推助器", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK �W�["}, 
-{"HIT, FLEE �W�["}, 
-{"�����t�׼W�["}, 
-{"SP ���Ӷq���"}, 
-{"�T�����"}}}
+{"ATK, MATK 增加"}, 
+{"HIT, FLEE 增加"}, 
+{"攻擊速度增加"}, 
+{"SP 消耗量減少"}, 
+{"固詠減少"}}}
 StateIconList[EFST_IDs.EFST_ULTIMATECOOK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׷��Ʋz", COLOR_TITLE_BUFF}, 
+{"終極料理", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK, MATK +30 �W�["}, 
+{"ATK, MATK +30 增加"}, 
 {"All State +10"}}}
 StateIconList[EFST_IDs.EFST_ATK_POPCORN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����O�W�[", COLOR_TITLE_BUFF}, 
+{"攻擊力增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ATK +10%"}}}
 StateIconList[EFST_IDs.EFST_MATK_POPCORN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�k�����O�W�[", COLOR_TITLE_BUFF}, 
+{"魔法攻擊力增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"MATK +10%"}}}
 StateIconList[EFST_IDs.EFST_ASPD_POPCORN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����t�׼W�[", COLOR_TITLE_BUFF}, 
+{"攻擊速度增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����᩵��-10%"}}}
+{"攻擊後延遲-10%"}}}
 StateIconList[EFST_IDs.EFST_LHZ_DUN_N1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӧa���Ȧ�", COLOR_TITLE_BUFF}, 
+{"墓地之庇佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������Ԧ��̩Ǫ����ˮ`�W�[�C"}, 
-{"�M�� : �C�h/�s��t�C�Ԧ��̩Ǫ��C"}, 
-{"�D�������Ԧ��̩Ǫ����ˮ`��֡C"}, 
-{"�M�� : �A��/�ӤH�t�C�Ԧ��̩Ǫ��C"}, 
-{"MVP�Ǫ����~�C"}}}
+{"給予部分戰死者怪物的傷害增加。"}, 
+{"清單 : 劍士/盜賊系列戰死者怪物。"}, 
+{"遭受部分戰死者怪物的傷害減少。"}, 
+{"清單 : 服事/商人系列戰死者怪物。"}, 
+{"MVP怪物除外。"}}}
 StateIconList[EFST_IDs.EFST_LHZ_DUN_N2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӧa���Ȧ�", COLOR_TITLE_BUFF}, 
+{"墓地之庇佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������Ԧ��̩Ǫ����ˮ`�W�[�C"}, 
-{"�M�� : �A��/�ӤH�t�C�Ԧ��̩Ǫ��C"}, 
-{"�D�������Ԧ��̩Ǫ����ˮ`��֡C"}, 
-{"�M�� : �]�k�v/�}�b��t�C�Ԧ��̩Ǫ��C"}, 
-{"MVP�Ǫ����~�C"}}}
+{"給予部分戰死者怪物的傷害增加。"}, 
+{"清單 : 服事/商人系列戰死者怪物。"}, 
+{"遭受部分戰死者怪物的傷害減少。"}, 
+{"清單 : 魔法師/弓箭手系列戰死者怪物。"}, 
+{"MVP怪物除外。"}}}
 StateIconList[EFST_IDs.EFST_LHZ_DUN_N3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӧa���Ȧ�", COLOR_TITLE_BUFF}, 
+{"墓地之庇佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������Ԧ��̩Ǫ����ˮ`�W�[�C"}, 
-{"�M�� : �]�k�v/�}�b��t�C�Ԧ��̩Ǫ��C"}, 
-{"�D�������Ԧ��̩Ǫ����ˮ`��֡C"}, 
-{"�M�� : �C�h/�s��t�C�Ԧ��̩Ǫ��C"}, 
-{"MVP�Ǫ����~�C"}}}
+{"給予部分戰死者怪物的傷害增加。"}, 
+{"清單 : 魔法師/弓箭手系列戰死者怪物。"}, 
+{"遭受部分戰死者怪物的傷害減少。"}, 
+{"清單 : 劍士/盜賊系列戰死者怪物。"}, 
+{"MVP怪物除外。"}}}
 StateIconList[EFST_IDs.EFST_LHZ_DUN_N4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӧa���Ȧ�", COLOR_TITLE_BUFF}, 
+{"墓地之庇佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���������Ԧ��̩Ǫ����ˮ`�W�[�C"}, 
-{"�M�� : �Ԧ��̤���MVP�ǡC"}, 
-{"�D�������Ԧ��̩Ǫ����ˮ`��֡C"}, 
-{"�M�� : �Ԧ��̤���MVP�ǡC"}}}
+{"給予部分戰死者怪物的傷害增加。"}, 
+{"清單 : 戰死者之墓MVP怪。"}, 
+{"遭受部分戰死者怪物的傷害減少。"}, 
+{"清單 : 戰死者之墓MVP怪。"}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_SAINT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�b�Z���W�ᤩ�t�ݩ�", COLOR_TITLE_BUFF}, 
+{"在武器上賦予聖屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ITEM_ATKMAX] = {
 descript = {
 {"MAX ATK", COLOR_TITLE_TOGGLE}, 
-{"�̤j���z�ˮ`"}}}
+{"最大物理傷害"}}}
 StateIconList[EFST_IDs.EFST_ITEM_ATKMIN] = {
 descript = {
 {"MIN ATK", COLOR_TITLE_TOGGLE}, 
-{"�̤֪��z�ˮ`"}}}
+{"最少物理傷害"}}}
 StateIconList[EFST_IDs.EFST_ITEM_MATKMAX] = {
 descript = {
 {"MAX MATK", COLOR_TITLE_TOGGLE}, 
-{"�̤j�]�k�ˮ`"}}}
+{"最大魔法傷害"}}}
 StateIconList[EFST_IDs.EFST_ITEM_MATKMIN] = {
 descript = {
 {"MIN MATK", COLOR_TITLE_TOGGLE}, 
-{"�̤��]�k�ˮ`"}}}
+{"最少魔法傷害"}}}
 StateIconList[EFST_IDs.EFST_MANA_PLUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
 {"Mana Plus", COLOR_TITLE_BUFF}, 
@@ -2065,2508 +2065,2508 @@ descript = {
 {"ATK +50"}}}
 StateIconList[EFST_IDs.EFST_MANDRAGORA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ҫ�ù�]�᪺�y�s", COLOR_TITLE_DEBUFF}, 
+{"曼陀羅魔花的尖叫", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"INT, SP���"}, 
-{"�T���W�["}}}
+{"INT, SP減少"}, 
+{"固詠增加"}}}
 StateIconList[EFST_IDs.EFST_AS_RAGGED_GOLEM_CARD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j�ײv�W�[", COLOR_TITLE_BUFF}, 
+{"迴避率增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"FLEE +200"}}}
 StateIconList[EFST_IDs.EFST_S_MANAPOTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�p���]�O�Ĥ�", COLOR_TITLE_BUFF}, 
+{"小型魔力藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C5���^�_�@�w�q��SP"}, 
-{"�g�㤧�j���A�U�L�ĪG"}}}
+{"每5秒回復一定量的SP"}, 
+{"狂怒之槍狀態下無效果"}}}
 StateIconList[EFST_IDs.EFST_M_DEFSCROLL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�O�q���@���b", COLOR_TITLE_BUFF}, 
+{"力量防護卷軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������s�O�H���]�k���s�O"}}}
+{"提高防御力以及魔法防御力"}}}
 StateIconList[EFST_IDs.EFST_EP16_2_BUFF_SS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j���Ĥ�SS", COLOR_TITLE_BUFF}, 
+{"強化藥水SS", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ASPD +10"}}}
 StateIconList[EFST_IDs.EFST_EP16_2_BUFF_SC] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j���Ĥ�SC", COLOR_TITLE_BUFF}, 
+{"強化藥水SC", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"CRI +30"}}}
 StateIconList[EFST_IDs.EFST_EP16_2_BUFF_AC] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j���Ĥ�AC", COLOR_TITLE_BUFF}, 
+{"強化藥水AC", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܰʵ��۴��80%"}}}
+{"變動詠唱減少80%"}}}
 StateIconList[EFST_IDs.EFST_OVERLAPEXPUP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���yBuff��!", COLOR_TITLE_BUFF}, 
+{"獎勵Buff中!", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"�g��ȩM���_�v�[��"}}}
+{"打怪時"}, 
+{"經驗值和掉寶率加倍"}}}
 StateIconList[EFST_IDs.EFST_EXPDROPUP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�^�k�P�~BUFF!", COLOR_TITLE_BUFF}, 
+{"回歸周年BUFF!", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"�g��ȩM���_�v�[��"}}}
+{"打怪時"}, 
+{"經驗值和掉寶率加倍"}}}
 StateIconList[EFST_IDs.EFST_TW_NEWYEAR_EVENT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�s�~Buff", COLOR_TITLE_BUFF}, 
+{"新年Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�y���~�~��"}, 
-{"�~���������v�W�["}}}
+{"獵殺年獸時"}, 
+{"獸骨掉落機率增加"}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_TRANS] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"��󬡤H�򦺤H��æ��!", COLOR_TITLE_DEBUFF}, 
-{"MSP-50%�C"}, 
+{"位於活人跟死人的疆界!", COLOR_TITLE_DEBUFF}, 
+{"MSP-50%。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�i�H�P����b���餺"}, 
-{"���ѱj�j���O�q�����ۡC"}, 
+{"可以感受到在我體內"}, 
+{"有股強大的力量動盪著。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�������ڰ����޵P"}, 
-{"���O�@�ۡC"}, 
+{"正用幫我做的盾牌"}, 
+{"受保護著。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_HEAL] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"���t���]�k"}, 
-{"���v¡�O�q"}, 
-{"�e�{���j�ơC"}, 
+{"神聖的魔法"}, 
+{"讓治癒力量"}, 
+{"呈現極大化。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_HIDDEN] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�j�]�k���m��q"}, 
-{"�L�ƪ����|�ۡC"}, 
+{"大魔法防禦能量"}, 
+{"無數的重疊著。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_STATE] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�Ҧ���O��"}, 
-{"��t�J�ɤF�C"}, 
+{"所有能力值"}, 
+{"急速驟升了。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_ITEMDEF] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�Ҧ����m�O"}, 
-{"��t�J�ɤF�C"}, 
+{"所有防禦力"}, 
+{"急速驟升了。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GLASTHEIM_HPSP] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"MHP�MMSP"}, 
-{"��t�J�ɤF�C"}, 
+{"MHP和MSP"}, 
+{"急速驟升了。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_GS_MAGICAL_BULLET] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�N�u", COLOR_TITLE_BUFF}, 
+{"魔術彈", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�s�W�]�k�ˮ`"}}}
+{"新增魔法傷害"}}}
 StateIconList[EFST_IDs.EFST_GS_MADNESSCANCEL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ƨg�ʹ���(Madness Canceler)", COLOR_TITLE_BUFF}, 
+{"瘋狂凱斯樂(Madness Canceler)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�W�["}, 
-{"�����t�׼W�["}, 
-{"���i����"}}}
+{"ATK增加"}, 
+{"攻擊速度增加"}, 
+{"不可移動"}}}
 StateIconList[EFST_IDs.EFST_GS_GATLINGFEVER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��L�g��(Gatling Fever)", COLOR_TITLE_BUFF}, 
+{"格林狂熱(Gatling Fever)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t��, �ˮ`����"}, 
-{"�j�ײv, ���ʳt�׭��C"}}}
+{"攻擊速度, 傷害提升"}, 
+{"迴避率, 移動速度降低"}}}
 StateIconList[EFST_IDs.EFST_GS_ADJUSTMENT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׷��{��(Adjustment)", COLOR_TITLE_BUFF}, 
+{"終極閃躲(Adjustment)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v���C"}, 
-{"�j�ײv�W�["}, 
-{"�Ӧۻ��Z�����z�������ˮ`���C"}}}
+{"命中率降低"}, 
+{"迴避率增加"}, 
+{"來自遠距離物理攻擊的傷害降低"}}}
 StateIconList[EFST_IDs.EFST_GS_ACCURACY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R���v���W(Increasing Accuracy)", COLOR_TITLE_BUFF}, 
+{"命中率遞增(Increasing Accuracy)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v�W�["}, 
-{"DEX�W�["}, 
-{"AGI�W�["}}}
+{"命中率增加"}, 
+{"DEX增加"}, 
+{"AGI增加"}}}
 StateIconList[EFST_IDs.EFST_H_MINE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�}�a��q", COLOR_TITLE_DEBUFF}, 
+{"破壞怒吼", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}�a��q���A"}}}
+{"破壞怒吼狀態"}}}
 StateIconList[EFST_IDs.EFST_HEAT_BARREL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�[�t�l�u", COLOR_TITLE_BUFF}, 
+{"加速子彈", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK �W�["}, 
-{"HIT ���"}, 
-{"�����t�׼W�["}, 
-{"�T�w���۴��"}}}
+{"ATK 增加"}, 
+{"HIT 減少"}, 
+{"攻擊速度增加"}, 
+{"固定詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_ANTI_M_BLAST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_DEBUFF}, 
+{"毀滅重擊", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܩʴ��"}}}
+{"抗性減少"}}}
 StateIconList[EFST_IDs.EFST_HEAT_BARREL_AFTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���g", COLOR_TITLE_DEBUFF}, 
+{"後遺症", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�ϥιD��"}, 
-{"���i�ϥΧޯ�"}, 
-{"���i����"}}}
+{"不可使用道具"}, 
+{"不可使用技能"}, 
+{"不可攻擊"}}}
 StateIconList[EFST_IDs.EFST_CHERRY_BLOSSOM_CAKE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����z�̿|", COLOR_TITLE_BUFF}, 
+{"櫻花糯米糕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D���p/��/�j���ĤH���ˮ`��֡C"}}}
+{"遭受小/中/大型敵人的傷害減少。"}}}
 StateIconList[EFST_IDs.EFST_CRUSHSTRIKE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ܼw���c����:�����jŧ (Crush Strike)", COLOR_TITLE_BUFF}, 
+{"萊德赫盧恩石:重擊強襲 (Crush Strike)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�T�W�[�D�ޯફ�z�����������O"}, 
-{"�����v�Z���|���l�C"}}}
+{"大幅增加非技能物理攻擊的攻擊力"}, 
+{"有機率武器會受損。"}}}
 StateIconList[EFST_IDs.EFST_HEALTHSTATE_CONFUSION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�V��", COLOR_TITLE_DEBUFF}, 
+{"混亂", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�H�����ʮɡA�|�H�����ʡC"}}}
+{"人物移動時，會隨機移動。"}}}
 StateIconList[EFST_IDs.EFST_HEALTHSTATE_CURSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�A�G", COLOR_TITLE_DEBUFF}, 
+{"詛咒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��ֲ��ʳt�סB���z�����O"}, 
-{"LUK �ܬ� 0 "}}}
+{"減少移動速度、物理攻擊力"}, 
+{"LUK 變為 0 "}}}
 StateIconList[EFST_IDs.EFST_PAIN_KILLER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���h��", COLOR_TITLE_BUFF}, 
+{"鎮痛劑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�פU���A"}, 
-{"�D���ˮ`�ɨS���ʧ@����A"}, 
-{"�D�����ˮ`��֡C"}}}
+{"攻擊速度下降，"}, 
+{"遭受傷害時沒有動作延遲，"}, 
+{"遭受的傷害減少。"}}}
 StateIconList[EFST_IDs.EFST_LIGHT_OF_REGENE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ͤ���", COLOR_TITLE_BUFF}, 
+{"重生之光", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���D�H���`�ɡA"}, 
-{"�Ѧ��ڥN���D�H���`��Ϭ��D�H�C"}}}
+{"當主人死亡時，"}, 
+{"由艾蘿代替主人死亡後救活主人。"}}}
 StateIconList[EFST_IDs.EFST_OVERED_BOOST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����W��", COLOR_TITLE_BUFF}, 
+{"瞬間增壓", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���کM�D�H��"}, 
-{"�����t�שM�j�ײv���W�ɷ|�T�w�C"}}}
+{"艾蘿和主人的"}, 
+{"攻擊速度和迴避率的上升會固定。"}}}
 StateIconList[EFST_IDs.EFST_STYLE_CHANGE] = {haveTimeLimit = 0, 
 descript = {
-{"�Ԥh�Ҧ�", COLOR_TITLE_TOGGLE}, 
-{"��Y�ն����Ԥh���A�C"}}}
+{"戰士模式", COLOR_TITLE_TOGGLE}, 
+{"伊琳諾雅的戰士狀態。"}}}
 StateIconList[EFST_IDs.EFST_MAGMA_FLOW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���߬y��", COLOR_TITLE_BUFF}, 
+{"岩漿流動", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D���ˮ`�ɡA"}, 
-{"�����v�q����Q�o���ߡC"}}}
+{"遭受傷害時，"}, 
+{"有機率從身體噴發岩漿。"}}}
 StateIconList[EFST_IDs.EFST_GRANITIC_ARMOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��^���Z��", COLOR_TITLE_BUFF}, 
+{"花崗岩鎧甲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}���S�M�D�H�D�����ˮ`��֡A"}, 
-{"����ɶ����������HP�C"}}}
+{"迪爾特和主人遭受的傷害減少，"}, 
+{"持續時間結束後消耗HP。"}}}
 StateIconList[EFST_IDs.EFST_PYROCLASTIC] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s�м�", COLOR_TITLE_BUFF}, 
+{"火山塵暴", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}���S�M�D�H���Z��"}, 
-{"�|�אּ���ݩʡC"}, 
-{"���ɪZ�������O�C"}}}
+{"迪爾特和主人的武器"}, 
+{"會改為火屬性。"}, 
+{"提升武器攻擊力。"}}}
 StateIconList[EFST_IDs.EFST_VOLCANIC_ASH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s��", COLOR_TITLE_DEBUFF}, 
+{"火山灰", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v�U��"}, 
-{"�����v�ޯ�B�]�k�|���ѡA"}}}
+{"命中率下降"}, 
+{"有機率技能、魔法會失敗，"}}}
 StateIconList[EFST_IDs.EFST_PAIN_KILLER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���h��", COLOR_TITLE_BUFF}, 
+{"鎮痛劑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�פU���A"}, 
-{"�D���ˮ`�ɨS���ʧ@����A"}, 
-{"�D�����ˮ`��֡C"}}}
+{"攻擊速度下降，"}, 
+{"遭受傷害時沒有動作延遲，"}, 
+{"遭受的傷害減少。"}}}
 StateIconList[EFST_IDs.EFST_LIGHT_OF_REGENE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ͤ���", COLOR_TITLE_BUFF}, 
+{"重生之光", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���D�H���`�ɡA"}, 
-{"�Ѧ��ڥN���D�H���`��Ϭ��D�H�C"}}}
+{"當主人死亡時，"}, 
+{"由艾蘿代替主人死亡後救活主人。"}}}
 StateIconList[EFST_IDs.EFST_OVERED_BOOST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����W��", COLOR_TITLE_BUFF}, 
+{"瞬間增壓", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���کM�D�H��"}, 
-{"�����t�שM�j�ײv���W�ɷ|�T�w�C"}}}
+{"艾蘿和主人的"}, 
+{"攻擊速度和迴避率的上升會固定。"}}}
 StateIconList[EFST_IDs.EFST_STYLE_CHANGE] = {haveTimeLimit = 0, 
 descript = {
-{"�Ԥh�Ҧ�", COLOR_TITLE_TOGGLE}, 
-{"��Y�ն����Ԥh���A�C"}}}
+{"戰士模式", COLOR_TITLE_TOGGLE}, 
+{"伊琳諾雅的戰士狀態。"}}}
 StateIconList[EFST_IDs.EFST_MAGMA_FLOW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���߬y��", COLOR_TITLE_BUFF}, 
+{"岩漿流動", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�D���ˮ`�ɡA"}, 
-{"�����v�q����Q�o���ߡC"}}}
+{"遭受傷害時，"}, 
+{"有機率從身體噴發岩漿。"}}}
 StateIconList[EFST_IDs.EFST_GRANITIC_ARMOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��^���Z��", COLOR_TITLE_BUFF}, 
+{"花崗岩鎧甲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}���S�M�D�H�D�����ˮ`��֡A"}, 
-{"����ɶ����������HP�C"}}}
+{"迪爾特和主人遭受的傷害減少，"}, 
+{"持續時間結束後消耗HP。"}}}
 StateIconList[EFST_IDs.EFST_PYROCLASTIC] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s�м�", COLOR_TITLE_BUFF}, 
+{"火山塵暴", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�}���S�M�D�H���Z��"}, 
-{"�|�אּ���ݩʡC"}, 
-{"���ɪZ�������O�C"}}}
+{"迪爾特和主人的武器"}, 
+{"會改為火屬性。"}, 
+{"提升武器攻擊力。"}}}
 StateIconList[EFST_IDs.EFST_VOLCANIC_ASH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s��", COLOR_TITLE_DEBUFF}, 
+{"火山灰", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v�U��"}, 
-{"�����v�ޯ�B�]�k�|���ѡA"}}}
+{"命中率下降"}, 
+{"有機率技能、魔法會失敗，"}}}
 StateIconList[EFST_IDs.EFST_HUNTING_EVENT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�y�H���߮b", COLOR_TITLE_BUFF}, 
+{"獵人的晚宴", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥο������^�_�q�W�["}, 
-{"�ϥΦת��^�_�q�W�["}}}
+{"使用蕃薯的回復量增加"}, 
+{"使用肉的回復量增加"}}}
 StateIconList[EFST_IDs.EFST_EXCLUSIVE_RECEIVEITEM] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"�򥻱��_�v�W�["}, 
-{"(���_���W�}�W�[1��)"}, 
-{"(�W�H���_�}�W�[2��)"}}}
+{"打怪時"}, 
+{"基本掉寶率增加"}, 
+{"(掉寶倍增糖增加1倍)"}, 
+{"(超黏掉寶糖增加2倍)"}}}
 StateIconList[EFST_IDs.EFST_EXCLUSIVE_PLUSEXP] = {haveTimeLimit = 1, posTimeLimitStr = 1, 
 descript = {
 {"%s", COLOR_TIME}, 
-{"��o�g��ȼW�[�C"}}}
+{"獲得經驗值增加。"}}}
 StateIconList[EFST_IDs.EFST_ANCILLA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w�Ʃ� (ANCILLA)", COLOR_TITLE_BUFF}, 
+{"安希拉 (ANCILLA)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�v¡�q+15%�A"}, 
-{"SP��_�O+30%�C"}}}
+{"治癒量+15%，"}, 
+{"SP恢復力+30%。"}}}
 StateIconList[EFST_IDs.EFST_LAUDAAGNUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�̦Ϻq�| (LAUDAAGNUS)", COLOR_TITLE_BUFF}, 
+{"羔羊歌頌 (LAUDAAGNUS)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�̤jHP�W�[�C"}}}
+{"最大HP增加。"}}}
 StateIconList[EFST_IDs.EFST_LAUDARAMUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��K�g�| (LAUDARAMUS)", COLOR_TITLE_BUFF}, 
+{"折枝讚頌 (LAUDARAMUS)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ˮ`�W�[�C"}}}
+{"暴擊傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_SWEETSFAIR_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�A���ڻ����d�s", COLOR_TITLE_BUFF}, 
+{"你儂我儂馬卡龍", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ATK + 7%"}}}
 StateIconList[EFST_IDs.EFST_SWEETSFAIR_MATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�A���ڻ�����ݵ�", COLOR_TITLE_BUFF}, 
+{"你儂我儂草莓芭菲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"MATK + 7%"}}}
 StateIconList[EFST_IDs.EFST_INFINITY_DRINK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����Ĥ�", COLOR_TITLE_BUFF}, 
+{"極限藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MaxHP, MaxSP�W�["}, 
-{"�����ˮ`,���Z�����z�����O�W�[,"}, 
-{"���ݩ��]�k�����O�W�["}, 
-{"���ۤ��|�Q���_"}}}
+{"MaxHP, MaxSP增加"}, 
+{"暴擊傷害,遠距離物理攻擊力增加,"}, 
+{"全屬性魔法攻擊力增加"}, 
+{"詠唱不會被間斷"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R�Q�����", COLOR_TITLE_BUFF}, 
+{"犀利的營火", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"Flee�W�[�A�����^�׼W�["}, 
-{"�����t�׼W�["}, 
-{"�ܰʵ��۴��"}}}
+{"Flee增加，完全回避增加"}, 
+{"攻擊速度增加"}, 
+{"變動詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�嶮����K", COLOR_TITLE_BUFF}, 
+{"典雅櫻花樹枝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP, MSP �W�["}}}
+{"MHP, MSP 增加"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����z�̿|", COLOR_TITLE_BUFF}, 
+{"櫻花糯米糕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��p�B���B�j���ĤH��"}, 
-{"�ˮ`�W�["}}}
+{"對小、中、大型敵人的"}, 
+{"傷害增加"}}}
 StateIconList[EFST_IDs.EFST_SUNSTANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӷ��^��", COLOR_TITLE_BUFF}, 
+{"太陽英姿", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�W�[�A"}, 
-{"�i�ϥΤӶ��t�C�ޯ�C"}}}
+{"ATK增加，"}, 
+{"可使用太陽系列技能。"}}}
 StateIconList[EFST_IDs.EFST_LUNARSTANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��G�^��", COLOR_TITLE_BUFF}, 
+{"月亮英姿", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MaxHP�W�[�A"}, 
-{"�i�ϥΤ�G�t�C�ޯ�C"}}}
+{"MaxHP增加，"}, 
+{"可使用月亮系列技能。"}}}
 StateIconList[EFST_IDs.EFST_STARSTANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�P�^��", COLOR_TITLE_BUFF}, 
+{"星星英姿", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�[�A"}, 
-{"�i�ϥάP�P�t�C�ޯ�C"}}}
+{"攻擊速度增加，"}, 
+{"可使用星星系列技能。"}}}
 StateIconList[EFST_IDs.EFST_UNIVERSESTANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�z�^��", COLOR_TITLE_BUFF}, 
+{"宇宙英姿", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"All Status�W�[�A"}, 
-{"�i�ϥΦt�z�t�C�ޯ�A"}, 
-{"�i�ϥΤӶ��t�C�ޯ�A"}, 
-{"�i�ϥΤ�G�t�C�ޯ�A"}, 
-{"�i�ϥάP�P�t�C�ޯ�C"}}}
+{"All Status增加，"}, 
+{"可使用宇宙系列技能，"}, 
+{"可使用太陽系列技能，"}, 
+{"可使用月亮系列技能，"}, 
+{"可使用星星系列技能。"}}}
 StateIconList[EFST_IDs.EFST_LIGHTOFSUN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ӷ�����", COLOR_TITLE_BUFF}, 
+{"太陽光輝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ӷ��z���ˮ`�W�[�C"}}}
+{"太陽爆炸傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_LIGHTOFMOON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��G����", COLOR_TITLE_BUFF}, 
+{"月亮光輝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����}�ˮ`�W�[�C"}}}
+{"滿月腳傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_LIGHTOFSTAR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�P����", COLOR_TITLE_BUFF}, 
+{"星星光輝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�y�P�f���ˮ`�W�[�C"}}}
+{"流星殞落傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_FLASHKICK] = {
 descript = {
-{"�P�P�лx", COLOR_TITLE_DEBUFF}}}
+{"星星標誌", COLOR_TITLE_DEBUFF}}}
 StateIconList[EFST_IDs.EFST_NEWMOON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ҥ�}", COLOR_TITLE_BUFF}, 
+{"朔月腳", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���æۤv�A"}, 
-{"�i�ϥκ���}�C"}}}
+{"隱藏自己，"}, 
+{"可使用滿月腳。"}}}
 StateIconList[EFST_IDs.EFST_CREATINGSTAR] = {
 descript = {
-{"�ЬP����", COLOR_TITLE_DEBUFF}, 
-{"���ʳt�״�֡C"}}}
+{"創星之書", COLOR_TITLE_DEBUFF}, 
+{"移動速度減少。"}}}
 StateIconList[EFST_IDs.EFST_GRAVITYCONTROL] = {
 descript = {
-{"���O�վ�", COLOR_TITLE_DEBUFF}, 
-{"���i�����M���ʡC"}}}
+{"重力調整", COLOR_TITLE_DEBUFF}, 
+{"不可攻擊和移動。"}}}
 StateIconList[EFST_IDs.EFST_SOULCOLLECT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F��W�n", COLOR_TITLE_BUFF}, 
+{"靈魂蓄積", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�w�ɻW�n�F���q�C"}}}
+{"定時蓄積靈魂能量。"}}}
 StateIconList[EFST_IDs.EFST_SOULREAPER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F���", COLOR_TITLE_BUFF}, 
+{"靈魂收割", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ĤH�ɡA"}, 
-{"�����v��o�F���q�C"}}}
+{"攻擊敵人時，"}, 
+{"有機率獲得靈魂能量。"}}}
 StateIconList[EFST_IDs.EFST_SOULUNITY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F���", COLOR_TITLE_BUFF}, 
+{"靈魂集結", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C3����_HP�A"}, 
-{"�i��ؼШϥγʹ�S�C"}}}
+{"每3秒恢復HP，"}, 
+{"可對目標使用凱渥特。"}}}
 StateIconList[EFST_IDs.EFST_SOULSHADOW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�v�l�F��", COLOR_TITLE_BUFF}, 
+{"影子靈魂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"CRI�W�[�A"}, 
-{"ASPD�W�[�C"}}}
+{"CRI增加，"}, 
+{"ASPD增加。"}}}
 StateIconList[EFST_IDs.EFST_SOULFAIRY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���F�F��", COLOR_TITLE_BUFF}, 
+{"精靈靈魂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MATK�W�[�A"}, 
-{"����ܰʵ��ۡC"}}}
+{"MATK增加，"}, 
+{"減少變動詠唱。"}}}
 StateIconList[EFST_IDs.EFST_SOULFALCON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�G�N�F��", COLOR_TITLE_BUFF}, 
+{"隼鷹靈魂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�W�[�A"}, 
-{"�R���v�W�[�C"}}}
+{"ATK增加，"}, 
+{"命中率增加。"}}}
 StateIconList[EFST_IDs.EFST_SOULGOLEM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���H�F��", COLOR_TITLE_BUFF}, 
+{"巨人靈魂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"DEF�W�[�A"}, 
-{"MDEF�W�[�C"}}}
+{"DEF增加，"}, 
+{"MDEF增加。"}}}
 StateIconList[EFST_IDs.EFST_SOULDIVISION] = {
 descript = {
-{"�F�����", COLOR_TITLE_DEBUFF}, 
-{"�ޯ�᩵��W�[�C"}}}
+{"靈魂分裂", COLOR_TITLE_DEBUFF}, 
+{"技能後延遲增加。"}}}
 StateIconList[EFST_IDs.EFST_FALLINGSTAR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�y�P�f��", COLOR_TITLE_BUFF}, 
+{"流星殞落", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ɦ����v"}, 
-{"��O�L�P�P�лx���ĤH"}, 
-{"���U�y�P�C"}}}
+{"攻擊時有機率"}, 
+{"對烙印星星標誌的敵人"}, 
+{"落下流星。"}}}
 StateIconList[EFST_IDs.EFST_DIMENSION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_BUFF}, 
+{"次元之書", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ϥηs�P�z���B���ӭ��{�ɡA"}, 
-{"�|Ĳ�o�S���ĪG�C"}}}
+{"使用新星爆炸、拳皇降臨時，"}, 
+{"會觸發特殊效果。"}}}
 StateIconList[EFST_IDs.EFST_SOULLINK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�F��A", COLOR_TITLE_BUFF}, 
+{"賦予靈魂狀態", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������F�h"}, 
-{"�ᤩ�F����A�C"}}}
+{"接受悟靈士"}, 
+{"賦予靈魂的狀態。"}}}
 StateIconList[EFST_IDs.EFST_WEAPONBLOCK_ON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������A", COLOR_TITLE_BUFF}, 
+{"還擊狀態", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�ϥ�"}, 
-{"������"}}}
+{"可使用"}, 
+{"反擊斬"}}}
 StateIconList[EFST_IDs.EFST_BASILICA_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t����", COLOR_TITLE_BUFF}, 
+{"神聖殿堂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�t�ݩ��]�k�ˮ`�W�["}, 
-{"��t/�����ݩʼĤH��"}, 
-{"���z�ˮ`�W�["}}}
+{"聖屬性魔法傷害增加"}, 
+{"對暗/不死屬性敵人的"}, 
+{"物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_ASSUMPTIO_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�������", COLOR_TITLE_BUFF}, 
+{"聖母之祈福", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z���m�O�W�["}, 
-{"���쪺�v¡�q�W�["}}}
+{"物理防禦力增加"}, 
+{"受到的治癒量增加"}}}
 StateIconList[EFST_IDs.EFST_BASILICA_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t����", COLOR_TITLE_BUFF}, 
+{"神聖殿堂", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�t�ݩ��]�k�ˮ`�W�["}, 
-{"��t/�����ݩʼĤH��"}, 
-{"���z�ˮ`�W�["}}}
+{"聖屬性魔法傷害增加"}, 
+{"對暗/不死屬性敵人的"}, 
+{"物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_ASSUMPTIO_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�������", COLOR_TITLE_BUFF}, 
+{"聖母之祈福", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z���m�O�W�["}, 
-{"���쪺�v¡�q�W�["}}}
+{"物理防禦力增加"}, 
+{"受到的治癒量增加"}}}
 StateIconList[EFST_IDs.EFST_RICHMANKIM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�g��ȭ��W", COLOR_TITLE_BUFF}, 
+{"經驗值倍增", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"��o���g��ȼW�["}}}
+{"打怪時"}, 
+{"獲得之經驗值增加"}}}
 StateIconList[EFST_IDs.EFST_RINGNIBELUNGEN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������ڤ��٫�", COLOR_TITLE_BUFF}, 
+{"尼貝隆根之戒指", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ﶤ�����[�U��"}, 
-{"���q���ĪG"}}}
+{"對隊員附加各種"}, 
+{"有益的效果"}}}
 StateIconList[EFST_IDs.EFST_DRUMBATTLEFIELD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Թ��_��", COLOR_TITLE_BUFF}, 
+{"戰鼓震天", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"������ATK�BDEF�W�["}}}
+{"隊員的ATK、DEF增加"}}}
 StateIconList[EFST_IDs.EFST_SIEGFRIED] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���������楱���w", COLOR_TITLE_BUFF}, 
+{"不死神齊格弗里德", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������/��/�a/���ܩʼW�["}, 
-{"�������`���A�ܩʼW�["}}}
+{"隊員的水/風/地/火抗性增加"}, 
+{"部分異常狀態抗性增加"}}}
 StateIconList[EFST_IDs.EFST_ADAPTATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�{������", COLOR_TITLE_BUFF}, 
+{"臨機應變", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�t���B���R�B�X���ޯ�"}, 
-{"SP���Ӵ��"}}}
+{"演奏、跳舞、合奏技能"}, 
+{"SP消耗減少"}}}
 StateIconList[EFST_IDs.EFST_INTOABYSS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"Ĳ�C����", COLOR_TITLE_BUFF}, 
+{"觸媒之所", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���������]�O�q�ۮ���"}, 
-{"(�����ޯణ�~)"}}}
+{"刪除隊員的魔力礦石消耗"}, 
+{"(部分技能除外)"}}}
 StateIconList[EFST_IDs.EFST_SERVICEFORYOU] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���z�A��", COLOR_TITLE_BUFF}, 
+{"為您服務", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������̤jSP�W�["}, 
-{"SP���Ӵ��"}}}
+{"隊員的最大SP增加"}, 
+{"SP消耗減少"}}}
 StateIconList[EFST_IDs.EFST_FORTUNEKISS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�k�����k", COLOR_TITLE_BUFF}, 
+{"女神之吻", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"������CRI�W�["}, 
-{"�����ˮ`�W�["}}}
+{"隊員的CRI增加"}, 
+{"暴擊傷害增加"}}}
 StateIconList[EFST_IDs.EFST_HUMMING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ۤ���", COLOR_TITLE_BUFF}, 
+{"哼唱之音", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"������HIT�W�["}}}
+{"隊員的HIT增加"}}}
 StateIconList[EFST_IDs.EFST_POEMBRAGI] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ܩ_����", COLOR_TITLE_BUFF}, 
+{"布萊奇之詩", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������ܰʵ��۴��"}, 
-{"�ޯ�᩵����"}}}
+{"隊員的變動詠唱減少"}, 
+{"技能後延遲減少"}}}
 StateIconList[EFST_IDs.EFST_ASSASSINCROSS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��Ȫ�����", COLOR_TITLE_BUFF}, 
+{"刺客的黃昏", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����������t�׼W�["}, 
-{"(�����᩵����)"}}}
+{"隊員的攻擊速度增加"}, 
+{"(攻擊後延遲減少)"}}}
 StateIconList[EFST_IDs.EFST_WHISTLE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j�f��", COLOR_TITLE_BUFF}, 
+{"吹口哨", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"������FLEE�W�["}, 
-{"�����j�׼W�["}}}
+{"隊員的FLEE增加"}, 
+{"完全迴避增加"}}}
 StateIconList[EFST_IDs.EFST_APPLEIDUN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��n��ī�G", COLOR_TITLE_BUFF}, 
+{"伊登的蘋果", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������̤jHP�W�["}, 
-{"���쪺��_�q�W�["}}}
+{"隊員的最大HP增加"}, 
+{"受到的恢復量增加"}}}
 StateIconList[EFST_IDs.EFST_ENSEMBLEFATIGUE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�X���h�Ҫ��A", COLOR_TITLE_DEBUFF}, 
+{"合奏疲勞狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�X���Ӥް_���h�Ҫ��p"}, 
-{"���i�ϥΧޯ�"}, 
-{"����/�����t��-30%"}}}
+{"合奏而引起的疲勞狀況"}, 
+{"不可使用技能"}, 
+{"移動/攻擊速度-30%"}}}
 StateIconList[EFST_IDs.EFST_ETERNALCHAOS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�û����V�P", COLOR_TITLE_DEBUFF}, 
+{"永遠的混沌", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�O�T�w��0"}}}
+{"防禦力固定為0"}}}
 StateIconList[EFST_IDs.EFST_ROKISWEIL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���_���d��", COLOR_TITLE_DEBUFF}, 
+{"洛奇的悲鳴", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�ϥΧޯ�"}, 
-{"�����v���J�V�ê��A"}}}
+{"不可使用技能"}, 
+{"有機率陷入混亂狀態"}}}
 StateIconList[EFST_IDs.EFST_DONTFORGETME] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ŧѧ�", COLOR_TITLE_DEBUFF}, 
+{"勿忘我", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"����/�����t�״��"}, 
-{"�R������/�����t�׼W�[�ĪG"}}}
+{"移動/攻擊速度減少"}, 
+{"刪除移動/攻擊速度增加效果"}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_NOTHING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z���L�ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器無屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_WATER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z�����ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器水屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_GROUND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z���a�ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器地屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_FIRE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z�����ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器火屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_WIND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z�����ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器風屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_POISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z���r�ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器毒屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_DARKNESS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z���t�ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器暗屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_TELEKINESIS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z�����ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器念屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATTACK_PROPERTY_UNDEAD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ᤩ�Z���ݩʤ����ݩ�", COLOR_TITLE_BUFF}, 
+{"賦予武器屬性不死屬性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ALL_STAT_DOWN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������U��", COLOR_TITLE_DEBUFF}, 
+{"全素質下降", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"All state���"}}}
+{"All state減少"}}}
 StateIconList[EFST_IDs.EFST_GRADUAL_GRAVITY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���O�W�[", COLOR_TITLE_DEBUFF}, 
+{"重力增加", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C1���l��%HP"}}}
+{"每1秒損失%HP"}}}
 StateIconList[EFST_IDs.EFST_HEALTHSTATE_POISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���r", COLOR_TITLE_DEBUFF}, 
+{"中毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ܯ�"}, 
-{"���z���m�O�U��"}, 
-{"�C3��MHP�U��"}}}
+{"視野變窄"}, 
+{"物理防禦力下降"}, 
+{"每3秒MHP下降"}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_STONECURSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۤ�", COLOR_TITLE_DEBUFF}, 
+{"石化", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�j��/���"}, 
-{"MHP�U��"}}}
+{"無法迴避/行動"}, 
+{"MHP下降"}}}
 StateIconList[EFST_IDs.EFST_HELPANGEL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѨϪ����@", COLOR_TITLE_BUFF}, 
+{"天使的庇護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C��HP��_1000"}, 
-{"�C��SP��_350"}}}
+{"每秒HP恢復1000"}, 
+{"每秒SP恢復350"}}}
 StateIconList[EFST_IDs.EFST_SOULCURSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���F�A�G", COLOR_TITLE_BUFF}, 
+{"邪靈詛咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��t�ݩʧ������ܩʴ��"}}}
+{"對暗屬性攻擊的抗性減少"}}}
 StateIconList[EFST_IDs.EFST_HELPANGEL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѨϪ����@", COLOR_TITLE_BUFF}, 
+{"天使的庇護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C��HP��_1000 "}, 
-{"�C��SP��_350"}}}
+{"每秒HP恢復1000 "}, 
+{"每秒SP恢復350"}}}
 StateIconList[EFST_IDs.EFST_SOULCURSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���F�A�G", COLOR_TITLE_BUFF}, 
+{"邪靈詛咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��t�ݩʧ������ܩʴ��"}}}
+{"對暗屬性攻擊的抗性減少"}}}
 StateIconList[EFST_IDs.EFST_CHILL] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�H��", COLOR_TITLE_DEBUFF}, 
-{"���|�Q�N�ˡC"}, 
+{"寒氣", COLOR_TITLE_DEBUFF}, 
+{"不會被燒傷。"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_BURNT] = {haveTimeLimit = 1, posTimeLimitStr = 6, 
 descript = {
-{"�S��", COLOR_TITLE_DEBUFF}, 
-{"������ݩʩǪ�"}, 
-{"�ˮ`�W�["}, 
-{"����ݩʧܩʴ��"}, 
-{"�g���ʤ��ݩʶˮ`"}, 
+{"燙傷", COLOR_TITLE_DEBUFF}, 
+{"受到火屬性怪的"}, 
+{"傷害增加"}, 
+{"對火屬性抗性減少"}, 
+{"週期性火屬性傷害"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_STONECURSE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۤ�", COLOR_TITLE_DEBUFF}, 
+{"石化", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�j��/���"}, 
-{"MHP���"}}}
+{"不可迴避/行動"}, 
+{"MHP減少"}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_FREEZING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�B��", COLOR_TITLE_DEBUFF}, 
+{"冰凍", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�j��/���"}, 
-{"���z/�]�k���m�O���"}}}
+{"不可迴避/行動"}, 
+{"物理/魔法防禦力減少"}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_STUN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w�t", COLOR_TITLE_DEBUFF}, 
+{"暈眩", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�j��/���"}}}
+{"不可迴避/行動"}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_SLEEP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ίv", COLOR_TITLE_DEBUFF}, 
+{"睡眠", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�j��/���"}, 
-{"�����ˮ`���v�W�["}}}
+{"不可迴避/行動"}, 
+{"暴擊傷害機率增加"}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_BURNNING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ۤ�", COLOR_TITLE_DEBUFF}, 
+{"著火", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C3���y���@���ˮ`"}, 
-{"�]�k���m�v���"}}}
+{"每3秒造成一次傷害"}, 
+{"魔法防禦率減少"}}}
 StateIconList[EFST_IDs.EFST_HEALTHSTATE_FEAR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_DEBUFF}, 
+{"恐怖", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"2�����k����"}, 
-{"�R���v/�j�ײv���"}}}
+{"2秒內法移動"}, 
+{"命中率/迴避率減少"}}}
 StateIconList[EFST_IDs.EFST_BODYSTATE_IMPRISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j��", COLOR_TITLE_DEBUFF}, 
+{"隔離", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i����/�����A�L�k�ϥΧޯ�/�D��"}}}
+{"不可移動/攻擊，無法使用技能/道具"}}}
 StateIconList[EFST_IDs.EFST_HEALTHSTATE_SILENCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I�q", COLOR_TITLE_DEBUFF}, 
+{"沉默", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�ϥΧޯ�"}}}
+{"無法使用技能"}}}
 StateIconList[EFST_IDs.EFST_SOUND_OF_DESTRUCTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������n", COLOR_TITLE_DEBUFF}, 
+{"毀滅之聲", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ��ˮ`����2���C"}}}
+{"所有傷害受到2倍。"}}}
 StateIconList[EFST_IDs.EFST_MISTY_FROST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���B���A", COLOR_TITLE_DEBUFF}, 
+{"結冰狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_MAGIC_POISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�O���r", COLOR_TITLE_DEBUFF}, 
+{"魔力中毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ��ݩʧ����ܩ�-50%�C"}}}
+{"所有屬性攻擊抗性-50%。"}}}
 StateIconList[EFST_IDs.EFST_DARKCROW] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�R����", COLOR_TITLE_DEBUFF}, 
+{"致命爪痕", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"�����Ϯg�ĪG�L��"}}}
+{"近距離物理傷害增加"}, 
+{"部分反射效果無效"}}}
 StateIconList[EFST_IDs.EFST_POISONINGWEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�@�r�Z��", COLOR_TITLE_BUFF}, 
+{"劇毒武器", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"�ھڽᤩ���r����Buff"}, 
-{"���������ؼгQ��b�Z���W���r�Ӥ��r"}}}
+{"近距離物理傷害增加"}, 
+{"根據賦予的毒給予Buff"}, 
+{"攻擊時讓目標被塗在武器上的毒而中毒"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff", COLOR_TITLE_BUFF}, 
+{"活動Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�ײv�Χ����j�׼W�["}, 
-{"�����t�׼W�["}, 
-{"�ܰʵ��۴��"}}}
+{"迴避率及完全迴避增加"}, 
+{"攻擊速度增加"}, 
+{"變動詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_SWEETSFAIR_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"ATK�W�[", COLOR_TITLE_BUFF}, 
+{"ATK增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ATK + 7%"}}}
 StateIconList[EFST_IDs.EFST_SWEETSFAIR_MATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"MATK�W�[", COLOR_TITLE_BUFF}, 
+{"MATK增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"MATK + 7%"}}}
 StateIconList[EFST_IDs.EFST_GIANTGROWTH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���į��c���� : �O�q����", COLOR_TITLE_BUFF}, 
+{"突里薩茲盧恩石 : 力量成長", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"STR�W�["}, 
-{"�@���Z�����z�����ɡA�������v�y���Y���ˮ`"}, 
-{"��Z�����z�ˮ`�W�["}}}
+{"STR增加"}, 
+{"一般近距離物理攻擊時，有高機率造成嚴重傷害"}, 
+{"近距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_FIGHTINGSPIRIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���˯��c���� : ���ɰ���", COLOR_TITLE_BUFF}, 
+{"艾伊瓦茲盧恩石 : 提升鬥志", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�W�["}, 
-{"�����t�׼W�["}}}
+{"ATK增加"}, 
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_VITALITYACTIVATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�쥾�c���� : �ͩR�E��", COLOR_TITLE_BUFF}, 
+{"伊札盧恩石 : 生命激化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HP��_�ĪG�W�["}, 
-{"��֩Ҩ���Z�����z�Ϯg�ˮ`"}}}
+{"HP恢復效果增加"}, 
+{"減少所受近距離物理反射傷害"}}}
 StateIconList[EFST_IDs.EFST_LUXANIMA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�O�q�ڷ��c���� : �c���z�o", COLOR_TITLE_BUFF}, 
+{"力量根源盧恩石 : 盧恩爆發", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�@���Z�����z�����ɡA�����v"}, 
-{"Ĳ�o���ɽ���LV1"}, 
-{"����髬���ĤH���z�ˮ`�W�["}, 
-{"�����ˮ`�W�["}, 
-{"��Z���P���Z�����z�ˮ`�W�["}}}
+{"一般近距離物理攻擊時，有機率"}, 
+{"觸發風暴衝擊LV1"}, 
+{"對全體型的敵人物理傷害增加"}, 
+{"暴擊傷害增加"}, 
+{"近距離與遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_AURABLADE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F��C", COLOR_TITLE_BUFF}, 
+{"靈氣劍", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�����O�W�["}}}
+{"物理攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_LKCONCENTRATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_BUFF}, 
+{"集中攻擊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�B�R���v�W�[ "}, 
-{"���z���m���"}}}
+{"ATK、命中率增加 "}, 
+{"物理防禦減少"}}}
 StateIconList[EFST_IDs.EFST_HELLS_PLANT_ARMOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a���Ӫ�", COLOR_TITLE_BUFF}, 
+{"地獄植物", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������d�򤺥ؼ�"}, 
-{"��Z�����z�ˮ`"}}}
+{"給予附近範圍內目標"}, 
+{"近距離物理傷害"}}}
 StateIconList[EFST_IDs.EFST_REF_T_POTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������Ĥ�", COLOR_TITLE_BUFF}, 
+{"黃金抵抗藥水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҩ��Ϯg�ˮ`���100%"}}}
+{"所受反射傷害減少100%"}}}
 StateIconList[EFST_IDs.EFST_ADD_ATK_DAMAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����į󬡤ƲG", COLOR_TITLE_BUFF}, 
+{"紅色藥草活化液", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�[15%"}, 
-{"���Z�����z�ˮ`�W�[15%"}}}
+{"近距離物理傷害增加15%"}, 
+{"遠距離物理傷害增加15%"}}}
 StateIconList[EFST_IDs.EFST_ADD_MATK_DAMAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ŧ��į󬡤ƲG", COLOR_TITLE_BUFF}, 
+{"藍色藥草活化液", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ��ݩ��]�k�ˮ`�W�[15%"}}}
+{"所有屬性魔法傷害增加15%"}}}
 StateIconList[EFST_IDs.EFST_BATH_FOAM_A] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�N�D��A", COLOR_TITLE_BUFF}, 
+{"沐浴劑A", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��[�߷Q�j�D��]�K�ޤ��Ǫ���"}, 
-{"���z/�]�k�ˮ`+5%�C"}}}
+{"對[冥想大浴池]密穴中怪物的"}, 
+{"物理/魔法傷害+5%。"}}}
 StateIconList[EFST_IDs.EFST_BATH_FOAM_B] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�N�D��B", COLOR_TITLE_BUFF}, 
+{"沐浴劑B", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��[�߷Q�j�D��]�K�ޤ��Ǫ���"}, 
-{"���z/�]�k�ˮ`+10%�C"}}}
+{"對[冥想大浴池]密穴中怪物的"}, 
+{"物理/魔法傷害+10%。"}}}
 StateIconList[EFST_IDs.EFST_BATH_FOAM_C] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�N�D��C", COLOR_TITLE_BUFF}, 
+{"沐浴劑C", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��[�߷Q�j�D��]�K�ޤ��Ǫ���"}, 
-{"���z/�]�k�ˮ`+15%�C"}}}
+{"對[冥想大浴池]密穴中怪物的"}, 
+{"物理/魔法傷害+15%。"}}}
 StateIconList[EFST_IDs.EFST_AROMA_OIL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ⱥ�o", COLOR_TITLE_BUFF}, 
+{"香薰精油", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����[�߷Q�j�D��]�K�ޤ��Ǫ���"}, 
-{"���z/�]�k�ˮ`-10%�C"}}}
+{"受到[冥想大浴池]密穴中怪物的"}, 
+{"物理/魔法傷害-10%。"}}}
 StateIconList[EFST_IDs.EFST_LOCKON_LASER] = {
 descript = {
-{"��w������", COLOR_TITLE_DEBUFF}, 
-{"�C�j�@�q�ɶ��Φ��@���F�������I�C"}}}
+{"鎖定砲擊圈", COLOR_TITLE_DEBUFF}, 
+{"每隔一段時間形成一個轟炸攻擊點。"}}}
 StateIconList[EFST_IDs.EFST_SWEETSFAIR_ATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���������", COLOR_TITLE_BUFF}, 
+{"旺盛的營火", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ATK+7%"}}}
 StateIconList[EFST_IDs.EFST_SWEETSFAIR_MATK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���z�����", COLOR_TITLE_BUFF}, 
+{"智慧的營火", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"MATK+7%"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R�Q�����", COLOR_TITLE_BUFF}, 
+{"犀利的營火", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�ײv�Χ����j�׼W�["}, 
-{"�����t�׼W�["}, 
-{"�ܰʵ��۴��"}}}
+{"迴避率及完全迴避增加"}, 
+{"攻擊速度增加"}, 
+{"變動詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_OFFERTORIUM] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�^�m�|", COLOR_TITLE_BUFF}, 
-{"�ۤv�ϥΪ��v¡�q�W�["}, 
-{"�Ҧ��ޯ઺SP���Ӷq�W�["}, 
+{"奉獻頌", COLOR_TITLE_BUFF}, 
+{"自己使用的治癒量增加"}, 
+{"所有技能的SP消耗量增加"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_RAISINGDRAGON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s�@��", COLOR_TITLE_BUFF}, 
-{"�̤j��y��ƶq�W�["}, 
-{"MaxHP�MMaxSP�W�["}, 
-{"�����t�׼W�["}, 
-{"�����z�𪬺A"}}}
+{"潛龍昇天", COLOR_TITLE_BUFF}, 
+{"最大氣球體數量增加"}, 
+{"MaxHP和MaxSP增加"}, 
+{"攻擊速度增加"}, 
+{"維持爆氣狀態"}}}
 StateIconList[EFST_IDs.EFST_ANCILLA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w�Ʃ�", COLOR_TITLE_BUFF}, 
+{"安希拉", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�v¡�q+15%"}, 
-{" SP��_�O+30%"}, 
-{"�ᤩ�ݺq�L�ݩ�"}}}
+{"治癒量+15%"}, 
+{" SP恢復力+30%"}, 
+{"賦予謳歌無屬性"}}}
 StateIconList[EFST_IDs.EFST_LG_REFLECTDAMAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�å[�@", COLOR_TITLE_TOGGLE}, 
+{"聖冕加護", COLOR_TITLE_TOGGLE}, 
 {"%s", COLOR_TIME}, 
-{"�ۤv���쪺�Ϯg�ˮ`���"}}}
+{"自己受到的反射傷害減少"}}}
 StateIconList[EFST_IDs.EFST_BANDING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�E��", COLOR_TITLE_BUFF}, 
+{"聚集", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z���m�O�W�["}}}
+{"物理防禦力增加"}}}
 StateIconList[EFST_IDs.EFST_INSPIRATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F�P", COLOR_TITLE_BUFF}, 
+{"靈感", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v�ί��责��"}, 
-{"�����O�B�]�k�����O�BMHP�W�["}, 
-{"�S�wBUFF�B���`���A�L�Ĥ�"}, 
-{"����HP�BSP���"}}}
+{"命中率及素質提升"}, 
+{"攻擊力、魔法攻擊力、MHP增加"}, 
+{"特定BUFF、異常狀態無效化"}, 
+{"持續的HP、SP減少"}}}
 StateIconList[EFST_IDs.EFST_AUTOSHADOWSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʾy�v���G", COLOR_TITLE_BUFF}, 
+{"自動魅影念咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MATK�W�["}, 
-{"�ǲߧ�ŧ�B�c��"}, 
-{"�i�ϥ��]�k�ޯ�"}}}
+{"MATK增加"}, 
+{"學習抄襲、繁殖"}, 
+{"可使用魔法技能"}}}
 StateIconList[EFST_IDs.EFST_MAGICPOWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�O�W�T", COLOR_TITLE_BUFF}, 
+{"魔力增幅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k�����O�X�j���A"}}}
+{"魔法攻擊力擴大狀態"}}}
 StateIconList[EFST_IDs.EFST_OVERBRANDREADY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��t�O�L�N��", COLOR_TITLE_BUFF}, 
+{"支配烙印就緒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��t�O�L�¤O�W�["}}}
+{"支配烙印威力增加"}}}
 StateIconList[EFST_IDs.EFST_SHIELDSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ީG", COLOR_TITLE_BUFF}, 
+{"盾咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ީG�]�k�ĪG"}}}
+{"盾咒魔法效果"}}}
 StateIconList[EFST_IDs.EFST_CLOUD_POISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���r", COLOR_TITLE_DEBUFF}, 
+{"雲毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��r�ݩʧ������ܩʴ��"}}}
+{"對毒屬性攻擊的抗性減少"}}}
 StateIconList[EFST_IDs.EFST_SPORE_EXPLOSION_DEBUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�z���U�l", COLOR_TITLE_DEBUFF}, 
+{"爆炸孢子", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���쪺���Z�����z�ˮ`�W�["}}}
+{"受到的遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_BLOOD_SUCKER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�l��Ӫ�", COLOR_TITLE_BUFF}, 
+{"吸血植物", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�����ɦ����v"}, 
-{"�l��HP"}}}
+{"物理攻擊時有機率"}, 
+{"吸收HP"}}}
 StateIconList[EFST_IDs.EFST_UNLIMIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׭^����", COLOR_TITLE_BUFF}, 
+{"菁英狙擊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Z�����z�ˮ`�W�["}}}
+{"遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_STRIKING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����j��", COLOR_TITLE_BUFF}, 
+{"打擊強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O�W�["}, 
-{"���ɧ���Ĳ�o���v�W�["}}}
+{"攻擊力增加"}, 
+{"誘導攻擊觸發機率增加"}}}
 StateIconList[EFST_IDs.EFST_POISON_MIST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���r", COLOR_TITLE_DEBUFF}, 
+{"霧毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�ײv���"}}}
+{"迴避率減少"}}}
 StateIconList[EFST_IDs.EFST_STONE_WALL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_BUFF}, 
+{"岩壁", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z���m�O�W�["}, 
-{"�]�k���m�O�W�["}}}
+{"物理防禦力增加"}, 
+{"魔法防禦力增加"}}}
 StateIconList[EFST_IDs.EFST_HOMUN_TIME] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ͩR��l��", COLOR_TITLE_BUFF}, 
+{"生命體召喚", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ͩR��l�ꪬ�A"}}}
+{"生命體召喚狀態"}}}
 StateIconList[EFST_IDs.EFST_PAIN_KILLER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���h��", COLOR_TITLE_BUFF}, 
+{"鎮痛劑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ˮ`�ɨS���ʧ@����"}, 
-{"���쪺�ˮ`���"}}}
+{"受到傷害時沒有動作延遲"}, 
+{"受到的傷害減少"}}}
 StateIconList[EFST_IDs.EFST_NEEDLE_OF_PARALYZE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�·��w", COLOR_TITLE_DEBUFF}, 
+{"麻痺針", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i����"}, 
-{"���z���]�k���m�O���"}}}
+{"不可移動"}, 
+{"物理及魔法防禦力減少"}}}
 StateIconList[EFST_IDs.EFST_PYROCLASTIC] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s�м�", COLOR_TITLE_BUFF}, 
+{"火山塵暴", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Z�������O�W�["}}}
+{"武器攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_SERVANTWEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ͪZ��", COLOR_TITLE_BUFF}, 
+{"死侍武器", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ɶ����l��C����"}, 
-{"��Z������ɼC���鲣�Ͱl�[����"}}}
+{"持續時間內召喚劍氣體"}, 
+{"近距離普攻時劍氣體產生追加攻擊"}}}
 StateIconList[EFST_IDs.EFST_SERVANT_SIGN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ͪZ��-�аO", COLOR_TITLE_DEBUFF}, 
+{"死侍武器-標記", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Q���ͪZ���ҼаO"}}}
+{"被死侍武器所標記"}}}
 StateIconList[EFST_IDs.EFST_CHARGINGPIERCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�W�O����", COLOR_TITLE_BUFF}, 
+{"蓄力刺擊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ɶ��ϥίS�w�ޯ��"}, 
-{"�ֿn�W�O��q"}}}
+{"持續時間使用特定技能時"}, 
+{"累積蓄力能量"}}}
 StateIconList[EFST_IDs.EFST_DRAGONIC_AURA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s����", COLOR_TITLE_BUFF}, 
+{"天龍光環", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�s���𮧶ˮ`�W�["}, 
-{"�s����-���ˮ`�W�["}, 
-{"�ʥ٬��ˮ`�W�["}}}
+{"龍之氣息傷害增加"}, 
+{"龍之氣息-水傷害增加"}, 
+{"百矛穿刺傷害增加"}}}
 StateIconList[EFST_IDs.EFST_VIGOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���O����", COLOR_TITLE_BUFF}, 
+{"活力之源", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z������ˮ`�W�["}, 
-{"�C��������HP���"}}}
+{"近距離普攻傷害增加"}, 
+{"每次攻擊時HP減少"}}}
 StateIconList[EFST_IDs.EFST_DEADLY_DEFEASANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�R��g", COLOR_TITLE_BUFF}, 
+{"致命放射", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ѱ��]�k�L�į�O"}}}
+{"解除魔法無效能力"}}}
 StateIconList[EFST_IDs.EFST_CLIMAX_DES_HU] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_BUFF}, 
+{"毀滅颶風", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩ��]�k�ˮ`�W�["}, 
+{"風屬性魔法傷害增加"}, 
 {"MATK + 100"}}}
 StateIconList[EFST_IDs.EFST_CLIMAX] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�O�q�p", COLOR_TITLE_BUFF}, 
+{"魔力巔峰", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�S���ĪG�C"}, 
-{"�U���d���B�����i�z�B"}, 
-{"��������"}, 
-{"�_���N"}}}
+{"賦予下列技能特殊效果。"}, 
+{"萬紫千紅、水晶波爆、"}, 
+{"毀滅颶風"}, 
+{"震裂術"}}}
 StateIconList[EFST_IDs.EFST_CLIMAX_EARTH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�_���N", COLOR_TITLE_BUFF}, 
+{"震裂術", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܦa�ݩʴ��"}}}
+{"抗地屬性減少"}}}
 StateIconList[EFST_IDs.EFST_CLIMAX_BLOOM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�U���d��", COLOR_TITLE_BUFF}, 
+{"萬紫千紅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܤ��ݩʴ��"}}}
+{"抗火屬性減少"}}}
 StateIconList[EFST_IDs.EFST_CLIMAX_CRYIMP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����i�z", COLOR_TITLE_BUFF}, 
+{"水晶波爆", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܤ��ݩʼW�["}, 
+{"抗水屬性增加"}, 
 {"DEF + 300"}, 
 {"MDEF + 100"}, 
-{"���ݩ��]�k�ˮ`�W�["}}}
+{"水屬性魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_GUARD_STANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���m�[��", COLOR_TITLE_BUFF}, 
+{"防禦架式", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z���m�O�W�["}, 
-{"�˳Ƨ����O���"}}}
+{"物理防禦力增加"}, 
+{"裝備攻擊力減少"}}}
 StateIconList[EFST_IDs.EFST_ATTACK_STANCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����[��", COLOR_TITLE_BUFF}, 
+{"攻擊架式", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�˳Ƨ����O�W�["}, 
-{"���z���m�O���"}}}
+{"裝備攻擊力增加"}, 
+{"物理防禦力減少"}}}
 StateIconList[EFST_IDs.EFST_GUARDIAN_S] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�u�@����", COLOR_TITLE_BUFF}, 
+{"守護神盾", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ���ת��z���������@�n���A"}}}
+{"賦予阻擋物理攻擊的防護罩狀態"}}}
 StateIconList[EFST_IDs.EFST_REBOUND_S] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�^�u����", COLOR_TITLE_BUFF}, 
+{"回彈神盾", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�z�L�묹��֩Ҩ��ˮ`�����A"}}}
+{"透過犧牲減少所受傷害的狀態"}}}
 StateIconList[EFST_IDs.EFST_HOLY_S] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ܩʸt��", COLOR_TITLE_BUFF}, 
+{"抗性聖盾", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܷt�ݩʡB�����ݩʼW�["}, 
-{"�t�ݩ��]�k�ˮ`�W�["}, 
-{"�t�Q�r�B�ˮ`�W�["}}}
+{"抗暗屬性、不死屬性增加"}, 
+{"聖屬性魔法傷害增加"}, 
+{"聖十字雨傷害增加"}}}
 StateIconList[EFST_IDs.EFST_ULTIMATE_S] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׷��묹", COLOR_TITLE_BUFF}, 
+{"終極犧牲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�԰��ɥߧY�_��"}}}
+{"無法戰鬥時立即復活"}}}
 StateIconList[EFST_IDs.EFST_SPEAR_SCAR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����f�P", COLOR_TITLE_BUFF}, 
+{"末日審判", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��v�����ˮ`�W�["}, 
-{"�[�A�������ˮ`�W�["}}}
+{"放逐攻擊傷害增加"}, 
+{"加農砲攻擊傷害增加"}}}
 StateIconList[EFST_IDs.EFST_SHIELD_POWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�޵P���Y", COLOR_TITLE_BUFF}, 
+{"盾牌投擲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�s������ˮ`�W�["}, 
-{"���������ˮ`�W�["}, 
-{"�j�a�����ˮ`�W�["}}}
+{"連續盾擊傷害增加"}, 
+{"重壓盾擊傷害增加"}, 
+{"大地毀滅傷害增加"}}}
 StateIconList[EFST_IDs.EFST_POWERFUL_FAITH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ݫH��", COLOR_TITLE_BUFF}, 
+{"堅毅信念", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O�W�["}, 
-{"�S�ʧ����O�W�["}}}
+{"攻擊力增加"}, 
+{"特性攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_SINCERE_FAITH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�u�۫H��", COLOR_TITLE_BUFF}, 
+{"真誠信念", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}, 
-{"�ᤩ���ɧ����ĪG"}}}
+{"攻擊速度增加"}, 
+{"賦予誘導攻擊效果"}}}
 StateIconList[EFST_IDs.EFST_FIRM_FAITH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���w�H��", COLOR_TITLE_BUFF}, 
+{"堅定信念", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}, 
-{"RES�W�["}}}
+{"MHP增加"}, 
+{"RES增加"}}}
 StateIconList[EFST_IDs.EFST_HOLY_OIL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t�o�~§", COLOR_TITLE_BUFF}, 
+{"聖油洗禮", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҩ����Z�����z�ˮ`�W�["}}}
+{"所受遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_FIRST_BRAND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��1��:�O�L", COLOR_TITLE_BUFF}, 
+{"第1擊:烙印", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�O�L���A"}}}
+{"賦予烙印狀態"}}}
 StateIconList[EFST_IDs.EFST_SECOND_BRAND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�f�P�O�L", COLOR_TITLE_BUFF}, 
+{"審判烙印", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�f�P�O�L�����A"}}}
+{"賦予審判烙印的狀態"}}}
 StateIconList[EFST_IDs.EFST_SECOND_JUDGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��2��:�f�P��", COLOR_TITLE_BUFF}, 
+{"第2章:審判者", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��2��:�H��/�f�P"}, 
-{"��3��:�g�v/�b��"}, 
-{"�i�ϥ�"}, 
-{"�j��Y�Y�P�{���s��"}, 
-{"�L�ݮ��Ӯ�y��"}}}
+{"第2擊:信念/審判"}, 
+{"第3擊:懲治/淨化"}, 
+{"可使用"}, 
+{"大纏崩墜與閃光連擊"}, 
+{"無需消耗氣球體"}}}
 StateIconList[EFST_IDs.EFST_THIRD_EXOR_FLAME] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�̲׳�:�X�]���K", COLOR_TITLE_BUFF}, 
+{"最終章:驅魔火焰", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��2��:�H��/�f�P/���K����"}, 
-{"��3��:�g�v/�b��/���K�u"}, 
-{"�i�ϥ�"}, 
-{"�j��Y�Y�B�{���s���B�ꯥ"}, 
-{"�L�ݮ��Ӯ�y��"}}}
+{"第2擊:信念/審判/火焰滅絕"}, 
+{"第3擊:懲治/淨化/火焰彈"}, 
+{"可使用"}, 
+{"大纏崩墜、閃光連擊、虎砲"}, 
+{"無需消耗氣球體"}}}
 StateIconList[EFST_IDs.EFST_FIRST_FAITH_POWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��1��:�H�����O", COLOR_TITLE_BUFF}, 
+{"第1章:信仰之力", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��2��:�H��"}, 
-{"��3��:�g�v "}, 
-{"�i�ϥ�"}, 
-{"�j��Y�Y"}, 
-{"�L�ݮ��Ӯ�y��"}}}
+{"第2擊:信念"}, 
+{"第3擊:懲治 "}, 
+{"可使用"}, 
+{"大纏崩墜"}, 
+{"無需消耗氣球體"}}}
 StateIconList[EFST_IDs.EFST_MASSIVE_F_BLASTER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�K�]���u", COLOR_TITLE_BUFF}, 
+{"焰魔散彈", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�p���u�P�z�𴲼u"}, 
-{"�L�ݮ��Ӯ�y��"}}}
+{"雷光彈與爆氣散彈"}, 
+{"無需消耗氣球體"}}}
 StateIconList[EFST_IDs.EFST_SHADOW_EXCEED] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�y�v�j��", COLOR_TITLE_BUFF}, 
+{"魅影強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Z�����P�ë�����"}, 
-{"�ˮ`�W�["}}}
+{"野蠻衝擊與永恆斬擊"}, 
+{"傷害增加"}}}
 StateIconList[EFST_IDs.EFST_DANCING_KNIFE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�R�ʦ�b", COLOR_TITLE_BUFF}, 
+{"舞動血刃", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C�j�@�q�ɶ����������H"}, 
-{"��Z�����z�ˮ`"}}}
+{"每隔一段時間給予附近對象"}, 
+{"近距離物理傷害"}}}
 StateIconList[EFST_IDs.EFST_POTENT_VENOM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�j�Ĭr�G", COLOR_TITLE_BUFF}, 
+{"強效毒液", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�����z�ܩ�"}}}
+{"無視物理抗性"}}}
 StateIconList[EFST_IDs.EFST_SHADOW_SCAR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�g�b�y�v", COLOR_TITLE_BUFF}, 
+{"迷惑魅影", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҩ���Z�����z�ˮ`�W�["}}}
+{"所受近距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_SHADOW_WEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�g�b�y�v", COLOR_TITLE_BUFF}, 
+{"迷惑魅影", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����v�ᤩ��H"}, 
-{"�Ҩ���Z�����z�ˮ`�W�[�ĪG"}}}
+{"有機率賦予對象"}, 
+{"所受近距離物理傷害增加效果"}}}
 StateIconList[EFST_IDs.EFST_MEDIALE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�v¡�}��", COLOR_TITLE_BUFF}, 
+{"治癒誓言", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�w����_���񶤭�"}, 
-{"HP�����A"}}}
+{"定期恢復附近隊員"}, 
+{"HP的狀態"}}}
 StateIconList[EFST_IDs.EFST_A_VITA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ģ�ѩR", COLOR_TITLE_BUFF}, 
+{"光耀天命", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�������]�k�ܩ�"}}}
+{"無視部分魔法抗性"}}}
 StateIconList[EFST_IDs.EFST_A_TELUM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t���@", COLOR_TITLE_BUFF}, 
+{"神聖防護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L���������z�ܩ�"}}}
+{"無視部分物理抗性"}}}
 StateIconList[EFST_IDs.EFST_PRE_ACIES] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�z���t��", COLOR_TITLE_BUFF}, 
+{"爆裂聖光", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ˮ`��ҼW�["}}}
+{"暴擊傷害比例增加"}}}
 StateIconList[EFST_IDs.EFST_COMPETENTIA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t�v��", COLOR_TITLE_BUFF}, 
+{"神聖權能", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK, S.MATK�W�["}}}
+{"P.ATK, S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_RELIGIO] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ߩ^�m", COLOR_TITLE_BUFF}, 
+{"全心奉獻", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"SPL, WIS, STA�W�["}}}
+{"SPL, WIS, STA增加"}}}
 StateIconList[EFST_IDs.EFST_BENEDICTUM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����g�q", COLOR_TITLE_BUFF}, 
+{"祝福讚歌", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"POW, CRT, CON�W�["}}}
+{"POW, CRT, CON增加"}}}
 StateIconList[EFST_IDs.EFST_WINDSIGN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�K���аO", COLOR_TITLE_BUFF}, 
+{"八風標記", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ���N���y�̼аO�����A"}}}
+{"賦予風鷹狩獵者標記的狀態"}}}
 StateIconList[EFST_IDs.EFST_CALAMITYGALE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����ɭ�", COLOR_TITLE_BUFF}, 
+{"憤怒暴風", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�M�κ�^�����ĪG"}, 
-{"�����ޯ�ˮ`�W�["}, 
-{"�M�η������ɼ���"}, 
-{"���i�����P�������ɵ����ʪ����B�������ˮ`�W�["}}}
+{"套用精英狙擊效果"}, 
+{"部分技能傷害增加"}, 
+{"套用毀滅風暴暴擊"}, 
+{"漸進狙擊與毀滅風暴給予動物型、魚貝型傷害增加"}}}
 StateIconList[EFST_IDs.EFST_MYSTIC_SYMPHONY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�������T��", COLOR_TITLE_BUFF}, 
+{"神秘交響曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����ޯ�ˮ`�W�["}, 
-{"�����������B�H�����Ƕˮ`�W�["}}}
+{"部分技能傷害增加"}, 
+{"給予魚貝型、人類型怪傷害增加"}}}
 StateIconList[EFST_IDs.EFST_KVASIR_SONATA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�J�˧ƺ����鈴", COLOR_TITLE_BUFF}, 
+{"克瓦希爾奏鳴曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i��W�ϥΦX�������A"}}}
+{"可單獨使用合奏的狀態"}}}
 StateIconList[EFST_IDs.EFST_SOUNDBLEND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�V�n�O�L", COLOR_TITLE_BUFF}, 
+{"混聲烙印", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�O�U�n�i�O�L�����A"}}}
+{"烙下聲波烙印的狀態"}}}
 StateIconList[EFST_IDs.EFST_GEF_NOCTURN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���n���ȩ]��", COLOR_TITLE_BUFF}, 
+{"葛帔尼亞夜曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k�ܩʴ��"}}}
+{"魔法抗性減少"}}}
 StateIconList[EFST_IDs.EFST_AIN_RHAPSODY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�q�u�g�Q��", COLOR_TITLE_BUFF}, 
+{"礦工狂想曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�ܩʴ��"}}}
+{"物理抗性減少"}}}
 StateIconList[EFST_IDs.EFST_MUSICAL_INTERLUDE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ּ@����", COLOR_TITLE_BUFF}, 
+{"音樂劇插曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�ܩʼW�["}}}
+{"物理抗性增加"}}}
 StateIconList[EFST_IDs.EFST_JAWAII_SERENADE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ǧ�p�]��", COLOR_TITLE_BUFF}, 
+{"暮色小夜曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�S���]�k�����O�W�["}, 
-{"���ʳt�׼W�["}}}
+{"特性魔法攻擊力增加"}, 
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_PRON_MARCH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����w�Զi�榱", COLOR_TITLE_BUFF}, 
+{"普隆德拉進行曲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�S�ʪ��z�����O�W�["}, 
-{"���ʳt�׼W�["}}}
+{"特性物理攻擊力增加"}, 
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_SHADOW_STRIP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����v�l", COLOR_TITLE_BUFF}, 
+{"卸除影子", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�˳Ƽv�l�˳ƪ����A"}}}
+{"無法裝備影子裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_ABYSS_DAGGER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�`�W�P��", COLOR_TITLE_BUFF}, 
+{"深淵匕首", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�P�R�¯ٶˮ`�W�["}}}
+{"致命威脅傷害增加"}}}
 StateIconList[EFST_IDs.EFST_ABYSSFORCEWEAPON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�U�V�`�W", COLOR_TITLE_BUFF}, 
+{"萬丈深淵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ɶ����l��`�W�y��"}, 
-{"�@�몫�z�����ɡA�y�����"}}}
+{"持續時間內召喚深淵球體"}, 
+{"一般物理攻擊時，球體攻擊"}}}
 StateIconList[EFST_IDs.EFST_ABYSS_SLAYER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�`�W����", COLOR_TITLE_BUFF}, 
+{"深淵殺手", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK�W�["}, 
-{"S.MATK�W�["}}}
+{"P.ATK增加"}, 
+{"S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_AXE_STOMP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ԩ���", COLOR_TITLE_BUFF}, 
+{"戰斧踏滅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ԩ������ˮ`�W�["}}}
+{"戰斧颶風傷害增加"}}}
 StateIconList[EFST_IDs.EFST_A_MACHINE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ұʧ����˸m", COLOR_TITLE_BUFF}, 
+{"啟動攻擊裝置", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�C�j�@�q�ɶ���������H"}, 
-{"�������z�ˮ`"}}}
+{"每隔一段時間接近附近對象"}, 
+{"給予物理傷害"}}}
 StateIconList[EFST_IDs.EFST_D_MACHINE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ұʨ��m�˸m", COLOR_TITLE_BUFF}, 
+{"啟動防禦裝置", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"DEF�W�["}, 
-{"���z�ܩʼW�["}}}
+{"DEF增加"}, 
+{"物理抗性增加"}}}
 StateIconList[EFST_IDs.EFST_SPELL_ENCHANTING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�G�O�ᤩ", COLOR_TITLE_BUFF}, 
+{"咒力賦予", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�S���]�k�����O�W�["}}}
+{"特性魔法攻擊力增加"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_CONFLAGRATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���a", COLOR_TITLE_BUFF}, 
+{"火災", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʪ��A"}, 
-{"�w�����HP"}}}
+{"火屬性狀態"}, 
+{"定期減少HP"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_DEEPBLIND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_DEBUFF}, 
+{"漆黑", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����Y�p"}, 
-{"�j�סB�����j�״��"}}}
+{"視野縮小"}, 
+{"迴避、完全迴避減少"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_DEEPSILENCE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�I�R", COLOR_TITLE_DEBUFF}, 
+{"寂靜", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k�ϥΧޯ�"}, 
-{"�����t�״��"}}}
+{"無法使用技能"}, 
+{"攻擊速度減少"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_LASSITUDE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�L�O�P", COLOR_TITLE_DEBUFF}, 
+{"無力感", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"CRI���"}, 
-{"���ʳt�״��"}}}
+{"CRI減少"}, 
+{"移動速度減少"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_FROSTBITE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���", COLOR_TITLE_DEBUFF}, 
+{"急凍", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʪ��A"}, 
-{"�L�k���ʡB�ϥιD��P�ޯ�"}, 
-{"DEF, MDEF���"}, 
-{"����ˮ`�ɸѰ�"}}}
+{"水屬性狀態"}, 
+{"無法移動、使用道具與技能"}, 
+{"DEF, MDEF減少"}, 
+{"受到傷害時解除"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_SWOONING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w��", COLOR_TITLE_DEBUFF}, 
+{"暈厥", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k���ʡB�ϥιD��P�ޯ�"}, 
-{"�Ҩ��ˮ`�W�["}, 
-{"����ˮ`�ɸѰ�"}}}
+{"無法移動、使用道具與技能"}, 
+{"所受傷害增加"}, 
+{"受到傷害時解除"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_LIGHTNINGSTRIKE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��y", COLOR_TITLE_DEBUFF}, 
+{"急流", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʪ��A"}, 
-{"�L�k���ʡB�ϥιD��P�ޯ�"}, 
-{"�ܦa�ݩʴ��"}, 
-{"����ˮ`�ɸѰ�"}}}
+{"風屬性狀態"}, 
+{"無法移動、使用道具與技能"}, 
+{"抗地屬性減少"}, 
+{"受到傷害時解除"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_CRYSTALLIZATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_DEBUFF}, 
+{"晶化", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�a�ݩʪ��A"}, 
-{"�L�k���ʡB�ϥιD��P�ޯ�"}, 
-{"MDEF���"}, 
-{"����ˮ`�ɸѰ�"}}}
+{"地屬性狀態"}, 
+{"無法移動、使用道具與技能"}, 
+{"MDEF減少"}, 
+{"受到傷害時解除"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_MISFORTUNE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�̹B", COLOR_TITLE_DEBUFF}, 
+{"厄運", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"HIT���"}, 
-{"�ϥΧޯ�ɦ����v����"}}}
+{"HIT減少"}, 
+{"使用技能時有機率失敗"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_DEADLYPOISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�r�r", COLOR_TITLE_DEBUFF}, 
+{"猛毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܬr�ݩʴ��"}, 
-{"DEF��֡B�w�����HP "}}}
+{"抗毒屬性減少"}, 
+{"DEF減少、定期減少HP "}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_DEPRESSION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_DEBUFF}, 
+{"惆悵", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"SP���Ӷq�W�["}, 
-{"�w�����SP"}}}
+{"SP消耗量增加"}, 
+{"定期減少SP"}}}
 StateIconList[EFST_IDs.EFST_HANDICAPSTATE_HOLYFLAME] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�t��", COLOR_TITLE_DEBUFF}, 
+{"聖火", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����]�k�ˮ`�ɫ�_HP"}, 
-{"�Ҩ����z�ˮ`�A�W�["}}}
+{"受到魔法傷害時恢復HP"}, 
+{"所受物理傷害再增加"}}}
 StateIconList[EFST_IDs.EFST_PROTECTSHADOWEQUIP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���v�ƾǫO�@", COLOR_TITLE_BUFF}, 
+{"全影化學保護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�v�l�˳Ƶ��藍�|���l�����A"}}}
+{"影子裝備絕對不會受損的狀態"}}}
 StateIconList[EFST_IDs.EFST_RESEARCHREPORT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��s���i", COLOR_TITLE_BUFF}, 
+{"研究報告", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�Ĩt�ޯ�ˮ`�W�["}, 
-{"�����L�κرڡB�Ӫ��κرڶˮ`�W�["}}}
+{"強酸系技能傷害增加"}, 
+{"給予無形種族、植物形種族傷害增加"}}}
 StateIconList[EFST_IDs.EFST_BO_HELL_DUSTY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a����", COLOR_TITLE_BUFF}, 
+{"地獄樹粉", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����L�κرڡB�Ӫ��κرڶˮ`�W�["}}}
+{"給予無形種族、植物形種族傷害增加"}}}
 StateIconList[EFST_IDs.EFST_RAISINGDRAGON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���s�@��", COLOR_TITLE_BUFF}, 
+{"潛龍昇天", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��y��W���ƼW�["}, 
-{"�̤jHP�PSP�W�["}, 
-{"�����t�׼W�["}, 
-{"�����z�𪬺A"}}}
+{"氣球體上限數增加"}, 
+{"最大HP與SP增加"}, 
+{"攻擊速度增加"}, 
+{"維持爆氣狀態"}}}
 StateIconList[EFST_IDs.EFST_ANCILLA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w�Ʃ�", COLOR_TITLE_BUFF}, 
+{"安希拉", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�v¡�q+15%�C"}, 
-{"SP��_�O�W+30%�C"}, 
-{"�ᤩ�ݺq�L�ݩ�"}}}
+{"治癒量+15%。"}, 
+{"SP恢復力上+30%。"}, 
+{"賦予謳歌無屬性"}}}
 StateIconList[EFST_IDs.EFST_LG_REFLECTDAMAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ϯg�ˮ`��t", COLOR_TITLE_TOGGLE}, 
+{"反射傷害減速", COLOR_TITLE_TOGGLE}, 
 {"%s", COLOR_TIME}, 
-{"�ۤv�Ҩ��Ϯg�ˮ`���"}}}
+{"自己所受反射傷害減少"}}}
 StateIconList[EFST_IDs.EFST_BANDING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�E��", COLOR_TITLE_BUFF}, 
+{"聚集", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z���m�O�W�["}}}
+{"物理防禦力增加"}}}
 StateIconList[EFST_IDs.EFST_INSPIRATION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F�P", COLOR_TITLE_BUFF}, 
+{"靈感", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�R���v�B����W��"}, 
-{"�����O�B�]�k�����O�BMHP�W�["}, 
-{"�S�wBuff�B���`���A�ܵL��"}, 
-{" HP�BSP������"}}}
+{"命中率、素質上升"}, 
+{"攻擊力、魔法攻擊力、MHP增加"}, 
+{"特定Buff、異常狀態變無效"}, 
+{" HP、SP持續減少"}}}
 StateIconList[EFST_IDs.EFST_AUTOSHADOWSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʾy�v���G", COLOR_TITLE_BUFF}, 
+{"自動魅影念咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MATK�W�["}, 
-{"�ǲߧ�ŧ�B�c��"}, 
-{"�i�ϥ��]�k�ޯ�"}}}
+{"MATK增加"}, 
+{"學習抄襲、繁殖"}, 
+{"可使用魔法技能"}}}
 StateIconList[EFST_IDs.EFST_MAGICPOWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�k��O�W�T", COLOR_TITLE_BUFF}, 
+{"魔法能力增幅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k�����O�W�T���A"}}}
+{"魔法攻擊力增幅狀態"}}}
 StateIconList[EFST_IDs.EFST_OVERBRANDREADY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��t�O�L�N��", COLOR_TITLE_BUFF}, 
+{"支配烙印就緒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��t�O�L�¤O�W�["}}}
+{"支配烙印威力增加"}}}
 StateIconList[EFST_IDs.EFST_SHIELDSPELL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ީG", COLOR_TITLE_BUFF}, 
+{"盾咒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�޵P�]�k�ĪG"}}}
+{"盾牌魔法效果"}}}
 StateIconList[EFST_IDs.EFST_CLOUD_POISON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���r", COLOR_TITLE_DEBUFF}, 
+{"雲毒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܬr�ݩʧ������"}}}
+{"抗毒屬性攻擊減少"}}}
 StateIconList[EFST_IDs.EFST_SPORE_EXPLOSION_DEBUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�z���U�l", COLOR_TITLE_DEBUFF}, 
+{"爆炸孢子", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҩ����Z�����z�ˮ`�W�["}}}
+{"所受遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_BLOOD_SUCKER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�l��Ӫ�", COLOR_TITLE_BUFF}, 
+{"吸血植物", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�����ɦ����v"}, 
-{"�l��HP"}}}
+{"物理攻擊時有機率"}, 
+{"吸收HP"}}}
 StateIconList[EFST_IDs.EFST_UNLIMIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��^����", COLOR_TITLE_BUFF}, 
+{"精英狙擊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Z�����z�ˮ`�W��"}}}
+{"遠距離物理傷害上升"}}}
 StateIconList[EFST_IDs.EFST_STRIKING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����j��", COLOR_TITLE_BUFF}, 
+{"打擊強化", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����O�W�["}, 
-{"���ɧ���Ĳ�o���v�W�["}}}
+{"攻擊力增加"}, 
+{"誘導攻擊觸發機率增加"}}}
 StateIconList[EFST_IDs.EFST_BO_HELL_DUSTY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a����", COLOR_TITLE_BUFF}, 
+{"地獄樹粉", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����L�κرڡB�Ӫ��κرڶˮ`�W�["}, 
-{"���Z�����z�ˮ`�W�["}}}
+{"給予無形種族、植物形種族傷害增加"}, 
+{"遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_RUSH_QUAKE1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ٰ�", COLOR_TITLE_DEBUFF}, 
+{"撼動", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���쪺��Z�����z�ˮ`�W�["}, 
-{"���쪺���Z�����z�ˮ`�W�["}}}
+{"受到的近距離物理傷害增加"}, 
+{"受到的遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_RUSH_QUAKE2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_BUFF}, 
+{"衝擊", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"���Z�����z�ˮ`�W�["}}}
+{"近距離物理傷害增加"}, 
+{"遠距離物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPWEAPON2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������v�l��M�˳ƪ����A"}}}
+{"不能佩戴影子手套裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPARMOR2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������v�l�Z�Ҹ˳ƪ����A"}}}
+{"不能佩戴影子鎧甲裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPSHIELD2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������v�l��M�˳ƪ����A"}}}
+{"不能佩戴影子手套裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPSHOES2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������v�l�Թu�˳ƪ����A"}}}
+{"不能佩戴影子戰靴裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPPENDANT2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������v�l���~�˳ƪ����A"}}}
+{"不能佩戴影子飾品裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPEARING2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������v�l���~�˳ƪ����A"}}}
+{"不能佩戴影子飾品裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_NOEQUIPFULL2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����]�v", COLOR_TITLE_DEBUFF}, 
+{"卸除魔影", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"��������Ҧ��v�l�˳ƪ����A"}}}
+{"不能佩戴所有影子裝備的狀態"}}}
 StateIconList[EFST_IDs.EFST_CURSE_R_CUBE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�A�G�����]��", COLOR_TITLE_BUFF}, 
+{"詛咒紅色魔方", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_CURSE_B_CUBE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�A�G�Ŧ��]��", COLOR_TITLE_BUFF}, 
+{"詛咒藍色魔方", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_TOXIN_OF_MANDARA] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ҫ�ù���g�r��", COLOR_TITLE_DEBUFF}, 
+{"曼陀羅神經毒素", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�ܩʴ��"}}}
+{"物理抗性減少"}}}
 StateIconList[EFST_IDs.EFST_GOLDENE_TONE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_BUFF}, 
+{"黃金音調", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���z�P�]�k�ܩʼW�["}}}
+{"物理與魔法抗性增加"}}}
 StateIconList[EFST_IDs.EFST_TEMPERING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�^��", COLOR_TITLE_BUFF}, 
+{"回火", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK�W�["}}}
+{"P.ATK增加"}}}
 StateIconList[EFST_IDs.EFST_RESIST_PROPERTY_WATER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ݩʭ@��", COLOR_TITLE_BUFF}, 
+{"水屬性耐性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_RESIST_PROPERTY_GROUND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a�ݩʭ@��", COLOR_TITLE_BUFF}, 
+{"地屬性耐性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_RESIST_PROPERTY_FIRE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ݩʭ@��", COLOR_TITLE_BUFF}, 
+{"火屬性耐性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_RESIST_PROPERTY_WIND] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ݩʭ@��", COLOR_TITLE_BUFF}, 
+{"風屬性耐性", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ATK_POPCORN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����O�W�[", COLOR_TITLE_BUFF}, 
+{"攻擊力增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK 3%�W�["}}}
+{"ATK 3%增加"}}}
 StateIconList[EFST_IDs.EFST_MATK_POPCORN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�]�k�����O�W�[", COLOR_TITLE_BUFF}, 
+{"魔法攻擊力增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MATK 3%�W�["}}}
+{"MATK 3%增加"}}}
 StateIconList[EFST_IDs.EFST_ASPD_POPCORN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����t�׼W�[", COLOR_TITLE_BUFF}, 
+{"攻擊速度增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����᩵��-10%"}}}
+{"攻擊後延遲-10%"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����b�|��", COLOR_TITLE_BUFF}, 
+{"韓式宴會麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʩǧܩ�"}, 
-{"�����t�׼W�["}, 
-{"�ܰʵ��۴��"}}}
+{"火屬性怪抗性"}, 
+{"攻擊速度增加"}, 
+{"變動詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Q�Q���o�ѱ�", COLOR_TITLE_BUFF}, 
+{"香噴噴奶油麵條", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"MATK+5%"}}}
 StateIconList[EFST_IDs.EFST_FLOWER_LEAF4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�髬�ˮ`�W�[", COLOR_TITLE_BUFF}, 
+{"體型傷害增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��p���B�����B�j����H"}, 
-{"���z/�]�k�ˮ` + 5%"}}}
+{"對小型、中型、大型對象"}, 
+{"物理/魔法傷害 + 5%"}}}
 StateIconList[EFST_IDs.EFST_NOODLE_FES_1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ѹ`-������", COLOR_TITLE_BUFF}, 
+{"湯麵節-蝴蝶麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��/���Z��"}, 
-{"���z�ˮ`�W�["}}}
+{"近/遠距離"}, 
+{"物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_NOODLE_FES_2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ѹ`-���o�A���q�j�Q��", COLOR_TITLE_BUFF}, 
+{"湯麵節-奶油鮮蝦義大利麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩ�"}, 
-{"�]�k�ˮ`�W�["}}}
+{"全屬性"}, 
+{"魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_NOODLE_FES_3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ѹ`-�f�X����", COLOR_TITLE_BUFF}, 
+{"湯麵節-番茄湯麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܰʵ��ۡA�ޯ�᩵����"}, 
-{"�����t�׼W�[(�����᩵����)"}}}
+{"變動詠唱，技能後延遲減少"}, 
+{"攻擊速度增加(攻擊後延遲減少)"}}}
 StateIconList[EFST_IDs.EFST_NOODLE_FES_4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ѹ`-�����b�|��", COLOR_TITLE_BUFF}, 
+{"湯麵節-韓式宴會麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK�BMATK %�W�["}}}
+{"ATK、MATK %增加"}}}
 StateIconList[EFST_IDs.EFST_NOODLE_FES_5] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���Ѹ`-��o����", COLOR_TITLE_BUFF}, 
+{"湯麵節-醬油拌麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK�W�["}, 
-{"S.MATK�W�["}}}
+{"P.ATK增加"}, 
+{"S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_RISING_SUN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��X", COLOR_TITLE_BUFF}, 
+{"日出", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��X���A"}}}
+{"日出狀態"}}}
 StateIconList[EFST_IDs.EFST_NOON_SUN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����", COLOR_TITLE_BUFF}, 
+{"正午", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Ȫ��A"}}}
+{"正午狀態"}}}
 StateIconList[EFST_IDs.EFST_SUNSET_SUN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�鸨", COLOR_TITLE_BUFF}, 
+{"日落", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�鸨���A"}}}
+{"日落狀態"}}}
 StateIconList[EFST_IDs.EFST_RISING_MOON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��X", COLOR_TITLE_BUFF}, 
+{"月出", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��X���A"}}}
+{"月出狀態"}}}
 StateIconList[EFST_IDs.EFST_MIDNIGHT_MOON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȩ]", COLOR_TITLE_BUFF}, 
+{"午夜", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ȩ]���A"}}}
+{"午夜狀態"}}}
 StateIconList[EFST_IDs.EFST_DAWN_MOON] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�븨", COLOR_TITLE_BUFF}, 
+{"月落", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�븨���A"}}}
+{"月落狀態"}}}
 StateIconList[EFST_IDs.EFST_STAR_BURST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ѩ����P", COLOR_TITLE_DEBUFF}, 
+{"天明落星", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ѩ����P���A"}}}
+{"天明落星狀態"}}}
 StateIconList[EFST_IDs.EFST_SKY_ENCHANT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ѿ��X�@", COLOR_TITLE_BUFF}, 
+{"天機合一", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ѿ��B��̤j�ƪ��A"}}}
+{"天機運行最大化狀態"}}}
 StateIconList[EFST_IDs.EFST_TALISMAN_OF_PROTECTION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�@����", COLOR_TITLE_BUFF}, 
+{"護身符", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����_HP"}}}
+{"持續恢復HP"}}}
 StateIconList[EFST_IDs.EFST_TALISMAN_OF_WARRIOR] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Z�h��", COLOR_TITLE_BUFF}, 
+{"武士符", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK�W�["}}}
+{"P.ATK增加"}}}
 StateIconList[EFST_IDs.EFST_TALISMAN_OF_MAGICIAN] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�k�v��", COLOR_TITLE_BUFF}, 
+{"法師符", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"S.MATK�W�["}}}
+{"S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_TALISMAN_OF_FIVE_ELEMENTS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����", COLOR_TITLE_BUFF}, 
+{"五行符", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"������/��/�a/��/�L�ݩʼĤH�����z�ˮ`�W�["}, 
-{"������/��/�a/��/�L�ݩʼĤH���]�k�ˮ`�W�["}}}
+{"給予水/風/地/火/無屬性敵人的物理傷害增加"}, 
+{"給予水/風/地/火/無屬性敵人的魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_T_FIRST_GOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F��O��", COLOR_TITLE_BUFF}, 
+{"東方保佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�F��O�����A"}}}
+{"東方保佑狀態"}}}
 StateIconList[EFST_IDs.EFST_T_SECOND_GOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���O��", COLOR_TITLE_BUFF}, 
+{"西方保佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���O�����A"}}}
+{"西方保佑狀態"}}}
 StateIconList[EFST_IDs.EFST_T_THIRD_GOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�n��O��", COLOR_TITLE_BUFF}, 
+{"南方保佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�n��O�����A"}}}
+{"南方保佑狀態"}}}
 StateIconList[EFST_IDs.EFST_T_FOURTH_GOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�_��O��", COLOR_TITLE_BUFF}, 
+{"北方保佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�_��O�����A"}}}
+{"北方保佑狀態"}}}
 StateIconList[EFST_IDs.EFST_T_FIVETH_GOD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�|�褭��O��", COLOR_TITLE_BUFF}, 
+{"四方五行保佑", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�|�褭��O�����A"}}}
+{"四方五行保佑狀態"}}}
 StateIconList[EFST_IDs.EFST_HEAVEN_AND_EARTH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Ѧa���F", COLOR_TITLE_BUFF}, 
+{"天地神靈", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"���Z�����z�ˮ`�W�["}, 
-{"�Ҧ��ݩ��]�k�ˮ`�W�["}}}
+{"近距離物理傷害增加"}, 
+{"遠距離物理傷害增加"}, 
+{"所有屬性魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_HOGOGONG] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�K��H��", COLOR_TITLE_BUFF}, 
+{"鐵虎咆哮", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�K��H�����A"}}}
+{"鐵虎咆哮狀態"}}}
 StateIconList[EFST_IDs.EFST_MARINE_FESTIVAL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t���v�y��", COLOR_TITLE_BUFF}, 
+{"神龜海洋慶典", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"POW, CRT, CON�W�["}}}
+{"POW, CRT, CON增加"}}}
 StateIconList[EFST_IDs.EFST_SANDY_FESTIVAL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t�F�J�y��", COLOR_TITLE_BUFF}, 
+{"神龜沙雕慶典", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"SPL, WIS, STA�W�["}}}
+{"SPL, WIS, STA增加"}}}
 StateIconList[EFST_IDs.EFST_KI_SUL_RAMPAGE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���t�@�P�_��", COLOR_TITLE_BUFF}, 
+{"神龜劇烈震盪", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��_AP"}}}
+{"恢復AP"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ���ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}}}
+{"賦予下列技能水屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ୷�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}}}
+{"賦予下列技能風屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�a�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}}}
+{"賦予下列技能地屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ���ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}}}
+{"賦予下列技能火屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_5] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�t�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}}}
+{"賦予下列技能暗屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_6] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�t�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}}}
+{"賦予下列技能聖屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�������k�۶ˮ`�W�["}}}
+{"貓薄荷隕石傷害增加"}}}
 StateIconList[EFST_IDs.EFST_TEMPORARY_COMMUNION] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��t��y", COLOR_TITLE_BUFF}, 
+{"急速交流", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK, S.MATK, HEAL PLUS�W�["}}}
+{"P.ATK, S.MATK, HEAL PLUS增加"}}}
 StateIconList[EFST_IDs.EFST_BLESSING_OF_M_CREATURES] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F���̪�����", COLOR_TITLE_BUFF}, 
+{"靈物們的祝福", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK, S.MATK�W�["}}}
+{"P.ATK, S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_BLESSING_OF_M_C_DEBUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�F�����ְƧ@��", COLOR_TITLE_DEBUFF}, 
+{"靈物祝福副作用", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�@�w�ɶ����L�k�ᤩ�F���̪�����"}}}
+{"一定時間內無法賦予靈物們的祝福"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_11] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�X���ԳJ�|", COLOR_TITLE_BUFF}, 
+{"蒙布朗蛋糕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����髬��H�����z�ˮ`�W�["}, 
-{"����髬��H�����z�]�k�W�["}}}
+{"對全體型對象的物理傷害增加"}, 
+{"對全體型對象的物理魔法增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_12] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���~�|", COLOR_TITLE_BUFF}, 
+{"櫻花年糕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}}}
+{"對全屬性對象的物理傷害增加"}, 
+{"對全屬性對象的物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_13] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����i�R��", COLOR_TITLE_BUFF}, 
+{"甜甜可麗餅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}, 
-{"MSP�W�["}}}
+{"MHP增加"}, 
+{"MSP增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_14] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׺����K", COLOR_TITLE_BUFF}, 
+{"豐滿花樹枝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"���Z�����z�ˮ`�W�["}, 
-{"����ݩ��]�k�ˮ`�W�["}}}
+{"近距離物理傷害增加"}, 
+{"遠距離物理傷害增加"}, 
+{"對全屬性魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_INTENSIVE_AIM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ҰʱM�`�˷�", COLOR_TITLE_BUFF}, 
-{"ATK�W�["}, 
-{"HIT�W�["}, 
-{"CRI�W�["}}}
+{"啟動專注瞄準", COLOR_TITLE_BUFF}, 
+{"ATK增加"}, 
+{"HIT增加"}, 
+{"CRI增加"}}}
 StateIconList[EFST_IDs.EFST_GRENADE_FRAGMENT_1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u�H��", COLOR_TITLE_BUFF}, 
+{"榴彈碎片", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��h�u�����ɽᤩ���ݩ�"}}}
+{"手榴彈攻擊時賦予水屬性"}}}
 StateIconList[EFST_IDs.EFST_GRENADE_FRAGMENT_2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u�H��", COLOR_TITLE_BUFF}, 
+{"榴彈碎片", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��h�u�����ɽᤩ���ݩ�"}}}
+{"手榴彈攻擊時賦予風屬性"}}}
 StateIconList[EFST_IDs.EFST_GRENADE_FRAGMENT_3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u�H��", COLOR_TITLE_BUFF}, 
+{"榴彈碎片", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��h�u�����ɽᤩ�a�ݩ�"}}}
+{"手榴彈攻擊時賦予地屬性"}}}
 StateIconList[EFST_IDs.EFST_GRENADE_FRAGMENT_4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u�H��", COLOR_TITLE_BUFF}, 
+{"榴彈碎片", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��h�u�����ɽᤩ���ݩ�"}}}
+{"手榴彈攻擊時賦予火屬性"}}}
 StateIconList[EFST_IDs.EFST_GRENADE_FRAGMENT_5] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u�H��", COLOR_TITLE_BUFF}, 
+{"榴彈碎片", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��h�u�����ɽᤩ�t�ݩ�"}}}
+{"手榴彈攻擊時賦予暗屬性"}}}
 StateIconList[EFST_IDs.EFST_GRENADE_FRAGMENT_6] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u�H��", COLOR_TITLE_BUFF}, 
+{"榴彈碎片", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��h�u�����ɽᤩ�t�ݩ�"}}}
+{"手榴彈攻擊時賦予聖屬性"}}}
 StateIconList[EFST_IDs.EFST_AUTO_FIRING_LAUNCHEREFST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�۰ʮg���o�g��", COLOR_TITLE_BUFF}, 
+{"自動射擊發射器", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�۰ʮg���o�g���Ұʪ��A"}}}
+{"自動射擊發射器啟動狀態"}}}
 StateIconList[EFST_IDs.EFST_HIDDEN_CARD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ä��P", COLOR_TITLE_BUFF}, 
+{"隱藏王牌", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Z�����z�ˮ`�W�["}, 
-{"P.ATK�W�["}}}
+{"遠距離物理傷害增加"}, 
+{"P.ATK增加"}}}
 StateIconList[EFST_IDs.EFST_NW_GRENADE_MASTERY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�h�u��q", COLOR_TITLE_BUFF}, 
+{"榴彈精通", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"CON�W�["}, 
-{"��h�u�t�C�ޯ�ˮ`�W�["}}}
+{"CON增加"}, 
+{"手榴彈系列技能傷害增加"}}}
 StateIconList[EFST_IDs.EFST_SHIELDCHAINRUSH] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�s������ļ�", COLOR_TITLE_DEBUFF}, 
+{"連續盾擊衝撞", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�״��"}, 
-{"�Ҩ����z�ˮ`�W�["}, 
-{"�Ҩ��]�k�ˮ`�W�["}}}
+{"移動速度減少"}, 
+{"所受物理傷害增加"}, 
+{"所受魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_MISTYFROST] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ŴH", COLOR_TITLE_DEBUFF}, 
+{"酷寒", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ݩʧܩʴ��15%"}}}
+{"水屬性抗性減少15%"}}}
 StateIconList[EFST_IDs.EFST_GROUNDGRAVITY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�a�����O", COLOR_TITLE_DEBUFF}, 
+{"地面重力", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�״��"}, 
-{"�Ҩ����z�ˮ`�W�["}, 
-{"�Ҩ��]�k�ˮ`�W�["}}}
+{"移動速度減少"}, 
+{"所受物理傷害增加"}, 
+{"所受魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_BREAKINGLIMIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��}����", COLOR_TITLE_BUFF}, 
+{"突破極限", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�԰��t�C�ޯ�ˮ`�W�T"}}}
+{"戰鬥系列技能傷害增幅"}}}
 StateIconList[EFST_IDs.EFST_RULEBREAK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��}�W�x", COLOR_TITLE_BUFF}, 
+{"突破規矩", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�]�k�t�C�ޯ�ˮ`�W�T"}}}
+{"魔法系列技能傷害增幅"}}}
 StateIconList[EFST_IDs.EFST_SHADOW_CLOCK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�v�l����", COLOR_TITLE_BUFF}, 
+{"影子隱身", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}, 
-{"�Ҩ����z�ˮ`���"}, 
-{"�Ҩ��]�k�ˮ`���"}}}
+{"移動速度增加"}, 
+{"所受物理傷害減少"}, 
+{"所受魔法傷害減少"}}}
 StateIconList[EFST_IDs.EFST_NIGHTMARE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�c��", COLOR_TITLE_DEBUFF}, 
+{"惡夢", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�c�ڼаO"}}}
+{"惡夢標記"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK001] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff", COLOR_TITLE_BUFF}, 
+{"角色Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"INT + 5"}, 
 {"FLEE + 30"}, 
-{"�ᤩ���ʳt�׼W�[Buff"}}}
+{"賦予移動速度增加Buff"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK002] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff", COLOR_TITLE_BUFF}, 
+{"角色Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"MHP + 10%"}, 
 {"MSP + 5%"}, 
-{"�����į��_�O+500%"}}}
+{"黃色藥草恢復力+500%"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK003] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff", COLOR_TITLE_BUFF}, 
+{"角色Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Z�����z�ˮ`+10%"}}}
+{"遠距離物理傷害+10%"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK004] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff", COLOR_TITLE_BUFF}, 
+{"角色Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ۤ��|���_"}}}
+{"詠唱不會中斷"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK006] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�D��BUFF", COLOR_TITLE_BUFF}, 
+{"主角BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ����ݩ�+ 5"}, 
+{"所有基本屬性+ 5"}, 
 {"ATK + 2%"}, 
 {"MATK + 2%"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK007] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�D��BUFF ", COLOR_TITLE_BUFF}, 
+{"主角BUFF ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�t�ݩ��]�k�ˮ`+10%"}, 
-{"�t�ݩ��]�k�ˮ`+10%"}, 
-{"���ݩ��]�k�ˮ`+10%"}, 
-{"�a�ݩ��]�k�ˮ`+10%"}, 
-{"���ݩ��]�k�ˮ`+10%"}}}
+{"暗屬性魔法傷害+10%"}, 
+{"聖屬性魔法傷害+10%"}, 
+{"水屬性魔法傷害+10%"}, 
+{"地屬性魔法傷害+10%"}, 
+{"火屬性魔法傷害+10%"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK005] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�D��BUFF", COLOR_TITLE_BUFF}, 
+{"主角BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ASPD+ 3"}, 
-{"���ɧ������v+10%�C"}}}
+{"誘導攻擊機率+10%。"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK008] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�D��BUFF", COLOR_TITLE_BUFF}, 
+{"主角BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��H���������z�B�]�k�ˮ`+7% "}, 
-{"�D���H�������ˮ`-7%"}}}
+{"對人類型的物理、魔法傷害+7% "}, 
+{"遭受人類型的傷害-7%"}}}
 StateIconList[EFST_IDs.EFST_VR_BOOK009] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�D��BUFF", COLOR_TITLE_BUFF}, 
+{"主角BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"DEF +400, MDEF +100"}}}
 StateIconList[EFST_IDs.EFST_VR_SPEED] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ʳt�׼W�[", COLOR_TITLE_BUFF}, 
+{"移動速度增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ʳt�׼W�["}}}
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_VR_ASPD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����t�׼W�[", COLOR_TITLE_BUFF}, 
+{"攻擊速度增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�����t�׼W�["}}}
+{"攻擊速度增加"}}}
 StateIconList[EFST_IDs.EFST_VR_MHP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"MHP�W�[", COLOR_TITLE_BUFF}, 
+{"MHP增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}}}
+{"MHP增加"}}}
 StateIconList[EFST_IDs.EFST_VR_MSP] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"MSP�W�[", COLOR_TITLE_BUFF}, 
+{"MSP增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MSP�W�["}}}
+{"MSP增加"}}}
 StateIconList[EFST_IDs.EFST_VR_HIT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"HIT�W�[", COLOR_TITLE_BUFF}, 
+{"HIT增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HIT�W�["}}}
+{"HIT增加"}}}
 StateIconList[EFST_IDs.EFST_VR_DEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"DEF�W�[", COLOR_TITLE_BUFF}, 
+{"DEF增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"DEF�W�["}}}
+{"DEF增加"}}}
 StateIconList[EFST_IDs.EFST_VR_MDEF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"MDEF�W�[", COLOR_TITLE_BUFF}, 
+{"MDEF增加", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MDEF�W�["}}}
+{"MDEF增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_11] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�X���ԳJ�|", COLOR_TITLE_BUFF}, 
+{"蒙布朗蛋糕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����髬��H�����z�ˮ`�W�["}, 
-{"����髬��H�����z�]�k�W�["}}}
+{"對全體型對象的物理傷害增加"}, 
+{"對全體型對象的物理魔法增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_12] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���~�|", COLOR_TITLE_BUFF}, 
+{"櫻花年糕", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}}}
+{"對全屬性對象的物理傷害增加"}, 
+{"對全屬性對象的物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_13] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�����i�R��", COLOR_TITLE_BUFF}, 
+{"甜甜可麗餅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}, 
-{"MSP�W�["}}}
+{"MHP增加"}, 
+{"MSP增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_14] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׺����K", COLOR_TITLE_BUFF}, 
+{"豐滿花樹枝", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"���Z�����z�ˮ`�W�["}, 
-{"����ݩ��]�k�ˮ`�W�["}}}
+{"近距離物理傷害增加"}, 
+{"遠距離物理傷害增加"}, 
+{"對全屬性魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_TW_EXP_DROP_EVENT1] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�g��ȡB���_�v�W�[�C", COLOR_TITLE_BUFF}, 
-{"�g��ȻP���_�v+3%"}, 
+{"經驗值、掉寶率增加。", COLOR_TITLE_BUFF}, 
+{"經驗值與掉寶率+3%"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_TW_EXP_DROP_EVENT2] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�g��ȡB���_�v�W�[�C", COLOR_TITLE_BUFF}, 
-{"�g��ȻP���_�v+10%"}, 
+{"經驗值、掉寶率增加。", COLOR_TITLE_BUFF}, 
+{"經驗值與掉寶率+10%"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_TW_EXP_DROP_EVENT3] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
 descript = {
-{"�g��ȡB���_�v�W�[�C", COLOR_TITLE_BUFF}, 
-{"�g��ȻP���_�v+20%"}, 
+{"經驗值、掉寶率增加。", COLOR_TITLE_BUFF}, 
+{"經驗值與掉寶率+20%"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_CALAMITYGALE] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����ɭ�", COLOR_TITLE_BUFF}, 
+{"憤怒暴風", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���i�����ˮ`�W�["}, 
-{"�M�η������ɼ����ˮ`"}, 
-{"���i�����ܬ���������"}, 
-{"��ʪ���/���������z�ˮ`�W�["}}}
+{"漸進狙擊傷害增加"}, 
+{"套用毀滅風暴暴擊傷害"}, 
+{"漸進狙擊變為毀滅風暴"}, 
+{"對動物型/魚貝型物理傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_15] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�L�u�����b�|��", COLOR_TITLE_BUFF}, 
+{"夏季韓式宴會麵", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}, 
-{"����ݩʹ�H���]�k�ˮ`�W�["}}}
+{"對全屬性對象的物理傷害增加"}, 
+{"對全屬性對象的魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_16] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ƯN�{��", COLOR_TITLE_BUFF}, 
+{"香料烤魷魚", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����髬�ĤH�����z�ˮ`�W�["}, 
-{"����髬�ĤH���]�k�ˮ`�W�["}}}
+{"對全體型敵人的物理傷害增加"}, 
+{"對全體型敵人的魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_17] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"������ʥ��B", COLOR_TITLE_BUFF}, 
+{"甜甜西瓜布丁", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��Z���P���Z�����z�ˮ`�W�["}, 
-{"���ݩ��]�k�ˮ`�W�["}}}
+{"近距離與遠距離物理傷害增加"}, 
+{"全屬性魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_18] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�B�D��ʥ�", COLOR_TITLE_BUFF}, 
+{"冰涼西瓜汁", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK %�W�["}, 
-{"MATK %�W�["}}}
+{"ATK %增加"}, 
+{"MATK %增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_19] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�B�D������B", COLOR_TITLE_BUFF}, 
+{"冰涼紅豆剉冰", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP %�W�["}, 
-{"MSP %�W�["}}}
+{"MHP %增加"}, 
+{"MSP %增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_20] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�Х��o�z�̪�", COLOR_TITLE_BUFF}, 
+{"鹹奶油爆米花", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܰʵ��۴��"}, 
-{"ASPD�W�["}}}
+{"變動詠唱減少"}, 
+{"ASPD增加"}}}
 StateIconList[EFST_IDs.EFST_OVERSEA_BUFF_01] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ޯ�ˮ`��֨��b", COLOR_TITLE_BUFF}, 
+{"技能傷害減少卷軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ޯ�ˮ`���"}}}
+{"技能傷害減少"}}}
 StateIconList[EFST_IDs.EFST_OVERSEA_BUFF_02] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ޯ�ˮ`��֨��b", COLOR_TITLE_BUFF}, 
+{"技能傷害減少卷軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ޯ�ˮ`���"}}}
+{"技能傷害減少"}}}
 StateIconList[EFST_IDs.EFST_OVERSEA_BUFF_03] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ޯ�ˮ`��֨��b", COLOR_TITLE_BUFF}, 
+{"技能傷害減少卷軸", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ޯ�ˮ`���"}}}
+{"技能傷害減少"}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_1] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�S�ʼW�j�ľ�", COLOR_TITLE_BUFF}, 
-{"�Ҧ��S�ʼƭ� + 5"}, 
+{"特性增強藥劑", COLOR_TITLE_BUFF}, 
+{"所有特性數值 + 5"}, 
 {"P.ATK + 10, S.MATK + 10"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_ALL_T_STAT] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ù�����ȵ����į���", COLOR_TITLE_BUFF}, 
+{"希羅斯里亞紫色藥草醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ��S���O�ȼW�["}}}
+{"所有特色能力值增加"}}}
 StateIconList[EFST_IDs.EFST_P_ATK_PLUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ù�����Ȭ����į���", COLOR_TITLE_BUFF}, 
+{"希羅斯里亞紅色藥草醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"P.ATK�W�["}}}
+{"P.ATK增加"}}}
 StateIconList[EFST_IDs.EFST_S_MATK_PLUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ù�������Ŧ��į���", COLOR_TITLE_BUFF}, 
+{"希羅斯里亞藍色藥草醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"S.MATK�W�["}}}
+{"S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_C_RATE_PLUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ù�����ȶ����į���", COLOR_TITLE_BUFF}, 
+{"希羅斯里亞黃色藥草醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"C.Rate�W�["}}}
+{"C.Rate增加"}}}
 StateIconList[EFST_IDs.EFST_RESIST_PLUS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ù�����ȥզ��į���", COLOR_TITLE_BUFF}, 
+{"希羅斯里亞白色藥草醬", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"RES�PMRES�W�["}}}
+{"RES與MRES增加"}}}
 StateIconList[EFST_IDs.EFST_PVP_DUN_BUFF] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��ù�����ȸt�D�����@", COLOR_TITLE_BUFF}, 
+{"希羅斯里亞聖主的庇護", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���ù�����Ȱƥ����]����"}, 
-{"���z�P�]�k�ˮ`�W�["}}}
+{"對希羅斯里亞副本中魔物的"}, 
+{"物理與魔法傷害增加"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_22] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff", COLOR_TITLE_BUFF}, 
+{"紀念Buff", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�Ҧ��@����� + 15"}, 
-{"�Ҧ��S�ʯ��� + 15"}, 
-{"����ݩʼĤH"}, 
-{"���z/�]�k�ˮ`+12%"}}}
+{"所有一般素質 + 15"}, 
+{"所有特性素質 + 15"}, 
+{"對全屬性敵人"}, 
+{"物理/魔法傷害+12%"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_31] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�׶q�[���T���v", COLOR_TITLE_BUFF}, 
+{"肉量加倍三明治", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����髬�Υ��ݩʹ�H�����z�ˮ`�W�["}, 
-{"����髬�Υ��ݩʹ�H���]�k�ˮ`�W�[�C"}}}
+{"對全體型及全屬性對象的物理傷害增加"}, 
+{"對全體型及全屬性對象的魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_32] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�x�G���Ƭ��s", COLOR_TITLE_BUFF}, 
+{"暖胃香料紅酒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK��MATK % �W�["}, 
-{"��/���Z�������z�ˮ`�W�["}, 
-{"���ݩ��]�k�ˮ`�W�[�C"}}}
+{"ATK及MATK % 增加"}, 
+{"近/遠距離的物理傷害增加"}, 
+{"全屬性魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_33] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�x�߳J�s", COLOR_TITLE_BUFF}, 
+{"暖心蛋酒", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP��MSP % �W�["}, 
-{"�ܰʵ��۴��"}}}
+{"MHP及MSP % 增加"}, 
+{"變動詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_2] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�t�׼W�j�ľ�", COLOR_TITLE_BUFF}, 
+{"速度增強藥劑", COLOR_TITLE_BUFF}, 
 {"FLEE + 50, ASPD + 1"}, 
-{"�������ʳt�׼W�[Buff"}, 
+{"給予移動速度增加Buff"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_TARGET_MARKER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�˷ǥؼЪ��A", COLOR_TITLE_DEBUFF}, 
+{"瞄準目標狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ڦb�ݵۧA�C"}}}
+{"我在看著你。"}}}
 StateIconList[EFST_IDs.EFST_BLOCK_SEAL] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ʦL���A", COLOR_TITLE_DEBUFF}, 
+{"封印狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�w�ʦL���ʻP������ʡC"}}}
+{"已封印移動與攻擊行動。"}}}
 StateIconList[EFST_IDs.EFST_FROST_STORM] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�B�����ɪ��A", COLOR_TITLE_DEBUFF}, 
+{"冰霜風暴狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�p�^�f�P�N�a�ӧ�j���ˮ`�C"}}}
+{"雷霆審判將帶來更大的傷害。"}}}
 StateIconList[EFST_IDs.EFST_GROGGY] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�w�˪��A", COLOR_TITLE_DEBUFF}, 
+{"暈倒狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�L�k��ʡC"}}}
+{"無法行動。"}}}
 StateIconList[EFST_IDs.EFST_WARM_SHIELD] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�P�K�޵P", COLOR_TITLE_BUFF}, 
+{"烈焰盾牌", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���m�B���j�a�C"}}}
+{"防禦冰霜大地。"}}}
 StateIconList[EFST_IDs.EFST_OVERSEA_BUFF_14] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���yBuff��!", COLOR_TITLE_BUFF}, 
+{"獎勵Buff中!", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���Ǯ�"}, 
-{"���_�v�W�[200%"}, 
-{"�������ˮ`�q���C�C"}}}
+{"打怪時"}, 
+{"掉寶率增加200%"}, 
+{"攻擊的傷害量降低。"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_26] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ǳN�`���K���", COLOR_TITLE_BUFF}, 
+{"學術節秘密文件", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"HIT �W�["}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}, 
-{"����ݩʹ�H���]�k�ˮ`�W�[�C"}}}
+{"HIT 增加"}, 
+{"對全屬性對象的物理傷害增加"}, 
+{"對全屬性對象的魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_27] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ǳN�`�̻�", COLOR_TITLE_BUFF}, 
+{"學術節米餅", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"CRI �W�["}, 
-{"����ݩʹ�H�����z�ˮ`�W�["}, 
-{"����ݩʹ�H���]�k�ˮ`�W�[�C"}}}
+{"CRI 增加"}, 
+{"對全屬性對象的物理傷害增加"}, 
+{"對全屬性對象的魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_28] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ǳN�`���o�氮", COLOR_TITLE_BUFF}, 
+{"學術節奶油餅乾", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"FLEE �W�["}, 
-{"��Z�����z�ˮ`�W�["}, 
-{"���Z�����z�ˮ`�W�[�C"}, 
-{"���ݩ��]�k�ˮ`�W�[�C"}}}
+{"FLEE 增加"}, 
+{"近距離物理傷害增加"}, 
+{"遠距離物理傷害增加。"}, 
+{"全屬性魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_29] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ǳN�`�Y���@��", COLOR_TITLE_BUFF}, 
+{"學術節即溶咖啡", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"ATK % �W�[�C"}, 
-{"MATK % �W�[�C"}, 
-{"�ܰʵ��۴��"}}}
+{"ATK % 增加。"}, 
+{"MATK % 增加。"}, 
+{"變動詠唱減少"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�����O)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(攻擊力)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
 {"ATK+10%"}, 
 {"MATK+10%"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_5] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�t��)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(速度)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ܰʵ���-10%"}, 
-{"�����t�׼W�["}, 
-{"(�����᩵��-10%)"}}}
+{"變動詠唱-10%"}, 
+{"攻擊速度增加"}, 
+{"(攻擊後延遲-10%)"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_6] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�s/�Ӫ�)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(龍/植物)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���s���]�������z/�]�k�ˮ`+15%"}, 
-{"��Ӫ����]�������z/�]�k�ˮ`+15%"}}}
+{"對龍族魔物的物理/魔法傷害+15%"}, 
+{"對植物型魔物的物理/魔法傷害+15%"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_7] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�c�]/����)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(惡魔/不死)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��c�]���]�������z/�]�k�ˮ`+15%"}, 
-{"�藍�����]�������z/�]�k�ˮ`+15%"}}}
+{"對惡魔型魔物的物理/魔法傷害+15%"}, 
+{"對不死型魔物的物理/魔法傷害+15%"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_8] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�L/����)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(無/魚貝)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��L���]�������z/�]�k�ˮ`+15%"}, 
-{"�ﳽ�����]�������z/�]�k�ˮ`+15%"}}}
+{"對無型魔物的物理/魔法傷害+15%"}, 
+{"對魚貝型魔物的物理/魔法傷害+15%"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_9] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�ʪ�/�Ѩ�)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(動物/天使)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��ʪ����]�������z/�]�k�ˮ`+15%"}, 
-{"��Ѩϫ��]�������z/�]�k�ˮ`+15%"}}}
+{"對動物型魔物的物理/魔法傷害+15%"}, 
+{"對天使型魔物的物理/魔法傷害+15%"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_10] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�S���򺿪�����(�H��/����)", COLOR_TITLE_BUFF}, 
+{"露那佛瑪的祝福(人類/昆蟲)", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��H�����]�������z/�]�k�ˮ`+15%"}, 
-{"����Ϋ��]�������z/�]�k�ˮ`+15%"}}}
+{"對人類型魔物的物理/魔法傷害+15%"}, 
+{"對昆蟲型魔物的物理/魔法傷害+15%"}}}
 StateIconList[EFST_IDs.EFST_MYSTERY_POWDER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"��������", COLOR_TITLE_BUFF}, 
+{"神秘粉末", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�i�ϥάP�Ь������A"}}}
+{"可使用星塵炸裂狀態"}}}
 StateIconList[EFST_IDs.EFST_CHASING] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�lŧ", COLOR_TITLE_BUFF}, 
+{"追襲", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�lŧ�ޯ�ˮ`�W�["}, 
-{"���������ˮ`�W�["}, 
-{"�s��g����2���ˮ`�W�["}}}
+{"追襲技能傷害增加"}, 
+{"不幸衝擊傷害增加"}, 
+{"連鎖射擊第2次傷害增加"}}}
 StateIconList[EFST_IDs.EFST_FIRE_CHARM_POWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�|���: ��", COLOR_TITLE_BUFF}, 
+{"四色符: 火", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���K���ˮ`�W�[���A"}}}
+{"火焰砲傷害增加狀態"}}}
 StateIconList[EFST_IDs.EFST_WATER_CHARM_POWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�|��� : ��", COLOR_TITLE_BUFF}, 
+{"四色符 : 水", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�N�K���ˮ`�W�[���A"}}}
+{"冷焰砲傷害增加狀態"}}}
 StateIconList[EFST_IDs.EFST_WIND_CHARM_POWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�|��� : ��", COLOR_TITLE_BUFF}, 
+{"四色符 : 風", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�p�q���ˮ`�W�[���A"}}}
+{"雷電砲傷害增加狀態"}}}
 StateIconList[EFST_IDs.EFST_GROUND_CHARM_POWER] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�|��� : �a", COLOR_TITLE_BUFF}, 
+{"四色符 : 地", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"���s���ˮ`�W�[���A"}}}
+{"金龍砲傷害增加狀態"}}}
 StateIconList[EFST_IDs.EFST_WILD_WALK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�g���e��", COLOR_TITLE_BUFF}, 
+{"狂野疾行", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�j�ײv�W�["}, 
-{"���ʳt�׼W�["}}}
+{"迴避率增加"}, 
+{"移動速度增加"}}}
 StateIconList[EFST_IDs.EFST_OVERCOMING_CRISIS] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���A�M��", COLOR_TITLE_BUFF}, 
+{"征服危機", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"MHP�W�["}, 
-{"P.ATK / S.MATK�W�["}}}
+{"MHP增加"}, 
+{"P.ATK / S.MATK增加"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_1] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ���ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}, 
-{"�ȳ��F�O����"}}}
+{"賦予下列技能水屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}, 
+{"玄鹿靈力釋放"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_2] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ୷�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}, 
-{"�ȳ��F�O����"}}}
+{"賦予下列技能風屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}, 
+{"玄鹿靈力釋放"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_3] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�a�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}, 
-{"�ȳ��F�O����"}}}
+{"賦予下列技能地屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}, 
+{"玄鹿靈力釋放"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_4] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ���ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}, 
-{"�ȳ��F�O����"}}}
+{"賦予下列技能火屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}, 
+{"玄鹿靈力釋放"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_5] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�t�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}, 
-{"�ȳ��F�O����"}}}
+{"賦予下列技能暗屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}, 
+{"玄鹿靈力釋放"}}}
 StateIconList[EFST_IDs.EFST_COLORS_OF_HYUN_ROK_6] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�ȳ����⨤", COLOR_TITLE_BUFF}, 
+{"玄鹿五色角", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�ᤩ�U�C�ޯ�t�ݩ�"}, 
-{"�������k��"}, 
-{"�ȳ�����"}, 
-{"�ȳ���"}, 
-{"�ȳ��F�O����"}}}
+{"賦予下列技能聖屬性"}, 
+{"貓薄荷隕石"}, 
+{"玄鹿葉風"}, 
+{"玄鹿砲"}, 
+{"玄鹿靈力釋放"}}}
 StateIconList[EFST_IDs.EFST_BLOCK] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"���ꪬ�A", COLOR_TITLE_DEBUFF}, 
+{"封鎖狀態", COLOR_TITLE_DEBUFF}, 
 {"%s", COLOR_TIME}, 
-{"�q�]����o���g���0"}, 
-{"�q�]����o���D�㱼���v0"}}}
+{"從魔物獲得的經驗值0"}, 
+{"從魔物獲得的道具掉落率0"}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_3] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"í�����Ф�", COLOR_TITLE_BUFF}, 
+{"穩重的羽毛", COLOR_TITLE_BUFF}, 
 {"MHP + 5%"}, 
 {"MSP + 5%"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_4] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�F�����Ф�", COLOR_TITLE_BUFF}, 
+{"靈巧的羽毛", COLOR_TITLE_BUFF}, 
 {"FLEE + 25"}, 
 {"HIT + 25"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_5] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"���R���Ф�", COLOR_TITLE_BUFF}, 
+{"華麗的羽毛", COLOR_TITLE_BUFF}, 
 {"CRI + 10"}, 
 {"ASPD + 1"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_6] = {haveTimeLimit = 1, posTimeLimitStr = 4, 
 descript = {
-{"�I�l�l���Ф�", COLOR_TITLE_BUFF}, 
+{"沉甸甸的羽毛", COLOR_TITLE_BUFF}, 
 {"ATK + 7%"}, 
 {"MATK + 7%"}, 
 {"%s", COLOR_TIME}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_16] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"����Buff ", COLOR_TITLE_BUFF}, 
+{"美味Buff ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"��@�뫬�ĤH�����z/�]�k�ˮ`�W�[�C"}, 
-{"�ﭺ�⫬�]�������z/�]�k�ˮ`�W�[�C"}}}
+{"對一般型敵人的物理/魔法傷害增加。"}, 
+{"對首領型魔物的物理/魔法傷害增加。"}}}
 StateIconList[EFST_IDs.EFST_C_BUFF_17] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�s�ABuff ", COLOR_TITLE_BUFF}, 
+{"新鮮Buff ", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"����ر��]�������z/�]�k�ˮ`�W�[�C"}, 
-{"(���a���~)"}}}
+{"對全種族魔物的物理/魔法傷害增加。"}, 
+{"(玩家除外)"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_23] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�W�qBUFF", COLOR_TITLE_BUFF}, 
+{"增益BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�惡�a�ϵn���]�������z/�]�k�ˮ`�W�["}, 
-{"�Q�Ǫ��w�ͪ��� : �`�h1��"}}}
+{"對此地圖登場魔物的物理/魔法傷害增加"}, 
+{"霸勒門德生物圈 : 深層1樓"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_24] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�W�qBUFF", COLOR_TITLE_BUFF}, 
+{"增益BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�惡�a�ϵn���]�������z/�]�k�ˮ`�W�["}, 
-{"�ɶ��x�� : �Q��Ѫ��ɶ���1��"}, 
-{"�ɶ��x�� : �Q��Ѫ��ɶ���2��"}}}
+{"對此地圖登場魔物的物理/魔法傷害增加"}, 
+{"時間庭園 : 被遺忘的時間第1區"}, 
+{"時間庭園 : 被遺忘的時間第2區"}}}
 StateIconList[EFST_IDs.EFST_CONTENTS_25] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
 descript = {
-{"�W�qBUFF", COLOR_TITLE_BUFF}, 
+{"增益BUFF", COLOR_TITLE_BUFF}, 
 {"%s", COLOR_TIME}, 
-{"�惡�a�ϵn���]�������z/�]�k�ˮ`�W�["}, 
-{"(MVP�����]���~)"}, 
-{"���ܵ�i�n�ʵn��"}, 
-{"�j�N�������J���S"}, 
-{"�������Ŭ}"}}}
+{"對此地圖登場魔物的物理/魔法傷害增加"}, 
+{"(MVP首領魔物外)"}, 
+{"尼芙菲姆南瓜登場"}, 
+{"古代神殿阿克赫特"}, 
+{"未知的藍洞"}}}
 
