@@ -1,4 +1,4 @@
-# 額外參數對照表 buff規則10開頭狀態ID，20開頭技能ID
+﻿# 額外參數對照表 buff規則10開頭狀態ID，20開頭技能ID
 all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":["",""]},
     "掉寶呆(本次)0616-0701": {"buff":"1597","type": "料理","code":["RaceSubDamage(9999, 70)","SubDamage_Property(1, 10, 70)","ClassSubDamage(0, 1, 70)","ClassSubDamage(1, 1, 70)","SubMdamage_Race(9999, 70)","SubMDamage_Property(1, 10, 70)","SubMdamage_Class(0, 70)","SubMdamage_Class(1, 70)","SubSkillMDamage(10, 30)","SubMeleeAttackDamage(1, 30)","SubRangeAttackDamage(1, 30)","SubExtParam(1, 47, 200)"],"exclusive": "itemsugar"},
     "掉寶呆(上次)0506-0519": {"buff":"1597","type": "料理","code":["RaceSubDamage(9999, 70)","SubDamage_Property(1, 10, 70)","ClassSubDamage(0, 1, 70)","ClassSubDamage(1, 1, 70)","SubMdamage_Race(9999, 70)","SubMDamage_Property(1, 10, 70)","SubMdamage_Class(0, 70)","SubMdamage_Class(1, 70)","SubExtParam(1, 52, 300)","SubExtParam(1, 207, 30)","SubExtParam(1, 140, 30)"],"exclusive": "itemsugar"},
@@ -137,7 +137,7 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "天地神靈": {"buff":"1365","id": "SL","type": "技能","code":["AddMeleeAttackDamage(1, 25)","AddRangeAttackDamage(1, 25)","AddSkillMDamage(10, 25)"]},
     "四方五行的保佑": {"buff":"1364","id": "SL","type": "技能","code":["UseSkill(5431)","AddExtParam(1, 243, 25)"]},
     #風鷹
-    "心神凝聚": {"buff":"3","id": ["RA","SN"],"type": "技能","code":["temp = 2 + GetSkillLevel(45)","tempAGI = skill_focus_AGI","tempDEX = skill_focus_DEX","AddExtParam(1, 104, tempAGI * (temp/100))","AddExtParam(1, 107, tempDEX * (temp/100))"]},
+    "心神凝聚": {"buff":"3","id": ["RA","SN"],"type": "技能","code":["temp = 2 + GetSkillLevel(45)","tempAGI = skill_focus_AGI","tempDEX = skill_focus_DEX","AddExtParam(1, 104, tempAGI * temp/100)","AddExtParam(1, 107, tempDEX * temp/100)"]},
     #agi跟dex只吃角色基本素質+job加成+裝備基礎(不含精煉給的)+被動技能常駐，
     #料理、卡片、附魔、詞條類、攻擊觸發、非常駐的技能都不算。
     "狙殺瞄準": {"buff":"115","id": "RA","type": "技能","code":["UseSkill(380)","AddExtParam(1, 52, 100)","AddExtParam(1, 49, 30)","AddExtParam(1, 103, 5)","AddExtParam(1, 104, 5)","AddExtParam(1, 105, 5)","AddExtParam(1, 106, 5)","AddExtParam(1, 107, 5)","AddExtParam(1, 108, 5)"]},
