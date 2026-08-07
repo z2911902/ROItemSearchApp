@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.4-260803"
+Version = "v0.5.5-260807"
 
 import sys, builtins, time
 import os
@@ -105,7 +105,7 @@ class LangManager:
         if not os.path.exists(path):
             return {}
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8-sig") as f:
                 return json.load(f)
         except Exception as e:
             print(f"語言包載入失敗：{path}，{e}")
@@ -241,7 +241,7 @@ import math
 from collections import defaultdict
 import pandas as pd
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve, QUrl
-from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices
+from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices, QPainter, QPen
 from sympy import sympify, symbols, Symbol
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
@@ -284,6 +284,15 @@ class FunctionSyntaxTextEdit(QTextEdit):
         self._completion_refresh_timer.timeout.connect(self._refresh_completion_popup)
         self.textChanged.connect(self._schedule_completion_refresh)
         self.cursorPositionChanged.connect(self._schedule_completion_refresh)
+
+        # 參數泡泡框只是視覺層，底下仍保留原本純文字語法。
+        self.textChanged.connect(self.viewport().update)
+        self.cursorPositionChanged.connect(self.viewport().update)
+
+        # 避免滑鼠按下後 cursorPositionChanged 立刻把 QCompleter popup 打開，
+        # 導致 popup 搶走 mouseRelease，造成第一次點擊沒有完成整欄反白。
+        self._param_mouse_pressed = False
+        self._param_mouse_press_pos = None
 
     def set_map_registry(self, maps: dict):
         """提供 map 參數補完資料來源，例如 size_map、element_map、skill_map。"""
@@ -341,8 +350,25 @@ class FunctionSyntaxTextEdit(QTextEdit):
 
         self._function_items.sort(key=str.lower)
 
+        # 有些內容可能在 function_defs 設定前就已經載入。
+        # 現在 defs 已完整，立刻把舊的完整語法轉成 UI 精簡格式，
+        # 所有固定值都保留在畫面文字中。
+        raw_display_text = super().toPlainText()
+        compact_text = self._rewrite_hidden_args(raw_display_text, compact=True)
+        if compact_text != raw_display_text:
+            super().setPlainText(compact_text)
+
     def _is_hidden_arg(self, arg: dict) -> bool:
-        return arg.get("name") in ("無意義", "目標")
+        # 現在所有正式語法參數都保留在文字中，不再從 UI 隱藏。
+        return False
+
+    def _is_no_bubble_arg(self, arg: dict) -> bool:
+        # 「無意義」參數仍顯示實際值，但不要畫成泡泡輸入框。
+        return arg.get("name") == "無意義"
+
+    def _is_fixed_visible_arg(self, arg: dict) -> bool:
+        """有意義、要顯示，但值固定不可修改的參數。"""
+        return arg.get("name") == "目標" and str(arg.get("map", "")) == "unit_map"
 
     def _hidden_arg_value(self, arg: dict) -> str:
         """與 on_function_changed / on_generate 的固定參數規則保持一致。"""
@@ -354,6 +380,16 @@ class FunctionSyntaxTextEdit(QTextEdit):
         return "0"
 
     def _arg_placeholder(self, arg: dict) -> str:
+        # 數字 map 代表固定值，例如 {"name": "無意義", "map": "1"}。
+        # 文字要正常顯示 1，只是不替它畫泡泡。
+        map_name = str(arg.get("map", ""))
+        if map_name.isdigit():
+            return map_name
+
+        # 「目標」是有意義但固定的正式參數：UI 顯示實際固定值 1。
+        if self._is_fixed_visible_arg(arg):
+            return self._hidden_arg_value(arg)
+
         # 數值型參數不要開下拉式選單；模板直接顯示 n，讓使用者自行改成數字/公式。
         if arg.get("type") == "value":
             return "n"
@@ -368,17 +404,20 @@ class FunctionSyntaxTextEdit(QTextEdit):
         tokens = []
         param_meta = []
 
-        # 先建立 token，稍後再計算每個 token 在 syntax 中的相對位置。
-        for index, arg in enumerate(args):
-            visible = not self._is_hidden_arg(arg)
-            token = self._hidden_arg_value(arg) if not visible else self._arg_placeholder(arg)
+        # 所有參數文字都保留；「無意義」參數只是不畫泡泡框。
+        for actual_index, arg in enumerate(args):
+            if self._is_hidden_arg(arg):
+                continue
+
+            token = self._arg_placeholder(arg)
             tokens.append(token)
             param_meta.append({
-                "index": index,
+                "index": actual_index,
+                "display_index": len(param_meta),
                 "name": arg.get("name", token),
                 "map": arg.get("map"),
                 "type": arg.get("type"),
-                "visible": visible,
+                "visible": True,
                 "token": token,
                 "start": None,
                 "end": None,
@@ -386,7 +425,7 @@ class FunctionSyntaxTextEdit(QTextEdit):
 
         syntax = f"{func_name}({', '.join(tokens)})"
 
-        # 計算 token 在整段 syntax 內的相對範圍，方便插入後直接選取第一個 map 參數。
+        # 計算每個可見參數在畫面語法中的相對位置。
         offset = len(func_name) + 1
         for i, meta in enumerate(param_meta):
             token = tokens[i]
@@ -397,6 +436,127 @@ class FunctionSyntaxTextEdit(QTextEdit):
                 offset += 2  # comma + space
 
         return {"syntax": syntax, "params": param_meta}
+
+    def _args_for_display_call(self, func_name: str, arg_count: int):
+        """
+        依目前畫面上的參數數量判斷它是：
+        - 新版精簡格式：隱藏固定參數
+        - 舊版完整格式：仍包含固定參數
+
+        這讓舊文字貼進來時也不會把參數對錯欄。
+        """
+        all_args = self._function_defs.get(func_name, {}).get("args", []) or []
+        visible_args = [arg for arg in all_args if not self._is_hidden_arg(arg)]
+
+        if len(all_args) != len(visible_args) and arg_count == len(all_args):
+            return all_args
+        return visible_args
+
+    def _rewrite_hidden_args(self, text: str, *, compact: bool) -> str:
+        """
+        目前不再隱藏任何參數文字；保留此函式只為相容舊流程。
+        """
+        if not text or not getattr(self, "_function_defs", None):
+            return str(text or "")
+
+        pattern = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+        lines = str(text).splitlines(keepends=True)
+        rewritten_lines = []
+
+        for line in lines:
+            pos = 0
+            out = []
+
+            while pos < len(line):
+                match = pattern.search(line, pos)
+                if not match:
+                    out.append(line[pos:])
+                    break
+
+                func_name = match.group(1)
+                if func_name not in self._function_defs:
+                    out.append(line[pos:match.end()])
+                    pos = match.end()
+                    continue
+
+                open_pos = match.end() - 1
+                close_pos = self._matching_close_paren(line, open_pos)
+                if close_pos is None:
+                    out.append(line[pos:])
+                    break
+
+                ranges = self._split_top_level_arg_ranges(line, open_pos + 1, close_pos)
+                values = [line[s:e].strip() for s, e in ranges]
+
+                # Func() 會被切成一個空參數，先正規化成空陣列。
+                if len(values) == 1 and values[0] == "":
+                    values = []
+
+                all_args = self._function_defs.get(func_name, {}).get("args", []) or []
+                visible_args = [arg for arg in all_args if not self._is_hidden_arg(arg)]
+                has_hidden = len(all_args) != len(visible_args)
+
+                replacement = None
+
+                if has_hidden and compact and len(values) == len(all_args):
+                    compact_values = [
+                        value
+                        for arg, value in zip(all_args, values)
+                        if not self._is_hidden_arg(arg)
+                    ]
+                    replacement = ", ".join(compact_values)
+
+                elif has_hidden and not compact and len(values) == len(visible_args):
+                    expanded_values = []
+                    visible_index = 0
+
+                    for arg in all_args:
+                        if self._is_hidden_arg(arg):
+                            expanded_values.append(self._hidden_arg_value(arg))
+                        else:
+                            if visible_index < len(values):
+                                expanded_values.append(values[visible_index])
+                            else:
+                                expanded_values.append("")
+                            visible_index += 1
+
+                    replacement = ", ".join(expanded_values)
+
+                out.append(line[pos:open_pos + 1])
+
+                if replacement is None:
+                    out.append(line[open_pos + 1:close_pos])
+                else:
+                    out.append(replacement)
+
+                out.append(")")
+                pos = close_pos + 1
+
+            rewritten_lines.append("".join(out))
+
+        return "".join(rewritten_lines)
+
+    def toPlainText(self):
+        """
+        對程式其他地方仍回傳完整可解析語法。
+        所有參數文字都會保留；「無意義」只是不畫泡泡框。
+        """
+        display_text = super().toPlainText()
+        return self._rewrite_hidden_args(display_text, compact=False)
+
+    def setPlainText(self, text):
+        """載入舊的完整語法時，自動轉成不顯示固定參數的 UI 格式。"""
+        display_text = self._rewrite_hidden_args(str(text or ""), compact=True)
+        super().setPlainText(display_text)
+
+    def insertFromMimeData(self, source):
+        """貼上舊語法時也自動隱藏固定/無意義參數。"""
+        if source is not None and source.hasText():
+            cursor = self.textCursor()
+            cursor.insertText(self._rewrite_hidden_args(source.text(), compact=True))
+            self.setTextCursor(cursor)
+            return
+        super().insertFromMimeData(source)
 
     # ---------- search helpers ----------
     def _normalize_search_text(self, text: str) -> str:
@@ -604,7 +764,7 @@ class FunctionSyntaxTextEdit(QTextEdit):
         return self._map_items_with_search(map_name)[0]
 
     def _current_function_context(self):
-        """回傳目前游標所在的 function 與參數 index。若不在函數參數內則回傳 None。"""
+        """回傳目前游標所在的 function 與可見參數 context。"""
         cursor = self.textCursor()
         block_text = cursor.block().text()
         pos = cursor.positionInBlock()
@@ -614,36 +774,60 @@ class FunctionSyntaxTextEdit(QTextEdit):
         if not candidates:
             return None
 
-        match = candidates[-1]
-        func_name = match.group(1)
+        match = None
+        func_name = None
+        for candidate in reversed(candidates):
+            name = candidate.group(1)
+            if name in self._function_defs:
+                match = candidate
+                func_name = name
+                break
+
+        if match is None:
+            return None
+
         open_pos = match.end() - 1
-        if func_name not in self._function_defs:
+        close_pos = self._matching_close_paren(block_text, open_pos)
+        if close_pos is None:
+            close_pos = len(block_text)
+
+        if not (open_pos < pos <= close_pos):
             return None
 
-        # 如果左側最後一個右括號在這個左括號之後，代表已離開此函數。
-        if left_text.rfind(")") > open_pos:
+        ranges = self._split_top_level_arg_ranges(block_text, open_pos + 1, close_pos)
+        if len(ranges) == 1:
+            s, e = ranges[0]
+            if not block_text[s:e].strip():
+                ranges = []
+
+        if not ranges:
             return None
 
-        inside_left = block_text[open_pos + 1:pos]
-        arg_index = inside_left.count(",")
-        current_arg_text = inside_left.split(",")[-1].strip()
+        arg_defs = self._args_for_display_call(func_name, len(ranges))
 
-        args = self._function_defs.get(func_name, {}).get("args", []) or []
-        if not args:
+        target_index = None
+        current_arg_text = ""
+
+        for i, (start, end) in enumerate(ranges):
+            raw_start, raw_end = start, end
+
+            while start < end and block_text[start].isspace():
+                start += 1
+            while end > start and block_text[end - 1].isspace():
+                end -= 1
+
+            # 逗號後面的空白也視為下一個欄位，方便剛點進去就能判斷。
+            if raw_start <= pos <= raw_end:
+                target_index = i
+                current_arg_text = block_text[start:end].strip()
+                break
+
+        if target_index is None or target_index >= len(arg_defs):
             return None
 
-        target_index = arg_index
-        if target_index >= len(args):
+        arg = arg_defs[target_index]
+        if self._is_hidden_arg(arg):
             return None
-
-        # 相容手動輸入舊格式：AddDamage_Size(體型, 數值%)
-        # 正式解析需要 AddDamage_Size(1, 體型, 數值%)，但若第一格不是固定值，就把它視為第一個可見參數。
-        arg = args[target_index]
-        if self._is_hidden_arg(arg) and target_index + 1 < len(args):
-            hidden_value = self._hidden_arg_value(arg)
-            if current_arg_text != hidden_value:
-                target_index += 1
-                arg = args[target_index]
 
         return {
             "func_name": func_name,
@@ -659,6 +843,12 @@ class FunctionSyntaxTextEdit(QTextEdit):
 
         arg = context["arg"]
 
+        # 固定且有意義的參數（例如目標=1）顯示在畫面上，
+        # 但不允許用下拉選單改成其他值。
+        if self._is_fixed_visible_arg(arg):
+            self._hide_completion_popup()
+            return True
+
         # 數值型參數只保留 n 佔位，不顯示任何下拉式選單，
         # 也不要掉回函數名稱補完，避免在 n/數值位置彈出無關候選。
         if arg.get("type") == "value":
@@ -670,11 +860,13 @@ class FunctionSyntaxTextEdit(QTextEdit):
         if not items:
             return False
 
+        cursor = self.textCursor()
         prefix = self.text_under_cursor().strip()
         placeholder = arg.get("name", "").strip()
 
-        # 剛插入模板時會選取「體型」「屬性」這類 placeholder；此時直接顯示完整清單。
-        if prefix == placeholder:
+        # 只要整個參數目前是被選取狀態（例如滑鼠點進欄位後自動全選），
+        # 就顯示完整 map 清單；開始輸入後 selection 會被取代，再依新文字過濾。
+        if cursor.hasSelection() or prefix == placeholder:
             prefix = ""
 
         filtered_items = self._filter_completion_items(items, prefix, search_text_map)
@@ -719,6 +911,299 @@ class FunctionSyntaxTextEdit(QTextEdit):
                 QTimer.singleShot(0, self._show_param_completion_if_available)
                 return
 
+    def _select_argument_at_cursor(self, source_cursor=None):
+        """點進函數參數時，一次點擊就選取整個可見參數。"""
+        cursor = QTextCursor(source_cursor) if source_cursor is not None else self.textCursor()
+
+        block_text = cursor.block().text()
+        pos = cursor.positionInBlock()
+        left_text = block_text[:pos]
+
+        candidates = list(re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)\s*\(", left_text))
+        if not candidates:
+            return False
+
+        match = None
+        func_name = None
+        for candidate in reversed(candidates):
+            name = candidate.group(1)
+            if name in self._function_defs:
+                match = candidate
+                func_name = name
+                break
+
+        if match is None:
+            return False
+
+        open_pos = match.end() - 1
+        close_pos = self._matching_close_paren(block_text, open_pos)
+        if close_pos is None:
+            close_pos = len(block_text)
+
+        if not (open_pos < pos <= close_pos):
+            return False
+
+        ranges = self._split_top_level_arg_ranges(block_text, open_pos + 1, close_pos)
+        if len(ranges) == 1:
+            s, e = ranges[0]
+            if not block_text[s:e].strip():
+                return False
+
+        arg_defs = self._args_for_display_call(func_name, len(ranges))
+
+        for arg_index, (start, end) in enumerate(ranges):
+            raw_start, raw_end = start, end
+
+            while start < end and block_text[start].isspace():
+                start += 1
+            while end > start and block_text[end - 1].isspace():
+                end -= 1
+
+            if start >= end:
+                continue
+
+            # 點文字本身，或點到該參數左右緊鄰的空白，都視為同一個泡泡。
+            if not (raw_start <= pos <= raw_end):
+                continue
+
+            if arg_index >= len(arg_defs):
+                return False
+
+            arg = arg_defs[arg_index]
+            if self._is_hidden_arg(arg):
+                return False
+
+            # 「無意義」欄位只保留普通文字，不畫泡泡、也不做整欄反白。
+            if self._is_no_bubble_arg(arg):
+                self._hide_completion_popup()
+                self.viewport().update()
+                return True
+
+            # 固定 1 要顯示，但不是可修改輸入欄。
+            if self._is_fixed_visible_arg(arg):
+                self._hide_completion_popup()
+                self.viewport().update()
+                return True
+
+            select_cursor = QTextCursor(cursor)
+            block_base = cursor.block().position()
+            select_cursor.setPosition(block_base + start)
+            select_cursor.setPosition(block_base + end, QTextCursor.KeepAnchor)
+            self.setTextCursor(select_cursor)
+
+            # map 欄位直接開完整候選；value 欄位只反白，輸入即可取代。
+            QTimer.singleShot(0, self._show_param_completion_if_available)
+            self.viewport().update()
+            return True
+
+        return False
+
+    # ---------- bubble parameter rendering ----------
+    def _matching_close_paren(self, text: str, open_pos: int):
+        """找指定左括號對應的右括號；忽略字串內容，支援巢狀括號。"""
+        depth = 0
+        quote = None
+        escaped = False
+
+        for i in range(open_pos, len(text)):
+            ch = text[i]
+
+            if quote is not None:
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == quote:
+                    quote = None
+                continue
+
+            if ch in ("'", '"'):
+                quote = ch
+                continue
+
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    return i
+
+        return None
+
+    def _split_top_level_arg_ranges(self, text: str, start: int, end: int):
+        """把 function(...) 的最外層參數切成 (start, end) 範圍。"""
+        ranges = []
+        arg_start = start
+        nested = 0
+        quote = None
+        escaped = False
+
+        for i in range(start, end):
+            ch = text[i]
+
+            if quote is not None:
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == quote:
+                    quote = None
+                continue
+
+            if ch in ("'", '"'):
+                quote = ch
+            elif ch in "([{":
+                nested += 1
+            elif ch in ")]}":
+                nested = max(0, nested - 1)
+            elif ch == "," and nested == 0:
+                ranges.append((arg_start, i))
+                arg_start = i + 1
+
+        ranges.append((arg_start, end))
+        return ranges
+
+    def _iter_bubble_ranges(self, block_text: str):
+        """只回傳可見參數的泡泡範圍；固定/無意義參數完全不畫。"""
+        occupied_until = -1
+
+        for match in re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)\s*\(", block_text):
+            func_name = match.group(1)
+            if func_name not in self._function_defs:
+                continue
+
+            open_pos = match.end() - 1
+            if open_pos < occupied_until:
+                continue
+
+            close_pos = self._matching_close_paren(block_text, open_pos)
+            if close_pos is None:
+                close_pos = len(block_text)
+
+            ranges = self._split_top_level_arg_ranges(block_text, open_pos + 1, close_pos)
+            if len(ranges) == 1:
+                s, e = ranges[0]
+                if not block_text[s:e].strip():
+                    ranges = []
+
+            arg_defs = self._args_for_display_call(func_name, len(ranges))
+
+            for arg_index, (start, end) in enumerate(ranges):
+                while start < end and block_text[start].isspace():
+                    start += 1
+                while end > start and block_text[end - 1].isspace():
+                    end -= 1
+
+                if start >= end or arg_index >= len(arg_defs):
+                    continue
+
+                arg = arg_defs[arg_index]
+                if self._is_hidden_arg(arg):
+                    continue
+
+                # 無意義參數：值仍在 QTextEdit 裡正常顯示，只是不畫泡泡框。
+                if self._is_no_bubble_arg(arg):
+                    continue
+
+                yield start, end, self._is_fixed_visible_arg(arg)
+
+            occupied_until = close_pos + 1
+
+    def _selection_matches_range(self, block, start: int, end: int):
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return False
+
+        block_base = block.position()
+        return (
+            cursor.selectionStart() == block_base + start
+            and cursor.selectionEnd() == block_base + end
+        )
+
+    def _draw_parameter_bubbles(self):
+        """在 QTextEdit 文字上方畫圓角參數框；文字本身仍是可直接編輯的純文字。"""
+        painter = QPainter(self.viewport())
+        painter.setRenderHint(QPainter.Antialiasing, True)
+
+        palette = self.palette()
+        accent = palette.color(QPalette.Highlight)
+        disabled_color = palette.color(QPalette.Disabled, QPalette.Text)
+
+        block = self.document().firstBlock()
+        while block.isValid():
+            block_text = block.text()
+
+            for start, end, is_fixed in self._iter_bubble_ranges(block_text):
+                block_base = block.position()
+
+                start_cursor = QTextCursor(self.document())
+                start_cursor.setPosition(block_base + start)
+
+                end_cursor = QTextCursor(self.document())
+                end_cursor.setPosition(block_base + end)
+
+                start_rect = self.cursorRect(start_cursor)
+                end_rect = self.cursorRect(end_cursor)
+
+                top = min(start_rect.top(), end_rect.top())
+                bottom = max(start_rect.bottom(), end_rect.bottom())
+                if bottom < 0 or top > self.viewport().height():
+                    continue
+
+                # 正常函數參數都在同一行；跨行時先不畫，避免畫成長框。
+                if abs(start_rect.top() - end_rect.top()) > max(4, start_rect.height() // 2):
+                    continue
+
+                left = start_rect.left() - 4
+                right = end_rect.left() + 4
+                if right <= left:
+                    value_text = block_text[start:end]
+                    right = left + max(
+                        12,
+                        self.fontMetrics().horizontalAdvance(value_text) + 8
+                    )
+
+                rect = start_rect.adjusted(0, 0, 0, 0)
+                rect.setLeft(left)
+                rect.setRight(right)
+                rect.setTop(start_rect.top() - 1)
+                rect.setBottom(start_rect.bottom() + 1)
+
+                selected = self._selection_matches_range(block, start, end)
+
+                if selected and not is_fixed:
+                    fill = QColor(accent)
+                    fill.setAlpha(70)
+                    border = QColor(accent)
+                    border.setAlpha(255)
+                    pen = QPen(border, 1.4)
+                elif is_fixed:
+                    # 固定 1：要看得到，但用較淡樣式表示不可修改。
+                    fill = QColor(disabled_color)
+                    fill.setAlpha(22)
+                    border = QColor(disabled_color)
+                    border.setAlpha(90)
+                    pen = QPen(border, 1.0)
+                else:
+                    fill = QColor(accent)
+                    fill.setAlpha(24)
+                    border = QColor(accent)
+                    border.setAlpha(255)
+                    pen = QPen(border, 1.0)
+
+                painter.setPen(pen)
+                painter.setBrush(fill)
+                painter.drawRoundedRect(rect, 5, 5)
+
+            block = block.next()
+
+        painter.end()
+
+    def paintEvent(self, event):
+        # 先畫正常文字，再疊上半透明圓角泡泡。
+        super().paintEvent(event)
+        self._draw_parameter_bubbles()
+
     # ---------- insertion ----------
     def insert_completion(self, completion):
         if not self._completer or self._completer.widget() is not self:
@@ -757,9 +1242,17 @@ class FunctionSyntaxTextEdit(QTextEdit):
         英文/數字鍵盤輸入通常會進 keyPressEvent；中文輸入法則常在組字完成後
         透過 inputMethodEvent / textChanged 才更新文字。因此統一走這個 timer，
         可以避免中文候選清單必須重新 focus 才刷新。
+
+        滑鼠左鍵按住期間不刷新 popup：
+        否則 cursorPositionChanged 會在 mousePress 後立刻開啟 QCompleter，
+        popup 可能搶走 mouseRelease，造成第一次點擊只關/開 popup、第二次才反白。
         """
         if not self.hasFocus():
             return
+
+        if getattr(self, "_param_mouse_pressed", False):
+            return
+
         self._completion_refresh_timer.start()
 
     def _refresh_completion_popup(self):
@@ -787,6 +1280,63 @@ class FunctionSyntaxTextEdit(QTextEdit):
 
         super().keyPressEvent(event)
         self._schedule_completion_refresh()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._param_mouse_pressed = True
+            self._param_mouse_press_pos = event.position().toPoint()
+
+            # 先停止尚未執行的 0ms refresh，也先收掉舊 popup。
+            # 這是避免「第一次點擊被 completer 吃掉」的核心。
+            self._completion_refresh_timer.stop()
+            self._hide_completion_popup()
+        else:
+            self._param_mouse_press_pos = None
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        release_pos = event.position().toPoint()
+        press_pos = getattr(self, "_param_mouse_press_pos", None)
+
+        # 先讓 QTextEdit 完成原始的游標/拖曳處理。
+        super().mouseReleaseEvent(event)
+
+        if event.button() != Qt.LeftButton:
+            return
+
+        # 一定要先解除 guard，後面才允許重新開 completer。
+        self._param_mouse_pressed = False
+
+        if press_pos is None:
+            self._schedule_completion_refresh()
+            return
+
+        app = QApplication.instance()
+        drag_distance = app.startDragDistance() if app is not None else 4
+
+        # 真正拖曳時保留使用者原本的文字選取，不強制整欄反白。
+        if (release_pos - press_pos).manhattanLength() > drag_distance:
+            self._schedule_completion_refresh()
+            return
+
+        # 用實際放開的位置重新算 cursor，不依賴 QTextEdit 此刻的 selection 狀態。
+        click_cursor = self.cursorForPosition(release_pos)
+
+        # 單擊成功命中參數 -> 立刻整欄反白。
+        # _select_argument_at_cursor 內會自行排程 map 候選 popup。
+        if self._select_argument_at_cursor(click_cursor):
+            return
+
+        # 點在函數名稱、括號、逗號等非參數位置才恢復一般補完刷新。
+        self._schedule_completion_refresh()
+
+    def leaveEvent(self, event):
+        # 少數情況按住滑鼠後移出 editor 再放開，mouseRelease 可能不回來；
+        # 避免 guard 一直卡住。
+        self._param_mouse_pressed = False
+        super().leaveEvent(event)
+
 
 enabled_skill_levels = {}  # 存放已啟用技能的等級
 Use_skill_levels = {}#已啟用的技能id
@@ -6525,6 +7075,8 @@ class ItemSearchApp(QWidget):
         SKILL_HW_MAGICPOWER = 10 if int(GUSklv(366)) == 1 else 0  # 366
         #天怒
         PR_LEXAETERNA_buff = 100 if self.special_checkboxes["PR_LEXAETERNA_checkbox"].isChecked() else 0
+        #鐵虎咆嘯
+        #Use_skill_levels[5436] = True if self.special_checkboxes["SH_HOWLING_OF_CHUL_HO_checkbox"].isChecked() else 0
         #太陽和月亮和星星的融合 全部吃爆擊
         sg_mix = 0.5 if int(GUSklv(444)) == 1 else 0  # 444
         #溫暖風判段
@@ -12971,6 +13523,7 @@ class ItemSearchApp(QWidget):
             "RUSH_attack_checkbox": QCheckBox(tr("buff.rush_attack")),            
             "OLEUM_attack_checkbox": QCheckBox(tr("buff.oleum_attack")),
             "PR_LEXAETERNA_checkbox": QCheckBox(tr("buff.lexaeterna")),
+            #"SH_HOWLING_OF_CHUL_HO_checkbox": QCheckBox("鐵虎咆嘯"),
 
 
 

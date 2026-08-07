@@ -1,4 +1,4 @@
-{
+﻿{
   "window.update_available": "有新版本",
   "window.loading": "初始化中…",
   "window.save_manager": "{part_name} 的裝備清單",
@@ -8,7 +8,7 @@
   "window.enchant_tool": "附魔查詢工具",
   "window.reform_tool": "改造查詢工具",
   "window.main": "RO物品查詢計算工具",
-  "window.main_with_file": "RO物品查詢計算工具 {version} - {filename} ",
+  "window.main_with_file": "RO物品查詢計算工具 For TwRO {version} - {filename} ",
   "window.please_wait": "請稍候",
   "button.update_now": "立即更新",
   "button.later": "稍後再說",
