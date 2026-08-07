@@ -227,8 +227,15 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "瘋狂凱斯樂": {"buff":"203","id": "RE","type": "技能","code":["AddExtParam(1, 41, 100)"],"exclusive": "ALTER_MADNESSCANCEL"},
     "白金祭壇": {"buff":"758","id": "RE","type": "技能","code":["temp = GetSkillLevel(2563)","AddExtParam(1, 41, temp * 10 + 100)"],"exclusive": "ALTER_MADNESSCANCEL"},
     #魂鈴師
+    "蝦群": {"buff":"920","id": "SUM","type": "技能","code":["UseSkill(5040)","AddExtParam(1, 207, 10)","AddExtParam(1, 140, 10)"]},
+    "捲甲蟲暴衝": {"buff":"918","id": "SUM","type": "技能","code":["UseSkill(5035)","AddExtParam(1, 104, 40)","AddRangeAttackDamage(1, 10)"]},
+    "喵喵/喵喵不休": {"buff":"953","id": "SUM","type": "技能","code":["UseSkill(5055)","AddExtParam(1, 41, 100)","AddExtParam(1, 200, 100)"]},
+    "急速交流": {"buff":"1377","id": "SUM","type": "技能","code":["UseSkill(5447)","temp = GetSkillLevel(5447)","AddExtParam(1, 242, temp * 3)","AddExtParam(1, 243, temp * 3)","AddExtParam(1, 254, temp * 3)"]},
     "神龜沙雕節": {"buff":"1368","id": "SUM","type": "技能","code":["AddExtParam(1, 235, 10)","AddExtParam(1, 236, 10)","AddExtParam(1, 237, 10)"],"exclusive": "STA.WIS.SPL"},
     "神龜海洋慶典": {"buff":"1367","id": "SUM","type": "技能","code":["AddExtParam(1, 234, 10)","AddExtParam(1, 238, 10)","AddExtParam(1, 239, 10)"],"exclusive": "POW.CON.CRT"},
+    "玄鹿五色角": {"buff":"1376","id": "SUM","type": "技能","code":["UseSkill(5444)","temp = GetSkillLevel(5443)","AddDamage_SKID(1, 5028, temp * 50)"]},
+    "靈物祝福": {"buff":"1378","id": "SUM","type": "技能","code":["UseSkill(5448)","AddExtParam(1, 242, 50)","AddExtParam(1, 243, 50)"]},
+    
     # 天帝
     "溫暖的風": {"buff":"474","id": "SE","type": "技能","code":["UseSkill(425)"],},
     "太陽英姿": {"buff":"1040","id": "SE","type": "技能","code":["temp = GetSkillLevel(2591)","AddExtParam(1, 207, 2 + temp)"],"exclusive": "posture"},

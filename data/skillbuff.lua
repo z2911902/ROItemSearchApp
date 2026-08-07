@@ -1,4 +1,4 @@
-
+﻿
 	
 [2] = {
 	temp = GSklv(2)
@@ -178,6 +178,14 @@
 	AddExtParam(1, 50, temp * 20)
 	AddExtParam(1, 49, temp * 20)
 	AddExtParam(1, 52, temp * 20)
+}
+
+[5037] = {
+	temp = GSklv(5037)
+	AddHealValue(temp * 30)
+	AddExtParam(1, 109, temp * 4000)
+	AddExtParam(1, 110, temp * 400)
+
 }
 [5077] = {
 	temp = GSklv(5077)
