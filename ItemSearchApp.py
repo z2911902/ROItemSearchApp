@@ -1,5 +1,6 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.5-260807"
+Version = "v0.5.6-260808"
+Server_area = "TwRO"
 
 import sys, builtins, time
 import os
@@ -253,6 +254,49 @@ from PySide6.QtWidgets import (
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
 
+# === 條件輸入：上方條件產生器與下方 FunctionSyntaxTextEdit 共用 ===
+# syntax 保持 Lua/RO 資料原始格式，parser 端已有 if / elseif / else / end 支援。
+CONDITION_VALUE_DEFS = {
+    "refine_current": {"label": "當前裝備精煉值", "syntax": "GetRefineLevel(GetLocation())", "keywords": "精煉 refine"},
+    "grade_current": {"label": "當前裝備階級", "syntax": "GetEquipGradeLevel(GetLocation())", "keywords": "階級 grade"},
+    "armor_lv_current": {"label": "當前防具等級", "syntax": "GetEquipArmorLv(GetLocation())", "keywords": "防具等級 armor"},
+    "weapon_lv_current": {"label": "當前武器等級", "syntax": "GetEquipWeaponLv(GetLocation())", "keywords": "武器等級 weapon"},
+    "weapon_class_current": {"label": "當前武器類型", "syntax": "GetWeaponClass(GetLocation())", "keywords": "武器類型 weapon class"},
+    "pet_relationship": {"label": "寵物親密度", "syntax": "GetPetRelationship()", "keywords": "寵物 親密度 pet"},
+    "base_lv": {"label": "BaseLv", "syntax": "get(11)", "keywords": "BaseLv 基礎等級"},
+    "job_lv": {"label": "JobLv", "syntax": "get(12)", "keywords": "JobLv 職業等級"},
+    "job": {"label": "JOB", "syntax": "get(19)", "keywords": "職業"},
+    "str": {"label": "STR", "syntax": "get(32)", "keywords": "STR"},
+    "agi": {"label": "AGI", "syntax": "get(33)", "keywords": "AGI"},
+    "vit": {"label": "VIT", "syntax": "get(34)", "keywords": "VIT"},
+    "int": {"label": "INT", "syntax": "get(35)", "keywords": "INT"},
+    "dex": {"label": "DEX", "syntax": "get(36)", "keywords": "DEX"},
+    "luk": {"label": "LUK", "syntax": "get(37)", "keywords": "LUK"},
+    "pow": {"label": "POW", "syntax": "get(255)", "keywords": "POW"},
+    "sta": {"label": "STA", "syntax": "get(256)", "keywords": "STA"},
+    "wis": {"label": "WIS", "syntax": "get(257)", "keywords": "WIS"},
+    "spl": {"label": "SPL", "syntax": "get(258)", "keywords": "SPL"},
+    "con": {"label": "CON", "syntax": "get(259)", "keywords": "CON"},
+    "crt": {"label": "CRT", "syntax": "get(260)", "keywords": "CRT"},
+    #"skill_level": {"label": "技能等級（可改技能ID）", "syntax": "GetSkillLevel(技能ID)", "keywords": "技能 skill level"},
+}
+
+CONDITION_OPERATORS = {
+    "==": "等於",
+    "~=": "不等於",
+    ">=": "大於等於",
+    "<=": "小於等於",
+    ">": "大於",
+    "<": "小於",
+}
+
+CONTROL_FLOW_DEFS = {
+    "if": {"display": "if 條件 then", "desc": "新增 IF 條件", "template": "if 條件 then\n    \nend"},
+    "elseif": {"display": "elseif 條件 then", "desc": "新增 ELSEIF 條件", "template": "elseif 條件 then"},
+    "else": {"display": "else", "desc": "新增 ELSE", "template": "else"},
+    "end": {"display": "end", "desc": "結束條件", "template": "end"},
+}
+
 class NoWheelComboBox(QComboBox):#忽略滾輪的下拉式選單
     def wheelEvent(self, event):
         if self.view().isVisible():
@@ -275,6 +319,10 @@ class FunctionSyntaxTextEdit(QTextEdit):
         self._function_templates = {}
         self._function_search_text = {}
         self._map_registry = {}
+        self._control_insert_map = {}
+        self._condition_value_insert_map = {}
+        self._condition_operator_insert_map = {}
+        self._condition_edit_part = None  # left | operator | right
 
         # 中文輸入法（IME）常走 inputMethodEvent，不一定會觸發 keyPressEvent。
         # 用 textChanged / cursorPositionChanged 統一延遲刷新，讓中文提交後也會即時更新候選清單。
@@ -314,6 +362,7 @@ class FunctionSyntaxTextEdit(QTextEdit):
         self._function_insert_map = {}
         self._function_templates = {}
         self._function_search_text = {}
+        self._control_insert_map = {}
 
         for func_name, spec in self._function_defs.items():
             template = self._build_function_template(func_name, spec)
@@ -347,6 +396,23 @@ class FunctionSyntaxTextEdit(QTextEdit):
                     " ".join(visible_arg_labels),
                 ])
             )
+
+        # 控制流程與函數共用同一個 QCompleter，但插入方式分開處理。
+        for keyword, spec in CONTROL_FLOW_DEFS.items():
+            display = f"{spec['display']}{self.COMPLETION_DESC_SEP}{spec['desc']}"
+            self._function_items.append(display)
+            self._control_insert_map[display] = keyword
+            self._function_search_text[display] = self._normalize_search_text(
+                f"{keyword} {spec['display']} {spec['desc']} 條件"
+            )
+
+        # Python 使用者常打 elif；UI 接受它，但正式輸出一律轉成 Lua 的 elseif。
+        elif_display = f"elif 條件 then{self.COMPLETION_DESC_SEP}ELSEIF 輸入別名"
+        self._function_items.append(elif_display)
+        self._control_insert_map[elif_display] = "elseif"
+        self._function_search_text[elif_display] = self._normalize_search_text(
+            "elif elseif 其他條件 ELSEIF 輸入別名"
+        )
 
         self._function_items.sort(key=str.lower)
 
@@ -877,6 +943,311 @@ class FunctionSyntaxTextEdit(QTextEdit):
         self._set_completer(filtered_items, "param", prefix)
         return True
 
+    # ---------- condition / control-flow completion ----------
+    def _condition_completion_items(self):
+        items = []
+        search_text = {}
+        self._condition_value_insert_map = {}
+        for spec in CONDITION_VALUE_DEFS.values():
+            display = f"{spec['syntax']}{self.COMPLETION_DESC_SEP}{spec['label']}"
+            items.append(display)
+            self._condition_value_insert_map[display] = spec["syntax"]
+            search_text[display] = self._normalize_search_text(
+                f"{spec['syntax']} {spec['label']} {spec.get('keywords', '')}"
+            )
+        return items, search_text
+
+    def _condition_operator_items(self):
+        items = []
+        search_text = {}
+        self._condition_operator_insert_map = {}
+        for op, label in CONDITION_OPERATORS.items():
+            display = f"{op}{self.COMPLETION_DESC_SEP}{label}"
+            items.append(display)
+            self._condition_operator_insert_map[display] = op
+            search_text[display] = self._normalize_search_text(f"{op} {label}")
+        return items, search_text
+
+    def _condition_parts_from_line(self, block_text: str):
+        """解析單行 if/elseif，回傳條件左右值/運算子的文字範圍。"""
+        m = re.match(r"^(\s*)(if|elseif|elif)\b", block_text)
+        if not m:
+            return None
+
+        keyword_end = m.end()
+        # 只有剛打完 `if` 時，先保留控制流程補完；輸入空白後才進條件補完。
+        if keyword_end >= len(block_text):
+            return None
+        if not block_text[keyword_end].isspace():
+            return None
+
+        tail = block_text[keyword_end:]
+        then_m = re.search(r"\s+then\b", tail)
+        cond_end = keyword_end + then_m.start() if then_m else len(block_text)
+        raw_condition_end = cond_end
+        cond_start = keyword_end
+        while cond_start < cond_end and block_text[cond_start].isspace():
+            cond_start += 1
+        while cond_end > cond_start and block_text[cond_end - 1].isspace():
+            cond_end -= 1
+
+        ctx = {
+            "keyword": "elseif" if m.group(2) == "elif" else m.group(2),
+            "keyword_end": keyword_end,
+            "condition_start": cond_start,
+            "condition_end": cond_end,
+            "raw_condition_end": raw_condition_end,
+            "condition_text": block_text[cond_start:cond_end],
+            "left": None,
+            "operator": None,
+            "right": None,
+        }
+
+        if cond_start >= cond_end:
+            return ctx
+
+        text = block_text[cond_start:cond_end]
+        quote = None
+        escaped = False
+        depth = 0
+        op_info = None
+        operators = (">=", "<=", "==", "~=", ">", "<")
+        i = 0
+        while i < len(text):
+            ch = text[i]
+            if quote is not None:
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == quote:
+                    quote = None
+                i += 1
+                continue
+            if ch in ("'", '"'):
+                quote = ch
+                i += 1
+                continue
+            if ch in "([{":
+                depth += 1
+                i += 1
+                continue
+            if ch in ")]}" and depth > 0:
+                depth -= 1
+                i += 1
+                continue
+            if depth == 0:
+                for op in operators:
+                    if text.startswith(op, i):
+                        op_info = (i, i + len(op), op)
+                        break
+                if op_info:
+                    break
+            i += 1
+
+        def trim_range(start, end):
+            while start < end and block_text[start].isspace():
+                start += 1
+            while end > start and block_text[end - 1].isspace():
+                end -= 1
+            return (start, end) if start < end else None
+
+        if op_info:
+            op_s, op_e, op = op_info
+            abs_op_s = cond_start + op_s
+            abs_op_e = cond_start + op_e
+            ctx["left"] = trim_range(cond_start, abs_op_s)
+            ctx["operator"] = (abs_op_s, abs_op_e)
+            ctx["right"] = trim_range(abs_op_e, cond_end)
+            ctx["operator_text"] = op
+        else:
+            ctx["left"] = trim_range(cond_start, cond_end)
+
+        return ctx
+
+    def _current_condition_context(self):
+        cursor = self.textCursor()
+        block_text = cursor.block().text()
+        pos = cursor.positionInBlock()
+        ctx = self._condition_parts_from_line(block_text)
+        if not ctx:
+            return None
+        # 游標必須位於 if/elseif 的條件區；then 後面不接管函數補完。
+        if pos < ctx["keyword_end"] or pos > max(ctx.get("raw_condition_end", ctx["condition_end"]), ctx["keyword_end"] + 1):
+            return None
+        ctx["cursor_pos"] = pos
+        ctx["block_text"] = block_text
+        return ctx
+
+    def _condition_part_at_cursor(self, ctx):
+        cursor = self.textCursor()
+        block_base = cursor.block().position()
+        sel_start = cursor.selectionStart() - block_base
+        sel_end = cursor.selectionEnd() - block_base
+        pos = cursor.positionInBlock()
+
+        for part in ("left", "operator", "right"):
+            rng = ctx.get(part)
+            if not rng:
+                continue
+            start, end = rng
+            if cursor.hasSelection() and sel_start == start and sel_end == end:
+                return part
+            if start <= pos <= end:
+                return part
+        return None
+
+    def _show_condition_completion_if_available(self):
+        ctx = self._current_condition_context()
+        if not ctx:
+            self._condition_edit_part = None
+            return False
+
+        cursor = self.textCursor()
+        part = self._condition_edit_part or self._condition_part_at_cursor(ctx)
+        condition_text = ctx.get("condition_text", "").strip()
+
+        # 點擊/選取右值時只讓使用者直接輸入，不要掉回函數名稱補完。
+        if part == "right":
+            self._hide_completion_popup()
+            return True
+
+        if part == "operator":
+            items, search_text = self._condition_operator_items()
+            prefix = "" if cursor.hasSelection() else self.text_under_cursor().strip()
+            filtered = self._filter_completion_items(items, prefix, search_text)
+            if filtered:
+                self._set_completer(filtered, "condition_operator", prefix)
+            else:
+                self._hide_completion_popup()
+            return True
+
+        known_syntax = {spec["syntax"] for spec in CONDITION_VALUE_DEFS.values()}
+
+        # 尚未輸入條件，或正在編輯左值/「條件」placeholder -> 顯示條件來源。
+        if (
+            not condition_text
+            or condition_text == "條件"
+            or part == "left" and (cursor.hasSelection() or condition_text not in known_syntax)
+            or self._condition_edit_part == "left"
+        ):
+            items, search_text = self._condition_completion_items()
+            if cursor.hasSelection() or condition_text == "條件":
+                prefix = ""
+            else:
+                prefix = self.text_under_cursor().strip() or condition_text
+            filtered = self._filter_completion_items(items, prefix, search_text)
+            if filtered:
+                self._set_completer(filtered, "condition_value", prefix)
+            else:
+                self._hide_completion_popup()
+            return True
+
+        # 左值完整後，自動提示比較運算子。
+        if not ctx.get("operator") and condition_text in known_syntax:
+            items, search_text = self._condition_operator_items()
+            self._set_completer(items, "condition_operator", "")
+            return True
+
+        # 已經進入 if/elseif 條件列時，不要顯示一般函數名稱補完。
+        self._hide_completion_popup()
+        return True
+
+    def _iter_condition_bubble_ranges(self, block_text: str):
+        """條件式的左值 / 比較符號 / 右值各自畫一個泡泡。"""
+        ctx = self._condition_parts_from_line(block_text)
+        if not ctx:
+            return
+        for part in ("left", "operator", "right"):
+            rng = ctx.get(part)
+            if rng:
+                yield rng[0], rng[1], part
+
+    def _select_condition_at_cursor(self, source_cursor=None):
+        cursor = QTextCursor(source_cursor) if source_cursor is not None else self.textCursor()
+        block_text = cursor.block().text()
+        pos = cursor.positionInBlock()
+        ctx = self._condition_parts_from_line(block_text)
+        if not ctx:
+            return False
+
+        for part in ("left", "operator", "right"):
+            rng = ctx.get(part)
+            if not rng:
+                continue
+            start, end = rng
+            if not (start <= pos <= end):
+                continue
+            block_base = cursor.block().position()
+            select_cursor = QTextCursor(cursor)
+            select_cursor.setPosition(block_base + start)
+            select_cursor.setPosition(block_base + end, QTextCursor.KeepAnchor)
+            self._condition_edit_part = part
+            self.setTextCursor(select_cursor)
+            QTimer.singleShot(0, self._show_condition_completion_if_available)
+            self.viewport().update()
+            return True
+        return False
+
+    def insert_control_block(self, keyword: str, condition: str = "條件"):
+        """上方條件產生器與下方 completer 共用的控制流程插入方法。"""
+        keyword = str(keyword or "").strip().lower()
+        if keyword not in CONTROL_FLOW_DEFS:
+            return
+
+        cursor = self.textCursor()
+        block_text = cursor.block().text()
+        indent = re.match(r"\s*", block_text).group(0)
+
+        # 若游標在現有文字中間，先換行，避免把 if 黏到函數後面。
+        prefix_text = block_text[:cursor.positionInBlock()]
+        need_leading_newline = bool(prefix_text.strip())
+
+        # 如果是在既有 `... then` 後面新增 IF，視為巢狀 IF：
+        # 保留 then，並自動多縮排一層。
+        insert_indent = indent
+        if keyword == "if" and re.search(r"\bthen\s*$", prefix_text, re.IGNORECASE):
+            insert_indent = indent + "    "
+
+        if keyword == "if":
+            body_indent = insert_indent + "    "
+            text = f"if {condition} then\n{body_indent}\n{insert_indent}end"
+        elif keyword == "elseif":
+            text = f"elseif {condition} then"
+        else:
+            text = keyword
+
+        if need_leading_newline:
+            text = "\n" + insert_indent + text
+
+        inserted_start = cursor.position()
+        cursor.insertText(text)
+        self.setTextCursor(cursor)
+        self._hide_completion_popup()
+
+        # placeholder 模式：選取「條件」，立刻開條件來源候選。
+        if condition == "條件" and keyword in ("if", "elseif"):
+            doc_text = self.document().toPlainText()
+            search_from = inserted_start
+            cond_pos = doc_text.find("條件", search_from)
+            if cond_pos >= 0:
+                sel = self.textCursor()
+                sel.setPosition(cond_pos)
+                sel.setPosition(cond_pos + len("條件"), QTextCursor.KeepAnchor)
+                self._condition_edit_part = "left"
+                self.setTextCursor(sel)
+                QTimer.singleShot(0, self._show_condition_completion_if_available)
+                return
+
+        # 上方直接產生完整 IF 時，把游標放到 then 下一行，方便繼續輸入函數。
+        if keyword == "if" and condition != "條件":
+            doc_text = self.document().toPlainText()
+            target = doc_text.find("\n" + insert_indent + "    ", inserted_start)
+            if target >= 0:
+                c = self.textCursor()
+                c.setPosition(target + 1 + len(insert_indent) + 4)
+                self.setTextCursor(c)
+
     def _show_function_completion_if_available(self):
         prefix = self.text_under_cursor().strip()
         if len(prefix) < 1 or not self._function_items:
@@ -1066,8 +1437,13 @@ class FunctionSyntaxTextEdit(QTextEdit):
     def _iter_bubble_ranges(self, block_text: str):
         """只回傳可見參數的泡泡範圍；固定/無意義參數完全不畫。"""
         occupied_until = -1
+        condition_ctx = self._condition_parts_from_line(block_text)
+        condition_left = condition_ctx.get("left") if condition_ctx else None
 
         for match in re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)\s*\(", block_text):
+            # 條件左值本身由 condition bubble 接管，避免和函數參數泡泡重疊。
+            if condition_left and condition_left[0] <= match.start() < condition_left[1]:
+                continue
             func_name = match.group(1)
             if func_name not in self._function_defs:
                 continue
@@ -1133,7 +1509,13 @@ class FunctionSyntaxTextEdit(QTextEdit):
         while block.isValid():
             block_text = block.text()
 
-            for start, end, is_fixed in self._iter_bubble_ranges(block_text):
+            bubble_ranges = list(self._iter_bubble_ranges(block_text))
+            bubble_ranges.extend(
+                (start, end, False)
+                for start, end, _part in self._iter_condition_bubble_ranges(block_text)
+            )
+
+            for start, end, is_fixed in bubble_ranges:
                 block_base = block.position()
 
                 start_cursor = QTextCursor(self.document())
@@ -1154,14 +1536,22 @@ class FunctionSyntaxTextEdit(QTextEdit):
                 if abs(start_rect.top() - end_rect.top()) > max(4, start_rect.height() // 2):
                     continue
 
-                left = start_rect.left() - 4
-                right = end_rect.left() + 4
+                # 泡泡框只包「參數文字本身」。
+                #
+                # 以前左右各多加 4px：
+                #     left  = start_rect.left() - 4
+                #     right = end_rect.left() + 4
+                # 在 `234,`、`14)` 這種沒有空白的語法裡，
+                # 右側 padding 就會視覺上把逗號 / 右括號一起包進去。
+                #
+                # 現在右邊界刻意停在參數結尾游標之前，讓 , 和 ) 明確留在框外。
+                left = start_rect.left()
+                right = end_rect.left() - 2
+
                 if right <= left:
                     value_text = block_text[start:end]
-                    right = left + max(
-                        12,
-                        self.fontMetrics().horizontalAdvance(value_text) + 8
-                    )
+                    text_width = self.fontMetrics().horizontalAdvance(value_text)
+                    right = left + max(4, text_width - 2)
 
                 rect = start_rect.adjusted(0, 0, 0, 0)
                 rect.setLeft(left)
@@ -1172,23 +1562,30 @@ class FunctionSyntaxTextEdit(QTextEdit):
                 selected = self._selection_matches_range(block, start, end)
 
                 if selected and not is_fixed:
-                    fill = QColor(accent)
-                    fill.setAlpha(70)
-                    border = QColor(accent)
-                    border.setAlpha(255)
-                    pen = QPen(border, 1.4)
+                    fill = QColor("#3D9CFF")
+                    fill.setAlpha(90)
+
+                    border = QColor("#5AB0FF")
+                    border.setAlpha(240)
+
+                    pen = QPen(border, 1.5)
+
                 elif is_fixed:
-                    # 固定 1：要看得到，但用較淡樣式表示不可修改。
-                    fill = QColor(disabled_color)
-                    fill.setAlpha(22)
-                    border = QColor(disabled_color)
-                    border.setAlpha(90)
+                    fill = QColor("#888888")
+                    fill.setAlpha(25)
+
+                    border = QColor("#888888")
+                    border.setAlpha(100)
+
                     pen = QPen(border, 1.0)
+
                 else:
-                    fill = QColor(accent)
-                    fill.setAlpha(24)
-                    border = QColor(accent)
-                    border.setAlpha(255)
+                    fill = QColor("#5C7C99")
+                    fill.setAlpha(45)
+
+                    border = QColor("#87A8C4")
+                    border.setAlpha(150)
+
                     pen = QPen(border, 1.0)
 
                 painter.setPen(pen)
@@ -1214,6 +1611,70 @@ class FunctionSyntaxTextEdit(QTextEdit):
             insert_text = completion.split(self.PARAM_DESC_SEP, 1)[0].strip()
             self._replace_current_token(insert_text)
             self._hide_completion_popup()
+            return
+
+        if self._completion_kind == "condition_value":
+            insert_text = self._condition_value_insert_map.get(
+                completion,
+                completion.split(self.COMPLETION_DESC_SEP, 1)[0].strip(),
+            )
+            self._replace_current_token(insert_text)
+            self._condition_edit_part = None
+            self._hide_completion_popup()
+            QTimer.singleShot(0, self._show_condition_completion_if_available)
+            return
+
+        if self._completion_kind == "condition_operator":
+            insert_text = self._condition_operator_insert_map.get(
+                completion,
+                completion.split(self.COMPLETION_DESC_SEP, 1)[0].strip(),
+            )
+            self._replace_current_token(insert_text + " ")
+            self._condition_edit_part = "right"
+            self._hide_completion_popup()
+            return
+
+        # if / elseif / else / end 不是函數，使用控制流程模板。
+        keyword = self._control_insert_map.get(completion)
+        if keyword:
+            # 重要：不要用 text_under_cursor() 的 selection 來決定刪除範圍。
+            # 條件泡泡 / QCompleter 有可能讓 QTextCursor 還帶著 selection，
+            # 若再用 KeepAnchor 往左移，會把前面的 `then` 一起選進去刪掉。
+            #
+            # 這裡改成只看「游標前方實際文字」，並用絕對位置精準刪除
+            # 最後輸入的控制關鍵字。例：
+            #     if A thenif|
+            # 只刪除最後 2 個字元 `if`，`then` 永遠保留。
+            cursor = self.textCursor()
+            block = cursor.block()
+            block_text = block.text()
+            pos_in_block = cursor.positionInBlock()
+            left_text = block_text[:pos_in_block]
+
+            typed_keywords = [keyword]
+            if keyword == "elseif":
+                typed_keywords.append("elif")
+
+            matched_keyword = None
+            left_lower = left_text.lower()
+            for typed_keyword in sorted(typed_keywords, key=len, reverse=True):
+                if left_lower.endswith(typed_keyword.lower()):
+                    matched_keyword = typed_keyword
+                    break
+
+            if matched_keyword:
+                block_base = block.position()
+                remove_end = block_base + pos_in_block
+                remove_start = remove_end - len(matched_keyword)
+
+                # 重建一個全新的 cursor，完全丟掉舊 selection/anchor。
+                remove_cursor = QTextCursor(self.document())
+                remove_cursor.setPosition(remove_start)
+                remove_cursor.setPosition(remove_end, QTextCursor.KeepAnchor)
+                remove_cursor.removeSelectedText()
+                self.setTextCursor(remove_cursor)
+
+            self.insert_control_block(keyword, "條件" if keyword in ("if", "elseif") else "")
             return
 
         # Popup 顯示「語法 — 中文說明/參數」，實際插入只插入語法模板。
@@ -1260,11 +1721,16 @@ class FunctionSyntaxTextEdit(QTextEdit):
             self._hide_completion_popup()
             return
 
-        # 先判斷是否正在函數參數內；若是 map 參數，顯示 map 值。
+        # if / elseif 條件輸入優先於一般函數參數，避免 GetRefineLevel(...)
+        # 在條件左值中被誤判為一般函數參數。
+        if self._show_condition_completion_if_available():
+            return
+
+        # 再判斷是否正在一般函數參數內；若是 map 參數，顯示 map 值。
         if self._show_param_completion_if_available():
             return
 
-        # 否則才顯示函數名稱補完。
+        # 否則才顯示函數名稱 / 控制流程補完。
         self._show_function_completion_if_available()
 
     def inputMethodEvent(self, event):
@@ -1323,7 +1789,11 @@ class FunctionSyntaxTextEdit(QTextEdit):
         # 用實際放開的位置重新算 cursor，不依賴 QTextEdit 此刻的 selection 狀態。
         click_cursor = self.cursorForPosition(release_pos)
 
-        # 單擊成功命中參數 -> 立刻整欄反白。
+        # 條件左值 / 運算子 / 右值優先整欄反白。
+        if self._select_condition_at_cursor(click_cursor):
+            return
+
+        # 單擊成功命中一般函數參數 -> 立刻整欄反白。
         # _select_argument_at_cursor 內會自行排程 map 候選 popup。
         if self._select_argument_at_cursor(click_cursor):
             return
@@ -1335,6 +1805,7 @@ class FunctionSyntaxTextEdit(QTextEdit):
         # 少數情況按住滑鼠後移出 editor 再放開，mouseRelease 可能不回來；
         # 避免 guard 一直卡住。
         self._param_mouse_pressed = False
+        self._condition_edit_part = None
         super().leaveEvent(event)
 
 
@@ -3424,6 +3895,8 @@ def parse_lua_effects_with_variables(
     for line in lines:
         original_line = line.strip()
         line = original_line.split("--")[0].strip()
+        # 輸入層接受 Python 習慣的 elif；解析前統一成 Lua elseif。
+        line = re.sub(r"^elif\b", "elseif", line)
         # 把 GetRefineLevel(GetLocation()) 轉為當前部位的 slot ID
         if current_location_slot is not None:
             refine_value = refine_inputs.get(current_location_slot, 0)
@@ -6277,7 +6750,7 @@ class ItemSearchApp(QWidget):
         return item_id, list(target_map.get(item_id, []))
 
     def _update_lapine_upgrade_button_for_part(self, part_name, equipment_name=None):
-        """TargetItems 包含目前裝備時，在詞條 box 右側顯示 Lapine 附魔按鈕。"""
+        """TargetItems 包含目前裝備時，在詞條 box 右側上方顯示 Lapine 附魔按鈕。"""
         ui = getattr(self, "refine_inputs_ui", {}).get(part_name)
         if not ui:
             return
@@ -6293,13 +6766,13 @@ class ItemSearchApp(QWidget):
 
         _, entries = self._get_equipment_lapine_context(equipment_name)
         visible = bool(entries)
+
         button.setVisible(visible)
         button.setEnabled(visible)
 
-        # 詞條列外層固定 300px，不因新增按鈕拉寬裝備分頁。
-        # 無按鈕：255 + 5 + 40 = 300；有按鈕：210 + 5 + 40 + 5 + 40 = 300。
+        # 右側固定保留 40px 按鈕欄，因此紅色詞條 BOX 維持 255px。
         if note_ui is not None:
-            note_ui.setFixedWidth(210 if visible else 255)
+            note_ui.setFixedWidth(255)
 
     def _activate_equipment_edit_for_lapine(self, part_name):
         """由詞條列按鈕鎖定目前裝備，並準備開啟 Lapine 檢視器。"""
@@ -6464,7 +6937,7 @@ class ItemSearchApp(QWidget):
         print(f"✅ 已將 Lapine 隨機附魔套用至「{part_name}」詞條：{summary}")
 
     def open_part_lapine_upgrade_tool(self, part_name):
-        """從指定部位詞條 box 右側的附魔按鈕開啟 Lapine 工具。"""
+        """從指定部位詞條 box 右側上方的附魔按鈕開啟 Lapine 工具。"""
         if not self._activate_equipment_edit_for_lapine(part_name):
             return
 
@@ -6708,7 +7181,7 @@ class ItemSearchApp(QWidget):
 
     def update_window_title(self):
         filename = os.path.basename(self.current_file) if self.current_file else "未命名"
-        self.setWindowTitle(tr("window.main_with_file", version=Version, filename=filename))
+        self.setWindowTitle(tr("window.main_with_file", version=Version, filename=filename, Server_area=Server_area))
     
     def replace_custom_calc_content(self):
         # 特殊 CheckBox 狀態
@@ -9792,6 +10265,59 @@ class ItemSearchApp(QWidget):
 
     
 
+    def on_condition_left_activated(self, index):
+        """上方條件來源選單選取中文項目後，編輯欄改顯示真正 Lua 語法。"""
+        if not hasattr(self, "condition_left_combo"):
+            return
+        try:
+            syntax = self.condition_left_combo.itemData(int(index))
+        except Exception:
+            syntax = None
+        if syntax:
+            self.condition_left_combo.setEditText(str(syntax))
+
+    def on_condition_kind_changed(self, *_args):
+        """ELSE / END 不需要左右值；IF / ELSEIF 才啟用條件輸入。"""
+        if not hasattr(self, "condition_kind_combo"):
+            return
+        keyword = self.condition_kind_combo.currentData()
+        enabled = keyword in ("if", "elseif")
+        for widget_name in (
+            "condition_left_combo",
+            "condition_operator_combo",
+            "condition_right_input",
+        ):
+            widget = getattr(self, widget_name, None)
+            if widget is not None:
+                widget.setEnabled(enabled)
+
+    def on_generate_condition(self):
+        """從上方條件產生器插入 if / elseif / else / end 到同一個語法輸入框。"""
+        if not hasattr(self, "result_output"):
+            return
+
+        keyword = str(self.condition_kind_combo.currentData() or "").strip().lower()
+        if keyword not in CONTROL_FLOW_DEFS:
+            return
+
+        condition = ""
+        if keyword in ("if", "elseif"):
+            left = self.condition_left_combo.currentText().strip()
+            op = str(self.condition_operator_combo.currentData() or "").strip()
+            right = self.condition_right_input.text().strip()
+
+            if not left:
+                left = "條件"
+
+            # 右值可留空，讓進階使用者直接輸入 truthy/falsy 表達式。
+            condition = f"{left} {op} {right}".strip() if right else left
+
+        self.result_output.insert_control_block(
+            keyword,
+            condition if keyword in ("if", "elseif") else "",
+        )
+        self.result_output.setFocus()
+
     def on_generate(self):
         func_name = self.function_selector.currentData()
 
@@ -12579,7 +13105,7 @@ class ItemSearchApp(QWidget):
             lapine_upgrade_btn = QPushButton(tr("button.enchant", "附魔"))
             lapine_upgrade_btn.setFixedWidth(40)
             lapine_upgrade_btn.setToolTip(
-                "此裝備存在於 lapineupgradebox.lub 的 TargetItems；開啟 Lapine 附魔資料"
+                "開啟 附加能力附魔資料"
             )
             lapine_upgrade_btn.setVisible(False)
             lapine_upgrade_btn.clicked.connect(
@@ -12739,16 +13265,33 @@ class ItemSearchApp(QWidget):
             clear_note_btn.clicked.connect(self.clear_global_state)
             clear_note_btn.clicked.connect(lambda _, field=note_text: [field.clear(), self.trigger_total_effect_update()])
 
-            note_row_layout = QHBoxLayout()
-            note_row_layout.setContentsMargins(0, 0, 0, 0)
-            note_row_layout.setSpacing(5)
-            note_row_layout.addWidget(note_text)
-            note_row_layout.addWidget(note_text_ui)
-            note_row_layout.addWidget(lapine_upgrade_btn)
-            note_row_layout.addWidget(clear_note_btn)
-
+            # 詞條區：
+            # 左側 = 紅色詞條 BOX
+            # 右側 = 按鈕上下排列：附魔在上、清空在下
+            #
+            #   ┌──────────────────────┐ [附魔]
+            #   │ 詞條內容             │
+            #   │                      │
+            #   └──────────────────────┘ [清空]
             note_container = QWidget()
-            note_container.setLayout(note_row_layout)
+            note_container_layout = QHBoxLayout(note_container)
+            note_container_layout.setContentsMargins(0, 0, 0, 0)
+            note_container_layout.setSpacing(5)
+
+            # 真正 Lua 文字欄仍保留，但本來就是隱藏的，不需要佔 layout 空間。
+            note_container_layout.addWidget(note_text_ui)
+
+            note_button_column = QWidget()
+            note_button_column.setFixedWidth(40)
+            note_button_layout = QVBoxLayout(note_button_column)
+            note_button_layout.setContentsMargins(0, 0, 0, 0)
+            note_button_layout.setSpacing(3)
+
+            note_button_layout.addWidget(lapine_upgrade_btn, 0, Qt.AlignTop)
+            note_button_layout.addStretch(1)
+            note_button_layout.addWidget(clear_note_btn, 0, Qt.AlignBottom)
+
+            note_container_layout.addWidget(note_button_column)
             note_container.setFixedWidth(300)
 
             part_layout.addWidget(note_container)
@@ -12756,6 +13299,7 @@ class ItemSearchApp(QWidget):
             part_ui["note"] = note_text
             part_ui["note_ui"] = note_text_ui
             part_ui["note_container"] = note_container
+            part_ui["note_button_column"] = note_button_column
             part_ui["cards"] = card_inputs
             part_ui["card_containers"] = card_containers
             part_ui["enchant_buttons"] = enchant_buttons
@@ -13098,7 +13642,59 @@ class ItemSearchApp(QWidget):
 
         function_layout.addLayout(edit_function_layout2)
 
-        
+        # ===== 條件產生器：與下方 FunctionSyntaxTextEdit 共用 CONDITION_* 定義 =====
+        # 分成兩行，避免條件列把視窗橫向撐得太長。
+        # 第一行：條件種類 + 左值
+        # 第二行：比較運算子 + 右值 + 插入按鈕
+        condition_layout = QVBoxLayout()
+        condition_layout.setContentsMargins(0, 0, 0, 0)
+        condition_layout.setSpacing(3)
+
+        condition_row1 = QHBoxLayout()
+        condition_row1.addWidget(QLabel("條件："))
+
+        self.condition_kind_combo = QComboBox()
+        self.condition_kind_combo.setFixedWidth(95)
+        self.condition_kind_combo.addItem("IF", "if")
+        self.condition_kind_combo.addItem("ELIF / ELSEIF", "elseif")
+        self.condition_kind_combo.addItem("ELSE", "else")
+        self.condition_kind_combo.addItem("END", "end")
+        condition_row1.addWidget(self.condition_kind_combo)
+
+        self.condition_left_combo = QComboBox()
+        self.condition_left_combo.setEditable(True)
+        self.condition_left_combo.setMinimumWidth(260)
+        self.condition_left_combo.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+        )
+        self.condition_left_combo.setMinimumContentsLength(24)
+        for spec in CONDITION_VALUE_DEFS.values():
+            self.condition_left_combo.addItem(spec["label"], spec["syntax"])
+        if self.condition_left_combo.count() > 0:
+            self.condition_left_combo.setEditText(str(self.condition_left_combo.itemData(0)))
+        condition_row1.addWidget(self.condition_left_combo, 1)
+        #condition_layout.addLayout(condition_row1)#先隱藏 ui調整後再開啟
+
+        # 從 == / >= / <= ... 開始換到第二行。
+        condition_row2 = QHBoxLayout()
+
+        self.condition_operator_combo = QComboBox()
+        self.condition_operator_combo.setFixedWidth(115)
+        for op, label in CONDITION_OPERATORS.items():
+            self.condition_operator_combo.addItem(f"{op}  {label}", op)
+        condition_row2.addWidget(self.condition_operator_combo)
+
+        self.condition_right_input = QLineEdit()
+        self.condition_right_input.setPlaceholderText("數值 / 變數 / 公式")
+        self.condition_right_input.setMinimumWidth(120)
+        condition_row2.addWidget(self.condition_right_input, 1)
+
+        self.condition_gen_button = QPushButton("插入條件")
+        condition_row2.addWidget(self.condition_gen_button)
+        condition_layout.addLayout(condition_row2)
+
+        #function_layout.addLayout(condition_layout)#先隱藏 ui調整後再開啟
+
         # 按鈕
         self.gen_button = QPushButton(tr("button.generate"))
         function_layout.addWidget(self.gen_button)
@@ -13845,6 +14441,10 @@ class ItemSearchApp(QWidget):
         #self.update_dex_int_half_note()
         self.result_output.textChanged.connect(self.on_result_output_changed)
         self.gen_button.clicked.connect(self.on_generate)
+        self.condition_gen_button.clicked.connect(self.on_generate_condition)
+        self.condition_kind_combo.currentIndexChanged.connect(self.on_condition_kind_changed)
+        self.condition_left_combo.activated.connect(self.on_condition_left_activated)
+        self.on_condition_kind_changed()
         self.function_selector.currentIndexChanged.connect(self.on_function_changed)
         self.on_function_changed()
         self.tab_widget.currentChanged.connect(self.on_tab_changed)

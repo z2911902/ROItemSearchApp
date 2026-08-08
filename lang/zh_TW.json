@@ -8,7 +8,7 @@
   "window.enchant_tool": "附魔查詢工具",
   "window.reform_tool": "改造查詢工具",
   "window.main": "RO物品查詢計算工具",
-  "window.main_with_file": "RO物品查詢計算工具 For TwRO {version} - {filename} ",
+  "window.main_with_file": "RO物品查詢計算工具 For {Server_area} {version} - {filename} ",
   "window.please_wait": "請稍候",
   "button.update_now": "立即更新",
   "button.later": "稍後再說",
