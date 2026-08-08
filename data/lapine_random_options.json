@@ -29595,6 +29595,4574 @@
           "note": "未自動配對 EnumVAR"
         }
       ]
+    },
+    "Frozen_S_Flower": {
+      "title": "冰封的沉寂六花",
+      "box_item_id": 103229,
+      "updated_at": "2026-08-08T14:08:11+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        },
+        {
+          "name": "3",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_STRAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "STR+1~8",
+          "note": "STR+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AGIAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "AGI+1~8",
+          "note": "AGI+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_VITAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "VIT+1~8",
+          "note": "VIT+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_INTAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "INT+1~8",
+          "note": "INT+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_DEXAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "DEX+1~8",
+          "note": "DEX+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_LUKAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "LUK+1~8",
+          "note": "LUK+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_POWAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "POW+1~8",
+          "note": "POW+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_SPLAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "SPL+1~8",
+          "note": "SPL+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_STAAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "STA+1~8",
+          "note": "STA+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_WISAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "WIS+1~8",
+          "note": "WIS+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CONAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "CON+1~8",
+          "note": "CON+1~8"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRTAMOUNT",
+          "min_value": 1,
+          "max_value": 8,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "CRT+1~8",
+          "note": "CRT+1~8"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_ALL",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "全屬性魔法傷害+5~15%",
+          "note": "全屬性魔法傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "遠距離物理傷害+5~15%",
+          "note": "遠距離物理傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "近距離物理傷害+5~15%",
+          "note": "近距離物理傷害+5~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性對象的物理傷害+3~18%",
+          "note": "對無屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性對象的物理傷害+3~18%",
+          "note": "對水屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性對象的物理傷害+3~18%",
+          "note": "對地屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性對象的物理傷害+3~18%",
+          "note": "對火屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性對象的物理傷害+3~18%",
+          "note": "對風屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性對象的物理傷害+3~18%",
+          "note": "對聖屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性對象的物理傷害+3~18%",
+          "note": "對暗屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性對象的物理傷害+3~18%",
+          "note": "對念屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬性對象的物理傷害+3~18%",
+          "note": "對不死屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性對象的物理傷害+3~18%",
+          "note": "對毒屬性對象的物理傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性對象的魔法傷害+3~18%",
+          "note": "對無屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性對象的魔法傷害+3~18%",
+          "note": "對水屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性對象的魔法傷害+3~18%",
+          "note": "對地屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性對象的魔法傷害+3~18%",
+          "note": "對火屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性對象的魔法傷害+3~18%",
+          "note": "對風屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性對象的魔法傷害+3~18%",
+          "note": "對聖屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性對象的魔法傷害+3~18%",
+          "note": "對暗屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性對象的魔法傷害+3~18%",
+          "note": "對念屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬性對象的魔法傷害+3~18%",
+          "note": "對不死屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性對象的魔法傷害+3~18%",
+          "note": "對毒屬性對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_DAMAGE_NORMAL_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對一般階級對象的物理傷害+5~15%",
+          "note": "對一般階級對象的物理傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_DAMAGE_BOSS_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對首領階級對象的物理傷害+5~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_MDAMAGE_NORMAL",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對一般階級對象的魔法傷害+5~15%",
+          "note": "對一般階級對象的魔法傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "CLASS_MDAMAGE_BOSS",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對首領階級對象的魔法傷害+5~15%",
+          "note": "對首領階級對象的魔法傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型對象的物理傷害+5~15%",
+          "note": "對小型對象的物理傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型對象的物理傷害+5~15%",
+          "note": "對中型對象的物理傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型對象的物理傷害+5~15%",
+          "note": "對大型對象的物理傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型對象的魔法傷害+5~15%",
+          "note": "對小型對象的魔法傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型對象的魔法傷害+5~15%",
+          "note": "對中型對象的魔法傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型對象的魔法傷害+5~15%",
+          "note": "對大型對象的魔法傷害+5~15%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無型對象的物理傷害+3~18%",
+          "note": "對無型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型對象的物理傷害+3~18%",
+          "note": "對不死型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型對象的物理傷害+3~18%",
+          "note": "對動物型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型對象的物理傷害+3~18%",
+          "note": "對植物型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型對象的物理傷害+3~18%",
+          "note": "對昆蟲型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型對象的物理傷害+3~18%",
+          "note": "對魚貝型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型對象的物理傷害+3~18%",
+          "note": "對惡魔型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型對象的物理傷害+3~18%",
+          "note": "對人類型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型對象的物理傷害+3~18%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_DAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型對象的物理傷害+3~18%",
+          "note": "對天使型對象的物理傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無型對象的魔法傷害+3~18%",
+          "note": "對無型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型對象的魔法傷害+3~18%",
+          "note": "對不死型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型對象的魔法傷害+3~18%",
+          "note": "對動物型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物對象的魔法傷害+3~18%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型對象的魔法傷害+3~18%",
+          "note": "對昆蟲型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型對象的魔法傷害+3~18%",
+          "note": "對魚貝型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型對象的魔法傷害+3~18%",
+          "note": "對惡魔型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型對象的魔法傷害+3~18%",
+          "note": "對人類型對象的魔法傷害+3~18%"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型對象的魔法傷害+3~18%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "3",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 18,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型對象的魔法傷害+3~18%",
+          "note": "對天使型對象的魔法傷害+3~18%"
+        }
+      ]
+    },
+    "EP17_1_SPC05": {
+      "title": "武器改造裝置(物理)",
+      "box_item_id": 23776,
+      "updated_at": "2026-08-08T14:23:25+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 5,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 5~20",
+          "note": "ATK + 5~20"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 1~5%",
+          "note": "ATK + 1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "HIT + 3~10",
+          "note": "HIT + 3~10"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "CRITICAL + 3~10",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性目標的物理傷害+3~15%",
+          "note": "對無屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性目標的物理傷害+3~15%",
+          "note": "對水屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性目標的物理傷害+3~15%",
+          "note": "對地屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性目標的物理傷害+3~15%",
+          "note": "對火屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性目標的物理傷害+3~15%",
+          "note": "對風屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性目標的物理傷害+3~15%",
+          "note": "對毒屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性目標的物理傷害+3~15%",
+          "note": "對聖屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性目標的物理傷害+3~15%",
+          "note": "對暗屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性目標的物理傷害+3~15%",
+          "note": "對念屬性目標的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬目標的物理傷害+3~15%",
+          "note": "對不死屬目標的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 1~1",
+          "note": "ASPD + 1~1"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 3~10%",
+          "note": "ASPD + 3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~15",
+          "note": "FLEE + 5~15"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暴擊的傷害+3~10%",
+          "note": "對暴擊的傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+3~10%",
+          "note": "對遠距離的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的物理傷害+3~10%",
+          "note": "對無形型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的物理傷害+3~10%",
+          "note": "對不死型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的物理傷害+3~10%",
+          "note": "對動物型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的物理傷害+3~10%",
+          "note": "對植物型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的物理傷害+3~10%",
+          "note": "對昆蟲型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的物理傷害+3~10%",
+          "note": "對魚貝型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的物理傷害+3~10%",
+          "note": "對惡魔型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人型型的物理傷害+3~10%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的物理傷害+3~10%",
+          "note": "對天使型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的物理傷害+3~10%",
+          "note": "對龍族型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的物理傷害+3~10%",
+          "note": "對小型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的物理傷害+3~10%",
+          "note": "對中型的物理傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的物理傷害+3~10%",
+          "note": "對大型的物理傷害+3~10%"
+        }
+      ]
+    },
+    "EP17_1_SPC06": {
+      "title": "高階武器改造裝置(物理)",
+      "box_item_id": 23777,
+      "updated_at": "2026-08-08T14:28:23+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 15,
+          "max_value": 40,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 15~40",
+          "note": "ATK + 15~40"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 1~10%",
+          "note": "ATK + 1~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "HIT + 3~15",
+          "note": "HIT + 3~15"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "CRI + 3~15",
+          "note": "CRI + 3~15"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性目標的物理傷害+3~20%",
+          "note": "對無屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性目標的物理傷害+3~20%",
+          "note": "對水屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性目標的物理傷害+3~20%",
+          "note": "對地屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性目標的物理傷害+3~20%",
+          "note": "對火屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性目標的物理傷害+3~20%",
+          "note": "對風屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性目標的物理傷害+3~20%",
+          "note": "對毒屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性目標的物理傷害+3~20%",
+          "note": "對聖屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性目標的物理傷害+3~20%",
+          "note": "對暗屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性目標的物理傷害+3~20%",
+          "note": "對念屬性目標的物理傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬目標的物理傷害+3~20%",
+          "note": "對不死屬目標的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 1~1",
+          "note": "ASPD + 1~1"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "攻擊後延遲 + 3~15%",
+          "note": "攻擊後延遲 + 3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~30",
+          "note": "FLEE + 5~30"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暴擊的傷害+3~15%",
+          "note": "對暴擊的傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+3~15%",
+          "note": "對遠距離的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SP_CONSUMPTION",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能SP消耗-1~5%",
+          "note": "技能SP消耗-1~5%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的物理傷害+3~15%",
+          "note": "對無形型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的物理傷害+3~15%",
+          "note": "對不死型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的物理傷害+3~15%",
+          "note": "對動物型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的物理傷害+3~15%",
+          "note": "對植物型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的物理傷害+3~15%",
+          "note": "對昆蟲型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的物理傷害+3~15%",
+          "note": "對魚貝型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的物理傷害+3~15%",
+          "note": "對惡魔型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人型型的物理傷害+3~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的物理傷害+3~15%",
+          "note": "對天使型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的物理傷害+3~15%",
+          "note": "對龍族型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型體型的物理傷害+3~15%",
+          "note": "對小型體型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型體型的物理傷害+3~15%",
+          "note": "對中型體型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型體型的物理傷害+3~15%",
+          "note": "對大型體型的物理傷害+3~15%"
+        }
+      ]
+    },
+    "EP17_1_SPC07": {
+      "title": "頂級武器改造裝置(物理)",
+      "box_item_id": 23778,
+      "updated_at": "2026-08-08T14:31:00+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 20,
+          "max_value": 60,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 20~60",
+          "note": "ATK + 20~60"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 3~15%",
+          "note": "ATK + 3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "HIT + 3~20",
+          "note": "HIT + 3~20"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "CRI + 3~20",
+          "note": "CRI + 3~20"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性目標的物理傷害+5~25%",
+          "note": "對無屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性目標的物理傷害+5~25%",
+          "note": "對水屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性目標的物理傷害+5~25%",
+          "note": "對地屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性目標的物理傷害+5~25%",
+          "note": "對火屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性目標的物理傷害+5~25%",
+          "note": "對風屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性目標的物理傷害+5~25%",
+          "note": "對毒屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性目標的物理傷害+5~25%",
+          "note": "對聖屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性目標的物理傷害+5~25%",
+          "note": "對暗屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性目標的物理傷害+5~25%",
+          "note": "對念屬性目標的物理傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬目標的物理傷害+5~25%",
+          "note": "對不死屬目標的物理傷害+5~25%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 1~2",
+          "note": "ASPD + 1~2"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "攻擊後延遲 + 3~20%",
+          "note": "攻擊後延遲 + 3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 45,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~45",
+          "note": "FLEE + 5~45"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "爆擊傷害+3~20%",
+          "note": "爆擊傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+3~20%",
+          "note": "對遠距離的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SP_CONSUMPTION",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能SP消耗-1~10%",
+          "note": "技能SP消耗-1~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的物理傷害+3~20%",
+          "note": "對無形型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的物理傷害+3~20%",
+          "note": "對不死型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的物理傷害+3~20%",
+          "note": "對動物型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的物理傷害+3~20%",
+          "note": "對植物型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的物理傷害+3~20%",
+          "note": "對昆蟲型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的物理傷害+3~20%",
+          "note": "對魚貝型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的物理傷害+3~20%",
+          "note": "對惡魔型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人型型的物理傷害+3~20%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的物理傷害+3~20%",
+          "note": "對天使型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_DAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的物理傷害+3~20%",
+          "note": "對龍族型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的物理傷害+3~20%",
+          "note": "對小型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的物理傷害+3~20%",
+          "note": "對中型的物理傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的物理傷害+3~20%",
+          "note": "對大型的物理傷害+3~20%"
+        }
+      ]
+    },
+    "EP17_1_SPC08": {
+      "title": "武器改造裝置(魔法)",
+      "box_item_id": 23779,
+      "updated_at": "2026-08-08T14:34:38+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 5,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 5~20",
+          "note": "MATK + 5~20"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 1~5%",
+          "note": "MATK + 1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "攻擊後延遲 + 3~10%",
+          "note": "攻擊後延遲 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性敵人的魔法傷害+3~15%",
+          "note": "對無屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性敵人的魔法傷害+3~15%",
+          "note": "對水屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性敵人的魔法傷害+3~15%",
+          "note": "對地屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性敵人的魔法傷害+3~15%",
+          "note": "對火屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性敵人的魔法傷害+3~15%",
+          "note": "對風屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性敵人的魔法傷害+3~15%",
+          "note": "對毒屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性敵人的魔法傷害+3~15%",
+          "note": "對聖屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性敵人的魔法傷害+3~15%",
+          "note": "對暗屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性敵人的魔法傷害+3~15%",
+          "note": "對念屬性敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬敵人的魔法傷害+3~15%",
+          "note": "對不死屬敵人的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 1~1",
+          "note": "ASPD + 1~1"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~15",
+          "note": "FLEE + 5~15"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "變動詠唱-3~10%",
+          "note": "變動詠唱-3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的魔法傷害+3~10%",
+          "note": "對無形型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的魔法傷害+3~10%",
+          "note": "對不死型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的魔法傷害+3~10%",
+          "note": "對動物型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的魔法傷害+3~10%",
+          "note": "對植物型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的魔法傷害+3~10%",
+          "note": "對昆蟲型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的魔法傷害+3~10%",
+          "note": "對魚貝型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的魔法傷害+3~10%",
+          "note": "對惡魔型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型的魔法傷害+3~10%",
+          "note": "對人類型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的魔法傷害+3~10%",
+          "note": "對天使型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的魔法傷害+3~10%",
+          "note": "對龍族型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的魔法傷害+3~10%",
+          "note": "對小型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的魔法傷害+3~10%",
+          "note": "對中型的魔法傷害+3~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的魔法傷害+3~10%",
+          "note": "對大型的魔法傷害+3~10%"
+        }
+      ]
+    },
+    "EP17_1_SPC09": {
+      "title": "高階武器改造裝置(魔法)",
+      "box_item_id": 23780,
+      "updated_at": "2026-08-08T14:36:03+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 15,
+          "max_value": 40,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 15~40",
+          "note": "MATK + 15~40"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 1~10%",
+          "note": "MATK + 1~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "攻擊後延遲 + 3~10%",
+          "note": "攻擊後延遲 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性敵人的魔法傷害+3~20%",
+          "note": "對無屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性敵人的魔法傷害+3~20%",
+          "note": "對水屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性敵人的魔法傷害+3~20%",
+          "note": "對地屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性敵人的魔法傷害+3~20%",
+          "note": "對火屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性敵人的魔法傷害+3~20%",
+          "note": "對風屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性敵人的魔法傷害+3~20%",
+          "note": "對毒屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性敵人的魔法傷害+3~20%",
+          "note": "對聖屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性敵人的魔法傷害+3~20%",
+          "note": "對暗屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性敵人的魔法傷害+3~20%",
+          "note": "對念屬性敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬敵人的魔法傷害+3~20%",
+          "note": "對不死屬敵人的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 1~1",
+          "note": "ASPD + 1~1"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~30",
+          "note": "FLEE + 5~30"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "變動詠唱-3~15%",
+          "note": "變動詠唱-3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的魔法傷害+3~15%",
+          "note": "對無形型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的魔法傷害+3~15%",
+          "note": "對不死型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的魔法傷害+3~15%",
+          "note": "對動物型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的魔法傷害+3~15%",
+          "note": "對植物型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的魔法傷害+3~15%",
+          "note": "對昆蟲型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的魔法傷害+3~15%",
+          "note": "對魚貝型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的魔法傷害+3~15%",
+          "note": "對惡魔型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型的魔法傷害+3~15%",
+          "note": "對人類型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的魔法傷害+3~15%",
+          "note": "對天使型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的魔法傷害+3~15%",
+          "note": "對龍族型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的魔法傷害+3~15%",
+          "note": "對小型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的魔法傷害+3~15%",
+          "note": "對中型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的魔法傷害+3~15%",
+          "note": "對大型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SP_CONSUMPTION",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能SP消耗-1~5%",
+          "note": "技能SP消耗-1~5%"
+        }
+      ]
+    },
+    "EP17_1_SPC10": {
+      "title": "頂級武器改造裝置(魔法)",
+      "box_item_id": 23781,
+      "updated_at": "2026-08-08T14:40:56+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 20,
+          "max_value": 60,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 20~60",
+          "note": "MATK + 20~60"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 3~15%",
+          "note": "MATK + 3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "攻擊後延遲 + 3~10%",
+          "note": "攻擊後延遲 + 3~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性敵人的魔法傷害+5~25%",
+          "note": "對無屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性敵人的魔法傷害+5~25%",
+          "note": "對水屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性敵人的魔法傷害+5~25%",
+          "note": "對地屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性敵人的魔法傷害+5~25%",
+          "note": "對火屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性敵人的魔法傷害+5~25%",
+          "note": "對風屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性敵人的魔法傷害+5~25%",
+          "note": "對毒屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性敵人的魔法傷害+5~25%",
+          "note": "對聖屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性敵人的魔法傷害+5~25%",
+          "note": "對暗屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性敵人的魔法傷害+5~25%",
+          "note": "對念屬性敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "1",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬敵人的魔法傷害+5~25%",
+          "note": "對不死屬敵人的魔法傷害+5~25%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ASPD + 1~2",
+          "note": "ASPD + 1~2"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 45,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~45",
+          "note": "FLEE + 5~45"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "變動詠唱-3~20%",
+          "note": "變動詠唱-3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SP_CONSUMPTION",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能SP消耗-1~10%",
+          "note": "技能SP消耗-1~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的魔法傷害+3~20%",
+          "note": "對無形型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的魔法傷害+3~20%",
+          "note": "對不死型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的魔法傷害+3~20%",
+          "note": "對動物型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的魔法傷害+3~20%",
+          "note": "對植物型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的魔法傷害+3~20%",
+          "note": "對昆蟲型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的魔法傷害+3~20%",
+          "note": "對魚貝型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的魔法傷害+3~20%",
+          "note": "對惡魔型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型的魔法傷害+3~20%",
+          "note": "對人類型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的魔法傷害+3~20%",
+          "note": "對天使型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的魔法傷害+3~20%",
+          "note": "對龍族型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的魔法傷害+3~20%",
+          "note": "對小型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的魔法傷害+3~20%",
+          "note": "對中型的魔法傷害+3~20%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的魔法傷害+3~20%",
+          "note": "對大型的魔法傷害+3~20%"
+        }
+      ]
+    },
+    "MD_Airboat_Random": {
+      "title": "神奇魔珠",
+      "box_item_id": 100476,
+      "updated_at": "2026-08-08T14:44:04+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_HPACCELERATION",
+          "min_value": 25,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_SPACCELERATION",
+          "min_value": 25,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 50,
+          "max_value": 1000,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 10,
+          "max_value": 300,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 1,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "",
+          "note": ""
+        }
+      ]
+    },
+    "Pontifex_Tenacity": {
+      "title": "大神官堅韌石",
+      "box_item_id": 100652,
+      "updated_at": "2026-08-08T14:48:22+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 12,
+          "max_value": 60,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 12~60",
+          "note": "ATK + 12~60"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 2~10%",
+          "note": "ATK + 2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 250,
+          "max_value": 1250,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxHP + 250~1250",
+          "note": "MaxHP + 250~1250"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 75,
+          "max_value": 375,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxSP + 75~375",
+          "note": "MaxSP + 75~375"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 12,
+          "max_value": 60,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "DEF + 12~60",
+          "note": "DEF + 12~60"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 6,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 6~30",
+          "note": "FLEE + 6~30"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 6,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "HIT + 6~30",
+          "note": "HIT + 6~30"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_NOTHING",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的物理傷害+4~20%",
+          "note": "對無形型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_UNDEAD",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的物理傷害+4~20%",
+          "note": "對不死型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_ANIMAL",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的物理傷害+4~20%",
+          "note": "對動物型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_PLANT",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的物理傷害+4~20%",
+          "note": "對植物型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_INSECT",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的物理傷害+4~20%",
+          "note": "對昆蟲型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_FISHS",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的物理傷害+4~20%",
+          "note": "對魚貝型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_DEVIL",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的物理傷害+4~20%",
+          "note": "對惡魔型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_HUMAN",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型的物理傷害+4~20%",
+          "note": "對人類型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_ANGEL",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的物理傷害+4~20%",
+          "note": "對天使型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_DRAGON",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的物理傷害+4~20%",
+          "note": "對龍族型的物理傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+2~10%",
+          "note": "對遠距離的物理傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對近距離的物理傷害+2~10%",
+          "note": "對近距離的物理傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "爆擊傷害+2~10%",
+          "note": "爆擊傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~5%",
+          "note": "技能後延遲-1~5%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性敵人的物理傷害+3~15%",
+          "note": "對無屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性敵人的物理傷害+3~15%",
+          "note": "對水屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性敵人的物理傷害+3~15%",
+          "note": "對地屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性敵人的物理傷害+3~15%",
+          "note": "對火屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性敵人的物理傷害+3~15%",
+          "note": "對風屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性敵人的物理傷害+3~15%",
+          "note": "對毒屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性敵人的物理傷害+3~15%",
+          "note": "對聖屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性敵人的物理傷害+3~15%",
+          "note": "對暗屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性敵人的物理傷害+3~15%",
+          "note": "對念屬性敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬敵人的物理傷害+3~15%",
+          "note": "對不死屬敵人的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+3~15%",
+          "note": "對遠距離的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對近距離的物理傷害+3~15%",
+          "note": "對近距離的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暴擊的傷害+3~15%",
+          "note": "對暴擊的傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的物理傷害+3~15%",
+          "note": "對小型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的物理傷害+3~15%",
+          "note": "對中型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的物理傷害+3~15%",
+          "note": "對大型的物理傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~5%",
+          "note": "技能後延遲-1~5%"
+        }
+      ]
+    },
+    "Pontifex_Belief": {
+      "title": "大神官信念石",
+      "box_item_id": 100653,
+      "updated_at": "2026-08-08T14:55:33+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 12,
+          "max_value": 60,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 12~60",
+          "note": "MATK + 12~60"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 2~10%",
+          "note": "MATK + 2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 250,
+          "max_value": 1250,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxHP + 250~1250",
+          "note": "MaxHP + 250~1250"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 75,
+          "max_value": 375,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxSP + 75~375",
+          "note": "MaxSP + 75~375"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 12,
+          "max_value": 60,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "DEF + 12~60",
+          "note": "DEF + 12~60"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 6,
+          "max_value": 30,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 6~30",
+          "note": "FLEE + 6~30"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "變動詠唱-3~15%",
+          "note": "變動詠唱-3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的魔法傷害+4~20%",
+          "note": "對無形型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的魔法傷害+4~20%",
+          "note": "對不死型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的魔法傷害+4~20%",
+          "note": "對動物型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的魔法傷害+4~20%",
+          "note": "對植物型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的魔法傷害+4~20%",
+          "note": "對昆蟲型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的魔法傷害+4~20%",
+          "note": "對魚貝型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的魔法傷害+4~20%",
+          "note": "對惡魔型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人類型的魔法傷害+4~20%",
+          "note": "對人類型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的魔法傷害+4~20%",
+          "note": "對天使型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 4,
+          "max_value": 20,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的魔法傷害+4~20%",
+          "note": "對龍族型的魔法傷害+4~20%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "無屬性的魔法傷害+3~15%",
+          "note": "無屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_WATER",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "水屬性的魔法傷害+3~15%",
+          "note": "水屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_GROUND",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "地屬性的魔法傷害+3~15%",
+          "note": "地屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_FIRE",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "火屬性的魔法傷害+3~15%",
+          "note": "火屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_WIND",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "風屬性的魔法傷害+3~15%",
+          "note": "風屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_POISON",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "毒屬性的魔法傷害+3~15%",
+          "note": "毒屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_SAINT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "聖屬性的魔法傷害+3~15%",
+          "note": "聖屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_DARKNESS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "暗屬性的魔法傷害+3~15%",
+          "note": "暗屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_TELEKINESIS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "念屬性的魔法傷害+3~15%",
+          "note": "念屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "後延遲-1~5%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性敵人的魔傷+3~15%",
+          "note": "對無屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性敵人的魔傷+3~15%",
+          "note": "對水屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性敵人的魔傷+3~15%",
+          "note": "對地屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性敵人的魔傷+3~15%",
+          "note": "對火屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性敵人的魔傷+3~15%",
+          "note": "對風屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性敵人的魔傷+3~15%",
+          "note": "對毒屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性敵人的魔傷+3~15%",
+          "note": "對聖屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性敵人的魔傷+3~15%",
+          "note": "對暗屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性敵人的魔傷+3~15%",
+          "note": "對念屬性敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬敵人的魔傷+3~15%",
+          "note": "對不死屬敵人的魔傷+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "無屬性的魔法傷害+3~15%",
+          "note": "無屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_WATER",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "水屬性的魔法傷害+3~15%",
+          "note": "水屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_GROUND",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "地屬性的魔法傷害+3~15%",
+          "note": "地屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_FIRE",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "火屬性的魔法傷害+3~15%",
+          "note": "火屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_WIND",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "風屬性的魔法傷害+3~15%",
+          "note": "風屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_POISON",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "毒屬性的魔法傷害+3~15%",
+          "note": "毒屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_SAINT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "聖屬性的魔法傷害+3~15%",
+          "note": "聖屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_DARKNESS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "暗屬性的魔法傷害+3~15%",
+          "note": "暗屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_TELEKINESIS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "念屬性的魔法傷害+3~15%",
+          "note": "念屬性的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型的魔法傷害+3~15%",
+          "note": "對小型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型的魔法傷害+3~15%",
+          "note": "對中型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型的魔法傷害+3~15%",
+          "note": "對大型的魔法傷害+3~15%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~5%",
+          "note": "技能後延遲-1~5%"
+        }
+      ]
+    },
+    "Pontifex_Courage": {
+      "title": "大神官勇氣石",
+      "box_item_id": 100650,
+      "updated_at": "2026-08-08T15:02:15+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 10,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 10~50",
+          "note": "ATK + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "ATK + 1~5%",
+          "note": "ATK + 1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 200,
+          "max_value": 1000,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxHP + 200~1000",
+          "note": "MaxHP + 200~1000"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 50,
+          "max_value": 250,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxSP + 50~250",
+          "note": "MaxSP + 50~250"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 10,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "DEF + 10~50",
+          "note": "DEF + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~25",
+          "note": "FLEE + 5~25"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "HIT + 5~25",
+          "note": "HIT + 5~25"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的物理傷害+3~15%",
+          "note": "對無形型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的物理傷害+3~15%",
+          "note": "對不死型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的物理傷害+3~15%",
+          "note": "對動物型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的物理傷害+3~15%",
+          "note": "對植物型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的物理傷害+3~15%",
+          "note": "對昆蟲型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的物理傷害+3~15%",
+          "note": "對魚貝型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的物理傷害+3~15%",
+          "note": "對惡魔型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人型型的物理傷害+3~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的物理傷害+3~15%",
+          "note": "對天使型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_DAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的物理傷害+3~15%",
+          "note": "對龍族型的物理傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+2~10%",
+          "note": "對遠距離的物理傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對近距離的物理傷害+2~10%",
+          "note": "對近距離的物理傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暴擊的傷害+2~10%",
+          "note": "對暴擊的傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~3%",
+          "note": "技能後延遲-1~3%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性目標的物傷+2~10%",
+          "note": "對無屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性目標的物傷+2~10%",
+          "note": "對水屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性目標的物傷+2~10%",
+          "note": "對地屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性目標的物傷+2~10%",
+          "note": "對火屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性目標的物傷+2~10%",
+          "note": "對風屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性目標的物傷+2~10%",
+          "note": "對毒屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性目標的物傷+2~10%",
+          "note": "對聖屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性目標的物傷+2~10%",
+          "note": "對暗屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性目標的物傷+2~10%",
+          "note": "對念屬性目標的物傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬目標的物傷+2~10%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對遠距離的物理傷害+2~10%",
+          "note": "對遠距離的物理傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對近距離的物理傷害+2~10%",
+          "note": "對近距離的物理傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暴擊的傷害+2~10%",
+          "note": "對暴擊的傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型體型的物理傷害+2~10%",
+          "note": "對小型體型的物理傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型體型的物理傷害+2~10%",
+          "note": "對中型體型的物理傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型體型的物理傷害+2~10%",
+          "note": "對大型體型的物理傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~3%",
+          "note": "技能後延遲-1~3%"
+        }
+      ]
+    },
+    "Pontifex_Wisdom": {
+      "title": "大神官智慧石",
+      "box_item_id": 100651,
+      "updated_at": "2026-08-08T15:06:32+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 100.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 10,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 10~50",
+          "note": "MATK + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MATK + 1~5%",
+          "note": "MATK + 1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 200,
+          "max_value": 1000,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxHP + 200~1000",
+          "note": "MaxHP + 200~1000"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 50,
+          "max_value": 250,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "MaxSP + 50~250",
+          "note": "MaxSP + 50~250"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 10,
+          "max_value": 50,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "DEF + 10~50",
+          "note": "DEF + 10~50"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "FLEE + 5~25",
+          "note": "FLEE + 5~25"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "變動詠唱-2~10%",
+          "note": "變動詠唱-2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_NOTHING",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無形型的魔法傷害+3~15%",
+          "note": "對無形型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_UNDEAD",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死型的魔法傷害+3~15%",
+          "note": "對不死型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_ANIMAL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對動物型的魔法傷害+3~15%",
+          "note": "對動物型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_PLANT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對植物型的魔法傷害+3~15%",
+          "note": "對植物型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_INSECT",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對昆蟲型的魔法傷害+3~15%",
+          "note": "對昆蟲型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_FISHS",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對魚貝型的魔法傷害+3~15%",
+          "note": "對魚貝型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_DEVIL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對惡魔型的魔法傷害+3~15%",
+          "note": "對惡魔型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_HUMAN",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對人型型的魔法傷害+3~15%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_ANGEL",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對天使型的魔法傷害+3~15%",
+          "note": "對天使型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "RACE_MDAMAGE_DRAGON",
+          "min_value": 3,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對龍族型的魔法傷害+3~15%",
+          "note": "對龍族型的魔法傷害+3~15%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_NOTHING",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "無屬性技能的魔法傷害+2~10%",
+          "note": "無屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_WATER",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "水屬性技能的魔法傷害+2~10%",
+          "note": "水屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_GROUND",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "地屬性技能的魔法傷害+2~10%",
+          "note": "地屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_FIRE",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "火屬性技能的魔法傷害+2~10%",
+          "note": "火屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_WIND",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "風屬性技能的魔法傷害+2~10%",
+          "note": "風屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_POISON",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "毒屬性技能的魔法傷害+2~10%",
+          "note": "毒屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_SAINT",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "聖屬性技能的魔法傷害+2~10%",
+          "note": "聖屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_DARKNESS",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "暗屬性技能的魔法傷害+2~10%",
+          "note": "暗屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_TELEKINESIS",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "念屬性技能的魔法傷害+2~10%",
+          "note": "念屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~3%",
+          "note": "技能後延遲-1~3%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_NOTHING_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對無屬性目標的魔傷+2~10%",
+          "note": "對無屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WATER_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對水屬性目標的魔傷+2~10%",
+          "note": "對水屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_GROUND_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對地屬性目標的魔傷+2~10%",
+          "note": "對地屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_FIRE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對火屬性目標的魔傷+2~10%",
+          "note": "對火屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_WIND_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對風屬性目標的魔傷+2~10%",
+          "note": "對風屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_POISON_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對毒屬性目標的魔傷+2~10%",
+          "note": "對毒屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_SAINT_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對聖屬性目標的魔傷+2~10%",
+          "note": "對聖屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_DARKNESS_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對暗屬性目標的魔傷+2~10%",
+          "note": "對暗屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_TELEKINESIS_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對念屬性目標的魔傷+2~10%",
+          "note": "對念屬性目標的魔傷+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_PROPERTY_UNDEAD_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對不死屬目標的魔傷+2~10%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_NOTHING",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "無屬性技能的魔法傷害+2~10%",
+          "note": "無屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_WATER",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "水屬性技能的魔法傷害+2~10%",
+          "note": "水屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_GROUND",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "地屬性技能的魔法傷害+2~10%",
+          "note": "地屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_FIRE",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "火屬性技能的魔法傷害+2~10%",
+          "note": "火屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_WIND",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "風屬性技能的魔法傷害+2~10%",
+          "note": "風屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_POISON",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "毒屬性技能的魔法傷害+2~10%",
+          "note": "毒屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_SAINT",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "聖屬性技能的魔法傷害+2~10%",
+          "note": "聖屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_DARKNESS",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "暗屬性技能的魔法傷害+2~10%",
+          "note": "暗屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "ADDSKILLMDAMAGE_TELEKINESIS",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "念屬性技能的魔法傷害+2~10%",
+          "note": "念屬性技能的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_SMALL_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對小型體型的魔法傷害+2~10%",
+          "note": "對小型體型的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_MIDIUM_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對中型體型的魔法傷害+2~10%",
+          "note": "對中型體型的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "MDAMAGE_SIZE_LARGE_TARGET",
+          "min_value": 2,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "對大型體型的魔法傷害+2~10%",
+          "note": "對大型體型的魔法傷害+2~10%"
+        },
+        {
+          "group": "2",
+          "option_code": "DEC_SPELL_DELAY_TIME",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 0.0,
+          "raw_effect": "技能後延遲-1~3%",
+          "note": "技能後延遲-1~3%"
+        }
+      ]
     }
   }
 }

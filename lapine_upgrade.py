@@ -1053,7 +1053,7 @@ class LapineProbabilityEditor(QDialog):
         # and call the target 魔物, while the table uses 小型/中型/大型敵人.
         for size_name in ("小型", "中型", "大型"):
             value = re.sub(
-                rf"對{size_name}(?:型)?(?:魔物|怪物|敵人|對象)的",
+                rf"對{size_name}(?:型|體型)?(?:魔物|怪物|敵人|對象)的",
                 f"{size_name}敵人的",
                 value,
             )
@@ -1063,7 +1063,7 @@ class LapineProbabilityEditor(QDialog):
         # fuzzy matching so it cannot collapse into the shorter self-element
         # magic-damage label (for example ADDSKILLMDAMAGE_WIND).
         value = re.sub(
-            r"(?:給予|對)(無|水|地|火|風|毒|聖|暗|念|不死)屬性(?:怪物|怪|魔物|敵人|對象)的",
+            r"(?:給予|對)(無|水|地|火|風|毒|聖|暗|念|不死)屬性(?:怪物|怪|魔物|敵人|對象|目標)的",
             r"對\1屬性敵人的",
             value,
         )
@@ -1204,7 +1204,7 @@ class LapineProbabilityEditor(QDialog):
 
         stripped = re.sub(r"^[\-=—–_\s]+|[\-=—–_\s]+$", "", value)
         if "隨機能力" in stripped or "附魔" in stripped:
-            stripped = re.sub(r"固定附加|隨機附加|隨機能力|附魔", "", stripped).strip()
+            stripped = re.sub(r"固定附加|隨機附加|隨機能力|附魔|屬性", "", stripped).strip()
             return stripped or None
         return None
 
@@ -1235,7 +1235,7 @@ class LapineProbabilityEditor(QDialog):
             "不死": "UNDEAD",
         }
         element_pattern = r"(無|水|地|火|風|毒|聖|暗|念|不死)"
-        target_noun = r"(?:怪物|怪|魔物|敵人|對象)"
+        target_noun = r"(?:怪物|怪|魔物|敵人|對象|目標)"
 
         # Class and size phrases are also semantically unambiguous.  Resolve
         # them before fuzzy comparison so words such as 魔法攻擊增加 do not
