@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.8-260808"
+Version = "v0.5.9-260808"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -248,7 +248,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
     QComboBox, QTextEdit, QMessageBox, QHBoxLayout, QScrollArea, QCheckBox, QMenuBar, QFileDialog,
     QPushButton, QTabWidget, QFormLayout, QSpinBox  ,QDoubleSpinBox  ,QFrame , QGridLayout,QDialog, QListWidget, QButtonGroup,QSlider,
-    QCompleter, QTableWidget, QTableWidgetItem,
+    QCompleter, QTableWidget, QTableWidgetItem, QSplitter,
 )
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -6124,7 +6124,6 @@ class MultiCompareDialog(QDialog):
         self.equipment_table.setAlternatingRowColors(True)
         self.equipment_table.setWordWrap(True)
         self.equipment_section_layout.addWidget(self.equipment_table, 1)
-        self.compare_content_layout.addWidget(self.equipment_section_widget, 3)
 
         # ===== 計算結果區塊：與裝備差異可分別展開 / 收起 =====
         self.result_section_widget = QWidget()
@@ -6146,10 +6145,21 @@ class MultiCompareDialog(QDialog):
         self.result_table.setAlternatingRowColors(True)
         self.result_table.setWordWrap(False)
         self.result_section_layout.addWidget(self.result_table, 1)
-        self.compare_content_layout.addWidget(self.result_section_widget, 2)
 
-        # 兩區都收起時，剩餘高度全部留在最下方，標題與工具列仍固定在頂部。
-        # 初始兩區都展開，不讓底部 spacer 分走表格高度；兩區皆收起時再動態給它 stretch。
+        # ===== 可拖曳的上下分隔線 =====
+        # 裝備差異與計算結果放進垂直 QSplitter，使用者可直接拖曳中間分隔線
+        # 任意調整兩區高度；不再以固定 3:2 stretch 鎖住比例。
+        self.compare_splitter = QSplitter(Qt.Vertical)
+        self.compare_splitter.setChildrenCollapsible(False)
+        self.compare_splitter.setHandleWidth(8)
+        self.compare_splitter.addWidget(self.equipment_section_widget)
+        self.compare_splitter.addWidget(self.result_section_widget)
+        self.compare_splitter.setStretchFactor(0, 3)
+        self.compare_splitter.setStretchFactor(1, 2)
+        self.compare_content_layout.addWidget(self.compare_splitter, 1)
+
+        # 兩區都收起時，讓最下方 spacer 吃掉剩餘高度，確保工具列與兩個標題
+        # 仍固定在視窗最上方。只要任一區展開，splitter 就重新取得全部可用高度。
         self.compare_content_layout.addStretch(0)
         root.addWidget(self.compare_content_widget, 1)
 
@@ -6158,6 +6168,9 @@ class MultiCompareDialog(QDialog):
         self._equipment_expanded = True
         self._result_expanded = True
         self._syncing_compare_column_widths = False
+        # 記住使用者最後一次在兩區皆展開時拖出的比例；收合再展開時恢復。
+        self._compare_splitter_sizes = [540, 360]
+        QTimer.singleShot(0, lambda: self.compare_splitter.setSizes(self._compare_splitter_sizes))
 
         self.update_current_button.clicked.connect(self.refresh_current_snapshot)
         self.add_json_button.clicked.connect(self.add_json_files)
@@ -6218,42 +6231,78 @@ class MultiCompareDialog(QDialog):
         self.show_current_checkbox.setChecked(should_show)
         return should_show
 
+    def _section_collapsed_height(self, section_widget):
+        """取得區塊只剩標題列時需要保留的高度。"""
+        try:
+            height = section_widget.minimumSizeHint().height()
+        except Exception:
+            height = 0
+        return max(30, int(height))
+
     def _set_compare_section_expanded(self, section, expanded):
-        """切換區塊並同步 stretch；兩區皆收起時所有控制項維持貼齊視窗頂部。"""
+        """切換區塊；兩區展開時由 QSplitter 讓使用者自由拖曳高度。"""
         expanded = bool(expanded)
+
+        # 在收起任一區之前，先記住使用者目前手動拉出的上下比例。
+        if (
+            self._equipment_expanded
+            and self._result_expanded
+            and hasattr(self, "compare_splitter")
+        ):
+            sizes = self.compare_splitter.sizes()
+            if len(sizes) >= 2 and sizes[0] > 0 and sizes[1] > 0:
+                self._compare_splitter_sizes = sizes[:2]
+
         if section == "equipment":
             self._equipment_expanded = expanded
             self.equipment_table.setVisible(expanded)
             self.equipment_toggle_button.setText("▲ 收起" if expanded else "▼ 展開")
+            section_widget = self.equipment_section_widget
         elif section == "result":
             self._result_expanded = expanded
             self.result_table.setVisible(expanded)
             self.result_toggle_button.setText("▲ 收起" if expanded else "▼ 展開")
+            section_widget = self.result_section_widget
+        else:
+            return
 
-        # QVBoxLayout 的 stretch 即使子 widget 被隱藏，在不同平台 / Qt 樣式下仍可能
-        # 造成看起來像保留一大片空間。收起時直接把該 section stretch 設成 0。
-        if hasattr(self, "compare_content_layout"):
-            self.compare_content_layout.setStretch(0, 3 if self._equipment_expanded else 0)
-            self.compare_content_layout.setStretch(1, 2 if self._result_expanded else 0)
-            # 只有兩區都收起時才讓最下面的 spacer 吃掉剩餘高度。
-            self.compare_content_layout.setStretch(
-                2,
-                1 if not self._equipment_expanded and not self._result_expanded else 0,
-            )
+        # 收起時只保留標題列；展開時解除高度上限，交回 splitter 控制。
+        if expanded:
+            section_widget.setMaximumHeight(16777215)
+            section_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        else:
+            collapsed_height = self._section_collapsed_height(section_widget)
+            section_widget.setMaximumHeight(collapsed_height)
+            section_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        section_widget.updateGeometry()
 
-        if hasattr(self, "equipment_section_widget"):
-            self.equipment_section_widget.setSizePolicy(
-                QSizePolicy.Expanding,
-                QSizePolicy.Expanding if self._equipment_expanded else QSizePolicy.Maximum,
-            )
-            self.equipment_section_widget.updateGeometry()
+        if hasattr(self, "compare_splitter"):
+            equipment_header_h = self._section_collapsed_height(self.equipment_section_widget)
+            result_header_h = self._section_collapsed_height(self.result_section_widget)
 
-        if hasattr(self, "result_section_widget"):
-            self.result_section_widget.setSizePolicy(
-                QSizePolicy.Expanding,
-                QSizePolicy.Expanding if self._result_expanded else QSizePolicy.Maximum,
-            )
-            self.result_section_widget.updateGeometry()
+            if self._equipment_expanded and self._result_expanded:
+                # 兩區都展開：恢復使用者最後一次拖曳比例，之後可繼續任意拉動。
+                self.compare_splitter.setMaximumHeight(16777215)
+                self.compare_content_layout.setStretch(0, 1)
+                self.compare_content_layout.setStretch(1, 0)
+                QTimer.singleShot(0, lambda: self.compare_splitter.setSizes(self._compare_splitter_sizes))
+            elif self._equipment_expanded:
+                self.compare_splitter.setMaximumHeight(16777215)
+                self.compare_content_layout.setStretch(0, 1)
+                self.compare_content_layout.setStretch(1, 0)
+                self.compare_splitter.setSizes([10000, result_header_h])
+            elif self._result_expanded:
+                self.compare_splitter.setMaximumHeight(16777215)
+                self.compare_content_layout.setStretch(0, 1)
+                self.compare_content_layout.setStretch(1, 0)
+                self.compare_splitter.setSizes([equipment_header_h, 10000])
+            else:
+                # 兩區皆收起：splitter 只保留兩個標題列，高度其餘交給底部 spacer。
+                max_height = equipment_header_h + result_header_h + self.compare_splitter.handleWidth()
+                self.compare_splitter.setMaximumHeight(max_height)
+                self.compare_splitter.setSizes([equipment_header_h, result_header_h])
+                self.compare_content_layout.setStretch(0, 0)
+                self.compare_content_layout.setStretch(1, 1)
 
         if hasattr(self, "compare_content_widget"):
             self.compare_content_widget.updateGeometry()
