@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.9-260808"
+Version = "v0.5.10-260809"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -3647,7 +3647,25 @@ def parse_lua_effects_with_variables(
     current_location_slot=None
 ):
     lines = block_text.splitlines()
-    variables = {}
+
+    # 解析裝備 Lua 前，先把外部已知的角色/裝備基礎素質帶進本次 parser。
+    # base_equip_* 會在 display_all_effects() 的前置掃描階段先建立，
+    # 因此第一次解析就能使用，不需要等 replace_custom_calc_content() 跑完後再算第二次。
+    variables = {
+        "target_element": globals().get("target_element", 0),
+        "skill_focus_AGI": globals().get("skill_focus_AGI", 0),
+        "skill_focus_DEX": globals().get("skill_focus_DEX", 0),
+        "total_AGI": globals().get("total_AGI", 0),
+        "total_DEX": globals().get("total_DEX", 0),
+    }
+    for _stat in ("STR", "AGI", "VIT", "INT", "DEX", "LUK",
+                  "POW", "STA", "WIS", "SPL", "CON", "CRT"):
+        variables[f"base_{_stat}"] = globals().get(f"base_{_stat}", 0)
+        variables[f"job_{_stat}"] = globals().get(f"job_{_stat}", 0)
+        variables[f"equip_{_stat}"] = globals().get(f"equip_{_stat}", 0)
+        variables[f"base_equip_{_stat}"] = globals().get(f"base_equip_{_stat}", 0)
+        variables[f"total_{_stat}"] = globals().get(f"total_{_stat}", 0)
+
     sfct_handled = False  # ✅ 控制是否已處理過 SubSFCTEquipAmount
     skill_delay_accum = {}
     results = []
@@ -4206,14 +4224,8 @@ def parse_lua_effects_with_variables(
             if '"' in expr or "'" in expr or "{" in expr or "function" in expr:
                 results.append(f"🟡一般變數 無法辨識: {original_line}")
                 continue
-
-            variables.update({
-                "target_element": target_element,#給機匠被動
-                "skill_focus_AGI": skill_focus_AGI,#給心神凝聚處理的
-                "skill_focus_DEX": skill_focus_DEX,#給心神凝聚處理的
-                "total_AGI": total_AGI, #給點穴反
-            })
-
+            # 外部角色/裝備變數已在 parser 一開始同步到 variables，
+            # 不要到一般變數指定時才補，否則 if / 函式參數會比這裡更早使用到舊值。
             normalized_expr = normalize_lua_expr(expr, variables, get_values, refine_inputs)
             try:
                 value = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
@@ -6057,7 +6069,7 @@ class ItemSearchApp(QWidget):
             "selected_values": {},
             "equipment_effects": {
                 "effect_dict_raw": getattr(self, "effect_dict_raw", {}),
-                "base_effect_dict_raw": getattr(self, "base_effect_dict_raw", {}),
+                "base_equip_stats_raw": getattr(self, "base_equip_stats_raw", {}),
                 "total_combined_raw": getattr(self, "total_combined_raw", []),
             },
             "skills": {
@@ -7211,7 +7223,6 @@ class ItemSearchApp(QWidget):
         job_bonus = job_dict.get(job_id, {}).get("TJobMaxPoint", [])
         globals()["job_idcore"] = job_dict[job_id]["id"]#取得職業ID代號
         raw_effects = getattr(self, "effect_dict_raw", {})
-        base_raw_effects = getattr(self, "base_effect_dict_raw", {})
 
         for i, stat in enumerate(stat_names):
             try:
@@ -7220,7 +7231,9 @@ class ItemSearchApp(QWidget):
                 base = 0
             job = job_bonus[i] if i < len(job_bonus) else 0
             equip = sum(val for val, _ in raw_effects.get((stat, ""), []))
-            base_equip = sum(val for val, _ in base_raw_effects.get((stat, ""), []))
+            # base_equip_* 的唯一來源是 display_all_effects() 前置掃描的 Stat = {...}。
+            # 不再用第二次 Lua parser 的結果覆寫，避免把技能/被動/其他 Lua 效果混進「裝備基礎素質」。
+            base_equip = globals().get(f"base_equip_{stat}", 0)
             total = base + job + equip
 
             # 🔧 自動產生變數：base_STR, job_STR, equip_STR, total_STR
@@ -7298,6 +7311,8 @@ class ItemSearchApp(QWidget):
         # 原本你的公式解析邏輯
 
         #心神凝聚計算
+        #print(f"base_equip_AGI{base_equip_AGI} base_AGI{base_AGI} job_AGI{job_AGI}")
+        #print(f"base_equip_DEX{base_equip_DEX} base_DEX{base_DEX} job_DEX{job_DEX}")
         globals()["skill_focus_AGI"] = base_equip_AGI + base_AGI + job_AGI
         globals()["skill_focus_DEX"] = base_equip_DEX + base_DEX + job_DEX
         #======================取所有增傷資料到變數區=====================
@@ -10615,6 +10630,86 @@ class ItemSearchApp(QWidget):
 
 
 
+    def _precompute_base_equipment_stats_for_lua(self):
+        """
+        在正式解析裝備 Lua 效果前，先從目前穿著裝備的 Stat = {...}
+        收集純裝備基礎素質，並同步 base_equip_* / skill_focus_AGI / skill_focus_DEX。
+
+        這個階段只讀裝備主體的 Stat，不讀精煉、階級、卡片、詞條與套裝效果。
+        它是 base_equip_* 的唯一資料來源：正式 Lua 效果只解析一次，
+        replace_custom_calc_content() 也只讀這裡建立的 base_equip_*，不再重新推導。
+        """
+        stat_names = [
+            "STR", "AGI", "VIT", "INT", "DEX", "LUK",
+            "POW", "STA", "WIS", "SPL", "CON", "CRT",
+        ]
+        base_equip_stats = {stat: 0 for stat in stat_names}
+
+        # 每次都從目前 UI 裝備重新建立，避免卸裝後沿用上一輪 global 值。
+        for part_name, ui in self.refine_inputs_ui.items():
+            equip_name = ui["equip"].text().strip()
+            if not equip_name:
+                continue
+
+            for item_id, item in self.parsed_items.items():
+                if item.get("name") != equip_name or item_id not in self.equipment_data:
+                    continue
+
+                block_text = self.equipment_data[item_id]
+                type_match = re.search(r'Type\s*=\s*"([^"]+)"', block_text)
+                equip_type = type_match.group(1) if type_match else "armor"
+                stat_names_for_type = stat_name_sets.get(equip_type, stat_name_sets["armor"])
+
+                stat_match = re.search(r'Stat\s*=\s*\{([^}]*)\}', block_text, re.DOTALL)
+                if not stat_match:
+                    continue
+
+                raw_values = stat_match.group(1).split(",")
+                for idx, raw_value in enumerate(raw_values):
+                    if idx >= len(stat_names_for_type):
+                        break
+                    try:
+                        value = int(raw_value.strip())
+                    except (TypeError, ValueError):
+                        continue
+
+                    stat_name = stat_names_for_type[idx]
+                    if stat_name in base_equip_stats:
+                        base_equip_stats[stat_name] += value
+
+        job_id = self.input_fields["JOB"].currentData()
+        job_bonus = job_dict.get(job_id, {}).get("TJobMaxPoint", [])
+
+        for i, stat in enumerate(stat_names):
+            try:
+                base_value = int(self.input_fields[stat].text())
+            except (TypeError, ValueError):
+                base_value = 0
+
+            job_value = job_bonus[i] if i < len(job_bonus) else 0
+            base_equip_value = base_equip_stats[stat]
+
+            globals()[f"base_{stat}"] = base_value
+            globals()[f"job_{stat}"] = job_value
+            globals()[f"base_equip_{stat}"] = base_equip_value
+
+        # 心神凝聚只吃「基礎點數 + Job 加成 + 裝備基礎 Stat」，
+        # 所以可以在完整效果 parser 之前安全建立。
+        globals()["skill_focus_AGI"] = (
+            globals().get("base_AGI", 0)
+            + globals().get("job_AGI", 0)
+            + globals().get("base_equip_AGI", 0)
+        )
+        globals()["skill_focus_DEX"] = (
+            globals().get("base_DEX", 0)
+            + globals().get("job_DEX", 0)
+            + globals().get("base_equip_DEX", 0)
+        )
+
+        # 保留一份純 Stat 快照給 Debug / 其他只讀功能使用。
+        self.base_equip_stats_raw = base_equip_stats.copy()
+        return base_equip_stats
+
 
     def display_all_effects(self):
         '''
@@ -10666,8 +10761,6 @@ class ItemSearchApp(QWidget):
 
 
         refine_inputs = {}
-        # 先在外面準備一份「全 0」的 refine_inputs
-        refine_inputs_base = {info["slot"]: 0 for info in refine_parts.values()}
 
         for label, info in refine_parts.items():
             slot_id = info["slot"]
@@ -10677,8 +10770,10 @@ class ItemSearchApp(QWidget):
                 refine_inputs[slot_id] = 0
 
         effect_dict = {}
-        base_effect_dict = {} 
-        
+
+        # 先建立裝備基礎素質，讓下方唯一一次 parse_lua_effects_with_variables()
+        # 就能正確使用 base_equip_AGI / base_equip_DEX / skill_focus_AGI / DEX。
+        self._precompute_base_equipment_stats_for_lua()
 
         for part in refine_parts.values():#先清除部位 to itemid的對應
             slot_id = part["slot"]
@@ -10689,7 +10784,6 @@ class ItemSearchApp(QWidget):
             equip_name = ui["equip"].text().strip()
             if equip_name:
                 source_label = f"{part_name}：{equip_name}"  # or 卡片名稱 or 套裝來源
-                source_label_base = f"{part_name}：{equip_name}（基礎）"
                 for item_id, item in self.parsed_items.items():
                     if item["name"] == equip_name and item_id in self.equipment_data:
                         block_text = self.equipment_data[item_id]
@@ -10730,30 +10824,6 @@ class ItemSearchApp(QWidget):
                                     # value = 0, unit = ""
                                     effect_dict.setdefault((key, ""), []).append((0, source_label))
 
-                        # --- 第二次：基礎能力（grade=0 + refine_inputs 全 0） ---
-                        base_effects = parse_lua_effects_with_variables(
-                            block_text,
-                            refine_inputs_base,  # <- 全 0
-                            get_values,
-                            0,                   # <- grade 強制 0
-                            unit_map,
-                            size_map,
-                            effect_map,
-                            hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-                            hide_physical=self.hide_physical_checkbox.isChecked(),
-                            hide_magical=self.hide_magical_checkbox.isChecked(),
-                            current_location_slot=slot_id
-                        )
-
-                        base_filtered = self.filter_effects(base_effects)
-                        for line in base_filtered:
-                            if not line.strip():
-                                continue
-                            parsed = self.try_extract_effect(line)
-                            if parsed:
-                                key, value, unit = parsed
-                                key = self.normalize_effect_key(key)
-                                base_effect_dict.setdefault((key, unit), []).append((value, source_label_base))
 
             # ▶️ 卡片欄處理（最多4張）
             for i, card_input in enumerate(ui["cards"]):
@@ -10998,12 +11068,6 @@ class ItemSearchApp(QWidget):
                 effect_dict[key].extend(entries)                
             else:
                 effect_dict[key] = entries.copy()                
-        for key, entries in skillbuff_effect_dict.items():
-            if key in base_effect_dict:                
-                base_effect_dict[key].extend(entries)
-            else:                
-                base_effect_dict[key] = entries.copy()
-
         
         # ✅ 排序合併結果
         combined = []
@@ -11064,7 +11128,6 @@ class ItemSearchApp(QWidget):
         self.safe_update_textbox(self.combo_effect_text, "\n".join(combo_effects_all))
         # 不論有沒有套裝效果、裝備或技能，一律記錄 effect_dict
         self.effect_dict_raw = effect_dict
-        self.base_effect_dict_raw = base_effect_dict#只紀錄裝備基礎能力不含精煉套裝
         self.update_stat_bonus_display()
         #運算
 

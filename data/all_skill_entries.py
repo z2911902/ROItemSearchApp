@@ -1,4 +1,4 @@
-﻿# 額外參數對照表 buff規則10開頭狀態ID，20開頭技能ID
+﻿# 額外參數對照表 buff規則10開頭狀態ID，20開頭技能ID，30開頭隱藏ID(例如超初無死亡獎勵)
 all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":["",""]},
     "掉寶呆(本次)0616-0701": {"buff":"1597","type": "料理","code":["RaceSubDamage(9999, 70)","SubDamage_Property(1, 10, 70)","ClassSubDamage(0, 1, 70)","ClassSubDamage(1, 1, 70)","SubMdamage_Race(9999, 70)","SubMDamage_Property(1, 10, 70)","SubMdamage_Class(0, 70)","SubMdamage_Class(1, 70)","SubSkillMDamage(10, 30)","SubMeleeAttackDamage(1, 30)","SubRangeAttackDamage(1, 30)","SubExtParam(1, 47, 200)"],"exclusive": "itemsugar"},
     "掉寶呆(上次)0506-0519": {"buff":"1597","type": "料理","code":["RaceSubDamage(9999, 70)","SubDamage_Property(1, 10, 70)","ClassSubDamage(0, 1, 70)","ClassSubDamage(1, 1, 70)","SubMdamage_Race(9999, 70)","SubMDamage_Property(1, 10, 70)","SubMdamage_Class(0, 70)","SubMdamage_Class(1, 70)","SubExtParam(1, 52, 300)","SubExtParam(1, 207, 30)","SubExtParam(1, 140, 30)"],"exclusive": "itemsugar"},
@@ -214,7 +214,8 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "突破極限": {"buff":"1383","id": "SN","type": "技能","code":["UseSkill(5461)"]},
     "突破規矩": {"buff":"1384","id": "SN","type": "技能","code":["UseSkill(5462)"]},
     "征服危機": {"buff":"1671","id": "SN","type": "技能","code":["temp = GetSkillLevel(5505)","AddExtParam(1, 109, temp * 15000)","AddExtParam(1, 243, temp * 3)","AddExtParam(1, 242, temp * 3)"]},
-
+    "無死亡獎勵": {"buff":"3043071","id": "SN","type": "技能","code":["AddExtParam(1, 103, 10)","AddExtParam(1, 104, 10)","AddExtParam(1, 105, 10)","AddExtParam(1, 107, 10)","AddExtParam(1, 106, 10)","AddExtParam(1, 108, 10)"]},
+    
     
     #忍者
     "四色符": {"buff": ["1667","1668","1669","1670"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(5499)"]},
