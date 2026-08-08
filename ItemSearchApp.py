@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.6-260808"
+Version = "v0.5.7-260808"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -248,7 +248,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
     QComboBox, QTextEdit, QMessageBox, QHBoxLayout, QScrollArea, QCheckBox, QMenuBar, QFileDialog,
     QPushButton, QTabWidget, QFormLayout, QSpinBox  ,QDoubleSpinBox  ,QFrame , QGridLayout,QDialog, QListWidget, QButtonGroup,QSlider,
-    QCompleter,
+    QCompleter, QTableWidget, QTableWidgetItem,
 )
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -6048,6 +6048,542 @@ class InternalDataInspectorDialog(QDialog):
         return str(obj)
 
 
+class MultiCompareDialog(QDialog):
+    """獨立的多裝備 / 多 JSON 計算結果比對視窗。"""
+
+    def __init__(self, main_window):
+        # 不把主畫面設成 Qt parent，讓它成為真正獨立的頂層視窗。
+        # main_window 仍保留 Python 參照，供 Snapshot / JSON 計算使用。
+        super().__init__(None)
+        self.main_window = main_window
+        self.current_snapshot = None
+        self.json_snapshots = []
+
+        self.setWindowTitle("多裝備比對")
+        self.resize(1500, 900)
+        self.setWindowFlag(Qt.Window, True)
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
+
+        root = QVBoxLayout(self)
+
+        # ===== 固定在最上方的操作列 =====
+        # 使用獨立 QWidget，而不是直接把 QHBoxLayout 丟進帶 stretch 的 root。
+        # 這樣即使下方兩個表格都收起，操作列也不會被剩餘空間推到視窗中間。
+        self.toolbar_widget = QWidget()
+        self.toolbar_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        toolbar = QHBoxLayout(self.toolbar_widget)
+        toolbar.setContentsMargins(0, 0, 0, 0)
+
+        self.update_current_button = QPushButton("更新目前設定")
+        self.add_json_button = QPushButton("加入 JSON...")
+        self.remove_json_button = QPushButton("移除選擇")
+        self.clear_json_button = QPushButton("清空 JSON")
+
+        self.show_current_checkbox = QCheckBox("顯示目前設定")
+        self.show_current_checkbox.setChecked(True)
+        self.only_diff_checkbox = QCheckBox("只顯示差異")
+        self.only_diff_checkbox.setChecked(True)
+        self.status_label = QLabel("")
+
+        toolbar.addWidget(self.update_current_button)
+        toolbar.addWidget(self.add_json_button)
+        toolbar.addWidget(self.remove_json_button)
+        toolbar.addWidget(self.clear_json_button)
+        toolbar.addSpacing(16)
+        toolbar.addWidget(self.show_current_checkbox)
+        toolbar.addWidget(self.only_diff_checkbox)
+        toolbar.addStretch(1)
+        toolbar.addWidget(self.status_label)
+        root.addWidget(self.toolbar_widget, 0, Qt.AlignTop)
+
+        # 下方內容獨立成一個可伸縮區域。操作列不參與這裡的高度分配。
+        self.compare_content_widget = QWidget()
+        self.compare_content_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.compare_content_layout = QVBoxLayout(self.compare_content_widget)
+        self.compare_content_layout.setContentsMargins(0, 0, 0, 0)
+
+        # ===== 裝備差異區塊：標題旁提供獨立展開 / 收起 =====
+        self.equipment_section_widget = QWidget()
+        self.equipment_section_layout = QVBoxLayout(self.equipment_section_widget)
+        self.equipment_section_layout.setContentsMargins(0, 0, 0, 0)
+
+        equipment_header = QHBoxLayout()
+        equipment_header.setContentsMargins(0, 0, 0, 0)
+        self.equipment_title_label = QLabel("裝備差異")
+        self.equipment_toggle_button = QToolButton()
+        self.equipment_toggle_button.setText("▲ 收起")
+        self.equipment_toggle_button.setToolButtonStyle(Qt.ToolButtonTextOnly)
+        equipment_header.addWidget(self.equipment_title_label)
+        equipment_header.addWidget(self.equipment_toggle_button)
+        equipment_header.addStretch(1)
+        self.equipment_section_layout.addLayout(equipment_header)
+
+        self.equipment_table = QTableWidget()
+        self.equipment_table.setAlternatingRowColors(True)
+        self.equipment_table.setWordWrap(True)
+        self.equipment_section_layout.addWidget(self.equipment_table, 1)
+        self.compare_content_layout.addWidget(self.equipment_section_widget, 3)
+
+        # ===== 計算結果區塊：與裝備差異可分別展開 / 收起 =====
+        self.result_section_widget = QWidget()
+        self.result_section_layout = QVBoxLayout(self.result_section_widget)
+        self.result_section_layout.setContentsMargins(0, 0, 0, 0)
+
+        result_header = QHBoxLayout()
+        result_header.setContentsMargins(0, 0, 0, 0)
+        self.result_title_label = QLabel("計算結果")
+        self.result_toggle_button = QToolButton()
+        self.result_toggle_button.setText("▲ 收起")
+        self.result_toggle_button.setToolButtonStyle(Qt.ToolButtonTextOnly)
+        result_header.addWidget(self.result_title_label)
+        result_header.addWidget(self.result_toggle_button)
+        result_header.addStretch(1)
+        self.result_section_layout.addLayout(result_header)
+
+        self.result_table = QTableWidget()
+        self.result_table.setAlternatingRowColors(True)
+        self.result_table.setWordWrap(False)
+        self.result_section_layout.addWidget(self.result_table, 1)
+        self.compare_content_layout.addWidget(self.result_section_widget, 2)
+
+        # 兩區都收起時，剩餘高度全部留在最下方，標題與工具列仍固定在頂部。
+        # 初始兩區都展開，不讓底部 spacer 分走表格高度；兩區皆收起時再動態給它 stretch。
+        self.compare_content_layout.addStretch(0)
+        root.addWidget(self.compare_content_widget, 1)
+
+        # 兩張表格使用同一組欄寬。除了自動計算外，手動拖曳任一表格欄寬時
+        # 也會即時同步到另一張表，避免上下欄位對不齊。
+        self._equipment_expanded = True
+        self._result_expanded = True
+        self._syncing_compare_column_widths = False
+
+        self.update_current_button.clicked.connect(self.refresh_current_snapshot)
+        self.add_json_button.clicked.connect(self.add_json_files)
+        self.remove_json_button.clicked.connect(self.remove_selected_json)
+        self.clear_json_button.clicked.connect(self.clear_jsons)
+        self.show_current_checkbox.toggled.connect(self.refresh_tables)
+        self.only_diff_checkbox.toggled.connect(self.refresh_tables)
+        self.equipment_toggle_button.clicked.connect(self._toggle_equipment_section)
+        self.result_toggle_button.clicked.connect(self._toggle_result_section)
+        self.equipment_table.horizontalHeader().sectionResized.connect(
+            lambda logical, old_size, new_size: self._mirror_compare_column_width(
+                self.equipment_table, self.result_table, logical, new_size
+            )
+        )
+        self.result_table.horizontalHeader().sectionResized.connect(
+            lambda logical, old_size, new_size: self._mirror_compare_column_width(
+                self.result_table, self.equipment_table, logical, new_size
+            )
+        )
+
+        self.refresh_current_snapshot()
+
+    def _set_compare_section_expanded(self, section, expanded):
+        """切換區塊並同步 stretch；兩區皆收起時所有控制項維持貼齊視窗頂部。"""
+        expanded = bool(expanded)
+        if section == "equipment":
+            self._equipment_expanded = expanded
+            self.equipment_table.setVisible(expanded)
+            self.equipment_toggle_button.setText("▲ 收起" if expanded else "▼ 展開")
+        elif section == "result":
+            self._result_expanded = expanded
+            self.result_table.setVisible(expanded)
+            self.result_toggle_button.setText("▲ 收起" if expanded else "▼ 展開")
+
+        # QVBoxLayout 的 stretch 即使子 widget 被隱藏，在不同平台 / Qt 樣式下仍可能
+        # 造成看起來像保留一大片空間。收起時直接把該 section stretch 設成 0。
+        if hasattr(self, "compare_content_layout"):
+            self.compare_content_layout.setStretch(0, 3 if self._equipment_expanded else 0)
+            self.compare_content_layout.setStretch(1, 2 if self._result_expanded else 0)
+            # 只有兩區都收起時才讓最下面的 spacer 吃掉剩餘高度。
+            self.compare_content_layout.setStretch(
+                2,
+                1 if not self._equipment_expanded and not self._result_expanded else 0,
+            )
+
+        if hasattr(self, "equipment_section_widget"):
+            self.equipment_section_widget.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Expanding if self._equipment_expanded else QSizePolicy.Maximum,
+            )
+            self.equipment_section_widget.updateGeometry()
+
+        if hasattr(self, "result_section_widget"):
+            self.result_section_widget.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Expanding if self._result_expanded else QSizePolicy.Maximum,
+            )
+            self.result_section_widget.updateGeometry()
+
+        if hasattr(self, "compare_content_widget"):
+            self.compare_content_widget.updateGeometry()
+
+    def _toggle_equipment_section(self):
+        self._set_compare_section_expanded("equipment", not self._equipment_expanded)
+
+    def _toggle_result_section(self):
+        self._set_compare_section_expanded("result", not self._result_expanded)
+
+    def _mirror_compare_column_width(self, source_table, target_table, logical_index, new_size):
+        """使用者手動調整任一表格欄寬時，同步另一張表的同一欄。"""
+        if self._syncing_compare_column_widths:
+            return
+        if logical_index < 0 or logical_index >= target_table.columnCount():
+            return
+
+        self._syncing_compare_column_widths = True
+        try:
+            if target_table.columnWidth(logical_index) != new_size:
+                target_table.setColumnWidth(logical_index, new_size)
+        finally:
+            self._syncing_compare_column_widths = False
+
+    def _sync_compare_table_widths(self):
+        """取上下兩張表每一欄需要的最大寬度，並套用到兩張表。"""
+        column_count = min(
+            self.equipment_table.columnCount(),
+            self.result_table.columnCount(),
+        )
+        if column_count <= 0:
+            return
+
+        self._syncing_compare_column_widths = True
+        try:
+            for col in range(column_count):
+                width = max(
+                    self.equipment_table.columnWidth(col),
+                    self.result_table.columnWidth(col),
+                )
+                self.equipment_table.setColumnWidth(col, width)
+                self.result_table.setColumnWidth(col, width)
+        finally:
+            self._syncing_compare_column_widths = False
+
+    def _all_snapshots(self):
+        result = []
+        if self.show_current_checkbox.isChecked() and self.current_snapshot is not None:
+            result.append(self.current_snapshot)
+        result.extend(self.json_snapshots)
+        return result
+
+    def _selected_json_index(self):
+        """由目前可見表格欄位找到對應的 json_snapshots index。"""
+        visible_snapshots = self._all_snapshots()
+        candidates = [
+            self.equipment_table.currentColumn(),
+            self.result_table.currentColumn(),
+        ]
+        for col in candidates:
+            # 第 0 欄固定是「項目」，第 1 欄起依目前勾選狀態排列 Snapshot。
+            if col is None or col < 1:
+                continue
+            snapshot_index = col - 1
+            if not 0 <= snapshot_index < len(visible_snapshots):
+                continue
+
+            selected_snapshot = visible_snapshots[snapshot_index]
+            # 「目前設定」不能用移除 JSON 功能刪除。
+            if selected_snapshot is self.current_snapshot or selected_snapshot.get("source") == "current":
+                continue
+
+            for idx, json_snapshot in enumerate(self.json_snapshots):
+                if selected_snapshot is json_snapshot:
+                    return idx
+                if selected_snapshot.get("source") == json_snapshot.get("source"):
+                    return idx
+        return None
+
+    def refresh_current_snapshot(self):
+        try:
+            self.status_label.setText("正在更新目前設定...")
+            QApplication.processEvents()
+            self.current_snapshot = self.main_window.create_current_compare_snapshot("目前設定")
+            self.refresh_tables()
+            self.status_label.setText("目前設定已更新")
+        except Exception as exc:
+            self.status_label.setText("更新失敗")
+            QMessageBox.critical(self, "多裝備比對", f"更新目前設定失敗：\n{exc}")
+
+    def add_json_files(self):
+        default_dir = os.path.join(os.getcwd(), "裝備")
+        paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            "選擇要比較的 JSON",
+            default_dir,
+            "JSON Files (*.json)",
+        )
+        if not paths:
+            return
+
+        # 批次計算會暫時把主畫面切換成各 JSON，最後一定還原進入批次前的狀態。
+        restore_state = self.main_window.collect_project_state_data()
+        auto_compare = bool(
+            hasattr(self.main_window, "auto_compare_checkbox")
+            and self.main_window.auto_compare_checkbox.isChecked()
+        )
+
+        try:
+            if hasattr(self.main_window, "auto_compare_checkbox"):
+                self.main_window.auto_compare_checkbox.setChecked(False)
+
+            for i, path in enumerate(paths, 1):
+                self.status_label.setText(f"計算 {i}/{len(paths)}：{Path(path).name}")
+                QApplication.processEvents()
+
+                snapshot = self.main_window.create_json_compare_snapshot(path)
+
+                # 同一路徑再次加入時更新，不建立重複欄位。
+                replaced = False
+                for idx, old in enumerate(self.json_snapshots):
+                    if old.get("source") == path:
+                        self.json_snapshots[idx] = snapshot
+                        replaced = True
+                        break
+                if not replaced:
+                    self.json_snapshots.append(snapshot)
+        except Exception as exc:
+            QMessageBox.critical(self, "多裝備比對", f"JSON 比對計算失敗：\n{exc}")
+        finally:
+            restore_error = None
+            try:
+                self.status_label.setText("正在恢復主畫面...")
+                QApplication.processEvents()
+                self.main_window.restore_project_state_data(restore_state, recalculate=True)
+            except Exception as exc:
+                restore_error = exc
+                print(f"⚠️ 多裝備比對後恢復主畫面失敗：{exc}")
+            finally:
+                if hasattr(self.main_window, "auto_compare_checkbox"):
+                    self.main_window.auto_compare_checkbox.setChecked(auto_compare)
+                    if auto_compare:
+                        try:
+                            self.main_window.compare_with_base()
+                        except Exception:
+                            pass
+
+            if restore_error is not None:
+                QMessageBox.warning(
+                    self,
+                    "多裝備比對",
+                    f"JSON 已完成處理，但恢復主畫面時發生錯誤：\n{restore_error}",
+                )
+
+        self.refresh_tables()
+        self.status_label.setText(f"已載入 {len(self.json_snapshots)} 個 JSON")
+
+    def remove_selected_json(self):
+        idx = self._selected_json_index()
+        if idx is None:
+            QMessageBox.information(self, "多裝備比對", "請先在表格中點選要移除的 JSON 欄位。")
+            return
+        self.json_snapshots.pop(idx)
+        self.refresh_tables()
+
+    def clear_jsons(self):
+        self.json_snapshots.clear()
+        self.refresh_tables()
+        self.status_label.setText("JSON 已清空")
+
+    @staticmethod
+    def _ordered_keys(snapshots, field_name):
+        seen = set()
+        ordered = []
+        for snap in snapshots:
+            for key in snap.get(field_name, {}).keys():
+                if key not in seen:
+                    seen.add(key)
+                    ordered.append(key)
+        return ordered
+
+    def _setup_table(self, table, snapshots, row_count):
+        headers = ["項目"] + [snap.get("name", "未命名") for snap in snapshots]
+        table.clear()
+        table.setRowCount(row_count)
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        table.horizontalHeader().setStretchLastSection(False)
+
+        # 先給合理的最小寬度；內容填完後 _auto_resize_table() 會再依實際文字放大。
+        table.setColumnWidth(0, 190)
+        for col in range(1, len(headers)):
+            table.setColumnWidth(col, 220)
+
+    @staticmethod
+    def _auto_resize_table(table):
+        """依完整文字自動放大欄寬，不截斷裝備名稱 / BUFF / 詞條。"""
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
+
+        for col in range(table.columnCount()):
+            minimum = 190 if col == 0 else 220
+            width = max(minimum, table.columnWidth(col))
+
+            # result table 的差異欄位可能使用 QLabel rich text，Qt 的
+            # resizeColumnsToContents 不一定會把 cellWidget sizeHint 算進去，這裡補算。
+            for row in range(table.rowCount()):
+                widget = table.cellWidget(row, col)
+                if widget is not None:
+                    try:
+                        width = max(width, widget.sizeHint().width() + 24)
+                    except Exception:
+                        pass
+            table.setColumnWidth(col, width)
+
+    @staticmethod
+    def _make_result_label(display, diff_text=None, higher=None, bold=False):
+        """結果 cell：只有括號內差異值上色，右欄較高綠色、較低紅色。"""
+        import html
+
+        label = QLabel()
+        label.setTextFormat(Qt.RichText)
+        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        label.setMargin(3)
+
+        base_html = html.escape(str(display or ""))
+        if bold:
+            base_html = f"<b>{base_html}</b>"
+
+        if diff_text is not None and higher is not None:
+            color = "#198754" if higher else "#dc3545"
+            diff_html = html.escape(str(diff_text))
+            # 括號本身維持一般顏色，只將括號內的差異文字染色。
+            base_html += f'&nbsp;&nbsp;(<span style="color:{color};">{diff_html}</span>)'
+
+        label.setText(base_html)
+        return label
+
+    def refresh_tables(self):
+        snapshots = self._all_snapshots()
+        if not snapshots:
+            for table in (self.equipment_table, self.result_table):
+                table.clear()
+                table.setRowCount(0)
+                table.setColumnCount(0)
+            return
+
+        # 自動重算欄寬期間先暫停「手動拖曳同步」，讓上下兩張表各自算出
+        # 真正需要的內容寬度；最後再取兩者最大值統一套用。
+        self._syncing_compare_column_widths = True
+        try:
+            self._refresh_equipment_table(snapshots)
+            self._refresh_result_table(snapshots)
+        finally:
+            self._syncing_compare_column_widths = False
+
+        self._sync_compare_table_widths()
+
+    def _refresh_equipment_table(self, snapshots):
+        keys = self._ordered_keys(snapshots, "equipment")
+        hide_same = self.only_diff_checkbox.isChecked() and len(snapshots) > 1
+
+        visible_keys = []
+        for key in keys:
+            # 「技能」是程式內部的自訂部位，不列入裝備比較，也不提供顯示開關。
+            # BUFF 會由 Snapshot 另外加入，仍正常顯示。
+            if key.startswith("技能 / "):
+                continue
+
+            values = [str(s.get("equipment", {}).get(key, "")) for s in snapshots]
+            if hide_same and len(set(values)) <= 1:
+                continue
+            visible_keys.append(key)
+
+        self._setup_table(self.equipment_table, snapshots, len(visible_keys))
+
+        for row, key in enumerate(visible_keys):
+            label_item = QTableWidgetItem(key)
+            label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable)
+            self.equipment_table.setItem(row, 0, label_item)
+
+            values = [str(s.get("equipment", {}).get(key, "")) for s in snapshots]
+            is_diff = len(set(values)) > 1
+            for col, value in enumerate(values, 1):
+                # 不做任何長度截斷；詞條 / BUFF 保留完整解析文字。
+                item = QTableWidgetItem(value)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setToolTip(value)
+                if is_diff:
+                    font = item.font()
+                    font.setBold(True)
+                    item.setFont(font)
+                self.equipment_table.setItem(row, col, item)
+
+        self._auto_resize_table(self.equipment_table)
+
+    def _refresh_result_table(self, snapshots):
+        keys = self._ordered_keys(snapshots, "results")
+
+        # 無論 Snapshot 建立順序如何，都固定把角色基本資料排在比對結果後段：
+        # 先顯示傷害 / 增傷等主要計算結果，再顯示等級、六圍、特性素質。
+        character_prefixes = ("角色等級 / ", "素質 / ", "特性素質 / ")
+        main_keys = [key for key in keys if not key.startswith(character_prefixes)]
+        character_keys = [key for key in keys if key.startswith(character_prefixes)]
+        keys = main_keys + character_keys
+
+        hide_same = self.only_diff_checkbox.isChecked() and len(snapshots) > 1
+
+        visible_keys = []
+        always_show_keys = {"技能名稱", "技能等級"}
+        for key in keys:
+            values = [s.get("results", {}).get(key, {}).get("display", "") for s in snapshots]
+            # 技能名稱 / 技能等級是本次比較的基本上下文，即使勾選「只顯示差異」
+            # 且各欄內容完全相同，也固定保留在計算結果最前面。
+            if key not in always_show_keys and hide_same and len(set(values)) <= 1:
+                continue
+            visible_keys.append(key)
+
+        self._setup_table(self.result_table, snapshots, len(visible_keys))
+
+        for row, key in enumerate(visible_keys):
+            label_item = QTableWidgetItem(key)
+            label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable)
+            self.result_table.setItem(row, 0, label_item)
+
+            all_display = [s.get("results", {}).get(key, {}).get("display", "") for s in snapshots]
+            is_diff = len(set(all_display)) > 1
+
+            for col, snap in enumerate(snapshots, 1):
+                entry = snap.get("results", {}).get(key)
+                display = "" if not entry else entry.get("display", "")
+                diff_text = None
+                higher = None
+
+                # 每一欄都與「左邊緊鄰欄位」比較，而不是永遠和第一欄比較。
+                # 右側數值較高 -> 括號內綠字；較低 -> 括號內紅字。
+                if col > 1 and entry:
+                    left_snap = snapshots[col - 2]
+                    left_entry = left_snap.get("results", {}).get(key)
+                    if left_entry:
+                        old_num = left_entry.get("number")
+                        new_num = entry.get("number")
+                        if old_num is not None and new_num is not None and old_num != new_num:
+                            diff = new_num - old_num
+                            suffix = entry.get("suffix", "")
+                            higher = new_num > old_num
+
+                            if "傷害" in key and old_num != 0:
+                                pct = diff / old_num * 100.0
+                                diff_text = f"{pct:+.2f}%"
+                            else:
+                                if abs(diff - round(diff)) < 1e-9:
+                                    number_text = f"{int(round(diff)):+,}"
+                                else:
+                                    number_text = f"{diff:+.2f}"
+                                diff_text = f"{number_text}{suffix}"
+
+                label = self._make_result_label(
+                    display,
+                    diff_text=diff_text,
+                    higher=higher,
+                    bold=is_diff,
+                )
+                if entry:
+                    label.setToolTip(entry.get("display", ""))
+                self.result_table.setCellWidget(row, col, label)
+
+        self._auto_resize_table(self.result_table)
+
+
 class ItemSearchApp(QWidget):
 
     def get_internal_data_snapshot(self):
@@ -8009,14 +8545,26 @@ class ItemSearchApp(QWidget):
         expr = (replace_custom_calls(skill_hits))#替換武器類型
 
         def eval_hits(expr: str) -> int:
-            expr = expr.strip()
+            # 某些技能 / 載入切換瞬間可能沒有 hits；預設視為 1 段，
+            # 避免 eval("") 直接丟 SyntaxError，讓整個 JSON 比對/還原流程中斷。
+            expr = str(expr or "").strip()
+            if not expr:
+                return 1
 
             # 只允許數字、四則、括號、小數點、空白、%（需要就留，不需要可拿掉）
-            if not re.fullmatch(r"[0-9+\-*/().\s%]*", expr):
+            if not re.fullmatch(r"[0-9+\-*/().\s%]+", expr):
                 raise ValueError(f"公式含不允許字元：{expr}")
 
-            val = eval(expr, {"__builtins__": None}, {})  # 關掉 builtins
-            return int(val)  # 需要整數就轉 int（會截掉小數）
+            try:
+                val = eval(expr, {"__builtins__": None}, {})  # 關掉 builtins
+            except (SyntaxError, TypeError, ValueError, ZeroDivisionError) as exc:
+                print(f"⚠️ 技能攻擊次數公式無法計算：{expr!r}，改用 1。原因：{exc}")
+                return 1
+
+            try:
+                return int(val)  # 需要整數就轉 int（會截掉小數）
+            except (TypeError, ValueError):
+                return 1
 
        
         skill_hits = eval_hits(expr)#計算最終次數
@@ -11344,6 +11892,12 @@ class ItemSearchApp(QWidget):
         )
 
         if reply == QMessageBox.Yes:
+            compare_window = getattr(self, "multi_compare_window", None)
+            if compare_window is not None:
+                try:
+                    compare_window.close()
+                except Exception:
+                    pass
             event.accept()
         else:
             event.ignore()
@@ -11411,7 +11965,19 @@ class ItemSearchApp(QWidget):
         self.skill_filter_input.clear()
         # 技能欄位
         if "skill_name" in saved_data:
-            index = self.skill_box.findText(saved_data["skill_name"])
+            saved_skill_name = str(saved_data.get("skill_name") or "").strip()
+            index = self.skill_box.findText(saved_skill_name)
+
+            # JSON 可能儲存的是透過搜尋選到的「非目前職業預設清單」技能。
+            # 清空搜尋後該技能不一定存在於 skill_box；此時直接從完整 skill_map 補回，
+            # 避免讀檔/多裝備比對還原時悄悄落到第一個技能。
+            if index == -1 and saved_skill_name:
+                for skill_id, display_name in skill_map.items():
+                    if str(display_name) == saved_skill_name:
+                        self.skill_box.addItem(display_name, skill_id)
+                        index = self.skill_box.count() - 1
+                        break
+
             if index != -1:
                 self.skill_box.setCurrentIndex(index)
         # note 欄位最後處理
@@ -11666,6 +12232,424 @@ class ItemSearchApp(QWidget):
             self.result_output.clear()
 
 
+
+    def collect_project_state_data(self):
+        """把目前主畫面收成與專案 JSON 相同的資料格式，不寫檔。"""
+        data = {}
+
+        for key, field in self.input_fields.items():
+            if isinstance(field, QComboBox):
+                data[key] = field.currentText()
+            else:
+                data[key] = field.text()
+
+        for part, info in self.refine_inputs_ui.items():
+            data[f"{part}_equip"] = info["equip"].text()
+            for i, card_input in enumerate(info["cards"]):
+                data[f"{part}_card{i+1}"] = card_input.text()
+            if "note" in info:
+                data[f"{part}_note"] = info["note"].toPlainText()
+
+        data["skill_name"] = self.skill_box.currentText()
+
+        # 多裝備比對批次載入 JSON 時，主畫面會暫時被切換成其他設定。
+        # 專案 JSON 原本沒有保存下面這些「計算 UI 暫態值」，因此另外放在只供
+        # 記憶體還原使用的 _compare_runtime；一般 load_saved_inputs 會自然忽略它。
+        skill_data = self.skill_box.currentData()
+        if not isinstance(skill_data, (str, int, float, bool, type(None))):
+            skill_data = str(skill_data)
+        attack_element_data = self.attack_element_box.currentData()
+        if not isinstance(attack_element_data, (str, int, float, bool, type(None))):
+            attack_element_data = str(attack_element_data)
+
+        data["_compare_runtime"] = {
+            "skill_filter": self.skill_filter_input.text(),
+            "skill_name": self.skill_box.currentText(),
+            "skill_data": skill_data,
+            "skill_lv": self.skill_LV_input.text(),
+            "skill_hits": self.skill_hits_input.text(),
+            "skill_formula": self.skill_formula_input.text(),
+            "attack_element_data": attack_element_data,
+            "special_checkboxes": {
+                key: checkbox.isChecked()
+                for key, checkbox in self.special_checkboxes.items()
+            },
+        }
+
+        data["size"] = self.size_box.currentIndex()
+        data["element"] = self.element_box.currentIndex()
+        data["race"] = self.race_box.currentIndex()
+        data["class"] = self.class_box.currentIndex()
+        data["mdef"] = self.mdef_input.text()
+        data["mdefc"] = self.mdefc_input.text()
+        data["mres"] = self.mres_input.text()
+        data["def"] = self.def_input.text()
+        data["defc"] = self.defc_input.text()
+        data["res"] = self.res_input.text()
+        data["element_lv"] = self.element_lv_input.text()
+
+        buff_ids = []
+        for name, checkbox in self.skill_checkboxes.items():
+            if not checkbox.isChecked():
+                continue
+            entry = all_skill_entries.get(name, {})
+            raw_buff = entry.get("buff")
+            buff_ids.extend(sorted(self._parse_buff_ids(raw_buff)))
+        data["buff"] = ",".join(sorted(set(buff_ids), key=lambda x: int(x) if x.isdigit() else x))
+
+        return data
+
+    def restore_project_state_data(self, data, recalculate=True):
+        """使用既有 load_saved_inputs 流程還原記憶體中的專案狀態。"""
+        import tempfile
+
+        temp_path = None
+        try:
+            fd, temp_path = tempfile.mkstemp(prefix="ro_compare_restore_", suffix=".json")
+            os.close(fd)
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+            runtime = data.get("_compare_runtime", {}) if isinstance(data, dict) else {}
+
+            self.load_saved_inputs(temp_path)
+            self.refresh_skill_list()
+
+            # 還原多裝備批次前真正的技能 UI 狀態。只靠 skill_name 不夠：
+            # 使用者可能是透過搜尋選到非職業預設技能，也可能手動調過技能等級/公式。
+            if isinstance(runtime, dict) and runtime:
+                saved_filter = str(runtime.get("skill_filter", ""))
+                self.skill_filter_input.setText(saved_filter)
+
+                saved_skill_data = runtime.get("skill_data")
+                saved_skill_name = str(runtime.get("skill_name", "") or "")
+                index = self.skill_box.findData(saved_skill_data)
+                if index == -1 and saved_skill_name:
+                    index = self.skill_box.findText(saved_skill_name)
+
+                # 若原技能仍不在目前過濾清單，從完整 skill_map 補回。
+                if index == -1 and saved_skill_name:
+                    for skill_id, display_name in skill_map.items():
+                        if str(display_name) == saved_skill_name:
+                            self.skill_box.addItem(display_name, skill_id)
+                            index = self.skill_box.count() - 1
+                            break
+
+                if index != -1:
+                    self.skill_box.setCurrentIndex(index)
+
+                # currentIndexChanged 可能因 index 沒變而不觸發，所以最後再精準覆回暫態欄位。
+                self.skill_LV_input.setText(str(runtime.get("skill_lv", self.skill_LV_input.text())))
+                self.skill_hits_input.setText(str(runtime.get("skill_hits", self.skill_hits_input.text())))
+                self.skill_formula_input.setText(str(runtime.get("skill_formula", self.skill_formula_input.text())))
+
+                attack_element_data = runtime.get("attack_element_data")
+                attack_index = self.attack_element_box.findData(attack_element_data)
+                if attack_index != -1:
+                    self.attack_element_box.setCurrentIndex(attack_index)
+
+                for key, checked in runtime.get("special_checkboxes", {}).items():
+                    checkbox = self.special_checkboxes.get(key)
+                    if checkbox is not None:
+                        checkbox.setChecked(bool(checked))
+
+            if recalculate:
+                self._last_calc_state = None
+                self.trigger_total_effect_update()
+                QApplication.processEvents()
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass
+
+    def _build_compare_parse_context(self):
+        """建立詞條解析所需的目前能力值與各部位精煉值。"""
+        get_values = {}
+        for gid, label in stat_fields.items():
+            widget = self.input_fields.get(label)
+            if widget is None:
+                get_values[gid] = 0
+            elif isinstance(widget, QComboBox):
+                get_values[gid] = widget.currentData()
+            else:
+                try:
+                    get_values[gid] = int(widget.text())
+                except (TypeError, ValueError):
+                    get_values[gid] = 0
+
+        refine_inputs = {}
+        for part_name, info in refine_parts.items():
+            slot_id = info["slot"]
+            widget = self.input_fields.get(part_name)
+            try:
+                refine_inputs[slot_id] = int(widget.text()) if widget is not None else 0
+            except (TypeError, ValueError):
+                refine_inputs[slot_id] = 0
+
+        return refine_inputs, get_values
+
+    def _parse_compare_note_text(self, part, ui, refine_inputs, get_values):
+        """把 Snapshot 中的 Lua 詞條轉成使用者可讀文字，不直接顯示原始函式。"""
+        note_widget = ui.get("note")
+        if note_widget is None:
+            return ""
+
+        raw_text = note_widget.toPlainText().strip()
+        if not raw_text:
+            return ""
+
+        # parse_lua_effects_with_variables 會處理部分 SetWeapon/UseSkill 類函式，
+        # 為避免「只是建立比較文字」反過來改到主程式全域狀態，解析前後做完整還原。
+        mutable_globals = (
+            global_weapon_level_map,
+            global_weapon_atk_map,
+            global_weapon_matk_map,
+            global_weapon_type_map,
+            enabled_skill_levels,
+            Use_skill_levels,
+        )
+        backups = [dict(target) for target in mutable_globals]
+
+        try:
+            grade_widget = ui.get("grade")
+            grade = grade_widget.currentIndex() if grade_widget is not None else 0
+            slot_id = refine_parts.get(part, {}).get("slot")
+            parsed_results = parse_lua_effects_with_variables(
+                block_text=raw_text,
+                refine_inputs=refine_inputs,
+                get_values=get_values,
+                grade=grade,
+                unit_map=unit_map,
+                size_map=size_map,
+                effect_map=effect_map,
+                # 比對視窗只顯示已成功轉成文字的效果，不把未知 Lua 原句帶進表格。
+                hide_unrecognized=True,
+                hide_physical=False,
+                hide_magical=False,
+                current_location_slot=slot_id,
+            )
+            parsed_lines = [str(line).strip() for line in parsed_results if str(line).strip()]
+            if parsed_lines:
+                return "\n".join(parsed_lines)
+        except Exception as exc:
+            print(f"⚠️ 多裝備比對詞條解析失敗 [{part}]：{exc}")
+        finally:
+            for target, backup in zip(mutable_globals, backups):
+                target.clear()
+                target.update(backup)
+
+        # 主畫面本來就有一個已解析後的可見詞條欄，解析器失敗時優先使用它。
+        note_ui = ui.get("note_ui")
+        if note_ui is not None:
+            parsed_fallback = note_ui.toPlainText().strip()
+            if parsed_fallback and "Add" not in parsed_fallback and "Sub" not in parsed_fallback:
+                return parsed_fallback
+
+        return "（無可解析詞條）"
+
+    def _collect_compare_equipment(self):
+        """將裝備 UI 攤平成表格列名稱 -> 值；詞條轉成可讀文字，並加入 BUFF。"""
+        flat = {}
+        refine_inputs, get_values = self._build_compare_parse_context()
+
+        for part, ui in self.refine_inputs_ui.items():
+            # 「技能」是內部自訂部位；多裝備比對不顯示這一欄。
+            if part == "技能":
+                continue
+
+            flat[f"{part} / 裝備"] = ui["equip"].text()
+            if "refine" in ui:
+                flat[f"{part} / 精煉"] = ui["refine"].text()
+            if "grade" in ui:
+                flat[f"{part} / 階級"] = ui["grade"].currentText()
+            for i, card in enumerate(ui.get("cards", []), 1):
+                flat[f"{part} / 卡片{i}"] = card.text()
+            if "note" in ui:
+                # 詞條永遠正常顯示，使用既有 Lua 解析器轉成中文可讀文字。
+                flat[f"{part} / 詞條"] = self._parse_compare_note_text(
+                    part,
+                    ui,
+                    refine_inputs,
+                    get_values,
+                )
+
+        # JSON 的 buff 欄位載入後會轉成 skill_checkboxes 勾選狀態。
+        # 比較畫面顯示名稱而不是 buff id，方便直接看出料理 / 技能差異。
+        buff_names = [
+            str(name)
+            for name, checkbox in getattr(self, "skill_checkboxes", {}).items()
+            if checkbox.isChecked()
+        ]
+        flat["BUFF / 技能、料理"] = "\n".join(buff_names)
+        return flat
+
+    @staticmethod
+    def _parse_compare_result_text(text):
+        """解析 custom_calc_box；保留顯示值及第一個可比較數字。"""
+        import re
+
+        result = {}
+        skip_keys = {"技能公式", "技能說明"}
+        for line in str(text or "").splitlines():
+            if ":" not in line:
+                continue
+            key, val = line.split(":", 1)
+            key = key.strip()
+            if not key or key in skip_keys:
+                continue
+
+            display = val.strip()
+            clean = display.replace(",", "")
+            match = re.search(r"[-]?\d+(?:\.\d+)?", clean)
+            if not match:
+                continue
+
+            try:
+                number = float(match.group(0))
+            except ValueError:
+                number = None
+
+            suffix = "%" if "%" in display else ""
+            result[key] = {
+                "display": display,
+                "number": number,
+                "suffix": suffix,
+            }
+        return result
+
+    def _collect_compare_skill_results(self):
+        """建立計算結果最前段的技能名稱 / 技能等級。"""
+        skill_name = self.skill_box.currentText().strip() if hasattr(self, "skill_box") else ""
+
+        try:
+            skill_lv = int(self.skill_LV_input.text())
+            skill_lv_display = f"{skill_lv:,}"
+            skill_lv_number = float(skill_lv)
+        except (AttributeError, TypeError, ValueError):
+            raw_lv = self.skill_LV_input.text().strip() if hasattr(self, "skill_LV_input") else ""
+            skill_lv_display = raw_lv
+            skill_lv_number = None
+
+        return {
+            "技能名稱": {
+                "display": skill_name,
+                "number": None,
+                "suffix": "",
+            },
+            "技能等級": {
+                "display": skill_lv_display,
+                "number": skill_lv_number,
+                "suffix": "",
+            },
+        }
+
+    def _collect_compare_character_results(self):
+        """建立計算結果後段使用的角色等級、一般素質與特性素質。"""
+        results = {}
+
+        def add_value(key, value):
+            try:
+                number = float(value)
+                if number.is_integer():
+                    display = f"{int(number):,}"
+                else:
+                    display = f"{number:,.2f}"
+            except (TypeError, ValueError):
+                number = None
+                display = str(value or "")
+            results[key] = {
+                "display": display,
+                "number": number,
+                "suffix": "",
+            }
+
+        # 等級直接以目前 UI 為準；計算流程也會同步到 BaseLv / JobLv globals。
+        for field_name in ("BaseLv", "JobLv"):
+            field = self.input_fields.get(field_name)
+            raw = field.text() if field is not None else globals().get(field_name, 0)
+            add_value(f"角色等級 / {field_name}", raw)
+
+        # 顯示計算後總素質（基礎 + 職業 + 裝備），與實際傷害公式使用值一致。
+        for stat in ("STR", "AGI", "VIT", "INT", "DEX", "LUK"):
+            fallback = self.input_fields.get(stat).text() if self.input_fields.get(stat) is not None else 0
+            add_value(f"素質 / {stat}", globals().get(f"total_{stat}", fallback))
+
+        for stat in ("POW", "STA", "WIS", "SPL", "CON", "CRT"):
+            fallback = self.input_fields.get(stat).text() if self.input_fields.get(stat) is not None else 0
+            add_value(f"特性素質 / {stat}", globals().get(f"total_{stat}", fallback))
+
+        return results
+
+    def _build_compare_snapshot(self, name, source=None):
+        result_text = self.custom_calc_box.toPlainText()
+
+        # 固定顯示順序：
+        # 1. 技能名稱
+        # 2. 技能等級
+        # 3. 原本傷害 / 增傷等主要計算內容
+        # 4. BaseLv、JobLv、一般素質與特性素質（最後）
+        results = self._collect_compare_skill_results()
+        parsed_results = self._parse_compare_result_text(result_text)
+
+        # 技能名稱由 UI 直接取得，技能等級也固定跟在技能名稱下方。
+        # 排除原本 custom_calc_box 中可能再次出現的同名欄位，避免位置被打亂 / 重複。
+        parsed_results.pop("使用技能", None)
+        parsed_results.pop("技能名稱", None)
+        parsed_results.pop("技能等級", None)
+        results.update(parsed_results)
+        results.update(self._collect_compare_character_results())
+        return {
+            "name": str(name or "未命名"),
+            "source": source,
+            "equipment": self._collect_compare_equipment(),
+            "results": results,
+            "result_text": result_text,
+        }
+
+    def create_current_compare_snapshot(self, name="目前設定"):
+        """重新計算目前 UI 後建立 Snapshot；連續比對開啟時暫時關閉，避免抓到箭頭結果。"""
+        auto_compare = bool(
+            hasattr(self, "auto_compare_checkbox")
+            and self.auto_compare_checkbox.isChecked()
+        )
+        if hasattr(self, "auto_compare_checkbox"):
+            self.auto_compare_checkbox.setChecked(False)
+
+        try:
+            self._last_calc_state = None
+            self.trigger_total_effect_update()
+            QApplication.processEvents()
+            return self._build_compare_snapshot(name, source="current")
+        finally:
+            if hasattr(self, "auto_compare_checkbox"):
+                self.auto_compare_checkbox.setChecked(auto_compare)
+                if auto_compare:
+                    try:
+                        self.compare_with_base()
+                    except Exception:
+                        pass
+
+    def create_json_compare_snapshot(self, file_path):
+        """依 JSON 正式套用 UI、完整重算後再建立 Snapshot。"""
+        self.load_saved_inputs(file_path)
+        self.refresh_skill_list()
+        self._last_calc_state = None
+        self.trigger_total_effect_update()
+        QApplication.processEvents()
+        return self._build_compare_snapshot(Path(file_path).stem, source=file_path)
+
+    def open_multi_compare(self):
+        """非 Modal 開啟多裝備比對；可同時回主畫面換裝後更新左欄。"""
+        if self.multi_compare_window is None:
+            self.multi_compare_window = MultiCompareDialog(self)
+            self.multi_compare_window.destroyed.connect(
+                lambda: setattr(self, "multi_compare_window", None)
+            )
+        self.multi_compare_window.show()
+        self.multi_compare_window.raise_()
+        self.multi_compare_window.activateWindow()
 
     def save_compare_base(self):
         self.auto_compare_checkbox.setChecked(False)
@@ -12518,6 +13502,7 @@ class ItemSearchApp(QWidget):
         self.preset_folder = "equip_presets"
         os.makedirs(self.preset_folder, exist_ok=True)
         self.rrfdamage_window = None
+        self.multi_compare_window = None
         self.load_config()#讀取偏好設定
 
         
@@ -14066,6 +15051,11 @@ class ItemSearchApp(QWidget):
         # 建立水平區塊
         button_row = QHBoxLayout()
 
+        # 多裝備比對放在「儲存比對基準」左邊，直接開啟獨立比對視窗。
+        self.multi_compare_button = QPushButton("多裝備比對")
+        self.multi_compare_button.clicked.connect(self.open_multi_compare)
+        button_row.addWidget(self.multi_compare_button)
+
         self.save_compare_button = QPushButton(tr("button.save_compare_baseline"))
         self.save_compare_button.clicked.connect(lambda: (setattr(self, "_last_calc_state", None), self.save_compare_base()))
 
@@ -14499,6 +15489,11 @@ class ItemSearchApp(QWidget):
         action_open_damage = QAction(tr("menu.damage_replay_tool"), self)
         action_open_damage.triggered.connect(self.open_rrfdamage_view)
         gamedata_menu.addAction(action_open_damage)
+
+        multi_compare_action = QAction("多裝備比對", self)
+        multi_compare_action.triggered.connect(self.open_multi_compare)
+        #gamedata_menu.addAction(multi_compare_action)
+
         # === 建立選單：附魔工具 ===
         enchant_action = QAction(tr("menu.enchant_tool"), self)
         enchant_action.triggered.connect(self.open_enchant_tool)
