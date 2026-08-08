@@ -131,6 +131,7 @@ ROItemSearchApp/
 ├─ update.py                    # 更新主程式模組
 ├─ packageitem.py               # 物品箱子內容機率查詢模組(內容為KRO未接入主程式)
 ├─ recompile_service.py         # 更新data資料模組
+├─ multi_compare.py             # 裝備能力比較模組
 ├─ UI/                          # UI 檔案
 ├─ data/                        # 裝備、技能、怪物及 Lua 資料
 ├─ lang/                        # 語系檔
