@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.7-260808"
+Version = "v0.5.8-260808"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -2360,19 +2360,6 @@ SkillOption_mapping = {#主程式Subweapon to ROCalculator 轉換
     "WeaponMasteryATK": "WeaponMasteryATKInput",
 }
 
-TSTATUS_POINT_COSTS = [#取自ROCalculator(特性數值點術 
-    7,10,13,16,19,26,29,32,35,38,
-    45,48,51,54,57,64,67,70,73,76,
-    83,86,89,92,95,102,105,108,111,114,
-    121,124,127,130,133,140,143,146,149,152,
-    159,162,165,168,171,178,181,184,187,190,
-    197,200,203,206,209,216,219,222,225,228,
-    235,238,241,244,247,254,257,260,263,266,
-    273,276,279,282,285,292,295,298,301,304,
-    311,314,317,320,323,330,
-]
-
-
 from PySide6.QtCore import Qt, QElapsedTimer, QTimer
 from PySide6.QtWidgets import QWidget
 from PySide6 import QtGui
@@ -2582,14 +2569,21 @@ class SaveManagerDialog(QDialog, Ui_SaveManagerDialog):#儲存裝被選則
 
 
 
-#取自ROCalculator特性數值點數計算
+# 取自 ROCalculator 的特性數值點數規律。
+# Lv200 起始為 7 點；每 5 等為一組，每組增加 19 點，組內每等增加 3 點。
+# 為維持原本 TSTATUS_POINT_COSTS 表格行為，Lv285 以上固定使用 Lv285 的 330 點。
 def get_total_tstat_points(level: int) -> int:
-    index = level - 200
-    if index < 0:
+    try:
+        level = int(level)
+    except (TypeError, ValueError):
         return 0
-    if index >= len(TSTATUS_POINT_COSTS):
-        return TSTATUS_POINT_COSTS[-1]
-    return TSTATUS_POINT_COSTS[index]
+
+    if level < 200:
+        return 0
+
+    level = min(level, 285)
+    block, offset = divmod(level - 200, 5)
+    return 7 + block * 19 + offset * 3
 
 
 
@@ -6061,7 +6055,13 @@ class MultiCompareDialog(QDialog):
 
         self.setWindowTitle("多裝備比對")
         self.resize(1500, 900)
-        self.setWindowFlag(Qt.Window, True)
+        # 使用標準桌面視窗標題列：最小化 / 最大化(還原) / 關閉。
+        self.setWindowFlags(
+            Qt.Window
+            | Qt.WindowMinimizeButtonHint
+            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowCloseButtonHint
+        )
         self.setAttribute(Qt.WA_DeleteOnClose, True)
 
         root = QVBoxLayout(self)
@@ -6080,7 +6080,9 @@ class MultiCompareDialog(QDialog):
         self.clear_json_button = QPushButton("清空 JSON")
 
         self.show_current_checkbox = QCheckBox("顯示目前設定")
-        self.show_current_checkbox.setChecked(True)
+        # 主程式已有命名/已載入專案時才預設顯示「目前設定」；
+        # 若仍是「未命名」，避免空白基準佔掉最左側欄位。
+        self.show_current_checkbox.setChecked(self._main_window_has_named_project())
         self.only_diff_checkbox = QCheckBox("只顯示差異")
         self.only_diff_checkbox.setChecked(True)
         self.status_label = QLabel("")
@@ -6177,6 +6179,44 @@ class MultiCompareDialog(QDialog):
         )
 
         self.refresh_current_snapshot()
+
+    def _main_window_has_named_project(self):
+        """主畫面目前是否不是「未命名」狀態。
+
+        一般 JSON 開啟/儲存後 current_file 會有值；RRF 等暫存匯入流程
+        可能會把 current_file 清成 None，但視窗標題仍已有檔名，所以再以
+        主視窗標題補判斷一次。
+        """
+        main = self.main_window
+        if main is None:
+            return False
+
+        if getattr(main, "current_file", None):
+            return True
+
+        try:
+            title = str(main.windowTitle() or "").strip()
+        except Exception:
+            title = ""
+
+        if not title:
+            return False
+
+        unnamed_tokens = {"未命名"}
+        try:
+            translated = str(tr("filename.unnamed", "未命名") or "").strip()
+            if translated:
+                unnamed_tokens.add(translated)
+        except Exception:
+            pass
+
+        return not any(token and token in title for token in unnamed_tokens)
+
+    def sync_show_current_from_main_window(self):
+        """每次開啟比對視窗時，依主程式是否已命名同步顯示目前設定。"""
+        should_show = self._main_window_has_named_project()
+        self.show_current_checkbox.setChecked(should_show)
+        return should_show
 
     def _set_compare_section_expanded(self, section, expanded):
         """切換區塊並同步 stretch；兩區皆收起時所有控制項維持貼齊視窗頂部。"""
@@ -12647,6 +12687,9 @@ class ItemSearchApp(QWidget):
             self.multi_compare_window.destroyed.connect(
                 lambda: setattr(self, "multi_compare_window", None)
             )
+        else:
+            # 視窗曾開啟過時也重新依主程式目前是否「未命名」同步。
+            self.multi_compare_window.sync_show_current_from_main_window()
         self.multi_compare_window.show()
         self.multi_compare_window.raise_()
         self.multi_compare_window.activateWindow()
