@@ -14174,10 +14174,11 @@ class ItemSearchApp(QWidget):
         # 建立水平區塊
         button_row = QHBoxLayout()
 
-        # 多裝備比對放在「儲存比對基準」左邊，直接開啟獨立比對視窗。
+        # 多裝備比對
         self.multi_compare_button = QPushButton("多裝備比對")
         self.multi_compare_button.clicked.connect(self.open_multi_compare)
         button_row.addWidget(self.multi_compare_button)
+
 
         self.save_compare_button = QPushButton(tr("button.save_compare_baseline"))
         self.save_compare_button.clicked.connect(lambda: (setattr(self, "_last_calc_state", None), self.save_compare_base()))
@@ -14188,6 +14189,7 @@ class ItemSearchApp(QWidget):
         self.auto_compare_checkbox = QCheckBox(tr("checkbox.continuous_compare"))
         button_row.addWidget(self.auto_compare_checkbox)
         
+
         self.compare_button = QPushButton(tr("button.run_compare"))
         self.compare_button.clicked.connect(self.compare_with_base)
         button_row.addWidget(self.compare_button)
@@ -14613,9 +14615,6 @@ class ItemSearchApp(QWidget):
         action_open_damage.triggered.connect(self.open_rrfdamage_view)
         gamedata_menu.addAction(action_open_damage)
 
-        multi_compare_action = QAction("多裝備比對", self)
-        multi_compare_action.triggered.connect(self.open_multi_compare)
-        gamedata_menu.addAction(multi_compare_action)
 
         # === 建立選單：附魔工具 ===
         enchant_action = QAction(tr("menu.enchant_tool"), self)
@@ -14636,6 +14635,10 @@ class ItemSearchApp(QWidget):
 
         gamedata_menu.addAction(reform_action)
 
+        #多裝備比對
+        multi_compare_action = QAction("多裝備比對工具", self)
+        multi_compare_action.triggered.connect(self.open_multi_compare)
+        gamedata_menu.addAction(multi_compare_action)
 
         # === 設定選單 ===
         settings_menu = menubar.addMenu(tr("menu.settings"))
@@ -14974,7 +14977,7 @@ class ItemSearchApp(QWidget):
             os.remove(file_path)
             print(f"已刪除暫存 JSON：{file_path}")
             name = file_path.replace("tmp", "").replace("\\", "")
-            self.setWindowTitle(tr("window.main_with_file", version=Version, filename=name))
+            self.setWindowTitle(tr("window.main_with_file", version=Version, filename=name, Server_area=Server_area))
             self.current_file = None
         except Exception as e:
             print(f"刪除 JSON 失敗：{e}")

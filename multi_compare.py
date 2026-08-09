@@ -19,6 +19,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QApplication,
     QCheckBox,
     QComboBox,
@@ -504,6 +505,12 @@ class MultiCompareDialog(QDialog):
         self.show_current_checkbox.setChecked(self._main_window_has_named_project())
         self.only_diff_checkbox = QCheckBox("只顯示差異")
         self.only_diff_checkbox.setChecked(True)
+
+        # 計算結果不再固定與最左欄比較；使用者可指定任一可見 Snapshot
+        # 作為比對基準。也支援直接點擊上下表格的欄標題切換基準。
+        self.compare_base_label = QLabel("比對基準：")
+        self.compare_base_combo = QComboBox()
+        self.compare_base_combo.setMinimumWidth(180)
         self.status_label = QLabel("")
 
         toolbar.addWidget(self.update_current_button)
@@ -513,6 +520,9 @@ class MultiCompareDialog(QDialog):
         toolbar.addSpacing(16)
         toolbar.addWidget(self.show_current_checkbox)
         toolbar.addWidget(self.only_diff_checkbox)
+        toolbar.addSpacing(16)
+        toolbar.addWidget(self.compare_base_label)
+        toolbar.addWidget(self.compare_base_combo)
         toolbar.addStretch(1)
         toolbar.addWidget(self.status_label)
         root.addWidget(self.toolbar_widget, 0, Qt.AlignTop)
@@ -530,7 +540,7 @@ class MultiCompareDialog(QDialog):
 
         equipment_header = QHBoxLayout()
         equipment_header.setContentsMargins(0, 0, 0, 0)
-        self.equipment_title_label = QLabel("裝備差異")
+        self.equipment_title_label = QLabel("裝備差異（可選擇比對基準）")
         self.equipment_toggle_button = QToolButton()
         self.equipment_toggle_button.setText("▲ 收起")
         self.equipment_toggle_button.setToolButtonStyle(Qt.ToolButtonTextOnly)
@@ -542,6 +552,8 @@ class MultiCompareDialog(QDialog):
         self.equipment_table = QTableWidget()
         self.equipment_table.setAlternatingRowColors(True)
         self.equipment_table.setWordWrap(True)
+        # 上下兩張表都使用像素水平捲動，確保同步時欄位能精準對齊。
+        self.equipment_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.equipment_section_layout.addWidget(self.equipment_table, 1)
 
         # ===== 計算結果區塊：與裝備差異可分別展開 / 收起 =====
@@ -551,7 +563,7 @@ class MultiCompareDialog(QDialog):
 
         result_header = QHBoxLayout()
         result_header.setContentsMargins(0, 0, 0, 0)
-        self.result_title_label = QLabel("計算結果(以最左側的結果比對)")
+        self.result_title_label = QLabel("計算結果（可選擇比對基準）")
         self.result_toggle_button = QToolButton()
         self.result_toggle_button.setText("▲ 收起")
         self.result_toggle_button.setToolButtonStyle(Qt.ToolButtonTextOnly)
@@ -563,6 +575,8 @@ class MultiCompareDialog(QDialog):
         self.result_table = QTableWidget()
         self.result_table.setAlternatingRowColors(True)
         self.result_table.setWordWrap(False)
+        # 與裝備表一致使用像素水平捲動，兩區滑動時維持相同 X 偏移。
+        self.result_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.result_section_layout.addWidget(self.result_table, 1)
 
         # ===== 可拖曳的上下分隔線 =====
@@ -587,8 +601,9 @@ class MultiCompareDialog(QDialog):
         self._equipment_expanded = True
         self._result_expanded = True
         self._syncing_compare_column_widths = False
+        self._syncing_compare_horizontal_scroll = False
         # 記住使用者最後一次在兩區皆展開時拖出的比例；收合再展開時恢復。
-        self._compare_splitter_sizes = [540, 360]
+        self._compare_splitter_sizes = [100, 100]
         QTimer.singleShot(0, lambda: self.compare_splitter.setSizes(self._compare_splitter_sizes))
 
         self.update_current_button.clicked.connect(self.refresh_current_snapshot)
@@ -597,6 +612,13 @@ class MultiCompareDialog(QDialog):
         self.clear_json_button.clicked.connect(self.clear_jsons)
         self.show_current_checkbox.toggled.connect(self.refresh_tables)
         self.only_diff_checkbox.toggled.connect(self.refresh_tables)
+        self.compare_base_combo.currentIndexChanged.connect(self.refresh_tables)
+        self.equipment_table.horizontalHeader().sectionClicked.connect(
+            self._set_compare_base_from_column
+        )
+        self.result_table.horizontalHeader().sectionClicked.connect(
+            self._set_compare_base_from_column
+        )
         self.equipment_toggle_button.clicked.connect(self._toggle_equipment_section)
         self.result_toggle_button.clicked.connect(self._toggle_result_section)
         self.equipment_table.horizontalHeader().sectionResized.connect(
@@ -607,6 +629,18 @@ class MultiCompareDialog(QDialog):
         self.result_table.horizontalHeader().sectionResized.connect(
             lambda logical, old_size, new_size: self._mirror_compare_column_width(
                 self.result_table, self.equipment_table, logical, new_size
+            )
+        )
+
+        # 水平捲軸雙向同步：不論滑動上方或下方表格，另一張表都維持相同 X 位置。
+        self.equipment_table.horizontalScrollBar().valueChanged.connect(
+            lambda value: self._mirror_compare_horizontal_scroll(
+                self.equipment_table, self.result_table, value
+            )
+        )
+        self.result_table.horizontalScrollBar().valueChanged.connect(
+            lambda value: self._mirror_compare_horizontal_scroll(
+                self.result_table, self.equipment_table, value
             )
         )
 
@@ -732,6 +766,19 @@ class MultiCompareDialog(QDialog):
     def _toggle_result_section(self):
         self._set_compare_section_expanded("result", not self._result_expanded)
 
+    def _mirror_compare_horizontal_scroll(self, source_table, target_table, value):
+        """水平捲動任一表格時，同步另一張表的 X 偏移位置。"""
+        if self._syncing_compare_horizontal_scroll:
+            return
+
+        self._syncing_compare_horizontal_scroll = True
+        try:
+            target_scrollbar = target_table.horizontalScrollBar()
+            if target_scrollbar.value() != value:
+                target_scrollbar.setValue(value)
+        finally:
+            self._syncing_compare_horizontal_scroll = False
+
     def _mirror_compare_column_width(self, source_table, target_table, logical_index, new_size):
         """使用者手動調整任一表格欄寬時，同步另一張表的同一欄。"""
         if self._syncing_compare_column_widths:
@@ -766,6 +813,57 @@ class MultiCompareDialog(QDialog):
                 self.result_table.setColumnWidth(col, width)
         finally:
             self._syncing_compare_column_widths = False
+
+    @staticmethod
+    def _snapshot_compare_key(snapshot):
+        """取得 Snapshot 在「比對基準」下拉選單中的穩定識別值。"""
+        source = snapshot.get("source") if isinstance(snapshot, dict) else None
+        if source:
+            return str(source)
+        return str(snapshot.get("name", "未命名")) if isinstance(snapshot, dict) else ""
+
+    def _refresh_compare_base_combo(self, snapshots):
+        """同步可選基準清單，並盡量保留使用者原本選擇。"""
+        previous_key = self.compare_base_combo.currentData()
+
+        self.compare_base_combo.blockSignals(True)
+        try:
+            self.compare_base_combo.clear()
+            for snap in snapshots:
+                self.compare_base_combo.addItem(
+                    str(snap.get("name", "未命名")),
+                    self._snapshot_compare_key(snap),
+                )
+
+            selected_index = -1
+            if previous_key is not None:
+                selected_index = self.compare_base_combo.findData(previous_key)
+            if selected_index < 0 and snapshots:
+                selected_index = 0
+            if selected_index >= 0:
+                self.compare_base_combo.setCurrentIndex(selected_index)
+        finally:
+            self.compare_base_combo.blockSignals(False)
+
+        self.compare_base_combo.setEnabled(bool(snapshots))
+
+    def _current_compare_base_index(self, snapshots):
+        """回傳目前選定基準在 snapshots 中的索引；找不到時回傳 0。"""
+        if not snapshots:
+            return -1
+        selected_key = self.compare_base_combo.currentData()
+        for index, snap in enumerate(snapshots):
+            if self._snapshot_compare_key(snap) == selected_key:
+                return index
+        return 0
+
+    def _set_compare_base_from_column(self, logical_index):
+        """直接點擊表格欄標題時，把該 Snapshot 設成比對基準。"""
+        if logical_index is None or logical_index < 1:
+            return
+        combo_index = logical_index - 1
+        if 0 <= combo_index < self.compare_base_combo.count():
+            self.compare_base_combo.setCurrentIndex(combo_index)
 
     def _all_snapshots(self):
         result = []
@@ -962,12 +1060,19 @@ class MultiCompareDialog(QDialog):
 
     def refresh_tables(self):
         snapshots = self._all_snapshots()
+        self._refresh_compare_base_combo(snapshots)
         if not snapshots:
+            self.result_title_label.setText("計算結果（可選擇比對基準）")
             for table in (self.equipment_table, self.result_table):
                 table.clear()
                 table.setRowCount(0)
                 table.setColumnCount(0)
             return
+
+        base_index = self._current_compare_base_index(snapshots)
+        base_name = snapshots[base_index].get("name", "未命名") if base_index >= 0 else "未命名"
+        self.equipment_title_label.setText(f"裝備差異（比對基準：{base_name}；可點欄名切換）")        
+        self.result_title_label.setText(f"計算結果（比對基準：{base_name}；可點欄名切換）")
 
         # 自動重算欄寬期間先暫停「手動拖曳同步」，讓上下兩張表各自算出
         # 真正需要的內容寬度；最後再取兩者最大值統一套用。
@@ -1041,6 +1146,8 @@ class MultiCompareDialog(QDialog):
             visible_keys.append(key)
 
         self._setup_table(self.result_table, snapshots, len(visible_keys))
+        base_index = self._current_compare_base_index(snapshots)
+        base_snap = snapshots[base_index] if 0 <= base_index < len(snapshots) else snapshots[0]
 
         for row, key in enumerate(visible_keys):
             label_item = QTableWidgetItem(key)
@@ -1056,12 +1163,11 @@ class MultiCompareDialog(QDialog):
                 diff_text = None
                 higher = None
 
-                # 所有右側欄位都固定與「最左側實際顯示的 Snapshot」比較。
-                # 有顯示「目前設定」時，以目前設定為基準；未顯示時，
-                # snapshots[0] 就是第一個專案檔，因此自然改以第一個專案檔為基準。
-                # 右側數值較高 -> 括號內綠字；較低 -> 括號內紅字。
-                if col > 1 and entry:
-                    base_snap = snapshots[0]
+                # 每一欄都與使用者選定的 Snapshot 比較；基準欄本身不顯示差值。
+                # 因此基準可以是目前設定、第一個專案檔，也可以是中間/最右側任一欄。
+                # 相對基準數值較高 -> 括號內綠字；較低 -> 括號內紅字。
+                snapshot_index = col - 1
+                if snapshot_index != base_index and entry:
                     base_entry = base_snap.get("results", {}).get(key)
                     if base_entry:
                         old_num = base_entry.get("number")
