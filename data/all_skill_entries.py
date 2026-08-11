@@ -184,6 +184,7 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     "水之紋章LV3": {"buff":"","id": "SO","type": "技能","code":["AddSkillMDamage(4, 25)"]},
     "地之紋章LV3": {"buff":"","id": "SO","type": "技能","code":["AddSkillMDamage(4, 25)"]},
     "咒力賦予": {"buff":"1271","id": "SO","type": "技能","code":["AddExtParam(1, 243, 20)"]},
+    "打擊強化": {"buff":"445","id": "SO","type": "技能","code":["AddExtParam(1, 41, 100)","AddGuideAttack(70)"]},
     #基因
     "大聲吶喊": {"buff":"30","id": ["GE","ME"],"type": "技能","code":["AddExtParam(1, 103, 4)","AddExtParam(1, 41, 30)"]},
     "手推車加速": {"buff":"118","id": "GE","type": "技能","code":["WeaponMasteryATK(50)"]},
@@ -191,6 +192,7 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     #機匠
     #大聲吶喊跟基因重複
     "凶砍": {"buff":"25","id": "ME","type": "技能","code":["AddExtParam(1, 207, 25)"],"exclusive": "BOVERTHRUST"},
+    "凶砍(隊友)": {"buff":"10025","id": "ME","type": "技能","code":["AddExtParam(1, 207, 15)"],"exclusive": "BOVERTHRUST"},
     "凶砍最大值": {"buff":"188","id": "ME","type": "技能","code":["AddExtParam(1, 207, 100)"],"exclusive": "BOVERTHRUST"},
     "速度激發": {"buff":"23","id": "ME","type": "技能","code":["temp_wp = GetWeaponClass(4)","if temp_wp == 6 or temp_wp == 7 or temp_wp == 8 or temp_wp == 15 then","AddExtParam(1, 301, 30)","end"]},
     "無視體型攻擊": {"buff":"24","id": "ME","type": "技能","code":["PerfectDamage(1)"]},
