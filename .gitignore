@@ -215,3 +215,6 @@ __marimo__/
 /data/config.json
 /tmp
 /輔助py
+*.bak
+/template
+/web_py

@@ -2,6 +2,14 @@ import sys
 import pandas as pd
 import yaml
 from collections import defaultdict
+# === STAGE 19 DESKTOP SHARED SKILL TREE CORE ===
+from ro_core import (
+    stage19_build_enable_skill_note as _core_stage19_build_enable_skill_note,
+    stage19_build_job_skill_map as _core_stage19_build_job_skill_map,
+    stage19_compute_skill_depths as _core_stage19_compute_skill_depths,
+    stage19_get_job_chain as _core_stage19_get_job_chain,
+    stage19_split_job_chain_to_groups as _core_stage19_split_job_chain_to_groups,
+)
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
@@ -150,133 +158,22 @@ def load_skill_tree(filepath=SKILL_TREE_YML_PATH):
     print("讀入 skill_tree.yml，職業數：", len(job_skill_tree_raw))
 
 def get_job_chain(job_key: str) -> list[str]:
-    """
-    給 4 轉的 job_key（例如 'Imperial_Guard'），
-    回傳這條職業線的職業列表，例如：
-    ['Swordman', 'Crusader', 'Royal_Guard', 'Imperial_Guard']
-    """
-    chain = []
-
-    # 找到對應的 job_dict entry
-    job_entry = None
-    for _, j in job_dict.items():
-        if j.get("id_jobneme") == job_key:
-            job_entry = j
-            break
-
-    if job_entry:
-        ol = job_entry.get("id_jobneme_OL", "")
-        if ol:
-            for name in ol.split("/"):
-                name = name.strip()
-                if name:
-                    chain.append(name)
-
-    # 最後把自己 4 轉也放進去
-    chain.append(job_key)
-    return chain
+    return _core_stage19_get_job_chain(job_key, job_dict)
 
 def split_job_chain_to_groups(job_chain: list[str]) -> list[list[str]]:
-    """
-    例如:
-    ['Swordman', 'Knight', 'Knight_H', 'Rune_Knight', 'Dragon_Knight']
-    -> [
-         ['Swordman'],
-         ['Knight', 'Knight_H'],
-         ['Rune_Knight'],
-         ['Dragon_Knight'],
-       ]
-    """
-    groups: list[list[str]] = []
-    i = 0
-    while i < len(job_chain):
-        cur = job_chain[i]
-        if i + 1 < len(job_chain):
-            nxt = job_chain[i + 1]
-            if nxt.endswith("_H") and nxt[:-2] == cur:
-                groups.append([cur, nxt])
-                i += 2
-                continue
-        groups.append([cur])
-        i += 1
-    return groups
+    return _core_stage19_split_job_chain_to_groups(job_chain)
 
 def build_job_skill_map(job_name, visited=None):
-    """處理 Inherit + Exclude，輸出 {skill_code: skill_info}"""
-    if visited is None:
-        visited = set()
-    if job_name in visited:
-        return {}
-    visited.add(job_name)
-
-    if job_name not in job_skill_tree_raw:
-        return {}
-
-    job_data = job_skill_tree_raw[job_name]
-    result = {}
-
-    # 先繼承
-    inherit = job_data.get("inherit") or {}
-    for parent_job, use_it in inherit.items():
-        if not use_it:
-            continue
-        parent_map = build_job_skill_map(parent_job, visited)
-        for code, info in parent_map.items():
-            if info.get("Exclude"):
-                continue
-            if code not in result:
-                result[code] = info.copy()
-
-    # 再加上自己的
-    for s in job_data.get("tree", []):
-        code = s.get("Name")
-        if not code:
-            continue
-        result[code] = s.copy()
-
-    return result
+    return _core_stage19_build_job_skill_map(
+        job_name, job_skill_tree_raw, visited
+    )
 
 
 # =========================================================
 # 計算技能「層級」（深度），用來決定放哪一欄
 # =========================================================
 def compute_skill_depths(skill_map_job: dict) -> dict:
-    """
-    沒有 Requires 的深度 = 0
-    其他 = max(前置的深度) + 1
-    """
-    depths = {}
-
-    def dfs(code, stack=None):
-        if code in depths:
-            return depths[code]
-        if stack is None:
-            stack = set()
-        if code in stack:
-            # 防止循環；爆掉就給 0
-            return 0
-        stack.add(code)
-
-        info = skill_map_job.get(code, {})
-        requires = info.get("Requires", []) or []
-        if not requires:
-            d = 0
-        else:
-            parent_depths = []
-            for r in requires:
-                parent_code = r.get("Name")
-                if parent_code and parent_code in skill_map_job:
-                    parent_depths.append(dfs(parent_code, stack))
-            d = (max(parent_depths) + 1) if parent_depths else 0
-
-        depths[code] = d
-        stack.remove(code)
-        return d
-
-    for c in skill_map_job.keys():
-        dfs(c)
-
-    return depths
+    return _core_stage19_compute_skill_depths(skill_map_job)
 
 
 # =========================================================
@@ -725,20 +622,11 @@ class SkillTreeWindow(QMainWindow):
         self.update_points_label()
 
     def closeEvent(self, event):
-        from skill_tree import skill_code_to_id
-
-        lines = []
-        for code, lv in self.current_levels.items():
-            if lv > 0:
-                sid = skill_code_to_id.get(code)
-                if sid:
-                    lines.append(f"EnableSkill({sid}, {lv})")
-
-        result = "\n".join(lines)
-
+        result = _core_stage19_build_enable_skill_note(
+            self.current_levels, skill_code_to_id
+        )
         if self.on_close_callback:
             self.on_close_callback(result)
-
         super().closeEvent(event)
 
 

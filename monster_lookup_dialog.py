@@ -1,6 +1,12 @@
 # monster_lookup_dialog.py
 import json
 from pathlib import Path
+# === STAGE 18 DESKTOP SHARED MONSTER CORE ===
+from ro_core import (
+    stage18_decode_monster_element as _core_stage18_decode_monster_element,
+    stage18_load_monster_presets as _core_stage18_load_monster_presets,
+    stage18_parse_monster_payload as _core_stage18_parse_monster_payload,
+)
 import requests
 
 from PySide6.QtCore import QObject, Signal, QThread
@@ -17,32 +23,7 @@ def cache_path(monster_id: int) -> Path:
     return MONSTER_CACHE_DIR / f"{int(monster_id)}.json"
 
 def load_presets() -> list[dict]:
-    """
-    回傳格式: [{"name": str, "id": int}, ...]
-    檔案不存在/壞掉 -> 回傳空清單
-    """
-    if not MONSTERS_FILE.exists():
-        return []
-    try:
-        with MONSTERS_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        if not isinstance(data, list):
-            return []
-        out = []
-        for row in data:
-            if not isinstance(row, dict):
-                continue
-            name = str(row.get("name", "")).strip()
-            mid = row.get("id", None)
-            try:
-                mid = int(mid)
-            except Exception:
-                continue
-            if name and mid > 0:
-                out.append({"name": name, "id": mid})
-        return out
-    except Exception:
-        return []
+    return _core_stage18_load_monster_presets(Path("data"))
 
 # ================= config =================
 CONFIG_FILE = Path("data","config.json")
@@ -60,20 +41,7 @@ def load_api_key_from_config() -> str:
 
 # ================= element decode =================
 def decode_element(element_code: int):
-    if element_code is None:
-        return 0, 1
-
-    lv_a = element_code // 20
-    rem = element_code % 20
-    if rem in (0, 5, 10, 15) and 1 <= lv_a <= 4:
-        return rem , lv_a
-
-    lv_b = element_code // 20
-    id_b = element_code % 20
-    if 1 <= lv_b <= 4:
-        return id_b, lv_b
-
-    return 0, max(1, lv_a if lv_a > 0 else 1)
+    return _core_stage18_decode_monster_element(element_code)
 
 
 # ================= worker =================
@@ -254,44 +222,4 @@ class MonsterLookupDialog(QDialog):
 
     # -------- parse --------
     def parse_monster(self, data: dict) -> dict:
-        stats = data.get("stats", {})
-        attack_data = stats.get("attack") or {}
-        mattack_data = stats.get("magicAttack") or {}
-        name = data.get("name") or data.get("dbname", "")
-        level = int(stats.get("level", 0))
-        s_tr = int(stats.get("str") or 0)
-        vit = int(stats.get("vit") or 0)
-        inte = int(stats.get("int") or 0)
-
-        def_after = int(stats.get("defense", 0))
-        mdef_after = int(stats.get("magicDefense", 0))
-
-        def_before = int((level + vit) / 2)
-        mdef_before = int(int(level / 4) + int(vit / 10) + int(inte / 5))
-
-        element_id, element_lv = decode_element(stats.get("element", 0))
-
-        f_atk = int(level + s_tr)
-        c_atk = int(attack_data.get("maximum") or 0)
-        f_matk = int(level + inte)
-        c_matk = int(mattack_data.get("maximum") or 0)
-        #print(f"==================前atk{f_atk}後atk{c_atk}前MATK{f_matk}後MATK{c_matk}")
-
-        return {
-            "name": name,
-            "element_id": element_id,
-            "element_lv": element_lv,
-            "size_id": int(stats.get("scale", 0)),
-            "race_id": int(stats.get("race", 0)),
-            "class_id": int(stats.get("class", 0)),
-            "def_before": def_before,
-            "mdef_before": mdef_before,
-            "def_after": def_after,
-            "mdef_after": mdef_after,
-            "res": int(stats.get("res", 0)),
-            "mres": int(stats.get("mres", 0)),
-            "monster_f_atk": f_atk,
-            "monster_c_atk": c_atk,
-            "monster_f_matk": f_matk,
-            "monster_c_matk": c_matk,
-        }
+        return _core_stage18_parse_monster_payload(data)

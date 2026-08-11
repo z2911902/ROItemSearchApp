@@ -1,0 +1,202 @@
+{
+  "id": 21379,
+  "dbname": "G_EP18_LAVA_TOAD",
+  "name": "熔岩蟾蜍",
+  "sprite": "ep18_lava_toad",
+  "stats": {
+    "attackRange": 1,
+    "level": 211,
+    "health": 4902338,
+    "sp": 0,
+    "str": 280,
+    "int": 187,
+    "vit": 134,
+    "dex": 149,
+    "agi": 99,
+    "luk": 61,
+    "rechargeTime": 504,
+    "atk1": 7385,
+    "atk2": 2630,
+    "attack": {
+      "minimum": 6399,
+      "maximum": 9353
+    },
+    "magicAttack": {
+      "minimum": 2238,
+      "maximum": 3817
+    },
+    "defense": 301,
+    "baseExperience": 0,
+    "jobExperience": 0,
+    "aggroRange": 10,
+    "escapeRange": 12,
+    "movementSpeed": 170.0,
+    "attackSpeed": 1008.0,
+    "attackedSpeed": 360.0,
+    "element": 63,
+    "scale": 1,
+    "race": 2,
+    "magicDefense": 129,
+    "hit": 510,
+    "flee": 530,
+    "ai": "MONSTER_TYPE_04",
+    "mvp": 0,
+    "class": 0,
+    "attr": 0,
+    "res": 141,
+    "mres": 197
+  },
+  "spawnSet": [],
+  "slaves": [],
+  "metamorphosis": [],
+  "sounds": [
+    "lava_toad_attack.wav",
+    "lava_toad_damage.wav",
+    "lava_toad_die.wav",
+    "lava_toad_move.wav",
+    "lava_toad_stand.wav",
+    "metaller_attack.wav",
+    "metaller_damage.wav",
+    "metaller_die1.wav",
+    "metaller_die2.wav",
+    "metaller_step1.wav",
+    "metaller_step2.wav",
+    "metaller_step3.wav"
+  ],
+  "questObjective": [],
+  "drops": [
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": false,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    },
+    {
+      "itemId": 512,
+      "chance": 0,
+      "stealProtected": true,
+      "serverTypeName": null,
+      "optionGroup": "G0"
+    }
+  ],
+  "mapDrops": [],
+  "mvpdrops": [],
+  "spawn": [],
+  "skill": [
+    {
+      "idx": 42419,
+      "skillId": 19,
+      "status": "RUSH_ST",
+      "level": 3,
+      "chance": 200,
+      "casttime": 0,
+      "delay": 30000,
+      "interruptable": true,
+      "changeTo": null,
+      "condition": null,
+      "conditionValue": null,
+      "sendType": null,
+      "sendValue": null
+    },
+    {
+      "idx": 42420,
+      "skillId": 170,
+      "status": "BERSERK_ST",
+      "level": 1,
+      "chance": 300,
+      "casttime": 0,
+      "delay": 10000,
+      "interruptable": true,
+      "changeTo": null,
+      "condition": null,
+      "conditionValue": null,
+      "sendType": null,
+      "sendValue": null
+    },
+    {
+      "idx": 42421,
+      "skillId": 7,
+      "status": "BERSERK_ST",
+      "level": 5,
+      "chance": 500,
+      "casttime": 0,
+      "delay": 5000,
+      "interruptable": true,
+      "changeTo": null,
+      "condition": "IF_ENEMYCOUNT",
+      "conditionValue": "2",
+      "sendType": null,
+      "sendValue": null
+    },
+    {
+      "idx": 42422,
+      "skillId": 216,
+      "status": "BERSERK_ST",
+      "level": 3,
+      "chance": 300,
+      "casttime": 0,
+      "delay": 30000,
+      "interruptable": true,
+      "changeTo": null,
+      "condition": null,
+      "conditionValue": null,
+      "sendType": null,
+      "sendValue": null
+    }
+  ],
+  "propertyTable": {
+    "0": 100,
+    "1": 200,
+    "2": 70,
+    "3": -25,
+    "4": 100,
+    "5": 100,
+    "6": 100,
+    "7": 100,
+    "8": 50,
+    "9": 50
+  }
+}

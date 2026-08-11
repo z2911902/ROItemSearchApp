@@ -7,6 +7,10 @@ from PySide6.QtWidgets import QMessageBox
 import os
 import json
 import importlib.util
+# === STAGE 19 DESKTOP SHARED RRF CORE ===
+from ro_core import (
+    stage19_build_rrf_desktop_json_from_dump_text as _core_stage19_build_rrf_desktop_json_from_dump_text,
+)
 # ======【設定區】======
 SHOW_OFFSET = False# 顯示 slot 在 group 內的 offset 位置 False True
 SHOW_RAW = False# 顯示 slot 的原始 bytes（每8顆一行）

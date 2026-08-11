@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.5.10-260809"
+Version = "v0.6.0-260812"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -241,6 +241,23 @@ import os
 import json
 import math
 from collections import defaultdict
+
+# === STAGE 17 DESKTOP CORE DAMAGE PRIMITIVES ===
+from ro_core import (
+    stage17_calc_final_def_damage as _core_stage17_calc_final_def_damage,
+    stage17_calc_final_mdef_damage as _core_stage17_calc_final_mdef_damage,
+    stage17_calc_final_res_damage as _core_stage17_calc_final_res_damage,
+    stage17_calc_weapon_refine_atk as _core_stage17_calc_weapon_refine_atk,
+    stage17_calc_weapon_refine_matk as _core_stage17_calc_weapon_refine_matk,
+    stage17_get_damage_multiplier as _core_stage17_get_damage_multiplier,
+    stage17_get_size_penalty as _core_stage17_get_size_penalty,
+    stage17_apply_stepwise as _core_stage17_apply_stepwise,
+    stage17_eval_formula_with_vars as _core_stage17_eval_formula_with_vars,
+    stage17_replace_custom_calls as _core_stage17_replace_custom_calls,
+    stage17_replace_gsklv_calls as _core_stage17_replace_gsklv_calls,
+    stage17_replace_gusklv_calls as _core_stage17_replace_gusklv_calls,
+    stage17_replace_size_calls as _core_stage17_replace_size_calls,
+)
 import pandas as pd
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve, QUrl
 from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices, QPainter, QPen
@@ -253,6 +270,34 @@ from PySide6.QtWidgets import (
 )
 
 from decimal import Decimal, ROUND_HALF_UP
+# === STAGE 20 DESKTOP SHARED STATUS CORE ===
+from ro_core import (
+    stage20_calc_aspd as _core_stage20_calc_aspd,
+    stage20_calculate_hpsp_values as _core_stage20_calculate_hpsp_values,
+)
+from ro_core import (
+    CalculationContext,
+    ROItemCore,
+    calculate_stat_points,
+    raising_stats,
+    parse_lub_file as core_parse_lub_file,
+    resolve_name_conflicts,
+    parse_equipment_blocks as core_parse_equipment_blocks,
+    CoreDependencies,
+    CORE_LUA_DEPENDENCY_NAMES,
+    parse_lua_effects_with_variables as core_parse_lua_effects_with_variables,
+    EquipmentSlotInput,
+    EquipmentEffectRequest,
+    filter_effects as core_filter_effects,
+    normalize_effect_key as core_normalize_effect_key,
+    try_extract_effect as core_try_extract_effect,
+    extract_combi_ids as core_extract_combi_ids,
+    extract_combo_items as core_extract_combo_items,
+    format_effect_dict as core_format_effect_dict,
+    EquipmentCalculationData,
+    calculate_equipment_effects as core_calculate_equipment_effects,
+    precompute_base_equipment_stats as core_precompute_base_equipment_stats,
+)
 from datetime import datetime
 
 # === 條件輸入：上方條件產生器與下方 FunctionSyntaxTextEdit 共用 ===
@@ -1820,6 +1865,31 @@ global_weapon_atk_map = {}#武器基礎攻擊力
 global_weapon_matk_map = {}#武器基礎魔法攻擊力
 function_defs = {}#公式變數字典
 slot_item_id_map = {}#部位裝備的ID
+
+
+def build_desktop_calculation_context():
+    """Desktop -> Core 的暫時相容橋接。
+
+    Mutable dict 保持原物件參考，所以 Stage 2 不會改變現有 Desktop parser
+    對技能、武器/防具資料 map 的寫入副作用。Web 未來不使用此 helper，而是
+    每個 request 自己建立 CalculationContext。
+    """
+    return CalculationContext.from_state(globals())
+def build_desktop_core_dependencies():
+    """Build read-mostly Lua parser dependencies from the existing Desktop state.
+
+    This is a migration bridge only. Values are referenced, not deep-copied.
+    Future Web code should construct CoreDependencies directly and must not
+    import ItemSearchApp.py.
+    """
+    deps = CoreDependencies.from_state(
+        globals(),
+        required_names=CORE_LUA_DEPENDENCY_NAMES,
+    )
+    deps.validate(CORE_LUA_DEPENDENCY_NAMES)
+    return deps
+
+
 def register_function(name, desc, args, vars=None):
     if name in function_defs:
         return
@@ -3633,6 +3703,7 @@ class FileSelectionDialog(QDialog):#刪除清單
 
 
 
+# Stage 3 Desktop -> Core Lua parser wrapper
 def parse_lua_effects_with_variables(
     block_text,
     refine_inputs,
@@ -3644,1886 +3715,28 @@ def parse_lua_effects_with_variables(
     hide_unrecognized=False,
     hide_physical=False,
     hide_magical=False,
-    current_location_slot=None
+    current_location_slot=None,
+    context=None,
 ):
-    lines = block_text.splitlines()
+    if context is None:
+        context = build_desktop_calculation_context()
+
+    return core_parse_lua_effects_with_variables(
+        block_text,
+        refine_inputs,
+        get_values,
+        grade,
+        unit_map,
+        size_map,
+        effect_map,
+        hide_unrecognized=hide_unrecognized,
+        hide_physical=hide_physical,
+        hide_magical=hide_magical,
+        current_location_slot=current_location_slot,
+        context=context,
+        dependencies=build_desktop_core_dependencies(),
+    )
 
-    # 解析裝備 Lua 前，先把外部已知的角色/裝備基礎素質帶進本次 parser。
-    # base_equip_* 會在 display_all_effects() 的前置掃描階段先建立，
-    # 因此第一次解析就能使用，不需要等 replace_custom_calc_content() 跑完後再算第二次。
-    variables = {
-        "target_element": globals().get("target_element", 0),
-        "skill_focus_AGI": globals().get("skill_focus_AGI", 0),
-        "skill_focus_DEX": globals().get("skill_focus_DEX", 0),
-        "total_AGI": globals().get("total_AGI", 0),
-        "total_DEX": globals().get("total_DEX", 0),
-    }
-    for _stat in ("STR", "AGI", "VIT", "INT", "DEX", "LUK",
-                  "POW", "STA", "WIS", "SPL", "CON", "CRT"):
-        variables[f"base_{_stat}"] = globals().get(f"base_{_stat}", 0)
-        variables[f"job_{_stat}"] = globals().get(f"job_{_stat}", 0)
-        variables[f"equip_{_stat}"] = globals().get(f"equip_{_stat}", 0)
-        variables[f"base_equip_{_stat}"] = globals().get(f"base_equip_{_stat}", 0)
-        variables[f"total_{_stat}"] = globals().get(f"total_{_stat}", 0)
-
-    sfct_handled = False  # ✅ 控制是否已處理過 SubSFCTEquipAmount
-    skill_delay_accum = {}
-    results = []
-    condition_met = True
-    indent_stack = []
-    weapon_level_map = variables.setdefault("__weapon_level_map__", {})
-
-    block_stack = []  # 用來追蹤 if-elseif-else 區塊狀態
-    safe_globals = {"__builtins__": None}
-    safe_locals = {"math": __import__("math")}
-
-
-
-
-
-
-    # 快取常用 Lua expression pattern，避免此函式被大量呼叫時重複建立正則。
-    regex_cache = getattr(parse_lua_effects_with_variables, "_regex_cache", None)
-    if regex_cache is None:
-        regex_cache = {
-            "GET": re.compile(r"get\((\d+)\)"),
-            "REFINE_LOCATION": re.compile(r"GetRefineLevel\s*\(\s*GetLocation\s*\(\s*\)\s*\)"),
-            "REFINE": re.compile(r"GetRefineLevel\((\d+)\)"),
-            "GRADE_LOCATION": re.compile(r"GetEquipGradeLevel\s*\(\s*GetLocation\s*\(\s*\)\s*\)"),
-            "GRADE": re.compile(r"GetEquipGradeLevel\((\d+)\)"),
-            "ARMOR_LOCATION": re.compile(r"GetEquipArmorLv\s*\(\s*GetLocation\s*\(\s*\)\s*\)"),
-            "ARMOR": re.compile(r"GetEquipArmorLv\((\d+)\)"),
-            "WEAPON_LV_LOCATION": re.compile(r"GetEquipWeaponLv\s*\(\s*GetLocation\s*\(\s*\)\s*\)"),
-            "WEAPON_LV": re.compile(r"GetEquipWeaponLv\((\d+)\)"),
-            "WEAPON_CLASS_LOCATION": re.compile(r"GetWeaponClass\s*\(\s*GetLocation\s*\(\s*\)\s*\)"),
-            "ITEM_ID_LOCATION": re.compile(r"GetItemIDLocation\((\d+)\)"),
-            "SKILL_LEVEL": re.compile(r"GetSkillLevel\((\d+)\)"),
-            "PET_RELATIONSHIP": re.compile(r"GetPetRelationship\s*\(\s*\)"),
-            "ALLOWED_EVAL": re.compile(r"^[0-9A-Za-z_+\-*/%().<>=!&|,\[\]\s]+$"),
-        }
-        parse_lua_effects_with_variables._regex_cache = regex_cache
-
-    _RE_GET = regex_cache["GET"]
-    _RE_REFINE_LOCATION = regex_cache["REFINE_LOCATION"]
-    _RE_REFINE = regex_cache["REFINE"]
-    _RE_GRADE_LOCATION = regex_cache["GRADE_LOCATION"]
-    _RE_GRADE = regex_cache["GRADE"]
-    _RE_ARMOR_LOCATION = regex_cache["ARMOR_LOCATION"]
-    _RE_ARMOR = regex_cache["ARMOR"]
-    _RE_WEAPON_LV_LOCATION = regex_cache["WEAPON_LV_LOCATION"]
-    _RE_WEAPON_LV = regex_cache["WEAPON_LV"]
-    _RE_WEAPON_CLASS_LOCATION = regex_cache["WEAPON_CLASS_LOCATION"]
-    _RE_ITEM_ID_LOCATION = regex_cache["ITEM_ID_LOCATION"]
-    _RE_SKILL_LEVEL = regex_cache["SKILL_LEVEL"]
-    _RE_PET_RELATIONSHIP = regex_cache["PET_RELATIONSHIP"]
-    _RE_ALLOWED_EVAL = regex_cache["ALLOWED_EVAL"]
-
-    def get_grade_value(slot=None):
-        """Return grade for a specific slot; supports both int grade and per-slot dict grade."""
-        if isinstance(grade, dict):
-            target_slot = current_location_slot if slot is None else slot
-            try:
-                return grade.get(int(target_slot), 0) if target_slot is not None else 0
-            except Exception:
-                return 0
-        try:
-            return int(grade or 0)
-        except Exception:
-            return 0
-
-    def normalize_lua_expr(expr, variables, get_values, refine_inputs):
-        """Normalize simple Lua expressions into Python-evaluable expressions."""
-        expr = str(expr).strip()
-
-        expr = _RE_GET.sub(lambda m: str(get_values.get(int(m.group(1)), 0)), expr)
-        expr = _RE_REFINE_LOCATION.sub(lambda m: str(refine_inputs.get(current_location_slot, 0) if current_location_slot is not None else 0), expr)
-        expr = _RE_REFINE.sub(lambda m: str(refine_inputs.get(int(m.group(1)), 0)), expr)
-        expr = _RE_GRADE_LOCATION.sub(lambda m: str(get_grade_value()), expr)
-        expr = _RE_GRADE.sub(lambda m: str(get_grade_value(m.group(1))), expr)
-        expr = _RE_ARMOR_LOCATION.sub(lambda m: str(global_armor_level_map.get(current_location_slot, 0) if current_location_slot is not None else 0), expr)
-        expr = _RE_ARMOR.sub(lambda m: str(global_armor_level_map.get(int(m.group(1)), 0)), expr)
-        expr = _RE_WEAPON_LV_LOCATION.sub(lambda m: str(global_weapon_level_map.get(current_location_slot, 0) if current_location_slot is not None else 0), expr)
-        expr = _RE_WEAPON_LV.sub(lambda m: str(global_weapon_level_map.get(int(m.group(1)), 0)), expr)
-        expr = _RE_WEAPON_CLASS_LOCATION.sub(lambda m: str(global_weapon_type_map.get(current_location_slot, 0) if current_location_slot is not None else 0), expr)
-        expr = _RE_ITEM_ID_LOCATION.sub(lambda m: str(slot_item_id_map.get(int(m.group(1)), 0)), expr)
-        expr = _RE_SKILL_LEVEL.sub(lambda m: str(enabled_skill_levels.get(int(m.group(1)), 0)), expr)
-        expr = _RE_PET_RELATIONSHIP.sub(lambda m: str(get_grade_value()), expr)
-
-        pure_jobs = globals().get("GetPureJob", [])
-        expr = re.sub(r"GetPureJob\(\)\s*==\s*(\d+)", lambda m: f"({int(m.group(1))} in {list(pure_jobs)})", expr)
-        expr = re.sub(r"GetPureJob\(\)\s*~=\s*(\d+)", lambda m: f"({int(m.group(1))} not in {list(pure_jobs)})", expr)
-
-        expr = expr.replace("~=", "!=").replace("&&", " and ").replace("||", " or ")
-        expr = re.sub(r"\btrue\b", "True", expr, flags=re.IGNORECASE)
-        expr = re.sub(r"\bfalse\b", "False", expr, flags=re.IGNORECASE)
-        expr = re.sub(r"\bnil\b", "0", expr, flags=re.IGNORECASE)
-
-        # 僅替換純數值變數；dict/list 等內部狀態不應塞回 eval 字串。
-        for v in sorted(variables.keys(), key=lambda x: -len(x)):
-            value = variables[v]
-            if isinstance(value, bool):
-                value = int(value)
-            if isinstance(value, (int, float)):
-                expr = re.sub(rf'\b{re.escape(v)}\b', str(value), expr)
-
-        # 補括號，容忍部分 Lua 資料少寫右括號的狀況。
-        if expr.count("(") > expr.count(")"):
-            expr += ")" * (expr.count("(") - expr.count(")"))
-
-        return expr
-
-    def _eval_python_expr(expr, local_vars=None):
-        if not _RE_ALLOWED_EVAL.fullmatch(expr):
-            raise ValueError(f"含不允許字元: {expr}")
-
-        import ast
-        import math
-
-        def __idiv(a, b):
-            # 除完立刻取整；正數情況等同 floor
-            return int(a / b)
-
-        class IntDivTransformer(ast.NodeTransformer):
-            def visit_BinOp(self, node):
-                self.generic_visit(node)
-
-                if isinstance(node.op, ast.Div):
-                    return ast.copy_location(
-                        ast.Call(
-                            func=ast.Name(id="__idiv", ctx=ast.Load()),
-                            args=[node.left, node.right],
-                            keywords=[]
-                        ),
-                        node
-                    )
-
-                return node
-
-        tree = ast.parse(expr, mode="eval")
-        tree = IntDivTransformer().visit(tree)
-        ast.fix_missing_locations(tree)
-
-        env = {
-            "math": math,
-            "__idiv": __idiv,
-        }
-
-        if local_vars:
-            env.update({
-                k: v for k, v in local_vars.items()
-                if isinstance(v, (int, float, bool))
-            })
-
-        return eval(
-            compile(tree, "<expr>", "eval"),
-            {"__builtins__": None},
-            env
-        )
-
-    def safe_eval_expr(expr, variables, get_values, refine_inputs, grade):
-        normalized = normalize_lua_expr(expr, variables, get_values, refine_inputs)
-        try:
-            value = _eval_python_expr(normalized, variables)
-            if isinstance(value, bool):
-                return int(value)
-            return int(value)
-        except Exception:
-            return f"{normalized}（無法解析）"
-
-    def eval_condition_expr(expr):
-        normalized = normalize_lua_expr(expr, variables, get_values, refine_inputs)
-        try:
-            return bool(_eval_python_expr(normalized, variables)), normalized, None
-        except Exception as e:
-            return False, normalized, e
-
-
-
-
-    def split_lua_args(args_text: str):
-        """Split simple Lua-style function arguments while preserving nested calls."""
-        args = []
-        current = []
-        depth = 0
-        quote = None
-        escape = False
-
-        for ch in args_text:
-            if quote:
-                current.append(ch)
-                if escape:
-                    escape = False
-                elif ch == "\\":
-                    escape = True
-                elif ch == quote:
-                    quote = None
-                continue
-
-            if ch in ('"', "'"):
-                quote = ch
-                current.append(ch)
-            elif ch in "({[":
-                depth += 1
-                current.append(ch)
-            elif ch in ")}]":
-                depth = max(0, depth - 1)
-                current.append(ch)
-            elif ch == "," and depth == 0:
-                args.append("".join(current).strip())
-                current = []
-            else:
-                current.append(ch)
-
-        tail = "".join(current).strip()
-        if tail:
-            args.append(tail)
-        return args
-
-
-    def get_lua_call_args(func_name: str, line_text: str, flags: int = 0):
-        m = re.match(rf"{func_name}\s*\((.*)\)\s*$", line_text, flags)
-        if not m:
-            return None
-        return split_lua_args(m.group(1))
-
-
-    def eval_lua_arg(args, index: int, default=None):
-        if args is None or index >= len(args):
-            return default
-        return safe_eval_expr(args[index], variables, get_values, refine_inputs, grade)
-
-
-    def map_int_arg(args, index: int, mapping: dict, fallback_prefix: str):
-        if args is None or index >= len(args):
-            return f"{fallback_prefix}?"
-        try:
-            key = int(safe_eval_expr(args[index], variables, get_values, refine_inputs, grade))
-        except Exception:
-            try:
-                key = int(args[index])
-            except Exception:
-                return f"{fallback_prefix}{args[index]}"
-        return mapping.get(key, f"{fallback_prefix}{key}")
-
-    for line in lines:
-        original_line = line.strip()
-        line = original_line.split("--")[0].strip()
-        # 輸入層接受 Python 習慣的 elif；解析前統一成 Lua elseif。
-        line = re.sub(r"^elif\b", "elseif", line)
-        # 把 GetRefineLevel(GetLocation()) 轉為當前部位的 slot ID
-        if current_location_slot is not None:
-            refine_value = refine_inputs.get(current_location_slot, 0)
-            line = re.sub(
-                r"GetRefineLevel\s*\(\s*GetLocation\s*\(\s*\)\s*\)",
-                str(refine_value),
-                line
-            )
-            # 從全域變數中抓出該部位的武器等級
-            if current_location_slot not in global_weapon_level_map:
-                global_weapon_level_map[current_location_slot] = 0
-            weapon_level = global_weapon_level_map.get(current_location_slot, 0)
-
-            line = re.sub(
-                r"GetEquipWeaponLv\s*\(\s*GetLocation\s*\(\s*\)\s*\)",
-                str(weapon_level),
-                line
-            )
-            # 從全域變數中抓出該部位的防具等級
-            if current_location_slot not in global_armor_level_map:
-                global_armor_level_map[current_location_slot] = 0
-            armor_level = global_armor_level_map.get(current_location_slot, 0)
-            line = re.sub(
-                r"GetEquipArmorLv\s*\(\s*GetLocation\s*\(\s*\)\s*\)",
-                str(armor_level),
-                line
-            )
-            #從全域變數抓出技能等級
-            line = re.sub(
-                r"GetSkillLevel\((\d+)\)",
-                lambda m: str(enabled_skill_levels.get(int(m.group(1)), 0)),
-                line
-            )
-            # 從全域變數抓出該部位的武器類型（代碼）
-            if current_location_slot not in global_weapon_type_map:
-                global_weapon_type_map[current_location_slot] = 0
-            weapon_class = global_weapon_type_map.get(current_location_slot, 0)
-
-            line = re.sub(
-                r"GetWeaponClass\s*\(\s*GetLocation\s*\(\s*\)\s*\)",
-                str(weapon_class),
-                line
-            )
-
-        if not line:
-            continue
-            
-        # === 特殊判斷：若為 P.S = XXX 則直接顯示後面的文字 ===
-        if line.startswith("P.S ="):
-            comment = line.split("=", 1)[1].strip()
-            results.append(f"📌P.S：{comment}")
-            continue
-
-        # 🔽  GetPetRelationship() 替換為傳入的裝備階級
-        line = re.sub(r"GetPetRelationship\s*\(\s*\)", str(get_grade_value()), line)
-
-        # 將 GetEquipGradeLevel(GetLocation()) 替換為傳入的裝備階級
-        line = re.sub(r"GetEquipGradeLevel\s*\(\s*GetLocation\s*\(\s*\)\s*\)", str(get_grade_value()), line)
-        # 補充解析 Type 與 Stat 同行的情況（裝備類別與屬性）
-        type_stat_match = re.match(r'Type\s*=\s*"(.*?)"\s*,\s*Stat\s*=\s*\{(.*?)\}', line)
-        if type_stat_match:
-            eq_type = type_stat_match.group(1)
-            stat_str = type_stat_match.group(2)
-            stat_values = [int(x.strip()) for x in stat_str.split(",")]
-            stat_names_list = stat_name_sets.get(eq_type, stat_name_sets["armor"])
-
-            results.append(f"🛠️ 類型：{eq_type}")
-            for idx, val in enumerate(stat_values):
-                if val != 0:
-                    name = stat_names_list[idx] if idx < len(stat_names_list) else f"未知{idx}"
-                    results.append(f"{name} +{val}")
-            continue
-
-
-
-
-        # 處理單行 Stat = {...}
-        stat_match = re.search(r'Stat\s*=\s*\{([^\}]+)\}', line)
-        if stat_match:
-            stat_values = [int(x.strip()) for x in stat_match.group(1).split(",") if x.strip().isdigit()]
-
-            # 嘗試在整體文本中找到 Type
-            type_match = re.search(r'Type\s*=\s*"(\w+)"', block_text)
-            equip_type = type_match.group(1) if type_match else "armor"
-            stat_names = stat_name_sets.get(equip_type, stat_name_sets["armor"])
-            
-            for idx, val in enumerate(stat_values):
-                if val != 0:
-                    stat_name = stat_names[idx] if idx < len(stat_names) else f"未知{idx}"
-                    # ✅ 儲存武器或防具類型
-                    global_armor_weapon_map[current_location_slot] = equip_type
-                    # 儲存武器或防具等級
-                    if stat_name == "武器等級":
-                        global_weapon_level_map[current_location_slot] = val                    
-                    elif stat_name == "防具等級":
-                        global_armor_level_map[current_location_slot] = val
-                    elif stat_name == "武器ATK":
-                        global_weapon_atk_map[current_location_slot] = val
-                        #print(f"設定武器ATK: 部位{current_location_slot} = {val}")
-                    elif stat_name == "武器MATK":
-                        global_weapon_matk_map[current_location_slot] = val
-                        #print(f"設定武器MATK: 部位{current_location_slot} = {val}")
-
-                        
-                    # ✅ 處理武器類型（使用 map 轉換中文名稱）
-                    if stat_name == "武器類型":
-                        global_weapon_type_map[current_location_slot] = val
-                        weapon_type_name = weapon_type_map.get(val, f"未知武器類型({val})")
-                        #results.append(f"武器類型：{weapon_type_name}")
-                        continue  # 若你不想再輸出 "武器類型 +x" 可跳過
-
-                    # 過濾排除屬性
-                    if stat_name in excluded_stat_names:
-                        continue
-
-                    results.append(f"{stat_name} +{val}")
-
-
-
-            
-         # 處理 if 條件
-        if_match = re.match(r"if\s+(.+?)\s+then", line)
-        if if_match:
-            # 檢查父層是否成立
-            parent_active = all(block['active'] for block in block_stack)
-            if not parent_active:
-                block_stack.append({"active": False, "branch_taken": False})
-                continue
-
-            expr = if_match.group(1)
-            condition_met, normalized_expr, err = eval_condition_expr(expr)
-            if err is None:
-                results.append(f"{'✅ if 條件成立' if condition_met else '❌ if 條件不成立'} : {expr}")
-            else:
-                results.append(f"⚠️ 無法解析條件: {expr}，轉換後: {normalized_expr}，錯誤: {err}")
-
-            block_stack.append({"active": condition_met, "branch_taken": condition_met})
-            continue
-
-        # elseif 判斷
-        elseif_match = re.match(r"elseif\s+(.+?)\s+then", line)
-        if elseif_match:
-            if not block_stack:
-                raise Exception("elseif without if")
-            # 先移除上一個分支
-            last = block_stack.pop()
-            parent_active = all(block['active'] for block in block_stack)
-            if not parent_active or last["branch_taken"]:
-                # 父層不成立 或 已有分支成立
-                block_stack.append({"active": False, "branch_taken": True})
-                continue
-
-            expr = elseif_match.group(1)
-            condition_met, normalized_expr, err = eval_condition_expr(expr)
-            if err is None:
-                results.append(f"{'✅ elseif 條件成立' if condition_met else '❌ elseif 條件不成立'} : {expr}")
-            else:
-                results.append(f"⚠️ 無法解析條件: {expr}，轉換後: {normalized_expr}，錯誤: {err}")
-
-            
-            block_stack.append({"active": condition_met, "branch_taken": condition_met})
-            condition_met = all(block['active'] for block in block_stack)
-            continue
-
-        # else 判斷
-        else_match = re.match(r"\s*else\b", line)
-        if else_match:
-            if not block_stack:
-                raise Exception("else without if")
-            last = block_stack.pop()
-            parent_active = all(block['active'] for block in block_stack)
-            
-            if not parent_active or last["branch_taken"]:
-                block_stack.append({"active": False, "branch_taken": True})
-            else:
-                block_stack.append({"active": True, "branch_taken": True})
-
-            condition_met = all(block['active'] for block in block_stack)
-            continue
-
-        # end 判斷
-        end_match = re.match(r"\s*end\b", line)
-        if end_match:
-            if block_stack:
-                block_stack.pop()
-
-            # --- 🔧 重置 condition_met 並回到父層狀態 ---
-            # 若目前仍在某些區塊內，就依照父層 active 狀態決定
-            if block_stack:
-                condition_met = all(block['active'] for block in block_stack)
-            else:
-                # 已經完全跳出 if/elseif/else 區塊，重置為 True
-                condition_met = True
-
-            continue
-
-        # 一般語句判斷
-        if block_stack and not all(block['active'] for block in block_stack):
-            continue
-
-
-        # 支援多個 GetRefineLevel 連加 (先處理多段再處理單段)
-        multi_refine_assign = re.match(
-            r"(\w+)\s*=\s*GetRefineLevel\((\d+)\)((?:\s*\+\s*GetRefineLevel\((\d+)\))+)", line)
-        if multi_refine_assign:
-            var = multi_refine_assign.group(1)
-            slots = re.findall(r"GetRefineLevel\((\d+)\)", line)
-            try:
-                value = sum([refine_inputs.get(int(slot), 0) for slot in slots])
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（GetRefineLevel({'+'.join(slots)})）")
-            except Exception as e:
-                results.append(f"⚠️ 無法計算 `{var}` = GetRefineLevel({' + '.join(slots)})，錯誤：{e}")
-            continue
-
-        # 新增對 temp = GetRefineLevel(...) 的處理邏輯
-        refine_assign = re.match(r"(\w+)\s*=\s*GetRefineLevel\((\d+)\)", line)
-        if refine_assign:
-            var, slot = refine_assign.groups()
-            try:
-                value = refine_inputs.get(int(slot), 0)
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（GetRefineLevel({slot})）")
-            except:
-                results.append(f"⚠️ 無法計算 `{var}` = GetRefineLevel({slot})")
-            continue
-            
-
-
-        # 新增對 temp = GetEquipGradeLevel(...) 的處理邏輯
-        grade_assign = re.match(r"(\w+)\s*=\s*GetEquipGradeLevel\((\d+)\)", line)
-        if grade_assign:
-            var, slot = grade_assign.groups()
-            try:
-                # 如果 grade 是 dict，取對應部位；否則直接用整數
-                value = get_grade_value(slot)
-                #print(f"[DEBUG] slot {slot} 的 grade 值: {value} 來源: {original_line.strip()}")
-                
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（GetEquipGradeLevel({slot})）")
-            except:
-                results.append(f"⚠️ 無法計算 `{var}` = GetEquipGradeLevel({slot})")
-            continue
-
-        # 新增對 temp = GetEquipArmorLv(...) 的處理邏輯
-        armor_assign = re.match(r"(\w+)\s*=\s*GetEquipArmorLv\((\d+)\)", line)
-        if armor_assign:
-            var, slot = armor_assign.groups()
-            try:
-                slot_i = int(slot)
-                # 從全域表拿該部位的「防具等級」；沒設定就預設 0
-                value = global_armor_level_map.get(slot_i, 0)
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（GetEquipArmorLv({slot})）")
-            except:
-                results.append(f"⚠️ 無法計算 `{var}` = GetEquipArmorLv({slot})")
-            continue
-
-        # 新增對 temp = GetWeaponClass(...) 的處理邏輯
-        weapon_type_name = re.match(r"(\w+)\s*=\s*GetWeaponClass\((\d+)\)", line)
-        if weapon_type_name:
-            var, slot = weapon_type_name.groups()
-            try:
-                slot_i = int(slot)
-                # 從全域表取得該武器的位置類別，沒有設定則預設 0
-                value = global_weapon_type_map.get(slot_i, 0)
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（GetWeaponClass({slot})）")
-            except:
-                results.append(f"⚠️ 無法計算 `{var}` = GetWeaponClass({slot})")
-            continue
-
-        # 新增對 temp = GetEquipWeaponLv(...) 的處理邏輯
-        weapon_Lv_name = re.match(r"(\w+)\s*=\s*GetEquipWeaponLv\((\d+)\)", line)
-        if weapon_Lv_name:
-            var, slot = weapon_Lv_name.groups()
-            try:
-                slot_i = int(slot)
-                # 從全域表取得該武器的位置類別，沒有設定則預設 0
-                value = global_weapon_level_map.get(slot_i, 0)
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（GetEquipWeaponLv({slot})）")
-            except:
-                results.append(f"⚠️ 無法計算 `{var}` = GetEquipWeaponLv({slot})")
-            continue
-        
-        # math.floor(...) 指定變數
-        var_math = re.match(r"(\w+)\s*=\s*math\.floor\((.+)\)", line)
-        if var_math:
-            var, expr = var_math.groups()
-            normalized_expr = normalize_lua_expr(expr, variables, get_values, refine_inputs)
-            try:
-                value = safe_eval_expr(f"math.floor({expr})", variables, get_values, refine_inputs, grade)
-                if isinstance(value, str):
-                    raise ValueError(value)
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}（floor({normalized_expr})）")
-            except Exception as e:
-                results.append(f"⚠️ 無法計算 `{var}` = floor({normalized_expr})，錯誤：{e}")
-            continue
-
-        # 一般變數指定
-        var_assign = re.match(r"(\w+)\s*=\s*(.+)", line)
-        if var_assign and not var_math:
-            if not condition_met:
-                results.append(f"⛔ 已跳過（條件不成立）: {original_line}")
-                continue  # 不執行此行
-            var, expr = var_assign.groups()
-            if any(token in expr for token in ('"', "'", "{", "function")):
-                continue
-
-            if '"' in expr or "'" in expr or "{" in expr or "function" in expr:
-                results.append(f"🟡一般變數 無法辨識: {original_line}")
-                continue
-            # 外部角色/裝備變數已在 parser 一開始同步到 variables，
-            # 不要到一般變數指定時才補，否則 if / 函式參數會比這裡更早使用到舊值。
-            normalized_expr = normalize_lua_expr(expr, variables, get_values, refine_inputs)
-            try:
-                value = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
-                if isinstance(value, str):
-                    raise ValueError(value)
-                variables[var] = value
-                results.append(f"📌 `{var}` = {value}")
-            except Exception as e:
-                results.append(f"⚠️ 無法計算 `{var}` = {normalized_expr}，錯誤：{e}")
-            continue
-            
-
-        # 1. EnableSkill(skill_id, level)
-        register_function("EnableSkill", "可使用技能", [
-            {"name": "技能", "map": "skill_map"},
-            {"name": "等級", "type": "value"}
-        ])
-        enable_skill = re.match(r"EnableSkill\((\d+),\s*(\d+)\)", line)
-        if enable_skill and condition_met:
-            skill_id, level = enable_skill.groups()
-            skill_id = int(skill_id)
-            level = int(level)
-            skill_name = skill_map.get(skill_id, f"技能ID {skill_id}")
-            results.append(f"可使用【{skill_name}】Lv.{level}")
-            # ➕ 記錄技能等級
-            enabled_skill_levels[skill_id] = level
-            continue
-
-        # UseSkill(skill_id)
-
-        use_skill = re.match(r"UseSkill\(\s*(\d+)\s*\)", line)
-
-        if use_skill and condition_met:
-            skill_id = int(use_skill.group(1))
-            skill_name = skill_map.get(skill_id, f"技能ID {skill_id}")
-            results.append(f"使用【{skill_name}】")  # 這裡不帶 Lv，也不紀錄等級
-            #紀錄使用
-            Use_skill_levels[skill_id] = True 
-            continue
-
-
-        # AddExtParam(...)
-        register_function("AddExtParam", "增加基礎能力", [{"name": "無意義", "map": "1"},{"name": "能力", "map": "effect_map"},{"name": "數值", "type": "value"}])
-        register_function("SubExtParam", "減少基礎能力", [{"name": "無意義", "map": "1"},{"name": "能力", "map": "effect_map"},{"name": "數值", "type": "value"}])
-
-        # AddExtParam / SubExtParam 合併處理
-        ext = re.match(r"(Add|Sub)ExtParam\((\d+),\s*(\d+),\s*(.+)\)", line)
-        if ext and condition_met:
-            op, unit, param_id, val_expr = ext.groups()
-            val = safe_eval_expr(val_expr, variables, get_values, refine_inputs, grade)
-
-            unit_str = unit_map.get(int(unit), f"單位{unit}")
-            effect_str = effect_map.get(int(param_id), f"參數{param_id}")
-
-            # 解析失敗保護
-            if not isinstance(val, int):
-                results.append(f"{effect_str} ({val})（無法解析）")
-                continue
-
-            # 預設：Add=+、Sub=-
-            def sign_for(op_: str, invert: bool = False) -> str:
-                # invert=True 會反轉（給「攻擊後延遲」用）
-                return "+" if ((op_ == "Add") != invert) else "-"
-
-            # 特例 1：CRI、完全迴避（每 10 = 1）
-            if effect_str in ("CRI", "完全迴避"):
-                v = val // 10
-                results.append(f"{effect_str} {sign_for(op)}{v}")
-                continue
-
-            # 特例 2：攻擊後延遲（Add=減少、Sub=增加）+ 一定加 %
-            if effect_str in ("攻擊後延遲","(2轉以下)攻擊後延遲"):
-                results.append(f"{effect_str} {sign_for(op, invert=True)}{val}%")
-                continue
-
-            # 一般情況：若名稱本身以 % 結尾（如 MATK% / ATK%），就帶 %
-            percent_suffix = "%" if str(effect_str).endswith("%") else ""
-            results.append(f"{effect_str} {sign_for(op)}{val}{percent_suffix}")
-            continue
-
-            
-        # AddSpellDelay / SubSpellDelay 合併處理（技能後延遲 %）
-        register_function("AddSpellDelay", "增加技能後延遲", [{"name": "數值%", "type": "value"}])
-        register_function("SubSpellDelay", "減少技能後延遲", [{"name": "數值%", "type": "value"}])
-
-        delay = re.match(r"(Add|Sub)SpellDelay\(\s*(.+)\s*\)\s*$", line)
-        if delay and condition_met:
-            op, expr = delay.groups()
-            val = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
-
-            if isinstance(val, int):
-                sign = "+" if op == "Add" else "-"
-                results.append(f"技能後延遲 {sign}{val}%")
-            else:
-                # 保留原本的「無法解析」提示
-                sign = "+" if op == "Add" else "-"
-                results.append(f"技能後延遲 {sign}({val})%（無法解析）")
-            continue
-
-        # 增減 變動詠唱時間（%）合併處理
-        register_function("SubSpellCastTime", "減少變動詠唱時間", [{"name": "數值%", "type": "value"}])
-        register_function("AddSpellCastTime", "增加變動詠唱時間", [{"name": "數值%", "type": "value"}])
-
-        cast_time = re.match(r"(Add|Sub)SpellCastTime\(\s*(.+)\s*\)", line)
-        if cast_time and condition_met:
-            op, value_expr = cast_time.groups()
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-
-            sign = "+" if op == "Add" else "-"
-            try:
-                results.append(f"變動詠唱時間 {sign}{val}%")
-            except Exception:
-                results.append(f"變動詠唱時間 {sign}({value_expr})%（無法解析）")
-            continue
-
-
-        # AddSFCTEquipAmount / SubSFCTEquipAmount（固定詠唱時間，第一參數是物品ID，第二參數是 ms 表達式，第三參數是數字）
-        register_function("SubSFCTEquipAmount", "減少固定詠唱時間", [
-            {"name": "無意義", "map": "0"},#物品名稱
-            {"name": "數值ms", "type": "value"},
-            {"name": "無意義", "map": "0"}
-        ])
-        register_function("AddSFCTEquipAmount", "增加固定詠唱時間", [
-            {"name": "無意義", "map": "0"},#物品名稱
-            {"name": "數值ms", "type": "value"},
-            {"name": "無意義", "map": "0"}
-        ])
-
-        sfct = re.match(
-            r"(Add|Sub)SFCTEquipAmount\(\s*(?:(\d+)\s*,\s*)?(.+?)\s*,\s*(\d+)\s*\)\s*$",
-            line
-        )
-        if sfct and condition_met and not sfct_handled:
-            op, item_id, expr, dummy = sfct.groups()
-
-            # expr 是第二個參數，才是真正的 ms
-            val_ms = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
-
-            sign = "+" if op == "Add" else "-"
-            if isinstance(val_ms, int):
-                results.append(f"固定詠唱時間 {sign}{val_ms / 1000:.2f} 秒")
-            else:
-                results.append(f"固定詠唱時間 {sign}({val_ms}) 秒（無法解析）")
-
-            sfct_handled = True
-            continue
-
-        sfct_2 = re.match(
-            r"(Add|Sub)SFCTEquipPermill\(\s*(?:(\d+)\s*,\s*)?(.+?)\s*,\s*(\d+)\s*\)\s*$",
-            line
-        )
-        if sfct_2 and condition_met and not sfct_handled:
-            op, item_id, expr, dummy = sfct_2.groups()
-
-            # expr 是第二個參數，才是真正的 ms
-            val = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
-            val = val // 10  # 轉為百分比
-            sign = "+" if op == "Add" else "-"
-            if isinstance(val, int):
-                sign = "+" if op == "Add" else "-"
-                results.append(f"固定詠唱時間 {sign}{val}%")
-            else:
-                # 保留原本的「無法解析」提示
-                sign = "+" if op == "Add" else "-"
-                results.append(f"固定詠唱時間 {sign}({val})%（無法解析）")
-            continue
-
-        # 增減「指定技能傷害(裝備段)」合併處理
-        register_function("AddDamage_SKID", "增加技能傷害(裝備段)", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "技能", "map": "skill_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubDamage_SKID", "減少技能傷害(裝備段)", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "技能", "map": "skill_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        add_sub_dmg_skid = re.match(r"(Add|Sub)Damage_SKID\(\s*1\s*,\s*(\d+)\s*,\s*(.+)\s*\)\s*$", line)
-        if add_sub_dmg_skid and condition_met:
-            op, skill_id, value_expr = add_sub_dmg_skid.groups()
-            skill_name = skill_map.get(int(skill_id), f"技能ID {skill_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-
-            if isinstance(val, int):
-                sign = "+" if op == "Add" else "-"
-                results.append(f"技能【{skill_name}】傷害(裝備段) {sign}{val}%")
-            else:
-                sign = "+" if op == "Add" else "-"
-                results.append(f"技能【{skill_name}】傷害(裝備段) {sign}({val})%（無法解析）")
-            continue
-
-            
-        # 增減「指定技能傷害(技能段)」合併處理
-        register_function("AddDamage_passive_SKID", "增加技能傷害(技能段)", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "技能", "map": "skill_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubDamage_passive_SKID", "減少技能傷害(技能段)", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "技能", "map": "skill_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        add_sub_dmg_passive = re.match(
-            r"(Add|Sub)Damage_passive_SKID\(\s*1\s*,\s*(\d+)\s*,\s*(.+)\s*\)\s*$",
-            line
-        )
-        if add_sub_dmg_passive and condition_met:
-            op, skill_id, value_expr = add_sub_dmg_passive.groups()
-            skill_name = skill_map.get(int(skill_id), f"技能ID {skill_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-
-            sign = "+" if op == "Add" else "-"
-            if isinstance(val, int):
-                results.append(f"技能【{skill_name}】傷害(技能段) {sign}{val}%")
-            else:
-                results.append(f"技能【{skill_name}】傷害(技能段) {sign}({val})%（無法解析）")
-            continue
-
-            
-        # 增減「指定技能傷害(技能段)」合併處理
-        register_function("AddSkillDelay", "增加技能固定冷卻", [
-            {"name": "技能", "map": "skill_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubSkillDelay", "減少技能固定冷卻", [
-            {"name": "技能", "map": "skill_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        # 指定技能冷卻時間（毫秒）增加/減少 合併處理
-        skill_delay = re.match(r"(Add|Sub)SkillDelay\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if skill_delay and condition_met:
-            op, skill_id, delay_expr = skill_delay.groups()
-            skill_name = skill_map.get(int(skill_id), f"技能ID {skill_id}")
-            val_ms = safe_eval_expr(delay_expr, variables, get_values, refine_inputs, grade)
-
-            if isinstance(val_ms, int):
-                delta = val_ms if op == "Add" else -val_ms
-                skill_delay_accum[skill_name] = skill_delay_accum.get(skill_name, 0) + delta
-            else:
-                # 保留原本的無法解析提示
-                results.append(f"技能【{skill_name}】冷卻時間變化 ({val_ms}) 毫秒（無法解析）")
-            continue
-
-        # Add/Sub SpecificSpellCastTime（指定技能變動詠唱時間 %）
-        specific_cast = re.match(r"(Add|Sub)SpecificSpellCastTime\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if specific_cast and condition_met:
-            op, skill_id, value_expr = specific_cast.groups()
-            skill_name = skill_map.get(int(skill_id), f"技能ID {skill_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-
-            sign = "+" if op == "Add" else "-"
-            if isinstance(val, int):
-                results.append(f"技能【{skill_name}】變動詠唱時間 {sign}{val}%")
-            else:
-                results.append(f"技能【{skill_name}】變動詠唱時間 {sign}({val})%（無法解析）")
-            continue
-        # Add/Sub EXPPercent_KillRace (從擊殺魔物獲得的經驗%)
-        exp_race = re.match(r"(Add|Sub)EXPPercent_KillRace\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if exp_race and condition_met:
-            op, race_id, value_expr = exp_race.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"從 {race_name} 型怪的經驗值 {sign}{val}%")
-            continue
-
-        #掉寶機率ReceiveItem_Equip(value)
-        Item_attack = re.match(r"(Add|Sub)ReceiveItem_Equip\(\s*(.+?)\s*\)", line)
-        if Item_attack and condition_met:
-            op, value_expr = Item_attack.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"掉寶率 {sign}{value_expr}%")
-            continue
-
-        register_function("就說通用了你還產生！", "----以上通用分隔線----", [])
-        register_function("就說以下魔法了你還產生！", "--以下魔法增減分隔線--", [])
-
-
-#==========以上通用變數
-#==========以下魔法判斷
-        # Add/Sub SkillMDamage（屬性魔法傷害）
-        register_function("AddSkillMDamage", "增加屬性魔法傷害", [
-            {"name": "屬性", "map": "element_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubSkillMDamage", "減少屬性魔法傷害", [
-            {"name": "屬性", "map": "element_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        skill_mdamage = re.match(r"(Add|Sub)SkillMDamage\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if skill_mdamage and condition_met:
-            op, elem_id, value_expr = skill_mdamage.groups()
-            element = element_map.get(int(elem_id), f"屬性{elem_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"{element} 的魔法傷害 {sign}{val}%")
-            continue
-
-        # Add/Sub MDamage_Size（體型魔法）
-        register_function("AddMDamage_Size", "增加體型魔法傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "體型", "map": "size_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubMDamage_Size", "減少體型魔法傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "體型", "map": "size_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        mdamage_size = re.match(r"(Add|Sub)MDamage_Size\(\s*1\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if mdamage_size and condition_met:
-            op, size_id, value_expr = mdamage_size.groups()
-            size_name = size_map.get(int(size_id), f"尺寸{size_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {size_name} 敵人的魔法傷害 {sign}{val}%")
-            continue
-
-        # Add/Sub Mdamage_Race（對種族魔法傷害）
-        register_function("AddMdamage_Race", "增加種族魔法傷害", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubMdamage_Race", "減少種族魔法傷害", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        mdamage_race = re.match(r"(Add|Sub)Mdamage_Race\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if mdamage_race and condition_met:
-            op, race_id, value_expr = mdamage_race.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {race_name} 型怪的魔法傷害 {sign}{val}%")
-            continue
-
-        # Add/Sub MDamage_Property（對指定種族與屬性）
-        register_function("AddMDamage_Property", "增加屬性對象魔法傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "屬性", "map": "element_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubMDamage_Property", "減少屬性對象魔法傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "屬性", "map": "element_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        add_mdamage_prop = re.match(r"(Add|Sub)MDamage_Property\(\s*1\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if add_mdamage_prop and condition_met:
-            op, elem_id, value_expr = add_mdamage_prop.groups()
-            elem_name = element_map.get(int(elem_id), f"屬性{elem_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {elem_name} 對象的魔法傷害 {sign}{val}%")
-            continue
-        # AddMdamage_Class（對階級魔法傷害）
-        
-        register_function("AddMdamage_Class", "增加階級魔法傷害", [
-            {"name": "階級", "map": "class_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubMdamage_Class", "減少階級魔法傷害", [
-            {"name": "階級", "map": "class_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-
-        # AddMdamage_Class / SubMdamage_Class 合併處理
-        mdamage_class = re.match(r"(Add|Sub)Mdamage_Class\(\s*(\d+)\s*,\s*(.+?)\s*\)", line)
-        if mdamage_class and condition_met:
-            op, class_id, value_expr = mdamage_class.groups()
-            class_name = class_map.get(int(class_id), f"階級{class_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {class_name} 階級的魔法傷害 {sign}{val}%")
-            continue
-
-        # SetIgnoreMdefClass（無視階級魔防）
-        register_function("SetIgnoreMdefClass", "無視階級魔法防禦", [
-            {"name": "階級", "map": "class_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        ignore_mdef = re.match(r"SetIgnoreMdefClass\((\d+),\s*(.+?)\)", line)
-        if ignore_mdef and condition_met:
-            class_id, value_expr = ignore_mdef.groups()
-            class_name = class_map.get(int(class_id), f"階級{class_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"無視 {class_name} 階級的魔法防禦 {val}%")
-            continue
-            
-        # SetIgnoreMdefClass（無視種族魔防）
-        register_function("SetIgnoreMdefRace", "無視種族魔法防禦", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        ignore_mdef_race = re.match(r"SetIgnoreMdefRace\((\d+),\s*(.+?)\)", line)
-        if ignore_mdef_race and condition_met:
-            race_id, value_expr = ignore_mdef_race.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"無視 {race_name} 型怪的魔法防禦 {val}%")
-            continue
-
-        # AddIgnore_MRES_RacePercent（無視種族魔抗）
-        register_function("AddIgnore_MRES_RacePercent", "無視種族魔法抗性", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        ignore_mres_race = re.match(r"(Add|Sub)Ignore_MRES_RacePercent\((\d+),\s*(.+?)\)", line)
-        if ignore_mres_race and condition_met:
-            op, race_id, value_expr = ignore_mres_race.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"無視 {race_name} 型怪的魔法抗性 {sign}{val}%")
-            continue
-            
-        # 增加特定魔物魔法傷害MonsterMAtkPercent(value)
-        register_function("MonsterMAtkPercent", "增加特定魔物魔法傷害", [
-            {"name": "數值%", "type": "value"}
-        ])
-        mon_m_atk = re.match(r"MonsterMAtkPercent\(\s*(.+)\s*\)", line)
-        if mon_m_atk and condition_met:
-            value_expr = mon_m_atk.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"特定魔物魔法增傷 +{value_expr}%")
-            continue
-        # 減少特定魔物魔法傷害MonsterMAtkPercent(value)
-        register_function("SubMonsterMAtkPercent", "減少特定魔物魔法傷害", [
-            {"name": "數值%", "type": "value"}
-        ])
-        mon_m_atk = re.match(r"SubMonsterMAtkPercent\(\s*(.+)\s*\)", line)
-        if mon_m_atk and condition_met:
-            value_expr = mon_m_atk.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"特定魔物魔法增傷 -{value_expr}%")
-            continue
-
-        register_function("就說以上魔法了你還產生！", "--以上魔法增減分隔線--", [])
-#===========以上魔法判斷
-#===========以下物理判斷
-        register_function("就說以下物理了你還產生！", "--以下物理增減分隔線--", [])
-
-        register_function("WeaponMasteryATK", "修煉ATK", [
-            {"name": "數值%", "type": "value"}
-        ])
-        #修煉ATK WeaponMasteryATK(value)
-        MasteryATK_dmg = re.match(r"WeaponMasteryATK\(\s*(.+?)\s*\)", line)
-        if MasteryATK_dmg and condition_met:
-            value_expr = MasteryATK_dmg.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"修煉ATK +{value_expr}")
-            continue
-
-        #神威特殊atk SpecialATK
-        KamuiATK_dmg = re.match(r"Kamui_SpecialATK\(\s*(.+?)\s*\)", line)
-        if KamuiATK_dmg and condition_met:
-            value_expr = KamuiATK_dmg.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"神威ATK +{value_expr}")
-            continue
-
-        register_function("AddGuideAttack", "誘導攻擊機率", [
-            {"name": "數值%", "type": "value"}
-        ])
-        #誘導攻擊機率AddGuideAttack(value)
-        guide_attack = re.match(r"AddGuideAttack\(\s*(.+?)\s*\)", line)
-        if guide_attack and condition_met:
-            value_expr = guide_attack.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"誘導攻擊機率 +{value_expr}%")
-            continue
-
-        # AddDamage_HIT(1, value)
-        register_function("AddDamage_HIT", "增加物理命中傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubDamage_HIT", "減少物理命中傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        melee_hit = re.match(r"(Add|Sub)Damage_HIT\(\s*1\s*,\s*(.+)\)", line)
-        if melee_hit and condition_met:
-            op, value_expr = melee_hit.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"物理命中傷害 {sign}{value_expr}%")
-            continue
-
-        # 近距離物理傷害AddMeleeAttackDamage(1, value)
-        register_function("AddMeleeAttackDamage", "增加近距離物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubMeleeAttackDamage", "減少近距離物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        melee_dmg = re.match(r"(Add|Sub)MeleeAttackDamage\(\s*1\s*,\s*(.+)\)", line)
-        if melee_dmg and condition_met:
-            op, value_expr = melee_dmg.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"近距離物理傷害 {sign}{value_expr}%")
-            continue
-
-        # 遠距離物理傷害AddRangeAttackDamage(1, value)
-        register_function("AddRangeAttackDamage", "增加遠距離物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubRangeAttackDamage", "減少遠距離物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        range_dmg = re.match(r"(Add|Sub)RangeAttackDamage\(\s*1\s*,\s*(.+)\)", line)
-        if range_dmg and condition_met:
-            op, value_expr = range_dmg.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"遠距離物理傷害 {sign}{value_expr}%")
-            continue
-            
-        # AddBowAttackDamage(1, value)#弓攻擊力
-        range_dmg = re.match(r"AddBowAttackDamage\(\s*1\s*,\s*(.+)\)", line)        
-        if range_dmg and condition_met:
-            value_expr = range_dmg.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            #results.append(f"遠距離物理傷害 +{value_expr}%")
-            results.append(f"弓攻擊力 +{value_expr}%")
-            continue
-
-        # AddDamage_CRI(1, value)
-        register_function("AddDamage_CRI", "增加爆擊傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubDamage_CRI", "減少爆擊傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        cri_dmg = re.match(r"(Add|Sub)Damage_CRI\(\s*1\s*,\s*(.+)\)", line)
-        if cri_dmg and condition_met:
-            op, value_expr = cri_dmg.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"爆擊傷害 {sign}{value_expr}%")
-            continue
-
-        # 體型物理傷害AddDamage_Size(1, size_id, value)
-        register_function("AddDamage_Size", "增加體型物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "體型", "map": "size_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubDamage_Size", "減少體型物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "體型", "map": "size_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        size_dmg = re.match(r"(Add|Sub)Damage_Size\(\s*1\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if size_dmg and condition_met:
-            
-            op, size_id, value_expr = size_dmg.groups()
-            size_str = size_map.get(int(size_id), f"體型{size_id}")
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {size_str} 敵人的物理傷害 {sign}{value_expr}%")
-            continue
-
-        # RaceAddDamage(race_id, value)
-        register_function("RaceAddDamage", "增加種族物理傷害", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("RaceSubDamage", "減少種族物理傷害", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        race_dmg = re.match(r"Race(Add|Sub)Damage\(\s*(\d+)\s*,\s*(.+)\s*\)\s*$", line)
-        if race_dmg and condition_met:
-            op, race_id, value_expr = race_dmg.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {race_name} 型怪的物理傷害 {sign}{value_expr}%")
-            continue
-
-        # AddDamage_Property（對指定種族與屬性）
-        register_function("AddDamage_Property", "增加屬性對象物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "屬性", "map": "element_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("SubDamage_Property", "減少屬性對象物理傷害", [
-            {"name": "目標", "map": "unit_map"},
-            {"name": "屬性", "map": "element_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        add_damage_prop = re.match(r"(Add|Sub)Damage_Property\(\s*1\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if add_damage_prop and condition_met:
-            op, elem_id, value_expr = add_damage_prop.groups()
-            elem_name = element_map.get(int(elem_id), f"屬性{elem_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {elem_name} 對象的物理傷害 {sign}{val}%")
-            continue
-
-
-        # 階級物理傷害加成：ClassAddDamage(1, class_id, value)
-        register_function("ClassAddDamage", "增加階級的物理傷害", [
-            {"name": "階級", "map": "class_map"},
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        register_function("ClassSubDamage", "減少階級的物理傷害", [
-            {"name": "階級", "map": "class_map"},
-            {"name": "目標", "map": "unit_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        class_dmg = re.match(r"Class(Add|Sub)Damage\(\s*(\d+)\s*,\s*1\s*,\s*(.+?)\s*\)", line)
-        if class_dmg and condition_met:
-            op, class_id, expr_src = class_dmg.groups()
-            class_name = class_map.get(int(class_id), f"階級{class_id}")
-            val = safe_eval_expr(expr_src, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {class_name} 階級的物理傷害 {sign}{val}%")
-            continue
-
-        # SetIgnoreDEFClass(class_id)
-        ignore_class = re.match(r"SetIgnoreDEFClass\((\d+)\)", line)
-        if ignore_class and condition_met:
-            class_name = class_map.get(int(ignore_class.group(1)), f"階級{ignore_class.group(1)}")
-            results.append(f"無視 {class_name} 階級的物理防禦")
-            continue
-
-        # SetIgnoreDefClass_Percent(class_id, value)
-        register_function("SetIgnoreDefClass_Percent", "無視階級物理防禦", [
-            {"name": "階級", "map": "class_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        ignore_class_pct = re.match(r"SetIgnoreDefClass_Percent\((\d+),\s*(\d+)\)", line)
-        if ignore_class_pct and condition_met:
-            class_id, value = ignore_class_pct.groups()
-            class_name = class_map.get(int(class_id), f"階級{class_id}")
-            results.append(f"無視 {class_name} 階級的物理防禦 {value}%")
-            continue
-
-        # SetIgnoreDefRace_Percent(race_id, value)
-        register_function("SetIgnoreDefRace_Percent", "無視種族物理防禦", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        ignore_race_pct = re.match(r"SetIgnoreDefRace_Percent\((\d+),\s*(.+?)\)", line)
-        if ignore_race_pct and condition_met:
-            race_id, value_expr = ignore_race_pct.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"無視 {race_name} 型怪的物理防禦 {val}%")
-            continue
-
-        # AddIgnore_RES_RacePercent(race_id, value)
-        register_function("AddIgnore_RES_RacePercent", "無視種族物理抗性", [
-            {"name": "種族", "map": "race_map"},
-            {"name": "數值%", "type": "value"}
-        ])
-        ignore_res_race = re.match(r"(Add|Sub)Ignore_RES_RacePercent\((\d+),\s*(.+?)\)", line)
-        if ignore_res_race and condition_met:
-            op, race_id, value_expr = ignore_res_race.groups()
-            race_name = race_map.get(int(race_id), f"種族{race_id}")
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"無視 {race_name} 型怪的物理抗性 {sign}{value_expr}%")
-            continue
-
-        # 特定魔物物理增傷MonsterAtkPercent(value)
-        register_function("MonsterAtkPercent", "增加特定魔物物理傷害", [
-            {"name": "數值%", "type": "value"}
-        ])       
-        mon_atk = re.match(r"MonsterAtkPercent\(\s*(.+)\s*\)", line)
-        if mon_atk and condition_met:
-            value_expr = mon_atk.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"特定魔物物理增傷 +{value_expr}%")
-            continue
-        # 特定魔物物理減傷MonsterAtkPercent(value)
-        register_function("SubMonsterAtkPercent", "減少特定魔物物理傷害", [
-            {"name": "數值%", "type": "value"}
-        ])       
-        mon_atk = re.match(r"SubMonsterAtkPercent\(\s*(.+)\s*\)", line)
-        if mon_atk and condition_met:
-            value_expr = mon_atk.group(1)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            results.append(f"特定魔物物理增傷 -{value_expr}%")
-            continue
-
-
-        # SetIgnoreDEFRace(race_id)
-        ignore_race = re.match(r"SetIgnoreDEFRace\((\d+)\)", line)
-        if ignore_race and condition_met:
-            race_name = race_map.get(int(ignore_race.group(1)), f"種族{ignore_race.group(1)}")
-            results.append(f"無視 {race_name} 型怪的物理防禦 +100%")
-            continue
-            
-        # PerfectDamage(1)
-        perfect_damage = re.match(r"^PerfectDamage\(1\)$", line.strip())
-        if perfect_damage and condition_met:
-            results.append(f"武器體型修正 100%")
-            continue
-
-        WP_INVESTIGATE_dmg = re.match(r"SetInvestigate()", line)
-        if WP_INVESTIGATE_dmg and condition_met:
-            results.append(f"武器浸透勁效果")
-            results.append(f"無視 全種族 型怪的物理防禦 +100%")
-            #Use_skill_levels[266] = True #會跟目前裝備衝突 改到計算內處理
-            continue
-
-        #部位
-        register_function("","--以下取得角色能力--",[])
-
-        register_function("get","取得基礎能力",[
-            {"name": "", "type": "var_select", "map": "stat_fields"}
-        ])
-        register_function("GetRefineLevel","取得裝備精煉",[
-            {"name": "", "type": "var_select", "map": "equip_sitetype"}
-        ])
-        register_function("GetEquipGradeLevel","取得裝備階級",[
-            {"name": "", "type": "var_select", "map": "equip_sitetype"}
-        ])
-        register_function("GetEquipArmorLv","取得防具等級",[
-            {"name": "", "type": "var_select", "map": "equip_sitetype"}
-        ])
-        register_function("GetEquipWeaponLv","取得武器等級",[
-            {"name": "", "type": "var_select", "map": "equip_sitetype"}
-        ])
-
-#==============以上物理判斷
-
-        # === 解析補完：先加入顯示/總效果清單，暫不接入最終傷害公式 ===
-        # 注意：名稱刻意與既有傷害公式使用的 key 避開，避免新增解析後改變現有計算結果。
-
-
-        # 治癒量 Add/SubHealValue(value)
-        register_function("AddHealValue", "增加治癒量", [{"name": "數值%", "type": "value"}])
-        register_function("SubHealValue", "減少治癒量", [{"name": "數值%", "type": "value"}])
-        heal_value = re.match(r"(Add|Sub)HealValue\s*\((.*)\)\s*$", line)
-        if heal_value and condition_met:
-            op, args_text = heal_value.groups()
-            val = eval_lua_arg(split_lua_args(args_text), 0, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"治癒量 {sign}{val}%")
-            continue
-
-        # 被治癒量 Add/SubHealModifyPercent(value)
-        register_function("AddHealModifyPercent", "增加被治癒量", [{"name": "數值%", "type": "value"}])
-        register_function("SubHealModifyPercent", "減少被治癒量", [{"name": "數值%", "type": "value"}])
-        heal_modify = re.match(r"(Add|Sub)HealModifyPercent\s*\((.*)\)\s*$", line)
-        if heal_modify and condition_met:
-            op, args_text = heal_modify.groups()
-            val = eval_lua_arg(split_lua_args(args_text), 0, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"被治癒量 {sign}{val}%")
-            continue
-
-        # HP/SP 吸收 Add/SubHPdrain(rate, amount) / Add/SubSPdrain(rate, amount)
-        register_function("AddHPdrain", "增加HP吸收", [{"name": "機率%", "type": "value"}, {"name": "吸收量%", "type": "value"}])
-        register_function("SubHPdrain", "減少HP吸收", [{"name": "機率%", "type": "value"}, {"name": "吸收量%", "type": "value"}])
-        register_function("AddSPdrain", "增加SP吸收", [{"name": "機率%", "type": "value"}, {"name": "吸收量%", "type": "value"}])
-        register_function("SubSPdrain", "減少SP吸收", [{"name": "機率%", "type": "value"}, {"name": "吸收量%", "type": "value"}])
-        drain = re.match(r"(Add|Sub)(HP|SP)drain\s*\((.*)\)\s*$", line)
-        if drain and condition_met:
-            op, pool, args_text = drain.groups()
-            args = split_lua_args(args_text)
-            rate = eval_lua_arg(args, 0, 0)
-            amount = eval_lua_arg(args, 1, None)
-            sign = "+" if op == "Add" else "-"
-            if amount is None:
-                results.append(f"{pool}吸收 {sign}{rate}%")
-            else:
-                results.append(f"{pool}吸收機率 {sign}{rate}%")
-                results.append(f"{pool}吸收量 {sign}{amount}%")
-            continue
-
-        # SP 消耗 Add/SubSPconsumption(value)，以及大小寫技能版本 add/subspconsumption(value, skill_id)
-        register_function("AddSPconsumption", "增加SP消耗", [{"name": "數值%", "type": "value"}])
-        register_function("SubSPconsumption", "減少SP消耗", [{"name": "數值%", "type": "value"}])
-        sp_consumption = re.match(r"(Add|Sub)SPconsumption\s*\((.*)\)\s*$", line)
-        if sp_consumption and condition_met:
-            op, args_text = sp_consumption.groups()
-            val = eval_lua_arg(split_lua_args(args_text), 0, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"SP消耗 {sign}{val}%")
-            continue
-
-        register_function("addspconsumption", "增加指定技能SP消耗%", [{"name": "數值%", "type": "value"}, {"name": "技能", "map": "skill_map"}])
-        register_function("subspconsumption", "減少指定技能SP消耗%", [{"name": "數值%", "type": "value"}, {"name": "技能", "map": "skill_map"}])
-        skill_sp_consumption_pct = re.match(r"(add|sub)spconsumption\s*\((.*)\)\s*$", line)
-        if skill_sp_consumption_pct and condition_met:
-            op, args_text = skill_sp_consumption_pct.groups()
-            args = split_lua_args(args_text)
-            val = eval_lua_arg(args, 0, 0)
-            try:
-                skill_id = int(eval_lua_arg(args, 1, 0))
-            except Exception:
-                skill_id = 0
-            skill_name = skill_map.get(skill_id, f"技能ID {skill_id}")
-            sign = "+" if op == "add" else "-"
-            results.append(f"技能【{skill_name}】SP消耗 {sign}{val}%")
-            continue
-
-        # 指定技能 SP 消耗 Add/SubSkillSP(skill_id, value)
-        register_function("AddSkillSP", "增加指定技能SP消耗", [{"name": "技能", "map": "skill_map"}, {"name": "數值", "type": "value"}])
-        register_function("SubSkillSP", "減少指定技能SP消耗", [{"name": "技能", "map": "skill_map"}, {"name": "數值", "type": "value"}])
-        skill_sp = re.match(r"(Add|Sub)SkillSP\s*\((.*)\)\s*$", line)
-        if skill_sp and condition_met:
-            op, args_text = skill_sp.groups()
-            args = split_lua_args(args_text)
-            try:
-                skill_id = int(eval_lua_arg(args, 0, 0))
-            except Exception:
-                skill_id = 0
-            skill_name = skill_map.get(skill_id, f"技能ID {skill_id}")
-            val = eval_lua_arg(args, 1, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"技能【{skill_name}】SP消耗 {sign}{val}")
-            continue
-
-        # 受近距離物理傷害AddMeleeAttackDamage(0, value)
-        # register_function("AddMeleeAttackDamage", "增加近距離物理傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        # register_function("SubMeleeAttackDamage", "減少近距離物理傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        melee_dmg = re.match(r"(Add|Sub)MeleeAttackDamage\(\s*0\s*,\s*(.+)\)", line)
-        if melee_dmg and condition_met:
-            op, value_expr = melee_dmg.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到近距離物理傷害 {sign}{value_expr}%")
-            continue
-
-        # 受遠距離物理傷害AddRangeAttackDamage(0, value)
-        # register_function("AddRangeAttackDamage", "增加遠距離物理傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        # register_function("SubRangeAttackDamage", "減少遠距離物理傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        range_dmg = re.match(r"(Add|Sub)RangeAttackDamage\(\s*0\s*,\s*(.+)\)", line)
-        if range_dmg and condition_met:
-            op, value_expr = range_dmg.group(1,2)
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到遠距離物理傷害 {sign}{value_expr}%")
-            continue
-
-
-        # 對屬性攻擊耐性 Add/SubAttrTolerace(element, value)
-        register_function("AddAttrTolerace", "增加屬性攻擊抗性", [{"name": "屬性", "map": "element_map"}, {"name": "數值%", "type": "value"}])
-        register_function("SubAttrTolerace", "減少屬性攻擊抗性", [{"name": "屬性", "map": "element_map"}, {"name": "數值%", "type": "value"}])
-        attr_tol = re.match(r"(Add|Sub)AttrTolerace\s*\((.*)\)\s*$", line)
-        if attr_tol and condition_met:
-            op, args_text = attr_tol.groups()
-            args = split_lua_args(args_text)
-            elem_name = map_int_arg(args, 0, element_map, "屬性")
-            val = eval_lua_arg(args, 1, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {elem_name} 攻擊抗性 {sign}{val}%")
-            continue
-
-        # 對屬性物理攻擊耐性 add/subattrtolerace(element, value)
-        register_function("addattrtolerace", "增加屬性物理攻擊抗性", [{"name": "屬性", "map": "element_map"}, {"name": "數值%", "type": "value"}])
-        register_function("subattrtolerace", "減少屬性物理攻擊抗性", [{"name": "屬性", "map": "element_map"}, {"name": "數值%", "type": "value"}])
-        p_attr_tol = re.match(r"(add|sub)attrtolerace\s*\((.*)\)\s*$", line)
-        if p_attr_tol and condition_met:
-            op, args_text = p_attr_tol.groups()
-            args = split_lua_args(args_text)
-            elem_name = map_int_arg(args, 0, element_map, "屬性")
-            val = eval_lua_arg(args, 1, 0)
-            sign = "+" if op == "add" else "-"
-            results.append(f"對 {elem_name} 攻擊抗性 {sign}{val}%")
-            continue
-
-        # Add/Sub Damage_Size（受體型物理）
-        size_dmg = re.match(r"(Add|Sub)Damage_Size\(\s*0\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if size_dmg and condition_met:            
-            op, size_id, value_expr = size_dmg.groups()
-            size_str = size_map.get(int(size_id), f"體型{size_id}")
-            value_expr = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到 {size_str} 敵人的物理傷害 {sign}{value_expr}%")
-            continue
-
-        # Add/Sub MDamage_Size（受體型魔法）
-        mdamage_size = re.match(r"(Add|Sub)MDamage_Size\(\s*0\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if mdamage_size and condition_met:
-            op, size_id, value_expr = mdamage_size.groups()
-            size_name = size_map.get(int(size_id), f"尺寸{size_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到 {size_name} 敵人的魔法傷害 {sign}{val}%")
-            continue
-
-        # 對種族承傷/耐性 Add/SubRaceTolerace(race, value)
-        # register_function("AddRaceTolerace", "增加種族抗性", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        # register_function("SubRaceTolerace", "減少種族抗性", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        race_tol = re.match(r"(Add|Sub)RaceTolerace\s*\((.*)\)\s*$", line)
-        if race_tol and condition_met:
-            op, args_text = race_tol.groups()
-            args = split_lua_args(args_text)
-            race_name = map_int_arg(args, 0, race_map, "種族")
-            val = eval_lua_arg(args, 1, 0)
-            # Tolerace 是耐性：Add = 承傷下降；Sub = 承傷上升
-            sign = "-" if op == "Add" else "+"
-            results.append(f"受到 {race_name} 型怪的傷害 {sign}{val}%")
-            continue
-
-        # AddDamage_Property（對指定種族與屬性）
-        # register_function("AddDamage_Property", "增加屬性對象物理傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "屬性", "map": "element_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        # register_function("SubDamage_Property", "減少屬性對象物理傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "屬性", "map": "element_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        add_damage_prop = re.match(r"(Add|Sub)Damage_Property\(\s*0\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if add_damage_prop and condition_met:
-            op, elem_id, value_expr = add_damage_prop.groups()
-            elem_name = element_map.get(int(elem_id), f"屬性{elem_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到 {elem_name} 對象的物理傷害 {sign}{val}%")
-            continue
-
-        # Add/Sub MDamage_Property（對指定種族與屬性）
-        # register_function("AddMDamage_Property", "增加屬性對象魔法傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "屬性", "map": "element_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        # register_function("SubMDamage_Property", "減少屬性對象魔法傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "屬性", "map": "element_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-
-        add_mdamage_prop = re.match(r"(Add|Sub)MDamage_Property\(\s*0\s*,\s*(\d+)\s*,\s*(.+)\s*\)", line)
-        if add_mdamage_prop and condition_met:
-            op, elem_id, value_expr = add_mdamage_prop.groups()
-            elem_name = element_map.get(int(elem_id), f"屬性{elem_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到 {elem_name} 對象的魔法傷害 {sign}{val}%")
-            continue
-
-
-        # 受到階級敵人傷害 Add/SubClassAddDamage(class_id, 0, value)
-        class_dmg = re.match(r"Class(Add|Sub)Damage\(\s*(\d+)\s*,\s*0\s*,\s*(.+?)\s*\)", line)
-        if class_dmg and condition_met:
-            op, class_id, expr_src = class_dmg.groups()
-            class_name = class_map.get(int(class_id), f"階級{class_id}")
-            val = safe_eval_expr(expr_src, variables, get_values, refine_inputs, grade)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"受到 {class_name} 階級的物理傷害 {sign}{val}%")
-            continue
-
-        # # 自身對種族承傷 RaceSub/AddDamageSelf(race, value)
-        # register_function("RaceSubDamageSelf", "減少自身受到種族傷害", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        # register_function("RaceAddDamageSelf", "增加自身受到種族傷害", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        race_self = re.match(r"Race(Sub|Add)DamageSelf\s*\((.*)\)\s*$", line)
-        if race_self and condition_met:
-            op, args_text = race_self.groups()
-            args = split_lua_args(args_text)
-            race_name = map_int_arg(args, 0, race_map, "種族")
-            val = eval_lua_arg(args, 1, 0)
-            sign = "-" if op == "Sub" else "+"
-            results.append(f"受到 {race_name} 型怪的傷害 {sign}{val}%")
-            continue
-
-        # # 受到某種族武器傷害 Add/SubAttackedWeaponPowerRaceTolerance(race, value)
-        # register_function("AddAttackedWeaponPowerRaceTolerance", "增加受到種族武器傷害", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        # register_function("SubAttackedWeaponPowerRaceTolerance", "減少受到種族武器傷害", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        # race_weapon_tol = re.match(r"(Add|Sub)AttackedWeaponPowerRaceTolerance\s*\((.*)\)\s*$", line)
-        # if race_weapon_tol and condition_met:
-        #     op, args_text = race_weapon_tol.groups()
-        #     args = split_lua_args(args_text)
-        #     race_name = map_int_arg(args, 0, race_map, "種族")
-        #     val = eval_lua_arg(args, 1, 0)
-        #     sign = "+" if op == "Add" else "-"
-        #     results.append(f"受到 {race_name} 型怪的武器傷害 {sign}{val}%")
-        #     continue
-
-        # # 遠距離武器傷害/受到遠距離武器傷害
-        # register_function("AddAttackRangeWeaponPower", "增加遠距離武器傷害", [{"name": "目標", "map": "unit_map"}, {"name": "數值%", "type": "value"}])
-        # register_function("SubAttackRangeWeaponPower", "減少遠距離武器傷害", [{"name": "目標", "map": "unit_map"}, {"name": "數值%", "type": "value"}])
-        # atk_range_weapon = re.match(r"(Add|Sub)AttackRangeWeaponPower\s*\((.*)\)\s*$", line)
-        # if atk_range_weapon and condition_met:
-        #     op, args_text = atk_range_weapon.groups()
-        #     args = split_lua_args(args_text)
-        #     val = eval_lua_arg(args, 1 if len(args) > 1 else 0, 0)
-        #     sign = "+" if op == "Add" else "-"
-        #     results.append(f"遠距離武器傷害 {sign}{val}%")
-        #     continue
-
-        # register_function("AddAttackedRangeWeaponPower", "增加受到遠距離武器傷害", [{"name": "目標", "map": "unit_map"}, {"name": "數值%", "type": "value"}])
-        # register_function("SubAttackedRangeWeaponPower", "減少受到遠距離武器傷害", [{"name": "目標", "map": "unit_map"}, {"name": "數值%", "type": "value"}])
-        # attacked_range_weapon = re.match(r"(Add|Sub)AttackedRangeWeaponPower\s*\((.*)\)\s*$", line)
-        # if attacked_range_weapon and condition_met:
-        #     op, args_text = attacked_range_weapon.groups()
-        #     args = split_lua_args(args_text)
-        #     val = eval_lua_arg(args, 1 if len(args) > 1 else 0, 0)
-        #     sign = "+" if op == "Add" else "-"
-        #     results.append(f"受到遠距離武器傷害 {sign}{val}%")
-        #     continue
-
-        # # 只補反向版本，避免覆蓋既有 Add 版本的公式輸出 key
-        # register_function("SubBowAttackDamage", "減少弓攻擊力", [{"name": "目標", "map": "unit_map"}, {"name": "數值%", "type": "value"}])
-        # sub_bow = get_lua_call_args("SubBowAttackDamage", line)
-        # if sub_bow and condition_met:
-        #     val = eval_lua_arg(sub_bow, 1 if len(sub_bow) > 1 else 0, 0)
-        #     results.append(f"弓攻擊力（未套公式） -{val}%")
-        #     continue
-
-
-        # register_function("SubGuideAttack", "減少誘導攻擊機率", [{"name": "數值%", "type": "value"}])
-        # sub_guide = get_lua_call_args("SubGuideAttack", line)
-        # if sub_guide and condition_met:
-        #     val = eval_lua_arg(sub_guide, 0, 0)
-        #     results.append(f"誘導攻擊機率 -{val}%")
-        #     continue
-
-        # 對種族 CRI Add/SubCRIPercent_Race(race, value)
-        register_function("AddCRIPercent_Race", "增加對種族CRI", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        register_function("SubCRIPercent_Race", "減少對種族CRI", [{"name": "種族", "map": "race_map"}, {"name": "數值%", "type": "value"}])
-        cri_race = re.match(r"(Add|Sub)CRIPercent_Race\s*\((.*)\)\s*$", line)
-        if cri_race and condition_met:
-            op, args_text = cri_race.groups()
-            args = split_lua_args(args_text)
-            race_name = map_int_arg(args, 0, race_map, "種族")
-            val = eval_lua_arg(args, 1, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"對 {race_name} 型怪的CRI {sign}{val}%")
-            continue
-
-        # 反射類
-        register_function("AddMeleeAttackReflect", "增加近距離物理反射", [{"name": "數值%", "type": "value"}])
-        register_function("SubMeleeAttackReflect", "減少近距離物理反射", [{"name": "數值%", "type": "value"}])
-        melee_reflect = re.match(r"(Add|Sub)MeleeAttackReflect\s*\((.*)\)\s*$", line)
-        if melee_reflect and condition_met:
-            op, args_text = melee_reflect.groups()
-            val = eval_lua_arg(split_lua_args(args_text), 0, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"近距離物理反射 {sign}{val}%")
-            continue
-
-        register_function("AddReflectMagic", "增加魔法反射", [{"name": "數值%", "type": "value"}])
-        register_function("SubReflectMagic", "減少魔法反射", [{"name": "數值%", "type": "value"}])
-        magic_reflect = re.match(r"(Add|Sub)ReflectMagic\s*\((.*)\)\s*$", line)
-        if magic_reflect and condition_met:
-            op, args_text = magic_reflect.groups()
-            val = eval_lua_arg(split_lua_args(args_text), 0, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"魔法反射 {sign}{val}%")
-            continue
-
-        register_function("AddReflectTolerace", "增加反射傷害耐性", [{"name": "數值%", "type": "value"}])
-        register_function("SubReflectTolerace", "減少反射傷害耐性", [{"name": "數值%", "type": "value"}])
-        reflect_tol = re.match(r"(Add|Sub)ReflectTolerace\s*\((.*)\)\s*$", line)
-        if reflect_tol and condition_met:
-            op, args_text = reflect_tol.groups()
-            val = eval_lua_arg(split_lua_args(args_text), 0, 0)
-            sign = "+" if op == "Add" else "-"
-            results.append(f"反射傷害耐性 {sign}{val}%")
-            continue
-
-        # 增減「指定技能傷害(裝備段)」合併處理
-        # register_function("AddDamage_SKID", "增加受到技能傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "技能", "map": "skill_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-        # register_function("SubDamage_SKID", "減少受到技能傷害", [
-        #     {"name": "目標", "map": "unit_map"},
-        #     {"name": "技能", "map": "skill_map"},
-        #     {"name": "數值%", "type": "value"}
-        # ])
-
-        add_sub_dmg_skid = re.match(r"(Add|Sub)Damage_SKID\(\s*0\s*,\s*(\d+)\s*,\s*(.+)\s*\)\s*$", line)
-        if add_sub_dmg_skid and condition_met:
-            op, skill_id, value_expr = add_sub_dmg_skid.groups()
-            skill_name = skill_map.get(int(skill_id), f"技能ID {skill_id}")
-            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
-
-            if isinstance(val, int):
-                sign = "+" if op == "Add" else "-"
-                results.append(f"受到技能【{skill_name}】傷害 {sign}{val}%")
-            else:
-                sign = "+" if op == "Add" else "-"
-                results.append(f"受到技能【{skill_name}】傷害 {sign}({val})%（無法解析）")
-            continue
-
-        # # Reset 類：輸出為「取消無視」，避免被現有無視防禦公式讀取
-        # reset_ignore_class = get_lua_call_args("ResetIgnoreDEFClass", line)
-        # if reset_ignore_class and condition_met:
-        #     class_name = map_int_arg(reset_ignore_class, 0, class_map, "階級")
-        #     results.append(f"取消無視 {class_name} 階級的物理防禦")
-        #     continue
-
-        # reset_ignore_class_pct = get_lua_call_args("ResetIgnoreDEFClass_Percent", line) or get_lua_call_args("ResetIgnoreDefClass_Percent", line)
-        # if reset_ignore_class_pct and condition_met:
-        #     class_name = map_int_arg(reset_ignore_class_pct, 0, class_map, "階級")
-        #     val = eval_lua_arg(reset_ignore_class_pct, 1, 0)
-        #     results.append(f"取消無視 {class_name} 階級的物理防禦 {val}%")
-        #     continue
-
-        # reset_ignore_race = get_lua_call_args("ResetIgnoreDEFRace", line)
-        # if reset_ignore_race and condition_met:
-        #     race_name = map_int_arg(reset_ignore_race, 0, race_map, "種族")
-        #     results.append(f"取消無視 {race_name} 型怪的物理防禦")
-        #     continue
-
-        # reset_ignore_race_pct = get_lua_call_args("ResetIgnoreDefRace_Percent", line)
-        # if reset_ignore_race_pct and condition_met:
-        #     race_name = map_int_arg(reset_ignore_race_pct, 0, race_map, "種族")
-        #     val = eval_lua_arg(reset_ignore_race_pct, 1, 0)
-        #     results.append(f"取消無視 {race_name} 型怪的物理防禦 {val}%")
-        #     continue
-
-        # reset_ignore_mdef_class = get_lua_call_args("ResetIgnoreMdefClass", line)
-        # if reset_ignore_mdef_class and condition_met:
-        #     class_name = map_int_arg(reset_ignore_mdef_class, 0, class_map, "階級")
-        #     val = eval_lua_arg(reset_ignore_mdef_class, 1, None)
-        #     if val is None:
-        #         results.append(f"取消無視 {class_name} 階級的魔法防禦")
-        #     else:
-        #         results.append(f"取消無視 {class_name} 階級的魔法防禦 {val}%")
-        #     continue
-
-        # reset_ignore_mdef_race = get_lua_call_args("ResetIgnoreMdefRace", line)
-        # if reset_ignore_mdef_race and condition_met:
-        #     race_name = map_int_arg(reset_ignore_mdef_race, 0, race_map, "種族")
-        #     val = eval_lua_arg(reset_ignore_mdef_race, 1, None)
-        #     if val is None:
-        #         results.append(f"取消無視 {race_name} 型怪的魔法防禦")
-        #     else:
-        #         results.append(f"取消無視 {race_name} 型怪的魔法防禦 {val}%")
-        #     continue
-
-        # 純狀態/特殊效果，先顯示不計算
-        # register_function("NoDispell", "詠唱不中斷", [])
-        # register_function("Magicimmune", "不受魔法效果影響", [])
-        # register_function("NoJamstone", "不消耗魔力礦石", [])
-        # register_function("NoMadogearfuel", "不消耗魔導機甲燃料", [])
-        # register_function("AddNeverknockback", "不會被擊退", [])
-        # register_function("Clairvoyance", "可看見隱匿目標", [])
-        # register_function("Reincarnation", "復活時恢復HP/SP", [])
-        # register_function("SplashAttack", "普攻範圍增加", [])
-        plain_effect_map = {
-            "NoDispell": "詠唱不中斷",
-            "Magicimmune": "不受魔法效果影響",
-            "NoJamstone": "使用技能不消耗魔力礦石",
-            "NoMadogearfuel": "不消耗魔導機甲燃料",
-            "AddNeverknockback": "不會被擊退",
-            "Clairvoyance": "可看見隱匿目標",
-            "Reincarnation": "復活時恢復 HP/SP 100%",
-            "SplashAttack": "普攻範圍增加",
-        }
-        plain_effect = re.match(r"(NoDispell|Magicimmune|NoJamstone|NoMadogearfuel|AddNeverknockback|Clairvoyance|Reincarnation|SplashAttack)\s*(?:\((.*)\))?\s*$", line)
-        if plain_effect and condition_met:
-            results.append(plain_effect_map.get(plain_effect.group(1), plain_effect.group(1)))
-            continue
-
-        # Condition(effect_id, duration, chance)
-        # register_function("Condition", "賦予狀態", [
-        #     {"name": "狀態", "type": "value"},
-        #     {"name": "持續時間", "type": "value"},
-        #     {"name": "機率", "type": "value"}
-        # ])
-        condition_effect = get_lua_call_args("Condition", line)
-        if condition_effect and condition_met:
-            status_map = {
-                13: "霸體",
-                14: "移動速度增加",
-                15: "攻擊速度增加",
-                21: "集中",
-                26: "看見隱匿目標",
-            }
-            try:
-                status_id = int(eval_lua_arg(condition_effect, 0, 0))
-            except Exception:
-                status_id = 0
-            status_name = status_map.get(status_id, f"狀態ID {status_id}")
-            duration = eval_lua_arg(condition_effect, 1, None)
-            chance = eval_lua_arg(condition_effect, 2, None)
-            extra = []
-            if duration is not None:
-                extra.append(f"持續 {duration}")
-            if chance is not None:
-                extra.append(f"機率 {chance}%")
-            results.append(f"賦予狀態：{status_name}" + (f"（{'，'.join(extra)}）" if extra else ""))
-            continue
-
-#待處理判斷
-#物理(物理反射%、對屬性減少傷害、對某種族的CRI+%
-#魔法(魔法反射
-#================以下判斷失敗或不成立區塊
-        IGNORE_PREFIXES = ("local ", "Stat ", "{Type ", "}")
-
-        if not hide_unrecognized:
-            stripped = original_line.strip()
-            if stripped and not stripped.startswith("--"):
-                if not condition_met:
-                    results.append(f"⛔ 已跳過（條件不成立）: {original_line}")
-                else:
-                    if stripped.startswith(IGNORE_PREFIXES):
-                        continue
-
-                    results.append(f"🟡line解析 無法辨識: {original_line}")
-
-
-    for skill_name, total_ms in skill_delay_accum.items():
-        sec = abs(total_ms) / 1000
-        if total_ms < 0:
-            results.append(f"技能【{skill_name}】冷卻時間 -{sec:.2f} 秒")
-        else:
-            results.append(f"技能【{skill_name}】冷卻時間 +{sec:.2f} 秒")
-
-        # 所有邏輯都未匹配時：顯示無法辨識語句
-
-    def _format_number(value):
-        if isinstance(value, float) and value.is_integer():
-            value = int(value)
-        if isinstance(value, int):
-            return f"{value:+d}"
-        return f"{value:+.2f}".rstrip("0").rstrip(".")
-
-    def combine_effects(results):
-        combined = defaultdict(float)
-        final_lines = []
-        
-        for line in results:
-            # 支援加總格式：「效果說明 +數值」、「效果說明 -數值%」與「效果說明 -0.20 秒」
-            match = re.match(r"(.+?) ([+-]\d+(?:\.\d+)?)(%|秒)?$", line)
-            if match:
-                key = match.group(1).strip()
-                value = float(match.group(2))
-                suffix = match.group(3) or ""
-                combined[(key, suffix)] += value
-            else:
-                final_lines.append(line)
-
-        for (key, suffix), total in combined.items():
-            final_lines.append(f"{key} {_format_number(total)}{suffix}")
-
-        return final_lines
-
-    def filter_hidden_effects(lines):
-        if not hide_physical and not hide_magical:
-            return lines
-
-        physical_keywords = (
-            "物理", "ATK", "P.ATK", "CRI", "C.RATE", "HIT",
-            "近距離", "遠距離", "爆擊", "暴擊", "武器", "誘導攻擊"
-        )
-        magical_keywords = (
-            "魔法", "MATK", "S.MATK", "MDEF", "MRES", "變動詠唱", "固定詠唱", "詠唱"
-        )
-
-        filtered = []
-        for line in lines:
-            if hide_physical and any(keyword in line for keyword in physical_keywords):
-                continue
-            if hide_magical and any(keyword in line for keyword in magical_keywords):
-                continue
-            filtered.append(line)
-        return filtered
-
-   
-    final_results = combine_effects(results) if hide_unrecognized else results
-    return filter_hidden_effects(final_results)
 
 def convert_description_to_html(description_lines):#視覺化說明欄
     html_lines = []
@@ -5576,103 +3789,21 @@ def decompile_lub(lub_path, output_path):
         return False
 
 
-def parse_lub_file(filename, existing_items=None, duplicate_mode="skip"):  # 字典化物品列表
+def parse_lub_file(filename, existing_items=None, duplicate_mode="skip"):  # Desktop 相容 wrapper
     try:
-        with open(filename, "r", encoding="utf-8") as file:
-            content = file.read()
+        return core_parse_lub_file(
+            filename,
+            existing_items=existing_items,
+            duplicate_mode=duplicate_mode,
+        )
     except FileNotFoundError:
-        QMessageBox.critical(None, tr("message.title.error"), tr("message.file_not_found", filename=filename))
+        # UI 顯示責任留在 Desktop；ro_core.py 不依賴 PySide6。
+        QMessageBox.critical(
+            None,
+            tr("message.title.error"),
+            tr("message.file_not_found", filename=filename),
+        )
         return existing_items if existing_items is not None else {}
-
-    item_entries = re.findall(
-        r"\[(\d+)\]\s*=\s*{(.*?)}(?=,\s*\[\d+\]|\s*\[\d+\]|\s*$)",
-        content,
-        re.DOTALL
-    )
-
-    # 如果有傳入舊資料就複製一份來疊加，避免直接改到原本的 dict
-    parsed_items = existing_items.copy() if existing_items is not None else {}
-
-    total = len(item_entries)
-    print(f"📦 開始讀取 {os.path.basename(filename)}，共 {total} 筆物品資料。")
-
-    added_count = 0
-    overwritten_count = 0
-    skipped_count = 0
-
-    for index, (item_id, body) in enumerate(item_entries, start=1):
-        try:
-            if index % 1000 == 0 or index == total:
-                print(f"  → 正在讀取第 {index}/{total} 筆", end="\r")
-            item_id = int(item_id)
-
-            identified_name = re.search(
-                r'(?<!un)identifiedDisplayName\s*=\s*"([^"]+)"', body
-            )
-            kr_name = re.search(
-                r'(?<!un)identifiedResourceName\s*=\s*"([^"]+)"', body
-            )
-            slot = re.search(r'slotCount\s*=\s*(\d+)', body)
-
-            desc_match = re.search(
-                r'(?<!un)identifiedDescriptionName\s*=\s*{(.*?)}',
-                body,
-                re.DOTALL
-            )
-
-            if desc_match:
-                desc_body = desc_match.group(1)
-                desc_lines_raw = re.findall(r'"([^"]*)"', desc_body)
-                desc_lines = []
-                for line in desc_lines_raw:
-                    cleaned = line.strip()
-                    # 控制碼行過濾，但保留真正空白行
-                    if re.fullmatch(r"\^?[a-fA-F0-9]+", cleaned):
-                        continue
-                    elif cleaned == "":
-                        desc_lines.append("")
-                    else:
-                        desc_lines.append(cleaned)
-            else:
-                desc_lines = []
-
-            if identified_name and kr_name and slot:
-                base_name = identified_name.group(1).strip()
-                slot_count = int(slot.group(1))
-
-                # 名稱加上孔數
-                display_name = f"{base_name} [{slot_count}]" if slot_count > 0 else base_name
-
-                new_item = {
-                    "name": display_name,
-                    "base_name": base_name,
-                    "kr_name": kr_name.group(1).strip(),
-                    "description": desc_lines,
-                    "slot": slot_count
-                }
-
-                # --- 重複處理邏輯 ---
-                if item_id in parsed_items:
-                    if duplicate_mode == "overwrite":
-                        parsed_items[item_id] = new_item
-                        overwritten_count += 1
-                    elif duplicate_mode == "skip":
-                        skipped_count += 1
-                        continue
-                else:
-                    parsed_items[item_id] = new_item
-                    added_count += 1
-
-        except Exception:
-            continue
-
-    print()
-    print(f"✅ 完成讀取 {os.path.basename(filename)}")
-    print(f"   新增：{added_count} 筆")
-    print(f"   覆蓋：{overwritten_count} 筆")
-    print(f"   略過：{skipped_count} 筆")
-
-    return parsed_items
 
 
 def load_skill_delay_lua(filename) -> str:
@@ -5682,75 +3813,6 @@ def load_skill_delay_lua(filename) -> str:
     except Exception as e:
         print("讀取 skilldelaylist.lua 失敗:", e)
         return ""
-
-
-def resolve_name_conflicts(parsed_items, equipment_blocks):
-    """
-    parsed_items: parse_lub_file() 的結果
-    equipment_blocks: parse_equipment_blocks() 的結果
-    只對有能力區塊的 itemID 執行名稱重複處理
-    """
-
-    # 只取出「有能力」的物品
-    affected_items = {
-        item_id: parsed_items[item_id]
-        for item_id in equipment_blocks.keys()
-        if item_id in parsed_items
-    }
-
-    # 統計名稱出現次數
-    name_count = {}
-    for item_id, info in affected_items.items():
-        name = info["name"]
-        name_count[name] = name_count.get(name, 0) + 1
-
-    # 只有重複名稱需要加 itemID
-    for item_id, info in affected_items.items():
-        name = info["name"]
-        if name_count[name] > 1:
-            #print(f"{name}")
-            info["name"] = f"{name} (ID:{item_id})"
-
-    # 注意：parsed_items 本身也會被更新（因為 dict 是參考）
-    return parsed_items
-
-
-
-#素質點計算#取自ROCalculator
-def calculate_stat_points(level: int, job_id: int) -> int:
-    # 4302 ~ 4308 = 0，其餘 = 100
-    if 4302 <= job_id <= 4308:
-        pt = 48
-    else:
-        pt = 100
-
-    for i in range(1, level):
-        if i < 100:
-            pt += i // 5 + 3
-        elif i <= 150:
-            pt += i // 10 + 13
-        elif i <= 185:
-            pt += 28 + (i - 150) // 7
-        elif i < 200:
-            pt += 33 + (i - 185) // 7
-    return pt
-
-
-
-#素質消耗計算#取自ROCalculator
-def raising_stats(stat_str: str) -> int:
-    try:
-        val = int(stat_str.split('+')[0])
-    except Exception:
-        return 0
-
-    pt = 0
-    for i in range(1, val):
-        if i < 100:
-            pt += (i - 1) // 10 + 2
-        else:
-            pt += 4 * ((i - 100) // 5) + 16
-    return pt
 
 
 import json, os
@@ -7449,85 +5511,20 @@ class ItemSearchApp(QWidget):
 
         #處理公式中的動態變數========================
         def replace_gsklv_calls(formula: str) -> str:
-            pattern = r'GSklv\((\d+)\)'  # 找出 GSklv(數字)
-            return re.sub(pattern, lambda m: str(GSklv(int(m.group(1)))), formula)
+            return _core_stage17_replace_gsklv_calls(formula, enabled_skill_levels)
         def replace_gusklv_calls(formula: str) -> str:
-            pattern = r'GUSklv\((\d+)\)'  # 找出 GUSklv(數字)
-            return re.sub(pattern, lambda m: str(GUSklv(int(m.group(1)))), formula)
+            return _core_stage17_replace_gusklv_calls(formula, Use_skill_levels)
 
         def replace_size_calls(formula: str, target_size: int) -> str:
-            pattern = r'size\(([^)]*)\)'
+            return _core_stage17_replace_size_calls(formula, target_size)
 
-            def repl(m):
-                values = [v.strip() for v in m.group(1).split(',')]
-
-                if target_size < 0 or target_size > len(values):
-                    raise ValueError(f"target_size={target_size} 超出 size() 範圍")
-
-                return values[target_size]
-
-            return re.sub(pattern, repl, formula)
-
-        def replace_custom_calls(formula):#例如超自然波 書跟杖打擊
-            import re
-    
-            # 如果不是字串，直接回傳，不處理
-            if not isinstance(formula, str):
-                return formula
-
-            # 處理 WPon(x|y|...)a:b
-            def replace_wpon_expr(match):
-                global global_weapon_type_map
-        
-                types_str = match.group(1)
-                if_true = match.group(2)
-                if_false = match.group(3)
-
-                target_types = set(int(x) for x in types_str.split("|"))
-                weapon_class = global_weapon_type_map.get(4, 0)  # 主手武器類型
-
-                return if_true if weapon_class in target_types else if_false
-
-            return re.sub(
-                r'WPon\(([\d|]+)\)([^:]+):([^:\)\s\+\-\*/]+)',
-                replace_wpon_expr,
-                formula
-            )
+        def replace_custom_calls(formula):
+            global global_weapon_type_map
+            return _core_stage17_replace_custom_calls(formula, global_weapon_type_map.get(4, 0))
         
 
         def eval_formula_with_vars(formula: str, allowed_vars: dict):
-            """
-            回傳：
-            - expanded_formula：變數已展開的公式字串
-            - result：計算結果（失敗為 None）
-            """
-
-            allowed_funcs = {
-                "floor": math.floor,
-                "ceil":  math.ceil,
-                "trunc": math.trunc,
-            }
-
-            # 變數替換
-            expanded_formula = formula
-            for var, value in allowed_vars.items():
-                expanded_formula = re.sub(
-                    rf'\b{re.escape(var)}\b',
-                    str(value),
-                    expanded_formula
-                )
-
-            # 計算
-            try:
-                result = eval(
-                    expanded_formula,
-                    {"__builtins__": None},
-                    allowed_funcs
-                )
-            except (SyntaxError, NameError, ZeroDivisionError, TypeError):
-                return expanded_formula, None
-
-            return expanded_formula, result
+            return _core_stage17_eval_formula_with_vars(formula, allowed_vars)
 
 
         #=================== 特殊增傷ui取得/處理區===================
@@ -7678,55 +5675,14 @@ class ItemSearchApp(QWidget):
         #=======================技能欄公式====================
         #====================DEF計算==================
         def calc_final_def_damage(d_ef: float, reduction_percent: float) -> float:
-            """
-            根據 Excel 公式計算最終物理傷害比例
-            def: 後 DEF 數值
-            reduction_percent: DEF 破防百分比（例如 64 表示 64%）
-            回傳: 傷害倍率（小數，例如 0.4222）
-            """
-            
-            reduction = reduction_percent / 100
-            if reduction > 0.99:
-                return 1.0
-            adj = d_ef - (d_ef * reduction) - reduction
-            if adj <= -399:
-                adj = -399
-            numerator = 4000 + adj
-            denominator = 4000 + adj * 10
-
-            resistance = numerator / denominator
-            return min(max(resistance, -0.99),1)  # 範圍限制在-0.99~1 來源:https://forum.gamer.com.tw/C.php?bsn=4212&snA=440067&tnum=5&bPage=2
+            return _core_stage17_calc_final_def_damage(d_ef, reduction_percent)
         #====================MRES,MDEF計算===================
         #====================MDEF計算==================
         def calc_final_mdef_damage(mdef: float, reduction_percent: float) -> float:
-            """
-            根據 Excel 公式計算最終魔法傷害比例
-            mdef: 後 MDEF 數值
-            reduction_percent: MDEF 破防百分比（例如 64 表示 64%）
-            回傳: 傷害倍率（小數，例如 0.4222）
-            """
-            
-            reduction = reduction_percent / 100
-            if reduction > 0.99:
-                return 1.0
-            adj = mdef - (mdef * reduction) - reduction
-            if adj <= -99:
-                adj = -99
-            numerator = 1000 + adj
-            denominator = 1000 + adj * 10
-            resistance = numerator / denominator
-            return min(max(resistance, -0.99),1)  # 範圍限制在-0.99~1 來源:https://forum.gamer.com.tw/C.php?bsn=4212&snA=440067&tnum=5&bPage=2
+            return _core_stage17_calc_final_mdef_damage(mdef, reduction_percent)
         #====================RES/MRES計算==================
         def calc_final_res_damage(mres: float, reduction_percent: float) -> float:
-
-            reduction = reduction_percent / 100
-            if reduction > 0.99:
-                return 1.0
-            adj = mres - (mres * reduction) - reduction
-            numerator = 2000 + adj
-            denominator = 2000 + adj * 5
-            resistance = numerator / denominator
-            return min(resistance, 1.0)  # ⬅️ 保證不超過 1.0
+            return _core_stage17_calc_final_res_damage(mres, reduction_percent)
             
         # === [1] 取得技能 row
         skill_row = skill_df[skill_df["Name"] == selected_skill_name]
@@ -7764,21 +5720,12 @@ class ItemSearchApp(QWidget):
         
         # 查詢屬性倍率函數
         def get_damage_multiplier(attacker_element: int, defender_element: int, level: int) -> int:
-            if level not in damage_tables:
-                raise ValueError("不支援的屬性等級（僅支援 Lv1~Lv4）")
-            if attacker_element not in element_map or defender_element not in element_map:
-                raise ValueError("屬性 ID 必須在 0~9 範圍內")
-
-            return damage_tables[level][attacker_element][defender_element]
+            return _core_stage17_get_damage_multiplier(attacker_element, defender_element, level)
 
         
         # 武器體型懲罰(物理)
         def get_size_penalty(weapon_class: int, target_size: int) -> float:
-            """根據武器類型與目標體型回傳懲罰倍率（小數，例如 1.0, 0.75）"""
-            penalties = weapon_type_size_penalty.get(weapon_class, [100, 100, 100])
-            if 0 <= target_size < len(penalties):
-                return penalties[target_size] / 100.0
-            return 1.0  # 預設值 100% → 1.0
+            return _core_stage17_get_size_penalty(weapon_class, target_size)
 
 
 
@@ -7799,68 +5746,11 @@ class ItemSearchApp(QWidget):
 
 
         def apply_stepwise_percent_mode(base, *items):
-            """
-            每層乘完取整，依據 mode 控制加/減/忽略：
-            - mode = 1      → 加成百分比：乘 (1 + bonus / 100)
-            - mode = 1.4    → 特殊加成百分比：乘 (1.4 + bonus / 100)
-            - mode = 0      → 原始倍率：乘 (bonus / 100)
-            - mode = -1     → 減傷百分比：乘 (1 - bonus / 100)
-            - mode = None   → 固定扣值：value -= bonus
-            - mode = "raw"  → 直接乘：value *= bonus（不除以 100）
-            - mode = "+"    → 直接加：value += bonus
-            """
-            # base: 單值 或 (base, base_min)
-            is_pair = isinstance(base, (tuple, list)) and len(base) == 2
-            if is_pair:
-                value, value_min = base
-            else:
-                value, value_min = base, None
-
-            def apply_one(v, bonus, mode):
-                if mode is None:
-                    return v - bonus
-                elif mode == "raw":
-                    return math.floor(v * bonus + 1e-9)
-                elif mode == "+":
-                    return v + bonus
-                else:
-                    if mode == 1:
-                        m = 1 + bonus / 100
-                    elif mode == 1.4:
-                        m = 1.4 + bonus / 100
-                    elif mode == -1:
-                        m = 1 - bonus / 100
-                    else:  # mode == 0 或其他
-                        m = bonus / 100
-                    return math.floor(v * m + 1e-9)
-
-            for it in items:
-                if len(it) == 3:
-                    bonus, mode, name = it
-
-                    # 兼容：如果 bonus 本身就是 (bonus, bonus_min)
-                    if is_pair and isinstance(bonus, (tuple, list)) and len(bonus) == 2:
-                        bonus_main, bonus_min = bonus
-                    else:
-                        bonus_main, bonus_min = bonus, bonus  # 雙值時，沒給 min 就沿用同一個
-
-                elif len(it) == 4:
-                    bonus_main, bonus_min, mode, name = it  # 你要的攤平格式
-
-                else:
-                    raise ValueError("每個 step 必須是 (bonus, mode, name) 或 (bonus, bonus_min, mode, name)")
-
-                # steps 記錄：維持你原本 1.4 特殊顯示
-                if mode == 1.4:
-                    self.steps.append([name, 40 + bonus_main])
-                else:
-                    self.steps.append([name, bonus_main])
-
-                value = apply_one(value, bonus_main, mode)
-                if is_pair:
-                    value_min = apply_one(value_min, bonus_min, mode)
-
-            return (value, value_min) if is_pair else value
+            result, _core_steps = _core_stage17_apply_stepwise(base, *items)
+            for _step in _core_steps:
+                _value = 40 + _step['value'] if _step['mode'] == 1.4 else _step['value']
+                self.steps.append([_step['name'], _value])
+            return result
             
 
                 
@@ -9297,130 +7187,10 @@ class ItemSearchApp(QWidget):
 
     
     def calc_weapon_refine_matk(self, weapon_Level, weaponRefineR, weaponGradeR):
-        """
-        回傳： (MATK 總加成, S.MATK 總加成)
-        說明：
-          1~4 階：每 +1 固定加成；超過安定值後，每 +1 額外給「浮動加成(取上限)」；
-                  若精煉 > 15，則每超過 1 級，對「1~15」再各加一次 over16_bonus，共 15 倍。
-          5 階：依品級每 +1 固定 MATK，加上每 +1 固定 +2 S.MATK。
-        """
-        if weapon_Level == 0 or weaponRefineR <= 0:
-            return 0, 0, 0, 0
-
-        # 每精煉+1 增加 MATK
-        base_per_refine   = {1: 2, 2: 3, 3: 5, 4: 7, 5: 0}
-        # 超過安定值後，每 +1 額外「浮動」增加的上限值
-        extra_after_safe  = {1: 3, 2: 5, 3: 8, 4: 14, 5: 0}
-        # 精煉 16 以上，每超過 1 級，對 1~15 各再加的數值
-        over16_bonus      = {1: 3, 2: 5, 3: 7, 4: 10, 5: 0}
-        # 安定值   
-        safe_threshold    = {1: 7, 2: 6, 3: 5, 4: 4, 5: 0}
-
-        # 五階各品級的每 +1 MATK
-        level5_grade_bonus = {
-            0: 8.0,   # N
-            1: 8.8,   # D
-            2: 10.4,  # C
-            3: 12.0,  # B
-            4: 16.0   # A
-        }
-        # 五階每 +1 固定 +2 S.MATK
-        smatk_bonus_per_refine = 2
-
-        matk_total = 0.0
-        total_SMATK = 0.0
-
-        if weapon_Level < 5:
-            # 固定加成：所有等級都算
-            base = weaponRefineR * base_per_refine[weapon_Level]
-
-            # 浮動加成：只在超過安定值的那幾級才算（取上限）
-            safe = safe_threshold[weapon_Level]
-            steps_after_safe = max(0, weaponRefineR - safe)
-            variance = steps_after_safe * extra_after_safe[weapon_Level]
-            variance_min = 1#基礎最小值
-
-            # 16 以上 更換下一階額外加成
-            steps_over16 = max(0, weaponRefineR - 15)
-            # over16 = steps_over16 * 15 * over16_bonus[weapon_Level]
-            if steps_over16 > 0:
-                base = weaponRefineR * over16_bonus[weapon_Level]
-
-            matk_total = base + variance# + over16
-            #matk_total = base + over16#安定後浮動加成暫時取消
-            total_SMATK = 0.0
-
-        else:  # weapon_Level == 5
-            matk_per_refine = level5_grade_bonus.get(weaponGradeR, 0.0)
-            matk_total = weaponRefineR * matk_per_refine
-            total_SMATK = weaponRefineR * smatk_bonus_per_refine
-            variance = 0
-            variance_min = 0
-
-        return matk_total, total_SMATK, variance , variance_min
+        return _core_stage17_calc_weapon_refine_matk(weapon_Level, weaponRefineR, weaponGradeR)
         
     def calc_weapon_refine_atk(self, weapon_Level, weaponRefineR, weaponGradeR):
-        """
-        回傳： (ATK 總加成, P.ATK 總加成)
-        說明：
-          1~4 階：每 +1 固定加成；超過安定值後，每 +1 額外給「浮動加成(這裡取上限)」；
-                  若精煉 > 15，則每超過 1 級，對「1~15」再各加一次 over16_bonus，共 15 倍。
-          5 階：依品級每 +1 固定 ATK，加上每 +1 固定 +2 P.ATK。
-        """
-        if weapon_Level == 0 or weaponRefineR <= 0:
-            return 0, 0, 0, 0
-
-        # 每精煉+1 增加 ATK/MATK
-        base_per_refine   = {1: 2, 2: 3, 3: 5, 4: 7, 5: 0}
-        # 超過安定值後，每 +1 額外「浮動」增加的上限值（表格中的 1~X，這裡取 X 當上限）
-        extra_after_safe  = {1: 3, 2: 5, 3: 8, 4: 14, 5: 0}
-        # 精煉 16 以上，每超過 1 級，對 1~15 各再加的數值
-        over16_bonus      = {1: 3, 2: 5, 3: 7, 4: 10, 5: 0}
-        # 安定值
-        safe_threshold    = {1: 7, 2: 6, 3: 5, 4: 4, 5: 4}
-
-        # 五階各品級的每 +1 ATK/MATK
-        level5_grade_bonus = {
-            0: 8.0,   # N
-            1: 8.8,   # D
-            2: 10.4,  # C
-            3: 12.0,  # B
-            4: 16.0   # A
-        }
-        # 五階每 +1 固定 +2 P.ATK/S.MATK
-        patk_bonus_per_refine = 2
-
-        atk_total = 0.0
-        total_PATK = 0.0
-
-        if weapon_Level < 5:
-            # 固定加成：所有等級都算
-            base = weaponRefineR * base_per_refine[weapon_Level]
-
-            # 浮動加成：只在超過安定值的那幾級才算（這裡取“上限”值）
-            safe = safe_threshold[weapon_Level]
-            steps_after_safe = max(0, weaponRefineR - safe)
-            variance = steps_after_safe * extra_after_safe[weapon_Level]
-            variance_min = 1#基礎最小值
-
-            # 16 以上 更換下一階額外加成
-            steps_over16 = max(0, weaponRefineR - 15)
-            # over16 = steps_over16 * 15 * over16_bonus[weapon_Level]
-            if steps_over16 > 0:
-                base = weaponRefineR * over16_bonus[weapon_Level]
-
-            atk_total = base + variance# + over16
-            #atk_total = base + over16#安定後浮動加成暫時取消
-            total_PATK = 0.0
-
-        else:  # weapon_Level == 5
-            atk_per_refine = level5_grade_bonus.get(weaponGradeR, 0.0)
-            atk_total = weaponRefineR * atk_per_refine
-            total_PATK = weaponRefineR * patk_bonus_per_refine
-            variance = 0
-            variance_min = 0
-
-        return atk_total, total_PATK, variance ,variance_min
+        return _core_stage17_calc_weapon_refine_atk(weapon_Level, weaponRefineR, weaponGradeR)
 
     def get_armor_bonus(self, refine: int, armor_level: int) -> dict:
         """
@@ -9862,78 +7632,22 @@ class ItemSearchApp(QWidget):
         # 最後四捨五入位數
         round_digits: int = 3,
     ) -> float:
-        """
-        回傳：套完基礎ASPD + 類別1/2 後的 ASPD，四捨五入到小數 round_digits 位（ROUND_HALF_UP）
-        """
-
-        def _rate_to_decimal(r: float) -> float:
-            # 允許使用者傳 0.15 或 15（代表 15%）
-            if r < 0:
-                return r
-            return r / 100.0 if r > 1 else r
-
-        def _round_half_up(x: float, digits: int) -> float:
-            q = Decimal("1").scaleb(-digits)  # e.g. digits=3 -> Decimal('0.001')
-            return float(Decimal(str(x)).quantize(q, rounding=ROUND_HALF_UP))
-
-        if job_id not in wpasdp_data:
-            #raise KeyError(f"找不到 job_id={job_id} 的武器基礎ASPD表")
-            return (f"未選擇職業或該職業不支援此武器。")
-
-        job_table = wpasdp_data[job_id]
-
-        cat1_rate = _rate_to_decimal(cat1_rate)
-        cat2_rate = _rate_to_decimal(cat2_rate)
-
-        # --- 1) 先算基礎 ASPD ---
-        if dual_wield:
-            if right_weapon_type is None or left_weapon_type is None:
-                raise ValueError("dual_wield=True 時必須提供 right_weapon_type 與 left_weapon_type")
-
-            base_r = job_table.get(right_weapon_type)
-            base_l = job_table.get(left_weapon_type)
-            if base_r is None or base_l is None:
-                #raise KeyError("雙刀武器類型不在此 job 的表內")
-                return (f"該職業不支援雙刀武器。")
-            if base_r <= 0 or base_l <= 0:
-                #raise ValueError("雙刀基礎ASPD <= 0，疑似不可用")
-                return (f"雙刀基礎ASPD <= 0")
-
-            aspd = (
-                base_r
-                + (base_l - 194) / 4
-                + math.sqrt(agi * 10.01 + dex * 11 / 60) * 1.04518
-            )
-
-        else:
-            if weapon_type is None:
-                raise ValueError("dual_wield=False 時必須提供 weapon_type")
-
-            base = job_table.get(weapon_type)
-            if base is None:
-                #raise KeyError(f"job_id={job_id} 不支援 weapon_type={weapon_type}")
-                return (f"該職業不支援此武器。")
-            if base <= 0:
-                #raise ValueError("基礎ASPD <= 0，疑似不可用")
-                return (f"基礎ASPD <= 0")
-
-            stat_term = math.sqrt(agi * 10.09 + dex * 11 / 60)
-
-            # 基礎ASPD145以上採用係數
-            if base >= 145:
-                stat_term *= (1 - (base - 144) / 50)
-
-            shield_penalty = float(job_table.get(50, 0)) if has_shield else 0.0  # 通常是負數
-            aspd = base + stat_term + shield_penalty
-
-        # --- 2) 類別1 ---
-        aspd_1 = 200 - (200 - aspd) * (1 - cat1_rate) + cat1_flat
-
-        # --- 3) 類別2 ---
-        aspd_2 = 195 - (195 - aspd_1) * (1 - cat2_rate) + cat2_flat
-
-        # --- 4) 小數第 3 位（或你指定的位數） ---
-        return _round_half_up(aspd_2, round_digits)
+        return _core_stage20_calc_aspd(
+            wpasdp_data,
+            job_id=job_id,
+            agi=agi,
+            dex=dex,
+            weapon_type=weapon_type,
+            has_shield=has_shield,
+            dual_wield=dual_wield,
+            right_weapon_type=right_weapon_type,
+            left_weapon_type=left_weapon_type,
+            cat1_rate=cat1_rate,
+            cat1_flat=cat1_flat,
+            cat2_rate=cat2_rate,
+            cat2_flat=cat2_flat,
+            round_digits=round_digits,
+        )
 
 
     def safe_update_textbox(self, textbox, text):
@@ -9949,29 +7663,12 @@ class ItemSearchApp(QWidget):
         self.combi_raw_text.setVisible(not hidden)
         
     def filter_effects(self, effects: list[str]) -> list[str]:
-        hide_keywords = []
-        if self.hide_physical_checkbox.isChecked():
-            hide_keywords.extend(["物理", "爆擊", "CRI", "武器ATK" , "P.ATK"])
-        if self.hide_magical_checkbox.isChecked():
-            hide_keywords.extend(["魔法", "武器MATK", "S.MATK"])
-
-        # 過濾物理/魔法關鍵字
-        filtered = [line for line in effects if not any(k in line for k in hide_keywords)]
-
-        # 過濾未辨識或需隱藏內容
-        if self.hide_unrecognized_checkbox.isChecked():
-            filtered = [
-                line for line in filtered
-                if not (line.startswith("🟡") or
-                        line.startswith("⚠️") or
-                        line.startswith("❌") or
-                        line.startswith("📌") or
-                        line.startswith("✅") or
-                        line.startswith("⛔") or
-                        line.startswith("可使用")
-                        )
-            ]
-        return filtered
+        return core_filter_effects(
+            effects,
+            hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
+            hide_physical=self.hide_physical_checkbox.isChecked(),
+            hide_magical=self.hide_magical_checkbox.isChecked(),
+        )
     
     def update_skill_food_tab_checked_count(self, *_args):
         """更新「增益技能／料理」分頁標題中的已勾選數量。"""
@@ -9999,13 +7696,7 @@ class ItemSearchApp(QWidget):
 
     
     def normalize_effect_key(self, key: str) -> str:
-        key = key.strip()
-
-        # 只處理 固定 / 變動 詠唱
-        key = key.replace("固定詠唱時間", "固定詠唱時間")
-        key = key.replace("變動詠唱時間", "變動詠唱時間")
-
-        return key
+        return core_normalize_effect_key(key)
 
     def handle_exclusive_toggle(self, checkbox, group, checked):
         """處理 mutually exclusive 但允許取消的行為"""
@@ -10025,24 +7716,7 @@ class ItemSearchApp(QWidget):
 
 
     def try_extract_effect(self, line: str):
-        import re
-
-        # 統一處理 % 類型（+/-）
-        match = re.match(r"(.+?)\s*([+-]?[0-9]+)\%$", line)
-        if match:
-            return match.group(1).strip(), int(match.group(2)), "%"
-
-        # 處理 秒 類型（+/-）
-        match = re.match(r"(.+?)\s*([+-]?[0-9.]+)\s*秒$", line)
-        if match:
-            return match.group(1).strip(), float(match.group(2)), "秒"
-
-        # 處理 無單位數值（+/-）
-        match = re.match(r"(.+?)\s*([+-]?[0-9]+)$", line)
-        if match:
-            return match.group(1).strip(), int(match.group(2)), ""
-
-        return None
+        return core_try_extract_effect(line)
         
     def update_stat_bonus_display(self):
         '''
@@ -10630,112 +8304,116 @@ class ItemSearchApp(QWidget):
 
 
 
-    def _precompute_base_equipment_stats_for_lua(self):
-        """
-        在正式解析裝備 Lua 效果前，先從目前穿著裝備的 Stat = {...}
-        收集純裝備基礎素質，並同步 base_equip_* / skill_focus_AGI / skill_focus_DEX。
-
-        這個階段只讀裝備主體的 Stat，不讀精煉、階級、卡片、詞條與套裝效果。
-        它是 base_equip_* 的唯一資料來源：正式 Lua 效果只解析一次，
-        replace_custom_calc_content() 也只讀這裡建立的 base_equip_*，不再重新推導。
-        """
-        stat_names = [
+    # Stage 6 Core base-stat precompute
+    def _sync_core_precompute_context_to_desktop(self, context):
+        """Compatibility bridge only; calculation itself now lives in ro_core."""
+        stat_names = (
             "STR", "AGI", "VIT", "INT", "DEX", "LUK",
             "POW", "STA", "WIS", "SPL", "CON", "CRT",
-        ]
-        base_equip_stats = {stat: 0 for stat in stat_names}
+        )
+        for stat in stat_names:
+            globals()[f"base_{stat}"] = context.get(f"base_{stat}", 0)
+            globals()[f"job_{stat}"] = context.get(f"job_{stat}", 0)
+            globals()[f"base_equip_{stat}"] = context.get(f"base_equip_{stat}", 0)
+        globals()["skill_focus_AGI"] = context.get("skill_focus_AGI", 0)
+        globals()["skill_focus_DEX"] = context.get("skill_focus_DEX", 0)
+        globals()["job_idcore"] = context.get("job_idcore", "")
+        globals()["GetPureJob"] = context.pure_jobs
+        self.base_equip_stats_raw = {
+            stat: context.get(f"base_equip_{stat}", 0)
+            for stat in stat_names
+        }
 
-        # 每次都從目前 UI 裝備重新建立，避免卸裝後沿用上一輪 global 值。
-        for part_name, ui in self.refine_inputs_ui.items():
-            equip_name = ui["equip"].text().strip()
-            if not equip_name:
-                continue
+    def _precompute_base_equipment_stats_for_lua(self):
+        """Legacy Desktop method name kept as a thin Core wrapper."""
+        request = getattr(self, "last_core_effect_request", None)
+        if request is None:
+            request = self.build_core_equipment_effect_request()
 
-            for item_id, item in self.parsed_items.items():
-                if item.get("name") != equip_name or item_id not in self.equipment_data:
-                    continue
+        context = build_desktop_calculation_context()
+        data = EquipmentCalculationData(
+            parsed_items=self.parsed_items,
+            equipment_data=self.equipment_data,
+            job_dict=job_dict,
+            stat_name_sets=stat_name_sets,
+        )
+        result = core_precompute_base_equipment_stats(
+            request,
+            data,
+            context=context,
+            dependencies=build_desktop_core_dependencies(),
+        )
+        self._sync_core_precompute_context_to_desktop(context)
+        return dict(result.base_equipment_stats)
 
-                block_text = self.equipment_data[item_id]
-                type_match = re.search(r'Type\s*=\s*"([^"]+)"', block_text)
-                equip_type = type_match.group(1) if type_match else "armor"
-                stat_names_for_type = stat_name_sets.get(equip_type, stat_name_sets["armor"])
 
-                stat_match = re.search(r'Stat\s*=\s*\{([^}]*)\}', block_text, re.DOTALL)
-                if not stat_match:
-                    continue
+    # Stage 4 Desktop effect-input snapshot
+    def build_core_equipment_effect_request(self, get_values=None, refine_inputs=None):
+        """Snapshot Qt controls into a Qt-free request object.
 
-                raw_values = stat_match.group(1).split(",")
-                for idx, raw_value in enumerate(raw_values):
-                    if idx >= len(stat_names_for_type):
-                        break
+        Stage 4 records this request for parity/debugging.  The existing
+        display_all_effects traversal remains in Desktop for now; Stage 5 can
+        make Core consume this request without changing the request shape.
+        """
+        if get_values is None:
+            get_values = {}
+            for gid, label in stat_fields.items():
+                widget = self.input_fields[label]
+                if isinstance(widget, QComboBox):
+                    get_values[gid] = widget.currentData()
+                else:
                     try:
-                        value = int(raw_value.strip())
+                        get_values[gid] = int(widget.text())
                     except (TypeError, ValueError):
-                        continue
+                        get_values[gid] = 0
 
-                    stat_name = stat_names_for_type[idx]
-                    if stat_name in base_equip_stats:
-                        base_equip_stats[stat_name] += value
+        if refine_inputs is None:
+            refine_inputs = {}
+            for label, info in refine_parts.items():
+                slot_id = info["slot"]
+                try:
+                    refine_inputs[slot_id] = int(self.input_fields[label].text())
+                except (TypeError, ValueError):
+                    refine_inputs[slot_id] = 0
 
-        job_id = self.input_fields["JOB"].currentData()
-        job_bonus = job_dict.get(job_id, {}).get("TJobMaxPoint", [])
+        slots = []
+        for part_name, ui in self.refine_inputs_ui.items():
+            slots.append(
+                EquipmentSlotInput(
+                    part_name=part_name,
+                    slot_id=refine_parts[part_name]["slot"],
+                    equip_name=ui["equip"].text().strip(),
+                    grade=self.input_fields[f"{part_name}_階級"].currentIndex(),
+                    cards=[card.text().strip() for card in ui.get("cards", [])],
+                    note=(ui["note"].toPlainText().strip() if "note" in ui else ""),
+                )
+            )
 
-        for i, stat in enumerate(stat_names):
-            try:
-                base_value = int(self.input_fields[stat].text())
-            except (TypeError, ValueError):
-                base_value = 0
+        enabled_skill_names = [
+            name
+            for name, checkbox in self.skill_checkboxes.items()
+            if checkbox.isChecked()
+        ]
 
-            job_value = job_bonus[i] if i < len(job_bonus) else 0
-            base_equip_value = base_equip_stats[stat]
-
-            globals()[f"base_{stat}"] = base_value
-            globals()[f"job_{stat}"] = job_value
-            globals()[f"base_equip_{stat}"] = base_equip_value
-
-        # 心神凝聚只吃「基礎點數 + Job 加成 + 裝備基礎 Stat」，
-        # 所以可以在完整效果 parser 之前安全建立。
-        globals()["skill_focus_AGI"] = (
-            globals().get("base_AGI", 0)
-            + globals().get("job_AGI", 0)
-            + globals().get("base_equip_AGI", 0)
+        return EquipmentEffectRequest(
+            get_values=dict(get_values),
+            refine_inputs=dict(refine_inputs),
+            slots=slots,
+            enabled_skill_names=enabled_skill_names,
+            hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
+            hide_physical=self.hide_physical_checkbox.isChecked(),
+            hide_magical=self.hide_magical_checkbox.isChecked(),
+            show_source=self.show_combo_source_checkbox.isChecked(),
+            sort_mode=self.sort_mode_combo.currentText(),
         )
-        globals()["skill_focus_DEX"] = (
-            globals().get("base_DEX", 0)
-            + globals().get("job_DEX", 0)
-            + globals().get("base_equip_DEX", 0)
-        )
-
-        # 保留一份純 Stat 快照給 Debug / 其他只讀功能使用。
-        self.base_equip_stats_raw = base_equip_stats.copy()
-        return base_equip_stats
-
 
     def display_all_effects(self):
         '''
         顯示所有部位的效果
         '''
-        def extract_combi_ids(block_text: str) -> list[int]:
-            import re
-            match = re.search(r"Combiitem\s*=\s*{([^}]*)}", block_text)
-            if match:
-                return [int(i.strip()) for i in match.group(1).split(",")]
-            return []
-
-        def extract_combo_items(combo_text: str) -> set[int]:
-            import re
-            match = re.search(r"Item\s*=\s*{([^}]*)}", combo_text)
-            if match:
-                items = match.group(1).split(",")
-                result = set()
-                for x in items:
-                    x = x.strip()
-                    if x.isdigit():
-                        result.add(int(x))
-                    elif x != '':
-                        print(f"⚠️ 無法轉換為整數: '{x}' in block: {combo_text}")
-                return result
-            return set()
+        # Stage 4: pure combo-text parsing lives in ro_core.py
+        extract_combi_ids = core_extract_combi_ids
+        extract_combo_items = core_extract_combo_items
 
 
 
@@ -10769,358 +8447,50 @@ class ItemSearchApp(QWidget):
             except:
                 refine_inputs[slot_id] = 0
 
-        effect_dict = {}
+        # Stage 4: keep a Qt-free snapshot for parity tests / future API calculator.
+        self.last_core_effect_request = self.build_core_equipment_effect_request(
+            get_values=get_values,
+            refine_inputs=refine_inputs,
+        )
 
-        # 先建立裝備基礎素質，讓下方唯一一次 parse_lua_effects_with_variables()
-        # 就能正確使用 base_equip_AGI / base_equip_DEX / skill_focus_AGI / DEX。
-        self._precompute_base_equipment_stats_for_lua()
+        # Stage 5 Desktop -> Core equipment calculator
+        # Keep the existing precompute on Desktop for now because it still reads
+        # Qt controls / job UI. The actual equipment traversal below is Core-only.
+        core_context = build_desktop_calculation_context()
+        core_dependencies = build_desktop_core_dependencies()
 
-        for part in refine_parts.values():#先清除部位 to itemid的對應
-            slot_id = part["slot"]
-            slot_item_id_map[slot_id] = 0
-
-        for part_name, ui in self.refine_inputs_ui.items():
-            # ▶️ 裝備主體處理
-            equip_name = ui["equip"].text().strip()
-            if equip_name:
-                source_label = f"{part_name}：{equip_name}"  # or 卡片名稱 or 套裝來源
-                for item_id, item in self.parsed_items.items():
-                    if item["name"] == equip_name and item_id in self.equipment_data:
-                        block_text = self.equipment_data[item_id]
-                        grade = self.input_fields[f"{part_name}_階級"].currentIndex()
-                        slot_id = refine_parts[part_name]["slot"]
-                        slot_item_id_map[slot_id] = item_id  # 存入全域對應表
-
-                        effects = parse_lua_effects_with_variables(
-                            block_text,
-                            refine_inputs,
-                            get_values,
-                            grade,
-                            unit_map,
-                            size_map,
-                            effect_map,
-                            hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-                            hide_physical=self.hide_physical_checkbox.isChecked(),
-                            hide_magical=self.hide_magical_checkbox.isChecked(),
-                            current_location_slot=slot_id
-                        )
-
-                        filtered = self.filter_effects(effects)
-                        for line in filtered:
-                            if not line.strip():
-                                continue
-                            parsed = self.try_extract_effect(line)
-                            if parsed:
-                                key, value, unit = parsed
-                                key = self.normalize_effect_key(key)
-                                # 建立效果來源清單
-                                effect_dict.setdefault((key, unit), []).append((value, source_label))
-                            else:
-                                text = line.strip()
-                                if text:
-                                    key = self.normalize_effect_key(text)
-
-                                    # ✅ 純文字效果也寫入 effect_dict
-                                    # value = 0, unit = ""
-                                    effect_dict.setdefault((key, ""), []).append((0, source_label))
-
-
-            # ▶️ 卡片欄處理（最多4張）
-            for i, card_input in enumerate(ui["cards"]):
-                grade = 0
-                card_name = card_input.text().strip()
-                if not card_name:
-                    continue
-                source_label = f"{part_name}：{card_name}"  # or 卡片名稱 or 套裝來源
-                for item_id, item in self.parsed_items.items():
-                    if item["name"] == card_name and item_id in self.equipment_data:
-                        block_text = self.equipment_data[item_id]
-                        grade = self.input_fields[f"{part_name}_階級"].currentIndex()
-                        slot_id = refine_parts[part_name]["slot"]
-                        effects = parse_lua_effects_with_variables(
-                            block_text,
-                            refine_inputs,
-                            get_values,
-                            grade,
-                            unit_map=unit_map,
-                            size_map=size_map,
-                            effect_map=effect_map,
-                            hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-                            hide_physical=self.hide_physical_checkbox.isChecked(),
-                            hide_magical=self.hide_magical_checkbox.isChecked(),
-                            current_location_slot=slot_id    
-                        )
-
-                        filtered = self.filter_effects(effects)
-                        for line in filtered:
-                            if not line.strip():
-                                continue
-                            parsed = self.try_extract_effect(line)
-                            if parsed:
-                                key, value, unit = parsed
-                                key = self.normalize_effect_key(key)
-                                # 建立效果來源清單
-                                effect_dict.setdefault((key, unit), []).append((value, source_label))
-                            else:
-                                text = line.strip()
-                                if text:
-                                    key = self.normalize_effect_key(text)
-
-                                    # ✅ 純文字效果也寫入 effect_dict
-                                    # value = 0, unit = ""
-                                    effect_dict.setdefault((key, ""), []).append((0, source_label))
-                                
-            # ▶️ 詞條處理（如果有手動輸入）
-            if "note" in ui:
-                note_text = ui["note"].toPlainText().strip()
-                if note_text:
-                    grade = self.input_fields[f"{part_name}_階級"].currentIndex()
-                    slot_id = refine_parts[part_name]["slot"]
-                    source_label = f"{part_name}：詞條"
-
-                    effects = parse_lua_effects_with_variables(
-                        note_text,
-                        refine_inputs,
-                        get_values,
-                        grade,
-                        unit_map=unit_map,
-                        size_map=size_map,
-                        effect_map=effect_map,
-                        hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-                        hide_physical=self.hide_physical_checkbox.isChecked(),
-                        hide_magical=self.hide_magical_checkbox.isChecked(),
-                        current_location_slot=slot_id
-                    )
-
-                    filtered = self.filter_effects(effects)
-                    for line in filtered:
-                        if not line.strip():
-                            continue
-                        parsed = self.try_extract_effect(line)
-                        if parsed:
-                            key, value, unit = parsed
-                            key = self.normalize_effect_key(key)
-
-                            # 建立效果來源清單
-                            effect_dict.setdefault((key, unit), []).append((value, source_label))
-                        else:
-                            text = line.strip()
-                            if text:
-                                key = self.normalize_effect_key(text)
-
-                                # ✅ 純文字效果也寫入 effect_dict
-                                # value = 0, unit = ""
-                                effect_dict.setdefault((key, ""), []).append((0, source_label))
-
-        # ▶️ 加入技能增益（例如料理等）
-        for skill_name, entry in all_skill_entries.items():
-            checkbox = self.skill_checkboxes.get(skill_name)
-            if not checkbox or not checkbox.isChecked():
-                continue  # 沒有勾選就跳過
-
-            code_block = "\n".join(entry["code"])
-            effects = parse_lua_effects_with_variables(
-                code_block,
-                refine_inputs,
-                get_values,
-                grade=0,
-                unit_map=unit_map,
-                size_map=size_map,
-                effect_map=effect_map,
-                hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-                hide_physical=self.hide_physical_checkbox.isChecked(),
-                hide_magical=self.hide_magical_checkbox.isChecked(),
-                current_location_slot=None
-            )
-
-            source_label = f"{entry.get('type', '技能')}：{skill_name}"
-
-            for line in self.filter_effects(effects):
-                if not line.strip():
-                    continue
-                parsed = self.try_extract_effect(line)
-                if parsed:
-                    key, value, unit = parsed
-                    key = self.normalize_effect_key(key)
-                    effect_dict.setdefault((key, unit), []).append((value, source_label))
-                    
-
-
-
-        triggered_combos = set()
-        combo_effects_all = []  # 用來儲存套裝效果（供分頁顯示）
-        equipped_ids = set()  # 蒐集所有裝備物品ID（含卡片）
-
-        # 先收集所有裝備 ID
-        for part_name, ui in self.refine_inputs_ui.items():
-            equip_name = ui["equip"].text().strip()
-            if equip_name:
-                for item_id, item in self.parsed_items.items():
-                    if item["name"] == equip_name:
-                        equipped_ids.add(item_id)
-            for card_input in ui["cards"]:
-                card_name = card_input.text().strip()
-                if card_name:
-                    for item_id, item in self.parsed_items.items():
-                        if item["name"] == card_name:
-                            equipped_ids.add(item_id)
-
-
-        # 掃描每個裝備，看是否有 Combiitem 欄位
-        for item_id in equipped_ids:
-            block_text = self.equipment_data.get(item_id)
-            if not block_text:
-                continue
-            combi_ids = extract_combi_ids(block_text)
-            for combi_id in combi_ids:
-                if combi_id in triggered_combos:
-                    continue
-                combo_block = self.equipment_data.get(combi_id)
-                if not combo_block:
-                    continue
-                combo_items = extract_combo_items(combo_block)
-                if combo_items.issubset(equipped_ids):
-                    # ✅ 套裝條件成立，觸發效果
-                    triggered_combos.add(combi_id)
-
-                    # ✅ 生成完整的 grade dict（每個部位的 slot 與階級）
-                    grade = {
-                        refine_parts[part]["slot"]: self.input_fields[f"{part}_階級"].currentIndex()
-                        for part in refine_parts
-                    }
-
-                    # 取得當前觸發套裝的部位 slot
-                    slot_id = refine_parts[part_name]["slot"]
-
-                    # 呼叫效果解析，傳入完整的 grade dict
-                    effects = parse_lua_effects_with_variables(
-                        combo_block,
-                        refine_inputs,
-                        get_values,
-                        grade,  # ✅ 改為 dict
-                        unit_map=unit_map,
-                        size_map=size_map,
-                        effect_map=effect_map,
-                        hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-                        hide_physical=self.hide_physical_checkbox.isChecked(),
-                        hide_magical=self.hide_magical_checkbox.isChecked(),
-                        current_location_slot=slot_id  
-                    )
-
-                    filtered = self.filter_effects(effects)
-                    show_source = self.show_combo_source_checkbox.isChecked()
-                    combo_items = extract_combo_items(combo_block)
-
-
-                    # 將 itemid 映射成名稱
-                    combo_item_names = []
-                    for iid in combo_items:
-                        name = self.parsed_items.get(iid, {}).get("name", f"ID:{iid}")
-                        combo_item_names.append(f"[{name}]")
-
-                    source_label = "、".join(combo_item_names) if combo_item_names else f"套裝ID {combi_id}"
-
-                    if show_source:
-                        combo_effects_all.append(f"🧩套裝來源：{source_label}")
-                        for line in filtered:
-                            combo_effects_all.append(f"　　{line}")
-                            
-                    else:
-                        combo_effects_all.extend(filtered)# 加入縮排以便辨識
-                        
-                    for line in filtered:
-                        m = re.match(r"(.+?) ([+\-]?\d+(?:\.\d+)?)(%|秒)?", line)
-                        if m:
-                            key = m[1].strip()
-                            val = float(m[2]) if '.' in m[2] else int(m[2])
-                            unit = m[3] if m[3] else ""
-                            if not unit and "時間" in key:
-                                unit = "秒"
-
-                            source = f"套裝：{source_label}"  # ✅ 直接用來源變數
-                            effect_dict.setdefault((key, unit), []).append((val, source))
-                            self.effect_dict_raw = effect_dict  # 取能力值暫存
-                            self.update_stat_bonus_display()    # ✅ 加這行：裝備資料全部準備好後更新素質顯示
-
-                            
-
-
-
-
-                    # 原本的解析邏輯也照做
-                        parsed = self.try_extract_effect(line)
-                        if parsed:
-                            key, value, unit = parsed
-                            key = self.normalize_effect_key(key)
-                            #source_label = part_name  # or 卡片名稱 or 套裝來源
-
-                            # 建立效果來源清單
-                            #effect_dict.setdefault((key, unit), []).append((value, source_label))
-
-
-
-        #被動技能給的BUFF
-        
         skillbuff_path = os.path.join("data", "skillbuff.lua")
-        skillbuff_effect_dict = self.apply_skill_buffs_into_effect_dict(skillbuff_path, enabled_skill_levels, refine_inputs, get_values, grade)
-        for key, entries in skillbuff_effect_dict.items():
-            if key in effect_dict:
-                effect_dict[key].extend(entries)                
-            else:
-                effect_dict[key] = entries.copy()                
-        
-        # ✅ 排序合併結果
-        combined = []
-        show_source = self.show_combo_source_checkbox.isChecked()
-        
-        sort_mode = self.sort_mode_combo.currentText()
+        try:
+            with open(skillbuff_path, "r", encoding="utf-8") as f:
+                core_skillbuff_text = f.read()
+        except Exception as e:
+            print(f"❌ 無法讀取 skillbuff.lua：{e}")
+            core_skillbuff_text = ""
 
-        if sort_mode == "來源順序":
-            sorted_effect_items = effect_dict.items()
-
-        elif sort_mode == "依名稱":
-            def sort_key(item):
-                (key, unit) = item[0]
-                return (key, unit)
-            sorted_effect_items = sorted(effect_dict.items(), key=sort_key)
-
-        elif sort_mode in custom_sort_orders:  # ✅ 通用處理
-            def sort_key(item):
-                (key, unit) = item[0]
-                return (get_custom_sort_value(key, sort_mode), key)
-            sorted_effect_items = sorted(effect_dict.items(), key=sort_key)
-
-        else:
-            sorted_effect_items = effect_dict.items()  # fallback 保底
-
-
-
-        # 排序應用在效果總表輸出
-        for (key, unit), entries in sorted_effect_items:
-        
-
-
-
-            total = sum(val for val, _ in entries)
-            #print(f"[DEBUG] key={key} unit={unit} total={total}")
-            if unit == "秒":
-                total = round(total, 1)
-                value_str = f"{total:.1f}{unit}"
-            else:
-                value_str = f"{total:+g}{unit}"
-
-            if show_source:
-                for val, source in entries:
-                    val_str = f"{val:.1f}{unit}" if unit == "秒" else f"{val:+g}{unit}"
-                    combined.append(f"{key} {val_str}  ← 〔{source}〕")
-                combined.append(f"🧮↳ {key} {value_str}  ← 〔總和〕🧮")
-                combined.append(f" ")
-            else:
-                combined.append(f"{key} {value_str}")
-        
-
-
-
+        core_data = EquipmentCalculationData(
+            parsed_items=self.parsed_items,
+            equipment_data=self.equipment_data,
+            job_dict=job_dict,
+            stat_name_sets=stat_name_sets,
+            skill_entries=all_skill_entries,
+            skillbuff_text=core_skillbuff_text,
+            skill_map=skill_map,
+            unit_map=unit_map,
+            size_map=size_map,
+            effect_map=effect_map,
+            custom_sort_orders=custom_sort_orders,
+        )
+        core_result = core_calculate_equipment_effects(
+            self.last_core_effect_request,
+            core_data,
+            context=core_context,
+            dependencies=core_dependencies,
+        )
+        self.last_core_effect_result = core_result
+        self._sync_core_precompute_context_to_desktop(core_context)
+        combined = list(core_result.combined_lines)
+        combo_effects_all = list(core_result.combo_lines)
+        effect_dict = core_result.legacy_effect_dict
         #self.total_effect_text.setPlainText("\n".join(combined))
         #self.combo_effect_text.setPlainText("\n".join(combo_effects_all))
         self.total_combined_raw = combined  # 儲存未過濾的總表行
@@ -11206,31 +8576,8 @@ class ItemSearchApp(QWidget):
 
 
     def parse_equipment_blocks(self, content):
-        import re
-
-        blocks = {}
-        pattern = re.compile(r"\[(\d+)\]\s*=\s*{", re.MULTILINE)
-        matches = list(pattern.finditer(content))
-        total = len(matches)
-        print(f"📦 開始解析裝備區塊，共 {total} 筆資料")
-
-        for i, match in enumerate(matches):
-            current = i + 1
-            if (total >= 1000 and current % 1000 == 0) or current == total:
-                print(f"  → 處理中 {i+1}/{total} 筆", end="\r")
-            item_id = int(match.group(1))
-            start = match.end()
-            end = matches[i+1].start() if i+1 < len(matches) else len(content)
-
-            block_text = content[start:end].strip()
-
-            # 加回完整大括號包裹，確保 block 格式正確
-            block_text_full = "{" + block_text.rstrip(",") + "}"
-
-            blocks[item_id] = block_text_full
-
-        print(f"\n✅ 解析完成，共 {len(blocks)} 筆裝備。")
-        return blocks
+        # 保留既有 method 介面，實際解析改由 Desktop/Web 共用 Core 執行。
+        return core_parse_equipment_blocks(content)
 
 
     @staticmethod
@@ -12883,34 +10230,34 @@ class ItemSearchApp(QWidget):
 
                     # 登出畫面顯示值已包含 VIT / INT 倍率。勾選後先回推基礎值，
                     # 並依需求採無條件進位，之後再套用既有裝備與百分比加成。
-                    if self.use_logout_hpsp_checkbox.isChecked():
-                        hp_stat_multiplier = 1 + (base_VIT / 100)
-                        sp_stat_multiplier = 1 + (base_INT / 100)
-                        # print(f"{hp_stat_multiplier}")
-                        if mhp_input > 0 and hp_stat_multiplier > 0:
-                            mhp_input = math.ceil(mhp_input / hp_stat_multiplier)
-                        if msp_input > 0 and sp_stat_multiplier > 0:
-                            msp_input = math.ceil(msp_input / sp_stat_multiplier)
-                            
+                    status = _core_stage20_calculate_hpsp_values(
+                        job_base_hp=self.jobhp,
+                        job_base_sp=self.jobsp,
+                        base_vit=base_VIT,
+                        base_int=base_INT,
+                        total_vit=VIT,
+                        total_int=INT,
+                        hp_flat=HP,
+                        sp_flat=SP,
+                        hp_percent_bonus=HPPercent,
+                        sp_percent_bonus=SPPercent,
+                        mhp_input=mhp_input,
+                        msp_input=msp_input,
+                        use_logout_values=self.use_logout_hpsp_checkbox.isChecked(),
+                        hp_current_percent=self.hp_slider.value(),
+                        sp_current_percent=self.sp_slider.value(),
+                    )
+                    MHP = status["mhp"]
+                    MSP = status["msp"]
+                    MHP_NOW = status["mhp_now"]
+                    MSP_NOW = status["msp_now"]
+                    hp_pct = status["hp_current_percent"]
+                    sp_pct = status["sp_current_percent"]
+                    globals()["MHP"] = MHP
+                    globals()["MSP"] = MSP
+                    globals()["MHP_NOW"] = MHP_NOW
+                    globals()["MSP_NOW"] = MSP_NOW
 
-                    # print(f"{self.jobhp} {self.jobsp} {HP} {SP} {HPPercent} {SPPercent} {VIT} {INT} {mhp_input} {msp_input}")
-
-                    HP = HP * (1+HPPercent/100)
-                    SP = SP * (1+SPPercent/100)
-                    jobmaxhp = int(self.jobhp * ((100+VIT)/100) * (1+HPPercent/100) + HP)
-                    jobmaxsp = int(self.jobsp * ((100+INT)/100) * (1+SPPercent/100) + SP)
-
-                    userjobmaxhp = int(mhp_input * ((100+VIT)/100) * (1+HPPercent/100) + HP)
-                    userjobmaxsp = int(msp_input * ((100+INT)/100) * (1+SPPercent/100) + SP)
-                    # 使用者沒輸入或輸入 0 → 用職業表
-                    globals()["MHP"] = userjobmaxhp if mhp_input > 0 else jobmaxhp
-                    globals()["MSP"] = userjobmaxsp if msp_input > 0 else jobmaxsp
-
-                    hp_pct = self.hp_slider.value()
-                    sp_pct = self.sp_slider.value()
-
-                    globals()["MHP_NOW"] = int(MHP * hp_pct / 100) if MHP > 0 else 0
-                    globals()["MSP_NOW"] = int(MSP * sp_pct / 100) if MSP > 0 else 0
 
                     # self.hp_percent_label.setText(f"HP：{MHP_NOW} / {MHP}  {hp_pct}%")
                     # self.sp_percent_label.setText(f"SP：{MSP_NOW} / {MSP}  {sp_pct}%")
