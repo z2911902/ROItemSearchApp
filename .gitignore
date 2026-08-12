@@ -218,3 +218,7 @@ __marimo__/
 *.bak
 /template
 /web_py
+/payload
+/backend
+/frontend
+*.bat
