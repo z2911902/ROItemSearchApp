@@ -366,6 +366,11 @@ class MultiCompareService:
     def _collect_compare_skill_results(self):
         main = self.main_window
         skill_name = main.skill_box.currentText().strip() if hasattr(main, "skill_box") else ""
+        attack_element = (
+            main.attack_element_box.currentText().strip()
+            if hasattr(main, "attack_element_box")
+            else ""
+        )
         try:
             skill_lv = int(main.skill_LV_input.text())
             skill_lv_display = f"{skill_lv:,}"
@@ -377,7 +382,61 @@ class MultiCompareService:
         return {
             "技能名稱": {"display": skill_name, "number": None, "suffix": ""},
             "技能等級": {"display": skill_lv_display, "number": skill_lv_number, "suffix": ""},
+            "技能攻擊屬性": {"display": attack_element, "number": None, "suffix": ""},
         }
+
+    def _collect_compare_monster_results(self):
+        """收集目前專案檔可可靠還原的魔物設定，供 Snapshot 顯示與比對。"""
+        main = self.main_window
+        results = {}
+
+        def combo_text(name):
+            widget = getattr(main, name, None)
+            return widget.currentText().strip() if widget is not None else ""
+
+        def field_text(name, default=""):
+            widget = getattr(main, name, None)
+            if widget is None:
+                return default
+            try:
+                return widget.text().strip()
+            except Exception:
+                return default
+
+        size_text = combo_text("size_box")
+        race_text = combo_text("race_box")
+        element_text = combo_text("element_box")
+        class_text = combo_text("class_box")
+        element_lv = field_text("element_lv_input", "1")
+        target_display = (
+            f"{size_text} /{race_text} /{element_text} Lv.{element_lv} /{class_text}"
+        )
+        results["魔物 / 體種屬階"] = {
+            "display": target_display,
+            "number": None,
+            "suffix": "",
+        }
+
+        for key, attr in (
+            ("魔物 / 後 DEF", "def_input"),
+            ("魔物 / 前 DEF", "defc_input"),
+            ("魔物 / RES", "res_input"),
+            ("魔物 / 後 MDEF", "mdef_input"),
+            ("魔物 / 前 MDEF", "mdefc_input"),
+            ("魔物 / MRES", "mres_input"),
+        ):
+            raw = field_text(attr, "0")
+            try:
+                number = float(raw.replace(",", ""))
+            except (TypeError, ValueError):
+                number = None
+            results[key] = {
+                "display": raw,
+                "number": number,
+                "suffix": "",
+            }
+
+        return results
 
     def _collect_compare_character_results(self):
         main = self.main_window
@@ -417,7 +476,9 @@ class MultiCompareService:
         parsed_results.pop("使用技能", None)
         parsed_results.pop("技能名稱", None)
         parsed_results.pop("技能等級", None)
+        parsed_results.pop("技能攻擊屬性", None)
         results.update(parsed_results)
+        results.update(self._collect_compare_monster_results())
         results.update(self._collect_compare_character_results())
         return {
             "name": str(name or "未命名"),
@@ -505,6 +566,12 @@ class MultiCompareDialog(QDialog):
         self.show_current_checkbox.setChecked(self._main_window_has_named_project())
         self.only_diff_checkbox = QCheckBox("只顯示差異")
         self.only_diff_checkbox.setChecked(True)
+        self.baseline_monster_target_checkbox = QCheckBox("只顯示基準魔物的體種屬階")
+        self.baseline_monster_target_checkbox.setChecked(False)
+        self.baseline_monster_target_checkbox.setToolTip(
+            "只統一各欄顯示的魔物體型 / 種族 / 屬性 / 階級；"
+            "不改寫各 Snapshot 原本的魔物設定，也不重新計算傷害。"
+        )
 
         # 計算結果不再固定與最左欄比較；使用者可指定任一可見 Snapshot
         # 作為比對基準。也支援直接點擊上下表格的欄標題切換基準。
@@ -520,6 +587,7 @@ class MultiCompareDialog(QDialog):
         toolbar.addSpacing(16)
         toolbar.addWidget(self.show_current_checkbox)
         toolbar.addWidget(self.only_diff_checkbox)
+        toolbar.addWidget(self.baseline_monster_target_checkbox)
         toolbar.addSpacing(16)
         toolbar.addWidget(self.compare_base_label)
         toolbar.addWidget(self.compare_base_combo)
@@ -612,6 +680,7 @@ class MultiCompareDialog(QDialog):
         self.clear_json_button.clicked.connect(self.clear_jsons)
         self.show_current_checkbox.toggled.connect(self.refresh_tables)
         self.only_diff_checkbox.toggled.connect(self.refresh_tables)
+        self.baseline_monster_target_checkbox.toggled.connect(self.refresh_tables)
         self.compare_base_combo.currentIndexChanged.connect(self.refresh_tables)
         self.equipment_table.horizontalHeader().sectionClicked.connect(
             self._set_compare_base_from_column
@@ -1134,31 +1203,45 @@ class MultiCompareDialog(QDialog):
         keys = main_keys + character_keys
 
         hide_same = self.only_diff_checkbox.isChecked() and len(snapshots) > 1
+        base_index = self._current_compare_base_index(snapshots)
+        base_snap = snapshots[base_index] if 0 <= base_index < len(snapshots) else snapshots[0]
+        show_baseline_monster_target = self.baseline_monster_target_checkbox.isChecked()
+        monster_target_key = "魔物 / 體種屬階"
 
         visible_keys = []
-        always_show_keys = {"技能名稱", "技能等級"}
+        always_show_keys = {"技能名稱", "技能等級", "技能攻擊屬性"}
+        if show_baseline_monster_target:
+            always_show_keys.add(monster_target_key)
         for key in keys:
             values = [s.get("results", {}).get(key, {}).get("display", "") for s in snapshots]
-            # 技能名稱 / 技能等級是本次比較的基本上下文，即使勾選「只顯示差異」
-            # 且各欄內容完全相同，也固定保留在計算結果最前面。
+            # 技能名稱 / 技能等級 / 技能攻擊屬性是本次比較的基本上下文。
+            # 勾選「只顯示基準魔物的體種屬階」時，該列也固定保留。
             if key not in always_show_keys and hide_same and len(set(values)) <= 1:
                 continue
             visible_keys.append(key)
 
         self._setup_table(self.result_table, snapshots, len(visible_keys))
-        base_index = self._current_compare_base_index(snapshots)
-        base_snap = snapshots[base_index] if 0 <= base_index < len(snapshots) else snapshots[0]
 
         for row, key in enumerate(visible_keys):
             label_item = QTableWidgetItem(key)
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable)
             self.result_table.setItem(row, 0, label_item)
 
-            all_display = [s.get("results", {}).get(key, {}).get("display", "") for s in snapshots]
+            if key == monster_target_key and show_baseline_monster_target:
+                baseline_entry = base_snap.get("results", {}).get(key, {})
+                all_display = [baseline_entry.get("display", "") for _snapshot in snapshots]
+            else:
+                all_display = [
+                    s.get("results", {}).get(key, {}).get("display", "")
+                    for s in snapshots
+                ]
             is_diff = len(set(all_display)) > 1
 
             for col, snap in enumerate(snapshots, 1):
-                entry = snap.get("results", {}).get(key)
+                if key == monster_target_key and show_baseline_monster_target:
+                    entry = base_snap.get("results", {}).get(key)
+                else:
+                    entry = snap.get("results", {}).get(key)
                 display = "" if not entry else entry.get("display", "")
                 diff_text = None
                 higher = None
