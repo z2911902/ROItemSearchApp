@@ -5601,6 +5601,456 @@ def _stage17_sum_skill_effect(effect_dict, skill_name, suffix):
     return total
 
 
+
+# === STAGE 21.24 DESKTOP/WEB SHARED SKILL TIMING CORE ===
+# Source of truth extracted from Desktop ItemSearchApp.update_skill_delay_labels().
+# Desktop keeps only QLabel/CastBar presentation; Web and Desktop both call these
+# Qt/FastAPI-free helpers for skilldelaylist.lua parsing and timing calculations.
+_STAGE23_SKILL_DELAY_CACHE = {"path": None, "mtime_ns": None, "text": ""}
+
+
+def _stage23_load_skill_delay_text(data_dir):
+    from pathlib import Path
+
+    path = Path(data_dir) / "skilldelaylist.lua"
+    try:
+        stat = path.stat()
+    except OSError:
+        return "", f"找不到 {path.name}"
+
+    cache = _STAGE23_SKILL_DELAY_CACHE
+    cache_path = str(path.resolve())
+    if cache.get("path") == cache_path and cache.get("mtime_ns") == stat.st_mtime_ns:
+        return str(cache.get("text") or ""), ""
+
+    text = ""
+    last_error = None
+    for encoding in ("utf-8-sig", "utf-8", "cp950", "big5"):
+        try:
+            text = path.read_text(encoding=encoding)
+            last_error = None
+            break
+        except UnicodeDecodeError as exc:
+            last_error = exc
+            continue
+        except OSError as exc:
+            return "", f"讀取 {path.name} 失敗：{exc}"
+
+    if not text and last_error is not None:
+        try:
+            text = path.read_text(encoding="big5", errors="replace")
+        except OSError as exc:
+            return "", f"讀取 {path.name} 失敗：{exc}"
+
+    cache.update({"path": cache_path, "mtime_ns": stat.st_mtime_ns, "text": text})
+    return text, ""
+
+
+def stage24_resolve_skill_code(skill_name, skill_map_all):
+    """Desktop-compatible Name -> Code resolver without UI dependencies."""
+    target_name = str(skill_name or "")
+    for _skill_id, row in (skill_map_all or {}).items():
+        if not isinstance(row, dict) or str(row.get("Name") or "") != target_name:
+            continue
+        code = row.get("Code") or row.get("SkillCode") or row.get("SkillNameCode")
+        if code not in (None, ""):
+            return str(code)
+    return ""
+
+
+def stage24_find_skill_delay_block(lua_text, skill_code):
+    """Return one [SKID.CODE] Lua table block using Desktop brace semantics."""
+    if not lua_text or not skill_code:
+        return None
+
+    start_pat = re.compile(
+        rf"\[\s*SKID\.{re.escape(str(skill_code))}\s*\]\s*=\s*\{{",
+        re.MULTILINE,
+    )
+    match = start_pat.search(str(lua_text))
+    if not match:
+        return None
+
+    open_index = match.end() - 1
+    depth = 0
+    for index in range(open_index, len(lua_text)):
+        char = lua_text[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return lua_text[open_index:index + 1]
+    return None
+
+
+def stage24_parse_skill_delay_array(block, field):
+    """Parse one Desktop skill-delay array; missing/empty fields become [0]."""
+    match = re.search(
+        rf"{re.escape(str(field))}\s*=\s*\{{([^}}]*)\}}",
+        str(block or ""),
+        re.MULTILINE,
+    )
+    if not match:
+        return [0]
+    numbers = re.findall(r"-?\d+", match.group(1))
+    return [int(value) for value in numbers] if numbers else [0]
+
+
+def stage24_format_delay_ms(values, skill_level):
+    """Desktop's old pick() formatting, moved to Core."""
+    values = list(values or [0])
+    if not values:
+        values = [0]
+
+    def ms_to_s(ms):
+        return f"{float(ms) / 1000.0:.3f}".rstrip("0").rstrip(".")
+
+    if skill_level is None:
+        return "/".join(ms_to_s(value) for value in values)
+
+    level = max(_stage17_int(skill_level, 1), 1)
+    index = max(level - 1, 0)
+    value = values[index] if index < len(values) else values[-1]
+    return ms_to_s(value)
+
+
+def _stage24_pick_display_ms(values, skill_level):
+    values = list(values or [0])
+    if not values:
+        values = [0]
+    level = max(_stage17_int(skill_level, 1), 1)
+    index = max(level - 1, 0)
+    return float(values[index] if index < len(values) else values[-1])
+
+
+def _stage24_pick_desktop_runtime_ms(values, skill_level):
+    """Preserve Desktop CastBar/ASPD legacy indexing exactly.
+
+    ItemSearchApp historically used skill_level-1 for label text but skill_level
+    for CastBar / raw GCD.  Keep that behavior during the Core extraction so
+    Stage 21.24 is an architecture refactor, not a silent gameplay behavior fix.
+    """
+    values = list(values or [0])
+    if not values:
+        values = [0]
+    index = max(_stage17_int(skill_level, 0), 0)
+    return float(values[index] if index < len(values) else values[-1])
+
+
+def stage24_calculate_skill_timing_values(
+    *,
+    skill_name,
+    lua_text,
+    skill_level,
+    skill_map_all=None,
+    skill_code=None,
+    equip_fixed_ms=0.0,
+    equip_fixed_percent=0.0,
+    base_stat=0.0,
+    equip_variable_percent=0.0,
+    equip_global_post_percent=0.0,
+    equip_cooldown_ms=0.0,
+    selected_variable_cast_ms=0.0,
+):
+    """Shared Desktop/Web skill cast, post-delay and cooldown calculation.
+
+    This is the extracted non-UI body of Desktop
+    ``update_skill_delay_labels()``.  All delay arrays are milliseconds.
+
+    ``base_stat`` is Desktop's ``DEX + INT/2`` value.
+    Equipment modifiers use the exact signs/units already produced by the
+    existing effect parser.
+    """
+    code = str(skill_code or "").strip()
+    if not code:
+        code = stage24_resolve_skill_code(skill_name, skill_map_all)
+
+    level = max(_stage17_int(skill_level, 1), 1)
+    base_result = {
+        "available": False,
+        "error_code": "",
+        "message": "",
+        "skill_code": code,
+        "level": level,
+    }
+
+    if not code:
+        return {
+            **base_result,
+            "error_code": "skill_code_not_found",
+            "message": "技能代碼找不到",
+        }
+
+    block = stage24_find_skill_delay_block(lua_text, code)
+    if not block:
+        return {
+            **base_result,
+            "error_code": "lua_skill_not_found",
+            "message": f"skilldelaylist.lua 找不到 SKID.{code}",
+        }
+
+    fixed_raw = stage24_parse_skill_delay_array(block, "SkillCastFixedDelay")
+    variable_raw = stage24_parse_skill_delay_array(block, "SkillCastStatDelay")
+    global_post_raw = stage24_parse_skill_delay_array(block, "SkillGlobalPostDelay")
+    cooldown_raw = stage24_parse_skill_delay_array(block, "SkillSinglePostDelay")
+
+    base_stat_number = max(0.0, _stage17_number(base_stat, 0.0))
+    stat_reduction_percent = (
+        math.sqrt(base_stat_number / 265.0) * 100.0
+        if base_stat_number > 0
+        else 0.0
+    )
+
+    fixed_ms = [
+        max(
+            0.0,
+            (float(value) + _stage17_number(equip_fixed_ms, 0.0))
+            * ((100.0 + _stage17_number(equip_fixed_percent, 0.0)) / 100.0),
+        )
+        for value in fixed_raw
+    ]
+    variable_ms = [
+        max(
+            0.0,
+            (float(value) + _stage17_number(selected_variable_cast_ms, 0.0))
+            * ((100.0 - stat_reduction_percent) / 100.0)
+            * ((100.0 + _stage17_number(equip_variable_percent, 0.0)) / 100.0),
+        )
+        for value in variable_raw
+    ]
+    global_post_ms = [
+        max(
+            0.0,
+            float(value)
+            * ((100.0 + _stage17_number(equip_global_post_percent, 0.0)) / 100.0),
+        )
+        for value in global_post_raw
+    ]
+    cooldown_ms = [
+        max(0.0, float(value) + _stage17_number(equip_cooldown_ms, 0.0))
+        for value in cooldown_raw
+    ]
+
+    selected = {
+        "fixed_ms": _stage24_pick_display_ms(fixed_ms, level),
+        "variable_ms": _stage24_pick_display_ms(variable_ms, level),
+        "global_post_ms": _stage24_pick_display_ms(global_post_ms, level),
+        "cooldown_ms": _stage24_pick_display_ms(cooldown_ms, level),
+        "fixed_raw_ms": _stage24_pick_display_ms(fixed_raw, level),
+        "variable_raw_ms": _stage24_pick_display_ms(variable_raw, level),
+        "global_post_raw_ms": _stage24_pick_display_ms(global_post_raw, level),
+        "cooldown_raw_ms": _stage24_pick_display_ms(cooldown_raw, level),
+    }
+
+    # Keep Desktop's historical CastBar / ASPD-GCD indexing untouched.
+    desktop_runtime = {
+        "fixed_ms": _stage24_pick_desktop_runtime_ms(fixed_ms, skill_level),
+        "variable_ms": _stage24_pick_desktop_runtime_ms(variable_ms, skill_level),
+        "global_post_ms": _stage24_pick_desktop_runtime_ms(global_post_ms, skill_level),
+        "cooldown_ms": _stage24_pick_desktop_runtime_ms(cooldown_ms, skill_level),
+        "global_post_raw_ms": _stage24_pick_desktop_runtime_ms(global_post_raw, skill_level),
+    }
+    desktop_runtime["cast_total_ms"] = max(
+        0.0,
+        desktop_runtime["fixed_ms"] + desktop_runtime["variable_ms"],
+    )
+
+    return {
+        **base_result,
+        "available": True,
+        "arrays": {
+            "fixed_ms": fixed_ms,
+            "variable_ms": variable_ms,
+            "global_post_ms": global_post_ms,
+            "cooldown_ms": cooldown_ms,
+            "fixed_raw_ms": fixed_raw,
+            "variable_raw_ms": variable_raw,
+            "global_post_raw_ms": global_post_raw,
+            "cooldown_raw_ms": cooldown_raw,
+        },
+        "selected": selected,
+        "desktop_runtime": desktop_runtime,
+        "display": {
+            "fixed": stage24_format_delay_ms(fixed_ms, skill_level),
+            "fixed_raw": stage24_format_delay_ms(fixed_raw, skill_level),
+            "variable": stage24_format_delay_ms(variable_ms, skill_level),
+            "variable_raw": stage24_format_delay_ms(variable_raw, skill_level),
+            "global_post": stage24_format_delay_ms(global_post_ms, skill_level),
+            "global_post_raw": stage24_format_delay_ms(global_post_raw, skill_level),
+            "cooldown": stage24_format_delay_ms(cooldown_ms, skill_level),
+            "cooldown_raw": stage24_format_delay_ms(cooldown_raw, skill_level),
+        },
+        "modifiers": {
+            "equip_fixed_ms": round(_stage17_number(equip_fixed_ms, 0.0), 6),
+            "equip_fixed_percent": round(_stage17_number(equip_fixed_percent, 0.0), 6),
+            "base_stat": round(base_stat_number, 6),
+            "stat_cast_reduction_percent": round(stat_reduction_percent, 6),
+            "equip_variable_percent": round(_stage17_number(equip_variable_percent, 0.0), 6),
+            "equip_global_post_percent": round(_stage17_number(equip_global_post_percent, 0.0), 6),
+            "equip_cooldown_ms": round(_stage17_number(equip_cooldown_ms, 0.0), 6),
+            "selected_variable_cast_ms": round(_stage17_number(selected_variable_cast_ms, 0.0), 6),
+        },
+    }
+
+
+def stage24_extract_skill_timing_modifiers(effect_dict, skill_name):
+    """Extract all equipment timing modifiers once for Desktop and Web."""
+    effect_dict = effect_dict or {}
+    skill_name = str(skill_name or "")
+
+    fixed_flat_seconds = _stage17_sum_effect(effect_dict, "固定詠唱時間", "秒")
+    fixed_percent_values = [
+        float(value)
+        for value, _source in effect_dict.get(("固定詠唱時間", "%"), [])
+        if isinstance(value, (int, float))
+    ]
+    # Desktop semantics: fixed-cast percentage does not stack; strongest
+    # negative entry is used.
+    fixed_percent = min(fixed_percent_values, default=0.0)
+    variable_percent = _stage17_sum_effect(effect_dict, "變動詠唱時間", "%")
+    global_post_percent = _stage17_sum_effect(effect_dict, "技能後延遲", "%")
+    cooldown_flat_seconds = _stage17_sum_effect(
+        effect_dict,
+        f"技能【{skill_name}】冷卻時間",
+        "秒",
+    )
+    selected_variable_flat_seconds = _stage17_sum_effect(
+        effect_dict,
+        f"技能【{skill_name}】變動詠唱時間",
+        "秒",
+    )
+
+    return {
+        "fixed_cast_flat_seconds": float(fixed_flat_seconds),
+        "fixed_cast_percent": float(fixed_percent),
+        "variable_cast_percent": float(variable_percent),
+        "global_post_delay_percent": float(global_post_percent),
+        "skill_cooldown_flat_seconds": float(cooldown_flat_seconds),
+        "skill_variable_cast_flat_seconds": float(selected_variable_flat_seconds),
+    }
+
+
+def stage24_calculate_skill_timing_from_effects(
+    *,
+    skill_name,
+    lua_text,
+    skill_level,
+    effect_dict,
+    total_dex,
+    total_int,
+    skill_map_all=None,
+    skill_code=None,
+):
+    """Shared high-level timing entry used by both Desktop and Web.
+
+    The caller provides the already-aggregated equipment effect dictionary and
+    character DEX/INT.  Modifier extraction and all timing math remain in Core.
+    """
+    modifiers = stage24_extract_skill_timing_modifiers(effect_dict, skill_name)
+    shared = stage24_calculate_skill_timing_values(
+        skill_name=skill_name,
+        skill_map_all=skill_map_all,
+        skill_code=skill_code,
+        lua_text=lua_text,
+        skill_level=skill_level,
+        equip_fixed_ms=modifiers["fixed_cast_flat_seconds"] * 1000.0,
+        equip_fixed_percent=modifiers["fixed_cast_percent"],
+        base_stat=_stage17_number(total_dex, 0) + _stage17_number(total_int, 0) / 2.0,
+        equip_variable_percent=modifiers["variable_cast_percent"],
+        equip_global_post_percent=modifiers["global_post_delay_percent"],
+        equip_cooldown_ms=modifiers["skill_cooldown_flat_seconds"] * 1000.0,
+        selected_variable_cast_ms=modifiers["skill_variable_cast_flat_seconds"] * 1000.0,
+    )
+    shared["effect_modifiers"] = modifiers
+    return shared
+
+
+def calculate_stage23_skill_timing(*, data_dir, skill_row, skill_level, effect_dict, total_dex, total_int):
+    """Web/API adapter over the exact same high-level Core entry as Desktop."""
+    row = skill_row if isinstance(skill_row, dict) else {}
+    skill_name = _stage17_text(row.get("Name"))
+    skill_code = (
+        _stage17_text(row.get("Code"))
+        or _stage17_text(row.get("SkillCode"))
+        or _stage17_text(row.get("SkillNameCode"))
+    )
+
+    base_result = {
+        "available": False,
+        "source": "data/skilldelaylist.lua",
+        "message": "",
+        "skill_code": skill_code,
+        "level": max(_stage17_int(skill_level, 1), 1),
+    }
+    if not skill_code:
+        base_result["message"] = "技能沒有 Code，無法取得技能時間"
+        return base_result
+
+    lua_text, load_error = _stage23_load_skill_delay_text(data_dir)
+    if load_error:
+        base_result["message"] = load_error
+        return base_result
+
+    shared = stage24_calculate_skill_timing_from_effects(
+        skill_name=skill_name,
+        skill_code=skill_code,
+        lua_text=lua_text,
+        skill_level=skill_level,
+        effect_dict=effect_dict,
+        total_dex=total_dex,
+        total_int=total_int,
+    )
+    if not shared.get("available"):
+        return {
+            **base_result,
+            "message": str(shared.get("message") or "技能時間資料解析失敗"),
+        }
+
+    selected = shared["selected"]
+    modifiers = shared["effect_modifiers"]
+
+    def seconds(ms):
+        return round(float(ms) / 1000.0, 6)
+
+    return {
+        **base_result,
+        "available": True,
+        "message": "",
+        "fixed_cast_seconds": seconds(selected["fixed_ms"]),
+        "variable_cast_seconds": seconds(selected["variable_ms"]),
+        "cast_total_seconds": seconds(selected["fixed_ms"] + selected["variable_ms"]),
+        "global_post_delay_seconds": seconds(selected["global_post_ms"]),
+        "cooldown_seconds": seconds(selected["cooldown_ms"]),
+        "raw": {
+            "fixed_cast_seconds": seconds(selected["fixed_raw_ms"]),
+            "variable_cast_seconds": seconds(selected["variable_raw_ms"]),
+            "global_post_delay_seconds": seconds(selected["global_post_raw_ms"]),
+            "cooldown_seconds": seconds(selected["cooldown_raw_ms"]),
+        },
+        "modifiers": {
+            "fixed_cast_flat_seconds": round(modifiers["fixed_cast_flat_seconds"], 6),
+            "fixed_cast_percent": round(modifiers["fixed_cast_percent"], 6),
+            "variable_cast_percent": round(modifiers["variable_cast_percent"], 6),
+            "stat_cast_reduction_percent": round(
+                float(shared["modifiers"]["stat_cast_reduction_percent"]),
+                6,
+            ),
+            "global_post_delay_percent": round(modifiers["global_post_delay_percent"], 6),
+            "skill_cooldown_flat_seconds": round(modifiers["skill_cooldown_flat_seconds"], 6),
+            "skill_variable_cast_flat_seconds": round(
+                modifiers["skill_variable_cast_flat_seconds"],
+                6,
+            ),
+        },
+    }
+
+
+# Backward-compatible internal aliases for any Stage 21.23 code/tests.
+_stage23_find_skill_delay_block = stage24_find_skill_delay_block
+_stage23_parse_delay_array = stage24_parse_skill_delay_array
+_stage23_pick_delay_value = _stage24_pick_display_ms
+
 def _stage17_effect_multiplier(effect_dict, category, index):
     index = _stage17_int(index)
     if category in {"D_size", "MD_size"}:
@@ -6651,6 +7101,15 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
             "label": str(attack_type),
             "rows": [],
         }
+    skill_timing = calculate_stage23_skill_timing(
+        data_dir=data_dir,
+        skill_row=row,
+        skill_level=skill_level,
+        effect_dict=effect_dict,
+        total_dex=total_dex,
+        total_int=total_int,
+    )
+
     return {
         "coverage": "shared-desktop-standard-path",
         "skill": {
@@ -6664,6 +7123,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
             "formula_source": formula_source,
             "hits": skill_hits,
         },
+        "skill_timing": skill_timing,
         "monster": monster,
         "base": {
             "front_atk": front_atk,
@@ -7621,6 +8081,88 @@ def stage19_build_rrf_desktop_json_from_dump_text(replay_text, data_dir, parsed_
         "warnings": warnings,
     }
 
+
+# === STAGE 21.25 SHARED NO-CAST STATUS CORE ===
+
+def stage25_calculate_no_cast_status(
+    *,
+    total_dex,
+    total_int,
+    target=265,
+):
+    """Desktop's 素質無詠 threshold calculation, moved to shared Core.
+
+    Desktop historically evaluates:
+        DEX + int(INT / 2) >= 265
+
+    Keep the integer-half INT behavior exactly so Desktop/Web remain identical.
+    """
+    dex_part = _stage20_int(total_dex)
+    int_total = _stage20_int(total_int)
+    int_part = int(int_total / 2)
+    target_value = max(0, _stage20_int(target, 265))
+    score = dex_part + int_part
+    gap = target_value - score
+    reached = gap <= 0
+
+    return {
+        "target": int(target_value),
+        "total_dex": int(dex_part),
+        "total_int": int(int_total),
+        "dex_part": int(dex_part),
+        "int_part": int(int_part),
+        "score": int(score),
+        "gap": int(gap),
+        "reached": bool(reached),
+        "needed_dex": int(max(0, gap)),
+        "needed_int": int(max(0, gap * 2)),
+        "excess": int(max(0, -gap)),
+    }
+
+
+def stage25_calculate_no_cast_from_effects(
+    *,
+    base_dex,
+    base_int,
+    job_bonus,
+    effect_dict,
+    target=265,
+):
+    """Shared high-level Desktop/Web entry for 素質無詠.
+
+    UI callers provide only raw character/job/equipment inputs; job/equipment
+    DEX/INT aggregation and the 265 threshold remain in Core.
+    """
+    bonuses = list(job_bonus or [])
+    job_dex = _stage20_int(bonuses[4] if len(bonuses) > 4 else 0)
+    job_int = _stage20_int(bonuses[3] if len(bonuses) > 3 else 0)
+    equip_dex = _stage20_int(_stage20_sum_effect(effect_dict or {}, "DEX", ""))
+    equip_int = _stage20_int(_stage20_sum_effect(effect_dict or {}, "INT", ""))
+
+    base_dex_value = _stage20_int(base_dex)
+    base_int_value = _stage20_int(base_int)
+    total_dex = base_dex_value + job_dex + equip_dex
+    total_int = base_int_value + job_int + equip_int
+
+    result = stage25_calculate_no_cast_status(
+        total_dex=total_dex,
+        total_int=total_int,
+        target=target,
+    )
+    result.update(
+        {
+            "base_dex": int(base_dex_value),
+            "job_dex": int(job_dex),
+            "equip_dex": int(equip_dex),
+            "base_int": int(base_int_value),
+            "job_int": int(job_int),
+            "equip_int": int(equip_int),
+        }
+    )
+    return result
+
+# === STAGE 21.25 SHARED NO-CAST STATUS CORE END ===
+
 # === STAGE 20 SHARED HP SP ASPD CORE ===
 # Pure standard-library helpers shared by Desktop and Web.
 
@@ -8038,9 +8580,17 @@ def stage20_calculate_status(
             "cat2_flat": cat2_flat,
         }
 
+    no_cast = stage25_calculate_no_cast_from_effects(
+        base_dex=base_dex,
+        base_int=base_int,
+        job_bonus=job_bonus,
+        effect_dict=effect_dict,
+    )
+
     return {
         "hpsp": hpsp,
         "aspd": aspd,
+        "no_cast": no_cast,
         "stats": {
             "base_agi": base_agi, "job_agi": job_agi, "equip_agi": equip_agi, "total_agi": total_agi,
             "base_dex": base_dex, "job_dex": job_dex, "equip_dex": equip_dex, "total_dex": total_dex,

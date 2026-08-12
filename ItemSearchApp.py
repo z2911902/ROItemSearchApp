@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.6.0-260812"
+Version = "v0.6.1-260812"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -258,6 +258,12 @@ from ro_core import (
     stage17_replace_gusklv_calls as _core_stage17_replace_gusklv_calls,
     stage17_replace_size_calls as _core_stage17_replace_size_calls,
 )
+# === STAGE 21.24 DESKTOP/WEB SHARED SKILL TIMING CORE ===
+from ro_core import (
+    stage24_calculate_skill_timing_from_effects as _core_stage24_calculate_skill_timing_from_effects,
+    stage25_calculate_no_cast_from_effects as _core_stage25_calculate_no_cast_from_effects,
+)
+
 import pandas as pd
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve, QUrl
 from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices, QPainter, QPen
@@ -2711,147 +2717,65 @@ def update_skill_delay_labels(#技能延遲標籤更新
     delay_label,
     cast_bar,
     skill_level,
-    Equipfixed,
-    Equipfixed_2,
-    basestat,
-    Equipstat,
-    Equipgpost,
-    Equipspost,
-    selected_Equipspost
+    effect_dict,
+    total_dex,
+    total_int,
 ):
-    """
-    skill_name   : skill_box.currentText()
-    skill_map_all: 技能資料字典（含 Name -> Code）
-    lua_text     : skilldelaylist.lua 內容（字串）
-    fix_label    : QLabel（固定 / 變動詠唱）
-    delay_label  : QLabel（共延 / 冷卻）
-    cast_bar     : CastBarWidget（詠唱條）
-    skill_level  : 技能等級（可選）
-    Equipfixed   : 固定詠唱（回傳用）
-    Equipfixed_2 : 固定詠唱百分比（回傳用）
-    stat         : 素質變動詠唱（回傳用）
-    Equipstat    : 裝備變動詠唱（回傳用）
-    Equipgpost   : 共延（回傳用）
-    Equipspost   : 冷卻（回傳用）
-    selected_Equipspost : 選擇的裝備冷卻（回傳用）
-    """
+    """Stage 21.24: Desktop UI wrapper over the shared ro_core timing engine."""
+    shared = _core_stage24_calculate_skill_timing_from_effects(
+        skill_name=skill_name,
+        skill_map_all=skill_map_all,
+        lua_text=lua_text,
+        skill_level=skill_level,
+        effect_dict=effect_dict,
+        total_dex=total_dex,
+        total_int=total_int,
+    )
 
-    # ---------- Name -> Code ----------
-    skill_code = None
-    for _, row in skill_map_all.items():
-        if row.get("Name") == skill_name:
-            skill_code = (
-                row.get("Code")
-                or row.get("SkillCode")
-                or row.get("SkillNameCode")
+    if not shared.get("available"):
+        error_code = shared.get("error_code")
+        if error_code == "skill_code_not_found":
+            fix_label.setText(tr("message.skill_code_not_found"))
+        elif error_code == "lua_skill_not_found":
+            fix_label.setText(
+                tr(
+                    "message.lua_skill_not_found",
+                    skill_code=shared.get("skill_code", ""),
+                )
             )
-            break
-
-    if not skill_code:
-        fix_label.setText(tr("message.skill_code_not_found"))
+        else:
+            fix_label.setText(tr("message.skill_data_parse_failed"))
         delay_label.setText("")
-        return
+        return 0.0
 
-    # ---------- 找到 [SKID.CODE] 區塊 ----------
-    start_pat = re.compile(
-        rf"\[\s*SKID\.{re.escape(skill_code)}\s*\]\s*=\s*\{{",
-        re.MULTILINE
-    )
-    m = start_pat.search(lua_text)
-    if not m:
-        fix_label.setText(tr("message.lua_skill_not_found", skill_code=skill_code))
-        delay_label.setText("")
-        return
-
-    i = m.end() - 1
-    depth = 0
-    block = None
-    for j in range(i, len(lua_text)):
-        if lua_text[j] == "{":
-            depth += 1
-        elif lua_text[j] == "}":
-            depth -= 1
-            if depth == 0:
-                block = lua_text[i:j + 1]
-                break
-
-    if not block:
-        fix_label.setText(tr("message.skill_data_parse_failed"))
-        delay_label.setText("")
-        return
-
-    # ---------- 解析延遲欄位 ----------
-    def parse_array(field: str):
-        mm = re.search(rf"{field}\s*=\s*\{{([^}}]*)\}}", block, re.MULTILINE)
-        if not mm:
-            return [0]          # ❗ 沒資料 → [0]
-
-        nums = re.findall(r"-?\d+", mm.group(1))
-        return [int(x) for x in nums] if nums else [0]
-
-    fixed_raw = parse_array("SkillCastFixedDelay")
-    stat_raw  = parse_array("SkillCastStatDelay")
-    gpost_raw = parse_array("SkillGlobalPostDelay")
-    spost_raw = parse_array("SkillSinglePostDelay")
-
-
-    
-    # -- 變詠固詠計算 --    
-    basestat = math.sqrt(basestat / 265) * 100#素質轉換變詠%       
-    stat = [max(0,(x + selected_Equipspost) * ((100 - basestat)/100) * ((100 + Equipstat)/100))  for x in stat_raw]#(變詠秒數+選擇技能變詠秒數)*素質變詠*裝備變詠
-    #print(f"素質{basestat}，*裝備變詠：{Equipstat}")
-    fixed = [max(0, (x + Equipfixed) * ((100 + Equipfixed_2)/100)) for x in fixed_raw]#固詠毫秒秒數-裝備固詠毫秒*裝備or技能固詠%(取最大值)
-    gpost= [max(0, x * ((100 + Equipgpost)/100)) for x in gpost_raw]#共延秒數*裝備共延%
-    spost= [max(0, x + Equipspost) for x in spost_raw]#冷卻秒數-裝備冷卻秒數
-    
-
-    # ---------- 依技能等級取值 ----------
-    def pick(arr):
-        if arr is None or len(arr) == 0:
-            return "無"
-
-        def ms_to_s(ms):
-            return f"{ms / 1000:.3f}".rstrip("0").rstrip(".")
-
-        if skill_level is None:
-            return "/".join(ms_to_s(x) for x in arr)
-
-        idx = max(skill_level - 1, 0)
-        ms = arr[idx] if idx < len(arr) else arr[-1]
-        return f"{ms_to_s(ms)}"
-
-
-    # ---------- 更新 QLabel ----------
+    display = shared["display"]
     fix_label.setText(
-        tr("label.cast_delay_info", fixed=pick(fixed), fixed_raw=pick(fixed_raw), stat=pick(stat), stat_raw=pick(stat_raw))
+        tr(
+            "label.cast_delay_info",
+            fixed=display["fixed"],
+            fixed_raw=display["fixed_raw"],
+            stat=display["variable"],
+            stat_raw=display["variable_raw"],
+        )
     )
-
     delay_label.setText(
-        tr("label.post_delay_info", gpost=pick(gpost), gpost_raw=pick(gpost_raw), spost=pick(spost), spost_raw=pick(spost_raw))
+        tr(
+            "label.post_delay_info",
+            gpost=display["global_post"],
+            gpost_raw=display["global_post_raw"],
+            spost=display["cooldown"],
+            spost_raw=display["cooldown_raw"],
+        )
     )
-    # fix_label.setText(
-    #     f"固詠: {pick(fixed)}秒 "
-    #     f"變詠: {pick(stat)}秒"
-    # )
 
-    # delay_label.setText(
-    #     f"共延: {pick(gpost)}秒 "
-    #     f"冷卻: {pick(spost)}秒"
-    # )
-    stat_value = stat[skill_level] if skill_level < len(stat) else stat[-1]
-    fixed_value = fixed[skill_level] if skill_level < len(fixed) else fixed[-1]
-    spost_value = spost[skill_level] if skill_level < len(spost) else spost[-1]
-    gcdtotal_value = max(0.0, gpost[skill_level] if skill_level < len(gpost) else gpost[-1])
-    gcdtotal_raw_value = max(0.0, gpost_raw[skill_level] if skill_level < len(gpost_raw) else gpost_raw[-1])
-
-    total_s = max(0.0, fixed_value + stat_value)
-    cdtotal_s = max(0.0, spost_value)
-    gcdtotal_s = max(0.0, gcdtotal_value)
-    gcdtotal_raw_s = max(0.0, gcdtotal_raw_value)
-
-
-    cast_bar.start(int(total_s),int(gcdtotal_s),int(cdtotal_s))  # 轉 ms
-    return gcdtotal_raw_s/1000
+    # Preserve the Desktop CastBar / ASPD-GCD legacy indexing exactly.
+    runtime = shared["desktop_runtime"]
+    cast_bar.start(
+        int(runtime["cast_total_ms"]),
+        int(runtime["global_post_ms"]),
+        int(runtime["cooldown_ms"]),
+    )
+    return max(0.0, float(runtime["global_post_raw_ms"])) / 1000.0
 
 #動態下拉式選單
 import re
@@ -5597,19 +5521,7 @@ class ItemSearchApp(QWidget):
         if any("武器浸透勁效果" in key for (key, unit) in effect_dict.keys()):
             print("有武器浸透勁效果")
             Use_skill_levels[266] = True
-        #== 固定詠唱取得 ==
-        fixed_cast = sum(val for val, _ in effect_dict.get(("固定詠唱時間", "秒"), []))
-        #== 固定詠唱%取得 ==
-        fixed_cast_percent = min((val for val, _ in effect_dict.get(("固定詠唱時間", "%"), [])),default=0)
-        #== 變動詠唱取得 ==
-        variable_cast_percent = sum(val for val, _ in effect_dict.get(("變動詠唱時間", "%"), []))
-        #== 技能後延遲取得 ==
-        skill_delay_percent = sum(val for val, _ in effect_dict.get(("技能後延遲", "%"), []))
-        #== 技能冷卻取得 ==        
-        skill_cooldown = sum(val for val, _ in effect_dict.get((f"技能【{selected_skill_name}】冷卻時間", "秒"), []))
-        #== 指定技能變詠冷卻取得 ==
-        selected_skill_cooldown_percent = sum(val for val, _ in effect_dict.get((f"技能【{selected_skill_name}】變動詠唱時間", "秒"), []))
-
+        # === Stage 21.24: skill timing modifiers are aggregated in ro_core.py ===
         #ASPD計算
         atkaspd = -sum(val for val, _ in effect_dict.get(("(2轉以下)攻擊後延遲", "%"), []))
         #print(f"(2轉以下)攻擊後延遲減少：{atkaspd}%")
@@ -5652,13 +5564,9 @@ class ItemSearchApp(QWidget):
                 delay_label=self.Delay_label,
                 cast_bar=self.cast_bar,
                 skill_level=skill_lv,
-                Equipfixed=fixed_cast*1000,
-                Equipfixed_2=fixed_cast_percent,#固詠%
-                basestat=(total_DEX+(total_INT/2)),
-                Equipstat=variable_cast_percent,
-                Equipgpost=skill_delay_percent,
-                Equipspost=skill_cooldown*1000,
-                selected_Equipspost=selected_skill_cooldown_percent*1000
+                effect_dict=effect_dict,
+                total_dex=total_DEX,
+                total_int=total_INT,
             )
         
 
@@ -7559,51 +7467,32 @@ class ItemSearchApp(QWidget):
         #print("技能：", enabled_skill_levels)
 
     def update_dex_int_half_note(self):#素質無詠計算
+        """Stage 21.25: Desktop UI wrapper over shared ro_core no-cast Core."""
         raw_effects = getattr(self, "effect_dict_raw", {})
-
-        # base
         try:
             base_dex = int(self.input_fields["DEX"].text())
-        except:
+        except Exception:
             base_dex = 0
         try:
             base_int = int(self.input_fields["INT"].text())
-        except:
+        except Exception:
             base_int = 0
-
-        # job bonus
         job_id = self.input_fields["JOB"].currentData()
         tjob_bonus = job_dict.get(job_id, {}).get("TJobMaxPoint", [])
-        dex_job = tjob_bonus[4] if len(tjob_bonus) > 4 else 0
-        int_job = tjob_bonus[3] if len(tjob_bonus) > 3 else 0
-
-        # equip bonus
-        dex_equip = sum(val for val, _ in raw_effects.get(("DEX", ""), []))
-        int_equip = sum(val for val, _ in raw_effects.get(("INT", ""), []))
-
-        dex_total = base_dex + dex_job + dex_equip
-        int_total = base_int + int_job + int_equip
-
-        dex_part = dex_total
-        int_part = int(int_total / 2)
-        result = dex_part + int_part
-
-        target = 265
-        #gap = max(0, target - result)
-        gap = target - result
-        status = "✅" if gap <= 0 else "⚠️ 未達標"
-
-        if gap <= 0:
-            need_dex = gap
-            need_int = gap * 2
-            diff_text = f"　（超過：DEX {need_dex} 或 INT {need_int}）"
+        shared = _core_stage25_calculate_no_cast_from_effects(
+            base_dex=base_dex,
+            base_int=base_int,
+            job_bonus=tjob_bonus,
+            effect_dict=raw_effects,
+        )
+        gap = int(shared["gap"])
+        status = "✅" if shared["reached"] else "⚠️ 未達標"
+        if shared["reached"]:
+            diff_text = f"　（超過：DEX {gap} 或 INT {gap * 2}）"
         else:
-            need_dex = gap
-            need_int = gap * 2
-            diff_text = f"　（還差：DEX +{need_dex} 或 INT +{need_int}）"
-
+            diff_text = f"　（還差：DEX +{shared['needed_dex']} 或 INT +{shared['needed_int']}）"
         self.DEX_INT_265_label.setText(
-            f"※素質無詠 {dex_part} + {int_part} = {result} {status}\n{diff_text}"
+            f"※素質無詠 {shared['dex_part']} + {shared['int_part']} = {shared['score']} {status}\n{diff_text}"
         )
 
 
