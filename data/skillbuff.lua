@@ -304,6 +304,18 @@
 	AddExtParam(1, 242, temp * 1.5)
 	AddExtParam(1, 243, temp * 1.5)
 }
+[5434] = {
+	temp = GSklv(5434)
+	if temp > 0 then
+		UseSkill(5434)
+	end
+}
+[5443] = {
+	temp = GSklv(5443)
+	if temp > 0 then
+		UseSkill(5443)
+	end
+}
 [5450] = {
 	temp = GSklv(5450)
 	AddExtParam(1, 243, temp)
