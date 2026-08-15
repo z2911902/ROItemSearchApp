@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.6.1-260812"
+Version = "v0.6.2-260815"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -8318,11 +8318,23 @@ class ItemSearchApp(QWidget):
                     get_values[gid] = 0
 
         # 🔁 等所有 stat 欄位都建立後，再註冊 textChanged
-        if hasattr(self, "_update_stat_point_callback"):
-            for attr in ["STR", "AGI", "VIT", "INT", "DEX", "LUK", "POW", "STA", "WIS", "SPL", "CON", "CRT", "BaseLv"]:
-                self.input_fields[attr].editingFinished.connect(self._update_stat_point_callback)
+        if (
+            hasattr(self, "_update_stat_point_callback")
+            and not getattr(self, "_stat_point_signals_connected", False)
+        ):
+            for attr in [
+                "STR", "AGI", "VIT", "INT", "DEX", "LUK",
+                "POW", "STA", "WIS", "SPL", "CON", "CRT",
+                "BaseLv"
+            ]:
+                self.input_fields[attr].editingFinished.connect(
+                    self._update_stat_point_callback
+                )
 
-            # 主動執行一次，初始化顯示
+            self._stat_point_signals_connected = True
+
+        # 要更新顯示可以執行，但不要重複 connect
+        if hasattr(self, "_update_stat_point_callback"):
             self._update_stat_point_callback()
 
 
@@ -8437,27 +8449,40 @@ class ItemSearchApp(QWidget):
             self.set_part_visible("左手(盾牌)", False)
             self.clear_global_state()
             self.display_all_effects()
-            self.display_all_effects()
+            #self.display_all_effects()
         else:
             self.set_part_visible("左手(盾牌)", True)
 
         
 
-    def trigger_total_effect_update(self):#統一計算處理，除非特殊狀態不然不要單獨處理效果       
-        '''
-        計算統一處理，除非特殊狀態不然不要單獨處理效果
-        '''        
-        globals()["target_element"] = self.element_box.currentData()#先取得怪物屬性給機匠被動使用。
+    def trigger_total_effect_update(self, *_):
+        """使用者有修改時，只排程重算，不立刻阻塞 UI。"""
 
-        
-        self.display_all_effects()
-        self.display_item_info()
-        self.weapon_type_ui_control()
-        self.replace_custom_calc_content()
-        self.update_dex_int_half_note()
-        self.jobsphp_display()
-        self.replace_custom_calc_content()
-        self.update_total_effect_display()#過濾總效果顯示
+        self.calc_status_label.setText("● 正在更新計算結果…")
+
+        # 重新 start = debounce
+        # 短時間有多個 signal 時，只算最後一次
+        self._calc_timer.start()
+
+
+    def _perform_total_effect_update(self):
+        try:
+            globals()["target_element"] = self.element_box.currentData()
+
+            self.display_all_effects()
+            self.display_item_info()
+            self.weapon_type_ui_control()
+            self.replace_custom_calc_content()
+            self.update_dex_int_half_note()
+            self.jobsphp_display()
+            self.replace_custom_calc_content()
+            self.update_total_effect_display()
+
+            self.calc_status_label.setText("✓ 已更新")
+
+        except Exception:
+            self.calc_status_label.setText("⚠ 計算失敗")
+            raise
         
         
         
@@ -10828,6 +10853,7 @@ class ItemSearchApp(QWidget):
         # ▶️ 編輯狀態 + 解除同步按鈕 + 全域精煉選單
         edit_status_layout = QHBoxLayout()
         self.current_edit_label = QLabel(tr("label.current_part"))
+
         self.unsync_button = QPushButton(tr("button.unlock"))
         self.unsync_button.setVisible(False)
         self.unsync_button.clicked.connect(self.clear_global_state)
@@ -11073,19 +11099,45 @@ class ItemSearchApp(QWidget):
         # ===== 右側：模擬結果 + 裝備原始屬性 =====
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
+
         right_scroll = QScrollArea()
         right_scroll.setWidgetResizable(True)
         right_scroll.setWidget(right_widget)
 
+
+        # ===== Timer =====
+        self._calc_timer = QTimer(self)
+        self._calc_timer.setSingleShot(True)
+        self._calc_timer.setInterval(80)
+        self._calc_timer.timeout.connect(self._perform_total_effect_update)
+
+
+        # ===== 裝備原始內容 =====
         self.equip_text_label = QLabel(tr("label.raw_equipment_text"))
         right_layout.addWidget(self.equip_text_label)
+
         right_layout.addWidget(self.equip_text)
         self.equip_text.setFixedHeight(160)
+
         right_layout.addWidget(self.combi_raw_text)
         self.combi_raw_text.setFixedHeight(160)
-        right_layout.addWidget(self.sim_effect_label)
-        
-        #right_layout.addWidget(self.sim_effect_text)
+
+
+        # ===== 效果解析 + 計算狀態，同一列 =====
+        sim_effect_title_layout = QHBoxLayout()
+
+        sim_effect_title_layout.addWidget(self.sim_effect_label)
+
+        sim_effect_title_layout.addStretch()
+
+        self.calc_status_label = QLabel("")
+        self.calc_status_label.setMinimumWidth(120)
+        self.calc_status_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        sim_effect_title_layout.addWidget(self.calc_status_label)
+
+        right_layout.addLayout(sim_effect_title_layout)
+
+
         # === 效果解析分頁（兩個頁籤） ===
         self.sim_tabs = QTabWidget()
         right_layout.addWidget(self.sim_tabs)
