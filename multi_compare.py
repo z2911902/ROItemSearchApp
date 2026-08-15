@@ -92,6 +92,49 @@ class MultiCompareService:
                 pass
         return default if default is not None else key
 
+    def _recalculate_main_now(self):
+        """立即完成主畫面計算，供 Snapshot/批次比較使用。
+
+        主畫面的 trigger_total_effect_update() 現在使用 debounce QTimer，
+        一般 UI 操作應繼續走排程；但多裝備比對建立 Snapshot 時必須保證
+        計算已完成，因此這裡會先取消尚未執行的 timer，再直接呼叫完整計算。
+
+        保留舊版 fallback，讓此模組也能搭配沒有 _perform_total_effect_update()
+        的舊主程式。
+        """
+        main = self.main_window
+
+        # load_saved_inputs / setCurrentIndex 等動作可能已排入 debounce timer。
+        # Snapshot 要的是當下最後狀態，因此先取消那一輪，避免稍後再補算一次。
+        timer = getattr(main, "_calc_timer", None)
+        if timer is not None:
+            try:
+                timer.stop()
+            except Exception:
+                pass
+
+        main._last_calc_state = None
+
+        perform = getattr(main, "_perform_total_effect_update", None)
+        if callable(perform):
+            # 正常情況不會在計算中建立 Snapshot；若真的遇到重入，
+            # 不強行巢狀計算，先讓既有事件處理完再判斷一次。
+            if getattr(main, "_calc_running", False):
+                QApplication.processEvents()
+            if getattr(main, "_calc_running", False):
+                raise RuntimeError("主畫面仍在計算中，無法建立多裝備比對 Snapshot")
+
+            perform()
+            QApplication.processEvents()
+            return
+
+        # 舊版主程式相容路徑：trigger 原本是同步計算。
+        trigger = getattr(main, "trigger_total_effect_update", None)
+        if not callable(trigger):
+            raise RuntimeError("主程式缺少計算入口")
+        trigger()
+        QApplication.processEvents()
+
     def collect_project_state_data(self):
         """把目前主畫面收成與專案檔相同的資料格式，不寫檔。"""
         main = self.main_window
@@ -208,9 +251,7 @@ class MultiCompareService:
                         checkbox.setChecked(bool(checked))
 
             if recalculate:
-                main._last_calc_state = None
-                main.trigger_total_effect_update()
-                QApplication.processEvents()
+                self._recalculate_main_now()
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
@@ -498,9 +539,7 @@ class MultiCompareService:
         if hasattr(main, "auto_compare_checkbox"):
             main.auto_compare_checkbox.setChecked(False)
         try:
-            main._last_calc_state = None
-            main.trigger_total_effect_update()
-            QApplication.processEvents()
+            self._recalculate_main_now()
             return self._build_compare_snapshot(name, source="current")
         finally:
             if hasattr(main, "auto_compare_checkbox"):
@@ -516,9 +555,7 @@ class MultiCompareService:
         main = self.main_window
         main.load_saved_inputs(file_path)
         main.refresh_skill_list()
-        main._last_calc_state = None
-        main.trigger_total_effect_update()
-        QApplication.processEvents()
+        self._recalculate_main_now()
         return self._build_compare_snapshot(Path(file_path).stem, source=file_path)
 
 

@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.6.2-260815"
+Version = "v0.7.0-260815"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -3421,9 +3421,12 @@ class CSVEditor(QMainWindow):
         # 重新計算
         try:
             app = getattr(self, "app_instance", None)
-            if app and hasattr(app, "replace_custom_calc_content"):
+            if app:
                 setattr(app, "_last_calc_state", None)
-                app.replace_custom_calc_content()
+                if hasattr(app, "trigger_total_effect_update"):
+                    app.trigger_total_effect_update()
+                elif hasattr(app, "replace_custom_calc_content"):
+                    app.replace_custom_calc_content()
         except Exception as e:
             print(f"[CSVEditor.closeEvent] 重新計算失敗：{e}")
 
@@ -4623,7 +4626,6 @@ class ItemSearchApp(QWidget):
             tr("label.current_part_detail", part=part_name, label="裝備")
         )
 
-        self.replace_custom_calc_content()
         self.trigger_total_effect_update()
         self._set_enchant_tool_target(part_name, "裝備", equipment_name)
         report(f"已加入「{part_name}」第{slot_id + 1}洞：{enchant_name}", True)
@@ -4917,7 +4919,6 @@ class ItemSearchApp(QWidget):
         self._refresh_lapine_note_display(part_name)
         self.clear_global_state()
         self._last_calc_state = None
-        self.replace_custom_calc_content()
         self.trigger_total_effect_update()
         self._refresh_lapine_note_display(part_name)
         self._set_lapine_upgrade_tool_target(
@@ -5176,7 +5177,7 @@ class ItemSearchApp(QWidget):
         filename = os.path.basename(self.current_file) if self.current_file else "未命名"
         self.setWindowTitle(tr("window.main_with_file", version=Version, filename=filename, Server_area=Server_area))
     
-    def replace_custom_calc_content(self):
+    def replace_custom_calc_content(self, *_args, render_output=True, force_recalc=False):
         # 特殊 CheckBox 狀態
         special_state = "|".join(
             f"{key}:{checkbox.isChecked()}"
@@ -5282,16 +5283,26 @@ class ItemSearchApp(QWidget):
             self.MD_BETELGEUSE_combo_soul.setVisible(False)
             self.MD_BETELGEUSE_label_total_title.setVisible(False)
             self.MD_BETELGEUSE_label_total.setVisible(False)
-            self.MD_BETELGEUSE_combo_def.setCurrentIndex(0)
-            self.MD_BETELGEUSE_combo_soul.setCurrentIndex(0)
+            # 計算流程內部重設 ComboBox 時不要再觸發另一輪計算。
+            self.MD_BETELGEUSE_combo_def.blockSignals(True)
+            self.MD_BETELGEUSE_combo_soul.blockSignals(True)
+            try:
+                self.MD_BETELGEUSE_combo_def.setCurrentIndex(0)
+                self.MD_BETELGEUSE_combo_soul.setCurrentIndex(0)
+            finally:
+                self.MD_BETELGEUSE_combo_def.blockSignals(False)
+                self.MD_BETELGEUSE_combo_soul.blockSignals(False)
             MD_BETELGEUSE_data = 0
 
 
-        if getattr(self, "_last_calc_state", None) == state_key:
+        if not force_recalc and getattr(self, "_last_calc_state", None) == state_key:
             print("【⛔ 裝備效果沒有更動，跳過運算。】")
             return  # ⛔ 跳過重複運算
 
-        self._last_calc_state = state_key  # ✅ 更新狀態紀錄
+        # 預覽計算（render_output=False）不更新快取；
+        # 最終真正輸出時才記錄狀態，避免第一輪把第二輪擋掉。
+        if render_output:
+            self._last_calc_state = state_key
 
         print("【🧠 執行 replace_custom_calc_content()】")
         # 原本你的公式解析邏輯
@@ -5576,9 +5587,11 @@ class ItemSearchApp(QWidget):
                 ASPD_GCD = 0
             else:
                 ASPD_GCD = max(0,math.ceil((1 - ((1 / (50 / (200 - min(193,int(aspd))))) / gcdtotal_raw_s)) / 0.01))
-            self.ASPD_label.setText(tr("label.aspd_info", aspd=aspd, aspds=f"{aspds:.2f}", gcd=ASPD_GCD))
+            if render_output:
+                self.ASPD_label.setText(tr("label.aspd_info", aspd=aspd, aspds=f"{aspds:.2f}", gcd=ASPD_GCD))
         else:
-            self.ASPD_label.setText(tr("label.aspd_weapon_not_supported"))
+            if render_output:
+                self.ASPD_label.setText(tr("label.aspd_weapon_not_supported"))
 
         #=======================技能欄公式====================
         #====================DEF計算==================
@@ -6487,10 +6500,12 @@ class ItemSearchApp(QWidget):
 
 
         if results:
-            self.skill_formula_result_input.setText(f"{results[0]['skill_result']} %")
+            if render_output:
+                self.skill_formula_result_input.setText(f"{results[0]['skill_result']} %")
         else:
-            self.skill_formula_result_input.setText("0%")
-            self.custom_calc_box.setPlainText("錯誤：無選擇職業、無技能公式、公式錯誤計算結果為0！")
+            if render_output:
+                self.skill_formula_result_input.setText("0%")
+                self.custom_calc_box.setPlainText("錯誤：無選擇職業、無技能公式、公式錯誤計算結果為0！")
 
 
 
@@ -6731,10 +6746,20 @@ class ItemSearchApp(QWidget):
                 self.steps.append(["總傷害", r["times"]*100])
 
         result.extend(bottom_result)#顯示前面儲存的公式
-        self.custom_calc_box.setHtml(self.generate_highlighted_html(result))
-        if self.auto_compare_checkbox.isChecked():
-            self.compare_with_base()
-        #self.custom_calc_box.setPlainText("\n".join(result))
+        if render_output:
+            # 連續比較時先在記憶體產生比較結果，最後只更新 custom_calc_box 一次。
+            final_output = result
+            if self.auto_compare_checkbox.isChecked():
+                compared_output = self.compare_with_base(
+                    current_lines=result,
+                    render=False,
+                )
+                if compared_output is not None:
+                    final_output = compared_output
+
+            self.custom_calc_box.setHtml(
+                self.generate_highlighted_html(final_output)
+            )
 
         #減傷顯示
 
@@ -6829,8 +6854,10 @@ class ItemSearchApp(QWidget):
 
 
 
-        if hasattr(self, "body_custom_calc_box"):
-            self.body_custom_calc_box.setHtml(self.generate_highlighted_html(body_results))
+        if render_output:
+            self.body_custom_calc_box.setHtml(
+                self.generate_highlighted_html(body_results)
+            )
 
 
     def _set_combo_data_blocked(self, combo, data):
@@ -7540,9 +7567,14 @@ class ItemSearchApp(QWidget):
 
 
     def safe_update_textbox(self, textbox, text):
+        if textbox.toPlainText() == text:
+            return
+
         scrollbar = textbox.verticalScrollBar()
         scroll_pos = scrollbar.value()
+
         textbox.setPlainText(text)
+
         scrollbar.setValue(scroll_pos)
 
     def toggle_equip_text_visibility(self):
@@ -8361,12 +8393,10 @@ class ItemSearchApp(QWidget):
         core_dependencies = build_desktop_core_dependencies()
 
         skillbuff_path = os.path.join("data", "skillbuff.lua")
-        try:
-            with open(skillbuff_path, "r", encoding="utf-8") as f:
-                core_skillbuff_text = f.read()
-        except Exception as e:
-            print(f"❌ 無法讀取 skillbuff.lua：{e}")
-            core_skillbuff_text = ""
+
+        with open(skillbuff_path, "r", encoding="utf-8") as f:
+            core_skillbuff_text = f.read()
+
 
         core_data = EquipmentCalculationData(
             parsed_items=self.parsed_items,
@@ -8458,31 +8488,63 @@ class ItemSearchApp(QWidget):
     def trigger_total_effect_update(self, *_):
         """使用者有修改時，只排程重算，不立刻阻塞 UI。"""
 
-        self.calc_status_label.setText("● 正在更新計算結果…")
+        # 完整計算期間，內部 setText/setCurrentIndex 產生的 signal 不再排第二輪。
+        if getattr(self, "_calc_running", False):
+            return
 
-        # 重新 start = debounce
-        # 短時間有多個 signal 時，只算最後一次
+        if hasattr(self, "calc_status_label"):
+            self.calc_status_label.setText("● 正在更新計算結果…")
+
+        # 重新 start = debounce；短時間有多個 signal 時，只算最後一次。
         self._calc_timer.start()
 
 
     def _perform_total_effect_update(self):
+        if getattr(self, "_calc_running", False):
+            return
+
+        self._calc_running = True
         try:
             globals()["target_element"] = self.element_box.currentData()
 
             self.display_all_effects()
-            self.display_item_info()
+            #self.display_item_info()
             self.weapon_type_ui_control()
-            self.replace_custom_calc_content()
+
+            # 第一輪：需要先算出 HP/SP 等後續資料，但完全不更新結果 UI。
+            self.replace_custom_calc_content(
+                render_output=False,
+                force_recalc=True,
+            )
+
             self.update_dex_int_half_note()
+
+            # 更新 HP / SP
             self.jobsphp_display()
-            self.replace_custom_calc_content()
+
+            # 第二輪：所有資料確定後才輸出，而且只輸出這一次。
+            self.replace_custom_calc_content(
+                render_output=True,
+                force_recalc=True,
+            )
+
             self.update_total_effect_display()
 
-            self.calc_status_label.setText("✓ 已更新")
+            if hasattr(self, "calc_status_label"):
+                self.calc_status_label.setText("✓ 已更新")
+
+            # 等待計算完成後儲存比較基準
+            if getattr(self, "_pending_save_compare_base", False):
+                self._pending_save_compare_base = False
+                self._save_compare_base_after_calc()
 
         except Exception:
-            self.calc_status_label.setText("⚠ 計算失敗")
+            if hasattr(self, "calc_status_label"):
+                self.calc_status_label.setText("⚠ 計算失敗")
+            self._pending_save_compare_base = False
             raise
+        finally:
+            self._calc_running = False
         
         
         
@@ -8937,10 +8999,7 @@ class ItemSearchApp(QWidget):
             return
         
 
-        # 最後刷新畫面
-        
-        #self.display_item_info()
-        self.replace_custom_calc_content()
+        # 計算統一由按鈕既有的 trigger_total_effect_update 排程處理。
 
     def apply_result_to_note(self):
 
@@ -8966,9 +9025,7 @@ class ItemSearchApp(QWidget):
         else:
             print(f"❌ 找不到 {part_name} 的詞條欄位")
         
-        # 最後刷新畫面
-        #self.display_item_info()
-        self.replace_custom_calc_content()
+        # 計算統一由按鈕既有的 trigger_total_effect_update 排程處理。
 
 
 
@@ -9036,18 +9093,45 @@ class ItemSearchApp(QWidget):
         return open_multi_compare_window(self, self._get_multi_compare_context())
 
     def save_compare_base(self):
+        # 對比時自動啟用數值最大化
         self.auto_compare_checkbox.setChecked(False)
-        #對比時自動啟用數值最大化。
         self.skill_checkboxes["魔法省悟"].setChecked(True)
         self.skill_checkboxes["武器值最大化"].setChecked(True)
-        self.trigger_total_effect_update()#儲存前強制運算
-        text = self.custom_calc_box.toPlainText()
-        with open("compare_base.txt", "w", encoding="utf-8") as f:
-            f.write(text)
-        QMessageBox.information(self, tr("message.title.save_success"), tr("message.compare_baseline_saved"))
-        self.auto_compare_checkbox.setChecked(True)
 
-    def compare_with_base(self):
+        # 告訴計算流程：
+        # 這一次算完之後，要儲存比較基準
+        self._pending_save_compare_base = True
+
+        # 強制下一次一定重新計算
+        self._last_calc_state = None
+
+        # 排程計算
+        self.trigger_total_effect_update()
+
+    def _save_compare_base_after_calc(self):
+        text = self.custom_calc_box.toPlainText()
+
+        try:
+            with open("compare_base.txt", "w", encoding="utf-8") as f:
+                f.write(text)
+
+            QMessageBox.information(
+                self,
+                tr("message.title.save_success"),
+                tr("message.compare_baseline_saved")
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                tr("message.title.error"),
+                f"比較基準儲存失敗：{e}"
+            )
+
+        finally:
+            self.auto_compare_checkbox.setChecked(True)
+
+    def compare_with_base(self, *_args, current_lines=None, render=True):
         import re
 
         def parse_block(text):
@@ -9065,23 +9149,30 @@ class ItemSearchApp(QWidget):
             with open("compare_base.txt", "r", encoding="utf-8") as f:
                 base_text = f.read()
         except FileNotFoundError:
-            QMessageBox.warning(self, tr("message.title.error"), tr("message.compare_baseline_not_found"))
-            return
+            # 手動比較時提示；自動比較只略過，避免每次重算都跳視窗。
+            if render:
+                QMessageBox.warning(
+                    self,
+                    tr("message.title.error"),
+                    tr("message.compare_baseline_not_found"),
+                )
+            return current_lines
 
-        current_text = self.custom_calc_box.toPlainText()
         base = parse_block(base_text)
-        current_lines = current_text.splitlines()
+        if current_lines is None:
+            current_lines = self.custom_calc_box.toPlainText().splitlines()
+        else:
+            current_lines = list(current_lines)
 
         def format_number(val_str):
             val = float(re.findall(r"[-]?\d+\.?\d*", val_str)[0])
             suffix = "%" if "%" in val_str else ""
             if val.is_integer():
                 return f"{int(val):,}{suffix}"
-            else:
-                return f"{val:.2f}{suffix}"
-                
-        skip_compare_keys = {"技能公式", "技能說明"}  # 可加更多你不想比對的 key
-        
+            return f"{val:.2f}{suffix}"
+
+        skip_compare_keys = {"技能公式", "技能說明"}
+
         new_output = []
         for line in current_lines:
             if ":" not in line:
@@ -9091,9 +9182,9 @@ class ItemSearchApp(QWidget):
             key_part, val_part = line.split(":", 1)
             key = key_part.strip()
             val_clean = val_part.strip().replace(",", "")
-            
+
             if key in skip_compare_keys:
-                new_output.append(line)  # 直接加入不比對
+                new_output.append(line)
                 continue
 
             if key in base:
@@ -9111,36 +9202,34 @@ class ItemSearchApp(QWidget):
                         old_fmt = format_number(old_val_str)
                         new_fmt = format_number(new_val_str)
 
-                        # 總傷害顯示百分比與差額
                         if "傷害" in key:
-                            percent_val = abs(diff / old_val * 100)
+                            percent_val = abs(diff / old_val * 100) if old_val else 0
                             diff_fmt = f"{sign}{int(abs(diff)):,} / {sign}{percent_val:.2f}%"
-                            
                         elif "技能倍率" in key:
-                            percent_val = abs(diff / old_val * 100)
+                            percent_val = abs(diff / old_val * 100) if old_val else 0
                             diff_fmt = f"{sign}{int(abs(diff)):,}{suffix} / {sign}{percent_val:.2f}%"
-
                         else:
                             diff_fmt = f"{sign}{abs(diff):.0f}{suffix}"
 
                         arrow_str = f"{old_fmt} → {new_fmt}"
-                        # 保留前綴與原有空格
                         prefix = line[:line.index(":") + 1]
                         suffix_space = val_part[:len(val_part) - len(val_part.lstrip())]
-                        # 調整：括號前留 2 空格
-                        new_line = f"{prefix}{suffix_space}{arrow_str}  ({diff_fmt})"
-                        new_output.append(new_line)
+                        new_output.append(
+                            f"{prefix}{suffix_space}{arrow_str}  ({diff_fmt})"
+                        )
                     else:
                         new_output.append(line)
                 except Exception as e:
                     new_output.append(f"{line}  ⛔錯誤: {e}")
-
             else:
                 new_output.append(line)
 
-        self.custom_calc_box.setHtml(self.generate_highlighted_html(new_output))
+        if render:
+            self.custom_calc_box.setHtml(
+                self.generate_highlighted_html(new_output)
+            )
 
-        #self.custom_calc_box.setPlainText("\n".join(new_output))
+        return new_output
 
 
     def dataloading(self, mode: str = "online_only"):
@@ -10947,10 +11036,6 @@ class ItemSearchApp(QWidget):
         # 下拉清單文字過長時顯示 ...
         self.result_box.view().setTextElideMode(Qt.ElideRight)
 
-        self.result_box.currentIndexChanged.connect(self.display_item_info)
-        self.result_box.currentIndexChanged.connect(
-            self.update_total_effect_display
-)
 
         # ====== 技能指令分頁 ======
         function_tab = QWidget()
@@ -11374,10 +11459,14 @@ class ItemSearchApp(QWidget):
             element_key = skill_data.get("element", "")
             index = self.attack_element_box.findData(element_key)
             if index != -1:
-                self.attack_element_box.setCurrentIndex(index)
+                self.attack_element_box.blockSignals(True)
+                try:
+                    self.attack_element_box.setCurrentIndex(index)
+                finally:
+                    self.attack_element_box.blockSignals(False)
 
-            # 呼叫更新計算
-            self.replace_custom_calc_content()
+            # 統一走 debounce 排程，只保留最後一次計算結果。
+            self.trigger_total_effect_update()
 
         # 技能下拉選單
         self.skill_box = QComboBox()
@@ -11469,7 +11558,7 @@ class ItemSearchApp(QWidget):
 
 
         self.save_compare_button = QPushButton(tr("button.save_compare_baseline"))
-        self.save_compare_button.clicked.connect(lambda: (setattr(self, "_last_calc_state", None), self.save_compare_base()))
+        self.save_compare_button.clicked.connect(self.save_compare_base)
 
         button_row.addWidget(self.save_compare_button)
 
@@ -11541,7 +11630,7 @@ class ItemSearchApp(QWidget):
         
         # ✅ 在這裡綁定觸發
         for checkbox in self.special_checkboxes.values():
-            checkbox.stateChanged.connect(self.replace_custom_calc_content)
+            checkbox.stateChanged.connect(self.trigger_total_effect_update)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
@@ -11665,17 +11754,17 @@ class ItemSearchApp(QWidget):
         self.element_box.currentIndexChanged.connect(self._on_damage_target_fields_changed)
         self.race_box.currentIndexChanged.connect(self._on_damage_target_fields_changed)
         self.class_box.currentIndexChanged.connect(self._on_damage_target_fields_changed)
-        self.attack_element_box.currentIndexChanged.connect(self.replace_custom_calc_content)
+        self.attack_element_box.currentIndexChanged.connect(self.trigger_total_effect_update)
 
         # LineEdit 的綁定（使用 editingFinished 避免每次打字都觸發）
         #self.monsterDamage_input.editingFinished.connect(self.replace_custom_calc_content)#指定魔物增傷UI
         self.element_lv_input.editingFinished.connect(self._on_damage_target_fields_changed)
-        self.def_input.editingFinished.connect(self.replace_custom_calc_content)
-        self.defc_input.editingFinished.connect(self.replace_custom_calc_content)
-        self.res_input.editingFinished.connect(self.replace_custom_calc_content)
-        self.mdef_input.editingFinished.connect(self.replace_custom_calc_content)
-        self.mdefc_input.editingFinished.connect(self.replace_custom_calc_content)
-        self.mres_input.editingFinished.connect(self.replace_custom_calc_content)
+        self.def_input.editingFinished.connect(self.trigger_total_effect_update)
+        self.defc_input.editingFinished.connect(self.trigger_total_effect_update)
+        self.res_input.editingFinished.connect(self.trigger_total_effect_update)
+        self.mdef_input.editingFinished.connect(self.trigger_total_effect_update)
+        self.mdefc_input.editingFinished.connect(self.trigger_total_effect_update)
+        self.mres_input.editingFinished.connect(self.trigger_total_effect_update)
 
         MD_BETELGEUSE = QHBoxLayout()
 
@@ -11708,10 +11797,10 @@ class ItemSearchApp(QWidget):
 
         # 綁定事件
         self.MD_BETELGEUSE_combo_def.currentIndexChanged.connect(update_MD_BETELGEUSE_total)
-        self.MD_BETELGEUSE_combo_def.currentIndexChanged.connect(self.replace_custom_calc_content)
+        self.MD_BETELGEUSE_combo_def.currentIndexChanged.connect(self.trigger_total_effect_update)
 
         self.MD_BETELGEUSE_combo_soul.currentIndexChanged.connect(update_MD_BETELGEUSE_total)
-        self.MD_BETELGEUSE_combo_soul.currentIndexChanged.connect(self.replace_custom_calc_content)
+        self.MD_BETELGEUSE_combo_soul.currentIndexChanged.connect(self.trigger_total_effect_update)
 
 
 
@@ -11854,8 +11943,10 @@ class ItemSearchApp(QWidget):
         # 綁定輸入欄事件（動態更新）
         #self.input_fields["DEX"].editingFinished.connect(self.update_dex_int_half_note)
         #self.input_fields["INT"].editingFinished.connect(self.update_dex_int_half_note)
-        self.hp_slider.valueChanged.connect(self.replace_custom_calc_content)                
-        self.sp_slider.valueChanged.connect(self.replace_custom_calc_content)
+        #self.hp_slider.valueChanged.connect(self.replace_custom_calc_content)                
+        #self.sp_slider.valueChanged.connect(self.replace_custom_calc_content)
+        self.hp_slider.valueChanged.connect(self.trigger_total_effect_update)
+        self.sp_slider.valueChanged.connect(self.trigger_total_effect_update)
         self.unsync_button.clicked.connect(update_hp_sp_slider_display)
         self.unsync_button2.clicked.connect(update_hp_sp_slider_display)        
         self.apply_equip_button.clicked.connect(update_hp_sp_slider_display)
