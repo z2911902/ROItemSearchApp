@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.7.0-260815"
+Version = "v0.7.1-260815"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -9769,6 +9769,11 @@ class ItemSearchApp(QWidget):
         self.lua_text = load_skill_delay_lua("data/skilldelaylist.lua")#讀取技能延遲
         self.parsed_items = resolve_name_conflicts(self.parsed_items ,self.equipment_data)#重複物品名稱加上id
 
+        # 物品資料有重新載入時，讓 GUI thread 下一次搜尋重建索引。
+        # 這裡不直接碰 Qt Widget，只做 cache 失效標記。
+        self._item_search_index_signature = None
+        self._last_item_search_text = None
+
         return self.parsed_items
 
     def rebuild_skill_tab(self):
@@ -9987,8 +9992,19 @@ class ItemSearchApp(QWidget):
         
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText(tr("placeholder.search_item"))
-        
-        self.search_input.textChanged.connect(self.update_combobox)
+
+        # 物品搜尋最佳化：輸入期間只重啟 Timer，停止輸入後再真正搜尋。
+        # 避免每打一字 / 刪一字都同步掃描完整物品資料並重建 QComboBox。
+        self._item_search_timer = QTimer(self)
+        self._item_search_timer.setSingleShot(True)
+        self._item_search_timer.setInterval(120)
+        self._item_search_timer.timeout.connect(self.update_combobox)
+        self.search_input.textChanged.connect(self._schedule_item_search)
+
+        # 搜尋字串預先索引；資料載入完成後會重建一次，後續搜尋直接比對索引。
+        self._item_search_index = []
+        self._item_search_index_signature = None
+        self._last_item_search_text = None
 
         self.result_box = QComboBox()
         self.result_box.currentIndexChanged.connect(self.display_item_info)
@@ -10431,20 +10447,29 @@ class ItemSearchApp(QWidget):
                 if label_name != "note":
                     self.tab_widget.setCurrentIndex(self.search_tab_index)
 
-                # ✅ 只有左邊欄位有文字時才清空搜尋欄位
-                if input_field.text().strip():
-                    self.search_input.setText("")
-
                 text = input_field.text().strip()
                 if text:
-                    # 搜尋對應的物品 ID
-                    for idx in range(self.result_box.count()):
-                        item_id = self.result_box.itemData(idx)
-                        item = self.filtered_items.get(item_id)
-                        if item and item["name"] == text and item_id in self.equipment_data:
+                    # 維持原本操作方式：查詢欄保持空白，符合項目顯示完整清單，
+                    # 再直接定位目前欄位中的裝備；不把物品名稱寫進搜尋欄。
+                    self._select_item_in_search_by_name(text)
+                else:
+                    # 空欄位時清空查詢欄；若目前已是完整清單就不重建，避免無謂卡頓。
+                    if hasattr(self, "_item_search_timer"):
+                        self._item_search_timer.stop()
+                    was_blocked = self.search_input.blockSignals(True)
+                    try:
+                        self.search_input.clear()
+                    finally:
+                        self.search_input.blockSignals(was_blocked)
 
-                            self.result_box.setCurrentIndex(idx)
-                            break
+                    self._ensure_item_search_index()
+                    full_list_loaded = (
+                        self.result_box.count() == len(self._item_search_index)
+                        and len(getattr(self, "filtered_items", {})) == len(self._item_search_index)
+                    )
+                    if not full_list_loaded:
+                        self._last_item_search_text = None
+                        self.update_combobox(initial=True)
 
 
                 QLineEdit.mousePressEvent(input_field, event)
@@ -12518,43 +12543,182 @@ class ItemSearchApp(QWidget):
                 ),
             )
 
-    def update_combobox(self, initial=False):
-        keyword_text = self.search_input.text().strip()
-        self.result_box.clear()
+    def _schedule_item_search(self, *_args):
+        """延遲物品搜尋，快速輸入 / Backspace 時只執行最後一次查詢。"""
+        if hasattr(self, "_item_search_timer"):
+            self._item_search_timer.start()
 
-        # 以空白分割關鍵字（自動忽略多餘空白）
-        keywords = keyword_text.split()
+    def _item_search_source_signature_value(self):
+        """取得搜尋來源的輕量版本標記，資料被重載時自動讓索引失效。"""
+        parsed_items = getattr(self, "parsed_items", {}) or {}
+        equipment_data = getattr(self, "equipment_data", {}) or {}
+        return (
+            id(parsed_items),
+            len(parsed_items),
+            id(equipment_data),
+            len(equipment_data),
+        )
 
-        self.filtered_items = {}
+    def rebuild_item_search_index(self):
+        """預先建立物品搜尋字串，避免每個按鍵都重新 join description。"""
+        parsed_items = getattr(self, "parsed_items", {}) or {}
+        equipment_data = getattr(self, "equipment_data", {}) or {}
 
-        for k, v in self.parsed_items.items():
-            # 只保留有裝備效果資料的項目
-            if k not in self.equipment_data:
+        search_index = []
+        for item_id in sorted(parsed_items):
+            if item_id not in equipment_data:
                 continue
 
-            # 將可搜尋內容合併成一個字串
-            searchable_text = " ".join([
-                str(k),
-                v['name'],
-                " ".join(v['description'])
-            ])
+            item = parsed_items[item_id]
+            name = str(item.get("name", ""))
+            description = item.get("description", [])
 
-            # 所有關鍵字都必須命中
-            if all(keyword in searchable_text for keyword in keywords):
-                self.filtered_items[k] = v
+            if isinstance(description, (list, tuple)):
+                description_text = " ".join(str(x) for x in description)
+            else:
+                description_text = str(description or "")
 
-        for item_id in sorted(self.filtered_items):
-            item = self.filtered_items[item_id]
-            self.result_box.addItem(f"{item_id} - {item['name']}", item_id)
+            searchable_text = " ".join((
+                str(item_id),
+                name,
+                description_text,
+            )).casefold()
 
+            # 顯示文字也一起 cache，搜尋時不要反覆格式化。
+            display_text = f"{item_id} - {name}"
+            search_index.append((item_id, item, searchable_text, display_text))
+
+        self._item_search_index = search_index
+        self._item_search_index_signature = self._item_search_source_signature_value()
+        self._last_item_search_text = None
+
+    def _ensure_item_search_index(self):
+        current_signature = self._item_search_source_signature_value()
+        if (
+            getattr(self, "_item_search_index_signature", None) != current_signature
+            or not hasattr(self, "_item_search_index")
+        ):
+            self.rebuild_item_search_index()
+
+    def _select_item_in_search_by_name(self, item_name):
+        """維持原本裝備欄定位方式：查詢欄清空，完整清單中直接選中指定裝備。"""
+        name = str(item_name or "").strip()
+        if not name:
+            return False
+
+        self._ensure_item_search_index()
+
+        # 若前面有使用者輸入造成的 debounce，先取消，避免稍後覆蓋本次定位。
+        if hasattr(self, "_item_search_timer"):
+            self._item_search_timer.stop()
+
+        target_item_id = None
+        name_folded = name.casefold()
+
+        # 從完整索引找出目前裝備，不依賴當下篩選結果。
+        for item_id, item, _searchable_text, _display_text in self._item_search_index:
+            if str(item.get("name", "")).strip().casefold() == name_folded:
+                target_item_id = item_id
+                break
+
+        if target_item_id is None:
+            return False
+
+        # 維持舊版 UX：點已裝備欄位時搜尋欄是空白，不顯示物品名稱。
+        search_was_blocked = self.search_input.blockSignals(True)
+        try:
+            self.search_input.clear()
+        finally:
+            self.search_input.blockSignals(search_was_blocked)
+
+        # 如果目前本來就是完整清單，直接定位即可，不需要清空/重建整個 QComboBox。
+        full_list_loaded = (
+            self.result_box.count() == len(self._item_search_index)
+            and len(getattr(self, "filtered_items", {})) == len(self._item_search_index)
+        )
+        if full_list_loaded:
+            index = self.result_box.findData(target_item_id)
+            if index >= 0:
+                self.result_box.setCurrentIndex(index)
+                return True
+
+        # 否則立即恢復完整清單並選中該裝備，不等待 120ms debounce。
+        self._last_item_search_text = None
+        self.update_combobox(initial=True, preferred_item_id=target_item_id)
+        return True
+
+    def update_combobox(self, initial=False, preferred_item_id=None):
+        """使用預建索引搜尋，並整批更新 QComboBox，避免逐字輸入造成 UI 卡頓。
+
+        preferred_item_id 用於程式主動定位某件裝備時，確保搜尋結果完成後
+        直接選中指定物品，而不是先跳到第一筆或沿用舊選擇。
+        """
+        self._ensure_item_search_index()
+
+        keyword_text = self.search_input.text().strip().casefold()
+
+        # 相同關鍵字不重建結果；initial=True 用於資料重載/初始化時強制刷新。
+        if (
+            not initial
+            and getattr(self, "_last_item_search_text", None) == keyword_text
+        ):
+            return
+        self._last_item_search_text = keyword_text
+
+        keywords = keyword_text.split()
+        previous_item_id = self.result_box.currentData()
+        matches = []
+
+        # 無論搜尋欄是否為空，都從完整索引建立結果；不限制前 500 筆。
+        # 搜尋字串本身已在 rebuild_item_search_index() 預先建立，避免每次重組 description。
+        for item_id, item, searchable_text, display_text in self._item_search_index:
+            if keywords and not all(keyword in searchable_text for keyword in keywords):
+                continue
+
+            matches.append((item_id, item, display_text))
+
+        self.filtered_items = {item_id: item for item_id, item, _ in matches}
+
+        # clear()/addItem()/setCurrentIndex() 都可能觸發 currentIndexChanged；
+        # 搜尋結果建置期間暫停 signal 與 repaint，完成後只刷新一次詳細資訊。
+        was_blocked = self.result_box.blockSignals(True)
+        updates_enabled = self.result_box.updatesEnabled()
+        self.result_box.setUpdatesEnabled(False)
+
+        try:
+            self.result_box.clear()
+
+            for item_id, _item, display_text in matches:
+                self.result_box.addItem(display_text, item_id)
+
+            if self.result_box.count() > 0:
+                index = -1
+
+                # 程式主動要求定位特定裝備時，以指定物品優先。
+                if preferred_item_id is not None:
+                    index = self.result_box.findData(preferred_item_id)
+
+                # 一般文字搜尋則盡量保留使用者原本選取。
+                if index < 0:
+                    index = self.result_box.findData(previous_item_id)
+                if index < 0:
+                    index = 0
+
+                self.result_box.setCurrentIndex(index)
+        finally:
+            self.result_box.blockSignals(was_blocked)
+            self.result_box.setUpdatesEnabled(updates_enabled)
+            self.result_box.update()
+
+        # 批次更新完成後，只執行一次原本由 currentIndexChanged 負責的 UI 更新。
         if self.result_box.count() > 0:
-            self.result_box.setCurrentIndex(0)
             self.display_item_info()
+            self.update_total_effect_display()
+            self.update_divine_pride_button()
+        else:
+            self.update_divine_pride_button()
 
-            
 
-
-   
     def display_item_info(self, refine_override=None, grade_override=None):
         '''
         根據目前選取的物品，顯示其詳細資訊
@@ -12838,7 +13002,9 @@ if __name__ == "__main__":
         app.processEvents()
 
         window.parsed_items = data or {}
-        window.update_combobox()
+        # 資料載入完成後在 GUI thread 建立一次搜尋索引，再強制刷新初始清單。
+        window.rebuild_item_search_index()
+        window.update_combobox(initial=True)
 
         window.resize(1650, 900)
         window.show()
