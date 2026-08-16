@@ -317,6 +317,9 @@ from ro_core import (
     stage17_compare_damage_parity as core_stage17_compare_damage_parity,
 
 )
+
+# === CORE DEDUP PHASE 8: CHARACTER BUILD ADAPTER ===
+from ro_core import CharacterBuild as CoreCharacterBuild
 from datetime import datetime
 
 # === 條件輸入：上方條件產生器與下方 FunctionSyntaxTextEdit 共用 ===
@@ -8922,15 +8925,15 @@ class ItemSearchApp(QWidget):
         else:
             event.ignore()
     
-    def load_saved_inputs(self, filename="saved_inputs.json"):
-        if not os.path.exists(filename):
-            return
+    def apply_character_build(self, build):
+        if not isinstance(build, CoreCharacterBuild):
+            build = CoreCharacterBuild.from_dict(build)
+        saved_data = build.to_legacy_dict()
+        self.last_character_build = build
         # 🔹 暫停所有 widget 的 signal
         for widget in self.findChildren(QWidget):
             widget.blockSignals(True)
 
-        with open(filename, "r", encoding="utf-8") as f:
-            saved_data = json.load(f)
 
         # input_fields 的 QComboBox 或 QLineEdit
         for key, val in saved_data.items():
@@ -9005,6 +9008,14 @@ class ItemSearchApp(QWidget):
             note_key = f"{part}_note"
             if note_key in saved_data and "note" in info:
                 info["note"].setPlainText(saved_data[note_key])
+
+    def load_saved_inputs(self, filename="saved_inputs.json"):
+        if not os.path.exists(filename):
+            return
+        with open(filename, "r", encoding="utf-8") as f:
+            raw_saved_data = json.load(f)
+        build = CoreCharacterBuild.from_dict(raw_saved_data)
+        self.apply_character_build(build)
 
         
     def save_preset(self, part):
@@ -12481,7 +12492,8 @@ class ItemSearchApp(QWidget):
 
             self.save_to_file(file_path)
             
-    def save_to_file(self, file_path):
+    # === CORE DEDUP PHASE 8: CHARACTER BUILD ADAPTER ===
+    def collect_character_build(self):
         data = {}
 
         # 儲存 input_fields
@@ -12526,6 +12538,14 @@ class ItemSearchApp(QWidget):
         # 去重後存回字串
         data["buff"] = ",".join(sorted(set(buff_ids), key=lambda x: int(x) if x.isdigit() else x))
 
+        build = CoreCharacterBuild.from_dict(data)
+        self.last_character_build = build
+        return build
+
+    def save_to_file(self, file_path):
+        build = self.collect_character_build()
+        data = build.to_dict(include_metadata=True)
+        self.last_character_build = build
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)

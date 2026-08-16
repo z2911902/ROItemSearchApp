@@ -10046,3 +10046,89 @@ def stage21_9_parse_note_preview(
 
 
 # === STAGE 21.9 NOTE EDITOR CORE END ===
+
+# === CORE DEDUP PHASE 8: CHARACTER BUILD MODEL ===
+CHARACTER_BUILD_SCHEMA = "ROItemSearchApp.CharacterBuild"
+CHARACTER_BUILD_VERSION = 1
+CHARACTER_BUILD_META_KEY = "_roitemsearch_build"
+
+
+@dataclass
+class CharacterBuild:
+    """Qt-free project/build payload shared by Desktop, Web, and compare tools.
+
+    The existing project JSON is intentionally kept as a flat mapping for backward
+    compatibility.  Phase 8 adds one namespaced metadata key when saving, while
+    :meth:`from_dict` continues to accept every legacy JSON file that has no metadata.
+    Unknown project keys are preserved unchanged so newer Desktop fields can round-trip
+    through older Core-aware code without being discarded.
+    """
+
+    values: dict[str, Any] = field(default_factory=dict)
+    schema: str = CHARACTER_BUILD_SCHEMA
+    version: int = CHARACTER_BUILD_VERSION
+    source_version: int = 0
+
+    @classmethod
+    def from_dict(cls, payload: Any) -> "CharacterBuild":
+        if isinstance(payload, cls):
+            return cls(
+                values=dict(payload.values),
+                schema=payload.schema,
+                version=CHARACTER_BUILD_VERSION,
+                source_version=payload.source_version,
+            )
+        if not isinstance(payload, dict):
+            raise TypeError("CharacterBuild payload must be a mapping")
+
+        values = dict(payload)
+        metadata = values.pop(CHARACTER_BUILD_META_KEY, None)
+        source_version = 0
+        schema = CHARACTER_BUILD_SCHEMA
+        if metadata is not None:
+            if not isinstance(metadata, dict):
+                raise ValueError(f"{CHARACTER_BUILD_META_KEY} must be an object")
+            schema = str(metadata.get("schema") or CHARACTER_BUILD_SCHEMA)
+            if schema != CHARACTER_BUILD_SCHEMA:
+                raise ValueError(f"Unsupported CharacterBuild schema: {schema}")
+            try:
+                source_version = int(metadata.get("version", 0) or 0)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("Invalid CharacterBuild version") from exc
+            if source_version < 0:
+                raise ValueError("Invalid CharacterBuild version")
+            if source_version > CHARACTER_BUILD_VERSION:
+                raise ValueError(
+                    f"CharacterBuild version {source_version} is newer than supported "
+                    f"version {CHARACTER_BUILD_VERSION}"
+                )
+
+        return cls(
+            values=values,
+            schema=CHARACTER_BUILD_SCHEMA,
+            version=CHARACTER_BUILD_VERSION,
+            source_version=source_version,
+        )
+
+    def to_legacy_dict(self) -> dict[str, Any]:
+        """Return the old flat project mapping without Phase-8 metadata."""
+        return dict(self.values)
+
+    def to_dict(self, *, include_metadata: bool = True) -> dict[str, Any]:
+        """Return a JSON-ready mapping while preserving the legacy flat fields."""
+        result = dict(self.values)
+        if include_metadata:
+            result[CHARACTER_BUILD_META_KEY] = {
+                "schema": CHARACTER_BUILD_SCHEMA,
+                "version": CHARACTER_BUILD_VERSION,
+            }
+        return result
+
+
+def normalize_character_build_payload(
+    payload: Any,
+    *,
+    include_metadata: bool = False,
+) -> dict[str, Any]:
+    """Normalize either legacy or Phase-8 project data through CharacterBuild."""
+    return CharacterBuild.from_dict(payload).to_dict(include_metadata=include_metadata)
