@@ -303,6 +303,11 @@ from ro_core import (
     EquipmentCalculationData,
     calculate_equipment_effects as core_calculate_equipment_effects,
     precompute_base_equipment_stats as core_precompute_base_equipment_stats,
+    calculate_armor_refine_bonus as core_calculate_armor_refine_bonus,
+    get_total_tstat_points as core_get_total_tstat_points,
+    calculate_tstat_total_used as core_calculate_tstat_total_used,
+    calculate_stat_breakdown as core_calculate_stat_breakdown,
+    STAGE21_BLOCK_LEFT_WEAPON_TYPES,
 )
 from datetime import datetime
 
@@ -2646,21 +2651,9 @@ class SaveManagerDialog(QDialog, Ui_SaveManagerDialog):#儲存裝被選則
 
 
 
-# 取自 ROCalculator 的特性數值點數規律。
-# Lv200 起始為 7 點；每 5 等為一組，每組增加 19 點，組內每等增加 3 點。
-# 為維持原本 TSTATUS_POINT_COSTS 表格行為，Lv285 以上固定使用 Lv285 的 330 點。
+# 特性點規律已集中到 ro_core；保留此 wrapper 避免既有 Desktop 呼叫受影響。
 def get_total_tstat_points(level: int) -> int:
-    try:
-        level = int(level)
-    except (TypeError, ValueError):
-        return 0
-
-    if level < 200:
-        return 0
-
-    level = min(level, 285)
-    block, offset = divmod(level - 200, 5)
-    return 7 + block * 19 + offset * 3
+    return core_get_total_tstat_points(level)
 
 
 
@@ -5210,28 +5203,29 @@ class ItemSearchApp(QWidget):
         job_bonus = job_dict.get(job_id, {}).get("TJobMaxPoint", [])
         globals()["job_idcore"] = job_dict[job_id]["id"]#取得職業ID代號
         raw_effects = getattr(self, "effect_dict_raw", {})
-
-        for i, stat in enumerate(stat_names):
+        base_values = {}
+        for stat in stat_names:
             try:
-                base = int(self.input_fields[stat].text())
-            except:
-                base = 0
-            job = job_bonus[i] if i < len(job_bonus) else 0
-            equip = sum(val for val, _ in raw_effects.get((stat, ""), []))
-            # base_equip_* 的唯一來源是 display_all_effects() 前置掃描的 Stat = {...}。
-            # 不再用第二次 Lua parser 的結果覆寫，避免把技能/被動/其他 Lua 效果混進「裝備基礎素質」。
-            base_equip = globals().get(f"base_equip_{stat}", 0)
-            total = base + job + equip
-
-            # 🔧 自動產生變數：base_STR, job_STR, equip_STR, total_STR
-            globals()[f"base_{stat}"] = base
-            globals()[f"job_{stat}"] = job
-            globals()[f"equip_{stat}"] = equip
-            globals()[f"base_equip_{stat}"] = base_equip
-            globals()[f"total_{stat}"] = total
-
-            
-            #print(f"base_equip_{stat} : {base_equip}")
+                base_values[stat] = self.input_fields[stat].text()
+            except Exception:
+                base_values[stat] = 0
+        base_equipment_stats = {
+            stat: globals().get(f"base_equip_{stat}", 0)
+            for stat in stat_names
+        }
+        stat_breakdown = core_calculate_stat_breakdown(
+            base_values=base_values,
+            job_bonus=job_bonus,
+            effect_dict=raw_effects,
+            base_equipment_stats=base_equipment_stats,
+        )
+        for stat in stat_names:
+            values = stat_breakdown[stat]
+            globals()[f"base_{stat}"] = values["base"]
+            globals()[f"job_{stat}"] = values["job"]
+            globals()[f"equip_{stat}"] = values["equip"]
+            globals()[f"base_equip_{stat}"] = values["base_equip"]
+            globals()[f"total_{stat}"] = values["total"]
 
         #current_text = self.custom_calc_box.toPlainText()
         # 減傷計算分頁的目標欄位維持與傷害計算同步；初始化/讀檔/查怪時也能自動補齊。
@@ -5310,8 +5304,8 @@ class ItemSearchApp(QWidget):
         #心神凝聚計算
         #print(f"base_equip_AGI{base_equip_AGI} base_AGI{base_AGI} job_AGI{job_AGI}")
         #print(f"base_equip_DEX{base_equip_DEX} base_DEX{base_DEX} job_DEX{job_DEX}")
-        globals()["skill_focus_AGI"] = base_equip_AGI + base_AGI + job_AGI
-        globals()["skill_focus_DEX"] = base_equip_DEX + base_DEX + job_DEX
+        globals()["skill_focus_AGI"] = stat_breakdown["AGI"]["focus"]
+        globals()["skill_focus_DEX"] = stat_breakdown["DEX"]["focus"]
         #======================取所有增傷資料到變數區=====================
         effect_dict = getattr(self, "effect_dict_raw", {})
         globals()["HP"] = sum(val for val, _ in effect_dict.get(("MHP", ""), []))
@@ -7128,60 +7122,8 @@ class ItemSearchApp(QWidget):
         return _core_stage17_calc_weapon_refine_atk(weapon_Level, weaponRefineR, weaponGradeR)
 
     def get_armor_bonus(self, refine: int, armor_level: int) -> dict:
-        """
-        計算單一防具的精煉 DEF、RES。
-
-        DEF 累加規則：
-            +1～+4   每次 +1
-            +5～+8   每次 +2
-            +9～+12  每次 +3
-            +13～+16 每次 +4
-            +17～+20 每次 +5
-
-        防具等級：
-            1級防具：DEF 使用原始累加值，RES = 0
-            2級防具：DEF 為原始累加值 × 1.2，RES = 精煉 × 2
-        """
-        try:
-            refine = int(refine)
-            armor_level = int(armor_level)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("精煉值與防具等級必須是整數") from exc
-
-        if not 0 <= refine <= 20:
-            raise ValueError(
-                f"精煉值必須介於 0～20，目前為：{refine}"
-            )
-
-        if armor_level not in (1, 2):
-            return {
-                "DEF": 0.0,
-                "RES": 0,
-            }
-
-        # 每 4 點精煉提升一個 DEF 增量階段
-        full_groups = refine // 4
-        remainder = refine % 4
-
-        # 例如 +10：
-        # 4×1 + 4×2 + 2×3 = 18
-        def_units = (
-            4 * full_groups * (full_groups + 1) // 2
-            + remainder * (full_groups + 1)
-        )
-
-        if armor_level == 1:
-            def_bonus = def_units
-            res_bonus = 0
-        else:
-            def_bonus = def_units * 1.2
-            res_bonus = refine * 2
-
-        return {
-            "DEF": round(def_bonus, 1),
-            "RES": int(res_bonus),
-        }
-
+        """Desktop compatibility wrapper; formula is owned by ro_core."""
+        return core_calculate_armor_refine_bonus(refine, armor_level)
 
     def get_total_armor_bonus(
         self,
@@ -7649,24 +7591,30 @@ class ItemSearchApp(QWidget):
             globals()["GetPureJob"] = job_dict.get(job_id, {}).get("GetPureJob", [])
             #print(f"職業系列id: {GetPureJob}")
             stat_names = ["STR", "AGI", "VIT", "INT", "DEX", "LUK", "POW", "STA", "WIS", "SPL", "CON", "CRT"]
-
             raw_effects = getattr(self, "effect_dict_raw", {})
-
-            for i, stat in enumerate(stat_names):
-                job = tjob_bonus[i] if i < len(tjob_bonus) else 0
+            base_values = {}
+            for stat in stat_names:
                 try:
-                    base = int(self.input_fields[stat].text())
-                except:
-                    base = 0
+                    base_values[stat] = self.input_fields[stat].text()
+                except Exception:
+                    base_values[stat] = 0
+            stat_breakdown = core_calculate_stat_breakdown(
+                base_values=base_values,
+                job_bonus=tjob_bonus,
+                effect_dict=raw_effects,
+            )
 
-                entries = raw_effects.get((stat, ""), [])
-                equip = sum(val for val, _ in entries)
-                total = base + job + equip
-                job_equip = job + equip
+            for stat in stat_names:
+                values = stat_breakdown[stat]
+                base = values["base"]
+                job = values["job"]
+                equip = values["equip"]
+                total = values["total"]
+                job_equip = values["job_equip"]
                 if stat in self.stat_bonus_labels:
                     self.stat_bonus_labels[stat].setFont(QFont("Consolas", 14))
-                    if self.job_equip_checkbox.isChecked():                        
-                        self.stat_bonus_labels[stat].setText(f"{base:>3} +{job_equip:>8} = {total:>3}")                        
+                    if self.job_equip_checkbox.isChecked():
+                        self.stat_bonus_labels[stat].setText(f"{base:>3} +{job_equip:>8} = {total:>3}")
                     else:
                         self.stat_bonus_labels[stat].setText(f"{base:>3} +{job:>3} +{equip:>3} = {total:>3}")
         except Exception as e:
@@ -7674,14 +7622,14 @@ class ItemSearchApp(QWidget):
 
 
     def calculate_tstat_total_used(self):
-        total = 0
+        # UI only collects values; the point rule/summing is owned by ro_core.
+        values = []
         for tstat in ["POW", "STA", "WIS", "SPL", "CON", "CRT"]:
             try:
-                val = int(self.input_fields[tstat].text())
-            except:
-                val = 0
-            total += val  # ✅ 每一點直接 +1
-        return total
+                values.append(self.input_fields[tstat].text())
+            except Exception:
+                values.append(0)
+        return core_calculate_tstat_total_used(values)
 
     def on_result_output_changed(self):
         if isinstance(self.result_output, QTextEdit):
@@ -8475,7 +8423,7 @@ class ItemSearchApp(QWidget):
         '''
         weapon_class = global_weapon_type_map.get(4, 0)
         #print(f"weapon_class:{weapon_class}")
-        if weapon_class in [3,5,7,16,23,11,17,18,19,20,21,22]:                        
+        if weapon_class in STAGE21_BLOCK_LEFT_WEAPON_TYPES:                        
             self.set_part_visible("左手(盾牌)", False)
             self.clear_global_state()
             self.display_all_effects()

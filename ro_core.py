@@ -252,6 +252,83 @@ def raising_stats(stat_str: str) -> int:
     return pt
 
 
+# === CORE DEDUP PHASE 1: DESKTOP/WEB SHARED RULES ===
+# These helpers are intentionally UI-free.  Desktop adapters may still keep
+# compatibility wrappers, but the actual rule/formula lives here only.
+TRAIT_STAT_NAMES = ("POW", "STA", "WIS", "SPL", "CON", "CRT")
+
+
+def get_total_tstat_points(level: int) -> int:
+    """Return the total available trait-stat points for a BaseLv."""
+    try:
+        level = int(level)
+    except (TypeError, ValueError):
+        return 0
+
+    if level < 200:
+        return 0
+
+    # Preserve the existing Desktop/ROCalculator-compatible cap.
+    level = min(level, 285)
+    block, offset = divmod(level - 200, 5)
+    return 7 + block * 19 + offset * 3
+
+
+def calculate_tstat_total_used(values) -> int:
+    """Sum used trait-stat points from a mapping or iterable.
+
+    Desktop can pass UI text values; Web can pass ints. Invalid values keep the
+    previous Desktop behavior and count as zero.
+    """
+    if hasattr(values, "get"):
+        mapping = values
+        values = (mapping.get(name, 0) for name in TRAIT_STAT_NAMES)
+
+    total = 0
+    for value in values or ():
+        try:
+            total += int(value)
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
+def calculate_armor_refine_bonus(refine: int, armor_level: int) -> dict:
+    """Calculate DEF/RES gained from one armor refine level.
+
+    This is the former Desktop ``get_armor_bonus`` formula moved into Core so
+    Desktop and Web have one source of truth.
+    """
+    try:
+        refine = int(refine)
+        armor_level = int(armor_level)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("精煉值與防具等級必須是整數") from exc
+
+    if not 0 <= refine <= 20:
+        raise ValueError(f"精煉值必須介於 0～20，目前為：{refine}")
+
+    if armor_level not in (1, 2):
+        return {"DEF": 0.0, "RES": 0}
+
+    # +1~+4: +1 each, +5~+8: +2 each, ... +17~+20: +5 each.
+    full_groups = refine // 4
+    remainder = refine % 4
+    def_units = (
+        4 * full_groups * (full_groups + 1) // 2
+        + remainder * (full_groups + 1)
+    )
+
+    if armor_level == 1:
+        def_bonus = def_units
+        res_bonus = 0
+    else:
+        def_bonus = def_units * 1.2
+        res_bonus = refine * 2
+
+    return {"DEF": round(def_bonus, 1), "RES": int(res_bonus)}
+
+
 # =========================================================
 # Item data parsing
 # =========================================================
@@ -3025,6 +3102,90 @@ BASE_STAT_GIDS: dict[str, int] = {
 }
 
 
+# === CORE DEDUP PHASE 2: SHARED STAT BREAKDOWN ===
+# One source of truth for: base stat + Job bonus + equipment effect = total stat.
+# Desktop remains responsible only for collecting Qt widget values / rendering.
+def _shared_stat_to_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return int(default)
+
+
+def _shared_stat_effect_total(effect_dict, stat, *, integer_effects=False):
+    total = 0
+    entries = (effect_dict or {}).get((stat, ""), []) or []
+    for entry in entries:
+        value = entry[0] if isinstance(entry, (tuple, list)) and entry else entry
+        if isinstance(value, bool):
+            value = int(value)
+        if not isinstance(value, (int, float)):
+            try:
+                value = float(str(value).strip())
+            except (TypeError, ValueError):
+                continue
+            if value.is_integer():
+                value = int(value)
+        total += value
+    return int(total) if integer_effects else total
+
+
+def calculate_stat_breakdown(
+    *,
+    get_values=None,
+    base_values=None,
+    job_bonus=None,
+    effect_dict=None,
+    base_equipment_stats=None,
+    integer_effects=False,
+):
+    """Return shared stat components for all 12 character stats.
+
+    ``get_values`` is the Core/API form keyed by RO get(id).
+    ``base_values`` is the Desktop-friendly form keyed by stat name.
+    ``integer_effects=True`` preserves Stage17/Stage20 legacy int semantics.
+    """
+    get_values = get_values or {}
+    base_values = base_values or {}
+    job_bonus = job_bonus or []
+    base_equipment_stats = base_equipment_stats or {}
+
+    result = {}
+    for index, stat in enumerate(BASE_STAT_NAMES):
+        if stat in base_values:
+            raw_base = base_values.get(stat, 0)
+        else:
+            gid = BASE_STAT_GIDS[stat]
+            raw_base = get_values.get(gid, get_values.get(str(gid), 0))
+        base = _shared_stat_to_int(raw_base, 0)
+
+        if hasattr(job_bonus, "get"):
+            raw_job = job_bonus.get(stat, 0)
+        else:
+            raw_job = job_bonus[index] if index < len(job_bonus) else 0
+        job = _shared_stat_to_int(raw_job, 0)
+
+        equip = _shared_stat_effect_total(
+            effect_dict,
+            stat,
+            integer_effects=integer_effects,
+        )
+        base_equip = _shared_stat_to_int(base_equipment_stats.get(stat, 0), 0)
+        total = base + job + equip
+
+        result[stat] = {
+            "base": base,
+            "job": job,
+            "equip": equip,
+            "base_equip": base_equip,
+            "job_equip": job + equip,
+            "total": total,
+            # Legacy skill_focus_* intentionally excludes parsed Lua effects.
+            "focus": base + job + base_equip,
+        }
+    return result
+
+
 @dataclass
 class BaseEquipmentStatResult:
     """Structured output of the pre-Lua base equipment Stat scan."""
@@ -3113,31 +3274,24 @@ def precompute_base_equipment_stats(
     pure_jobs = job_info.get("GetPureJob", []) or []
     job_code = job_info.get("id", "")
 
+    stat_breakdown = calculate_stat_breakdown(
+        get_values=request.get_values,
+        job_bonus=job_bonus,
+        effect_dict={},
+        base_equipment_stats=base_equipment_stats,
+        integer_effects=True,
+    )
     base_stats: dict[str, int] = {}
     job_stats: dict[str, int] = {}
-    for idx, stat in enumerate(BASE_STAT_NAMES):
-        gid = BASE_STAT_GIDS[stat]
-        try:
-            base_value = int(request.get_values.get(gid, 0) or 0)
-        except (TypeError, ValueError):
-            base_value = 0
-        try:
-            job_value = int(job_bonus[idx]) if idx < len(job_bonus) else 0
-        except (TypeError, ValueError):
-            job_value = 0
-
-        base_stats[stat] = base_value
-        job_stats[stat] = job_value
-        context.variables[f"base_{stat}"] = base_value
-        context.variables[f"job_{stat}"] = job_value
-        context.variables[f"base_equip_{stat}"] = base_equipment_stats[stat]
-
-    skill_focus_agi = (
-        base_stats["AGI"] + job_stats["AGI"] + base_equipment_stats["AGI"]
-    )
-    skill_focus_dex = (
-        base_stats["DEX"] + job_stats["DEX"] + base_equipment_stats["DEX"]
-    )
+    for stat in BASE_STAT_NAMES:
+        values = stat_breakdown[stat]
+        base_stats[stat] = values["base"]
+        job_stats[stat] = values["job"]
+        context.variables[f"base_{stat}"] = values["base"]
+        context.variables[f"job_{stat}"] = values["job"]
+        context.variables[f"base_equip_{stat}"] = values["base_equip"]
+    skill_focus_agi = stat_breakdown["AGI"]["focus"]
+    skill_focus_dex = stat_breakdown["DEX"]["focus"]
     context.variables["skill_focus_AGI"] = skill_focus_agi
     context.variables["skill_focus_DEX"] = skill_focus_dex
     context.variables["job_idcore"] = job_code
@@ -6127,15 +6281,24 @@ def _stage17_build_variables(request, data, context, effect_dict, damage):
     job_info = data.job_dict.get(job_id, data.job_dict.get(str(job_id), {})) if isinstance(data.job_dict, dict) else {}
     job_bonus = (job_info or {}).get("TJobMaxPoint", []) or []
     variables.update({"BaseLv": base_lv, "JobLv": job_lv, "BLV": base_lv, "JLV": job_lv})
-    for index, stat in enumerate(STAGE17_STAT_NAMES):
-        base = _stage17_int(get_values.get(STAGE17_STAT_GIDS[stat], 0))
-        job = _stage17_int(job_bonus[index] if index < len(job_bonus) else 0)
-        equip = _stage17_int(_stage17_sum_effect(effect_dict, stat, ""))
-        variables[f"base_{stat}"] = base
-        variables[f"job_{stat}"] = job
-        variables[f"equip_{stat}"] = equip
-        variables[f"total_{stat}"] = base + job + equip
-        variables.setdefault(f"base_equip_{stat}", _stage17_int(variables.get(f"base_equip_{stat}", 0)))
+    base_equipment_stats = {
+        stat: variables.get(f"base_equip_{stat}", 0)
+        for stat in BASE_STAT_NAMES
+    }
+    stat_breakdown = calculate_stat_breakdown(
+        get_values=get_values,
+        job_bonus=job_bonus,
+        effect_dict=effect_dict,
+        base_equipment_stats=base_equipment_stats,
+        integer_effects=True,
+    )
+    for stat in STAGE17_STAT_NAMES:
+        values = stat_breakdown[stat]
+        variables[f"base_{stat}"] = values["base"]
+        variables[f"job_{stat}"] = values["job"]
+        variables[f"equip_{stat}"] = values["equip"]
+        variables[f"total_{stat}"] = values["total"]
+        variables[f"base_equip_{stat}"] = values["base_equip"]
     variables["MHP"] = _stage17_int(damage.get("mhp", get_values.get(200, 0)))
     variables["MSP"] = _stage17_int(damage.get("msp", get_values.get(202, 0)))
     variables["MHP_NOW"] = _stage17_int(damage.get("mhp_now", variables["MHP"]))
@@ -8454,18 +8617,20 @@ def stage20_calculate_status(
     if isinstance(getattr(data, "job_dict", None), dict):
         job_info = data.job_dict.get(job_id, data.job_dict.get(str(job_id), {})) or {}
     job_bonus = job_info.get("TJobMaxPoint", []) or []
-
-    def total_stat(gid, name, job_index):
-        base = _stage20_int(get_values.get(gid, get_values.get(str(gid), 0)))
-        job = _stage20_int(job_bonus[job_index] if job_index < len(job_bonus) else 0)
-        equip = _stage20_int(_stage20_sum_effect(effect_dict, name, ""))
-        return base, job, equip, base + job + equip
-
-    base_agi, job_agi, equip_agi, total_agi = total_stat(33, "AGI", 1)
-    base_vit, job_vit, equip_vit, total_vit = total_stat(34, "VIT", 2)
-    base_int, job_int, equip_int, total_int = total_stat(35, "INT", 3)
-    base_dex, job_dex, equip_dex, total_dex = total_stat(36, "DEX", 4)
-
+    stat_breakdown = calculate_stat_breakdown(
+        get_values=get_values,
+        job_bonus=job_bonus,
+        effect_dict=effect_dict,
+        integer_effects=True,
+    )
+    agi_values = stat_breakdown["AGI"]
+    vit_values = stat_breakdown["VIT"]
+    int_values = stat_breakdown["INT"]
+    dex_values = stat_breakdown["DEX"]
+    base_agi, job_agi, equip_agi, total_agi = (agi_values["base"], agi_values["job"], agi_values["equip"], agi_values["total"])
+    base_vit, job_vit, equip_vit, total_vit = (vit_values["base"], vit_values["job"], vit_values["equip"], vit_values["total"])
+    base_int, job_int, equip_int, total_int = (int_values["base"], int_values["job"], int_values["equip"], int_values["total"])
+    base_dex, job_dex, equip_dex, total_dex = (dex_values["base"], dex_values["job"], dex_values["equip"], dex_values["total"])
     job_hpsp, wpasdp_data = stage20_load_job_status_tables(data_dir)
 
     job_base_hp = 0
