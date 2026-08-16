@@ -7380,6 +7380,277 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
         "warnings": warnings,
     }
 
+# === CORE DEDUP PHASE 4+5: DAMAGE REQUEST + CHARACTER DEFENSE ===
+@dataclass(frozen=True)
+class Stage17DamageRequest:
+    """Qt/FastAPI-free request envelope around the existing Stage 17 calculator."""
+
+    request: object
+    data: object
+    context: object
+    effect_result: object
+    data_dir: str
+    damage: dict
+
+
+@dataclass(frozen=True)
+class Stage17DamageResult:
+    """Typed compatibility wrapper without changing calculate_stage17_damage()."""
+
+    data: dict
+
+    @property
+    def total_damage(self):
+        return self.data.get("total_damage", 0)
+
+    @property
+    def total_damage_min(self):
+        return self.data.get("total_damage_min", 0)
+
+    @property
+    def segments(self):
+        return self.data.get("segments", [])
+
+    @property
+    def breakdown(self):
+        return self.data.get("breakdown", {})
+
+    @property
+    def warnings(self):
+        return self.data.get("warnings", [])
+
+    def to_dict(self):
+        return dict(self.data)
+
+
+def calculate_stage17_damage_request(payload):
+    """Calculate Stage 17 through one request/result boundary shared by UIs/APIs."""
+    if not isinstance(payload, Stage17DamageRequest):
+        raise TypeError("payload must be Stage17DamageRequest")
+    raw = calculate_stage17_damage(
+        request=payload.request,
+        data=payload.data,
+        context=payload.context,
+        effect_result=payload.effect_result,
+        data_dir=payload.data_dir,
+        damage=dict(payload.damage or {}),
+    )
+    return Stage17DamageResult(data=raw)
+
+
+def _phase45_effect_sum(effect_dict, label, unit="%"):
+    values = (effect_dict or {}).get((label, unit), [])
+    total = 0
+    for item in values:
+        try:
+            value = item[0] if isinstance(item, (tuple, list)) else item
+            try:
+                total += value
+            except TypeError:
+                total += float(value)
+        except (TypeError, ValueError, IndexError):
+            continue
+    return total
+
+
+def build_damage_effect_profile(effect_dict):
+    """Build all legacy outgoing/received damage attributes without Qt/MainWindow.
+
+    The returned ``legacy_attributes`` keys intentionally match the names used by
+    ItemSearchApp.py so Desktop can stay backward-compatible while the source of
+    truth moves into Core.
+    """
+    effect_dict = effect_dict or {}
+    attrs = {}
+
+    def apply(prefix, names, template, indexes=None, body=False):
+        for i, name in enumerate(names):
+            idx = indexes[i] if indexes else i
+            label = template.format(name)
+            attr = f"{'body_' if body else ''}{prefix}_{idx}"
+            attrs[attr] = _phase45_effect_sum(effect_dict, label, "%")
+
+    size_names = ["小型", "中型", "大型"]
+    for prefix in ("MD", "D"):
+        kind = "魔法" if prefix == "MD" else "物理"
+        apply(prefix + "_size", size_names, f"對 {{}} 敵人的{kind}傷害")
+        apply(prefix + "_size", size_names, f"受到 {{}} 敵人的{kind}傷害", body=True)
+
+    elements = ["無屬性", "水屬性", "地屬性", "火屬性", "風屬性", "毒屬性", "聖屬性", "暗屬性", "念屬性", "不死屬性", "全屬性"]
+    for prefix in ("MD", "D"):
+        kind = "魔法" if prefix == "MD" else "物理"
+        apply(prefix + "_element", elements, f"對 {{}} 對象的{kind}傷害")
+        apply(prefix + "_element", elements, f"受到 {{}} 對象的{kind}傷害", body=True)
+        apply(prefix + "_Damage", elements, f"{{}} 的{kind}傷害")
+        apply(prefix + "_Damage", elements, "對 {} 攻擊抗性", body=True)
+
+    races = ["無形", "不死", "動物", "植物", "昆蟲", "魚貝", "惡魔", "人形", "天使", "龍族", "全種族"]
+    race_indexes = list(range(10)) + [9999]
+    for prefix in ("MD", "D"):
+        kind = "魔法" if prefix == "MD" else "物理"
+        apply(prefix + "_Race", races, f"對 {{}} 型怪的{kind}傷害", race_indexes)
+        # Existing Desktop semantics intentionally use the same received-race label
+        # for both MD and D, so preserve that behavior during deduplication.
+        apply(prefix + "_Race", races, "受到 {} 型怪的傷害", race_indexes, body=True)
+
+    classes = ["一般", "首領"]
+    for prefix in ("MD", "D"):
+        kind = "魔法" if prefix == "MD" else "物理"
+        apply(prefix + "_class", classes, f"對 {{}} 階級的{kind}傷害")
+        apply(prefix + "_class", classes, f"受到 {{}} 階級的{kind}傷害", body=True)
+
+    class_def_names = ["一般", "首領", "玩家"]
+    for prefix in ("MD", "D"):
+        kind = "魔法" if prefix == "MD" else "物理"
+        apply(prefix + "_class_def", class_def_names, f"無視 {{}} 階級的{kind}防禦")
+
+    for prefix in ("MD", "D"):
+        kind = "魔法" if prefix == "MD" else "物理"
+        apply(prefix + "_Race_def", races, f"無視 {{}} 型怪的{kind}防禦", race_indexes)
+        apply(prefix + "_Race_res", races, f"無視 {{}} 型怪的{kind}抗性", race_indexes)
+
+    attrs["body_MeleeAttackDamage"] = _phase45_effect_sum(effect_dict, "受到近距離物理傷害", "%")
+    attrs["body_RangeAttackDamage"] = _phase45_effect_sum(effect_dict, "受到遠距離物理傷害", "%")
+
+    return {
+        "legacy_attributes": attrs,
+        "body_melee": attrs["body_MeleeAttackDamage"],
+        "body_range": attrs["body_RangeAttackDamage"],
+    }
+
+
+def calculate_character_defense_profile(
+    *,
+    effect_dict,
+    base_level,
+    total_agi,
+    total_vit,
+    total_dex,
+    total_int,
+    total_sta,
+    total_wis,
+    armor_def,
+    armor_res,
+    target_size,
+    target_element,
+    target_race,
+    target_class,
+    monster_attack_element,
+):
+    """Pure Core version of Desktop's character DEF/MDEF/RES/MRES reduction block.
+
+    Current Desktop behavior is preserved exactly, including using received-race
+    damage for the magic path and using equipment MDEF (not front MDEF) in the
+    final magic MDEF multiplier. Behavior changes can be made separately later.
+    """
+    effect_dict = effect_dict or {}
+    profile = build_damage_effect_profile(effect_dict)
+    attrs = profile["legacy_attributes"]
+
+    def attr(name, index):
+        return float(attrs.get(f"{name}_{index}", 0) or 0)
+
+    target_size = _stage17_int(target_size)
+    target_element = _stage17_int(target_element)
+    target_race = _stage17_int(target_race)
+    target_class = _stage17_int(target_class)
+    monster_attack_element = _stage17_int(monster_attack_element)
+
+    body_size_phys = attr("body_D_size", target_size)
+    body_size_magic = attr("body_MD_size", target_size)
+    body_element_phys = attr("body_D_element", target_element) + attr("body_D_element", 10)
+    body_element_magic = attr("body_MD_element", target_element) + attr("body_MD_element", 10)
+    body_race_phys = attr("body_D_Race", target_race) + attr("body_D_Race", 9999)
+    body_class_phys = attr("body_D_class", target_class)
+    body_class_magic = attr("body_MD_class", target_class)
+    body_attr_resist = attr("body_D_Damage", monster_attack_element) + attr("body_D_Damage", 10)
+    body_melee_phys = float(profile["body_melee"] or 0)
+    body_range_phys = float(profile["body_range"] or 0)
+
+    body_def = _phase45_effect_sum(effect_dict, "DEF", "")
+    body_mdef = _phase45_effect_sum(effect_dict, "MDEF", "")
+    body_res = _phase45_effect_sum(effect_dict, "RES", "")
+    body_mres = _phase45_effect_sum(effect_dict, "MRES", "")
+
+    base_level = _stage17_number(base_level, 0)
+    total_agi = _stage17_number(total_agi, 0)
+    total_vit = _stage17_number(total_vit, 0)
+    total_dex = _stage17_number(total_dex, 0)
+    total_int = _stage17_number(total_int, 0)
+    total_sta = _stage17_number(total_sta, 0)
+    total_wis = _stage17_number(total_wis, 0)
+    armor_def = _stage17_number(armor_def, 0)
+    armor_res = _stage17_number(armor_res, 0)
+
+    front_def = int(base_level / 2 + total_agi / 5 + total_vit / 2)
+    after_def = int(armor_def + body_def)
+    front_mdef = int(base_level / 4 + total_vit / 5 + total_dex / 5 + total_int)
+    stat_res = int(total_sta + int(total_sta / 3) * 5)
+    stat_mres = int(total_wis + int(total_wis / 3) * 5)
+    total_res = int(stat_res + armor_res + body_res)
+    total_mres = int(stat_mres + armor_res + body_mres)
+
+    back_physical_multiplier = max(
+        (1 + body_size_phys / 100)
+        * (1 + body_element_phys / 100)
+        * (1 + body_class_phys / 100)
+        * (1 - body_attr_resist / 100),
+        0,
+    )
+    res_multiplier = stage17_calc_final_res_damage(total_res, 0)
+    def_multiplier = stage17_calc_final_def_damage(after_def, 0)
+    mres_multiplier = stage17_calc_final_res_damage(total_mres, 0)
+    mdef_multiplier = stage17_calc_final_mdef_damage(body_mdef, 0)
+
+    full_melee_multiplier = max(
+        (1 + body_race_phys / 100) * (1 + body_melee_phys / 100), 0
+    ) * res_multiplier * def_multiplier
+    full_range_multiplier = max(
+        (1 + body_race_phys / 100) * (1 + body_range_phys / 100), 0
+    ) * res_multiplier * def_multiplier
+    full_magic_multiplier = max(
+        (1 + body_size_magic / 100)
+        * (1 + body_element_magic / 100)
+        * (1 + body_class_magic / 100)
+        * (1 - body_attr_resist / 100)
+        * (1 + body_race_phys / 100),
+        0,
+    ) * mres_multiplier * mdef_multiplier
+
+    return {
+        "effect_profile": profile,
+        "body_size_phys": body_size_phys,
+        "body_size_magic": body_size_magic,
+        "body_element_phys": body_element_phys,
+        "body_element_magic": body_element_magic,
+        "body_race_phys": body_race_phys,
+        "body_class_phys": body_class_phys,
+        "body_class_magic": body_class_magic,
+        "body_attr_resist": body_attr_resist,
+        "body_melee_phys": body_melee_phys,
+        "body_range_phys": body_range_phys,
+        "body_def": body_def,
+        "body_mdef": body_mdef,
+        "body_res": body_res,
+        "body_mres": body_mres,
+        "front_def": front_def,
+        "after_def": after_def,
+        "front_mdef": front_mdef,
+        "stat_res": stat_res,
+        "stat_mres": stat_mres,
+        "total_res": total_res,
+        "total_mres": total_mres,
+        "back_physical_multiplier": back_physical_multiplier,
+        "res_multiplier": res_multiplier,
+        "def_multiplier": def_multiplier,
+        "mres_multiplier": mres_multiplier,
+        "mdef_multiplier": mdef_multiplier,
+        "full_melee_multiplier": full_melee_multiplier,
+        "full_range_multiplier": full_range_multiplier,
+        "full_magic_multiplier": full_magic_multiplier,
+    }
+
+
 # === STAGE 18 SHARED MONSTER LOOKUP CORE ===
 # Pure standard-library monster helpers shared by Desktop and Web.
 # Keep this block free of PySide6 / FastAPI / network I/O.

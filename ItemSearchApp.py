@@ -309,6 +309,11 @@ from ro_core import (
     calculate_tstat_total_used as core_calculate_tstat_total_used,
     calculate_stat_breakdown as core_calculate_stat_breakdown,
     STAGE21_BLOCK_LEFT_WEAPON_TYPES,
+    Stage17DamageRequest as CoreStage17DamageRequest,
+    calculate_stage17_damage_request as core_calculate_stage17_damage_request,
+    build_damage_effect_profile as core_build_damage_effect_profile,
+    calculate_character_defense_profile as core_calculate_character_defense_profile,
+
 )
 from datetime import datetime
 
@@ -6755,23 +6760,7 @@ class ItemSearchApp(QWidget):
                 self.generate_highlighted_html(final_output)
             )
 
-        #減傷顯示
-
-        body_size_phys = get_effect_multiplier('body_D_size', target_size)
-        body_size_phys_m = get_effect_multiplier('body_MD_size', target_size)
-        body_element_phys = get_effect_multiplier('body_D_element', target_element) + get_effect_multiplier('body_D_element', 10)
-        body_element_phys_m = get_effect_multiplier('body_MD_element', target_element) + get_effect_multiplier('body_MD_element', 10)
-        body_race_phys = get_effect_multiplier('body_D_Race', target_race) + get_effect_multiplier('body_D_Race', 9999)
-        body_class_phys = get_effect_multiplier('body_D_class', target_class)
-        body_class_phys_m = get_effect_multiplier('body_MD_class', target_class)
-        body_attr_resist = get_effect_multiplier('body_D_Damage', monster_attack_element) + get_effect_multiplier('body_D_Damage', 10)
-        body_melee_phys = body_MeleeAttackDamage
-        body_range_phys = body_RangeAttackDamage
-        body_DEF = sum(val for val, _ in effect_dict.get(("DEF", ""), []))
-        body_MDEF = sum(val for val, _ in effect_dict.get(("MDEF", ""), []))
-        body_RES = sum(val for val, _ in effect_dict.get(("RES", ""), []))
-        body_MRES = sum(val for val, _ in effect_dict.get(("MRES", ""), []))
-
+        # 減傷顯示：Qt 只負責取得防具精煉輸入，角色防禦/減傷公式集中到 Core。
         if Subweapon_class == 0:
             armor_result = self.get_total_armor_bonus(
                 global_armor_level_map,
@@ -6783,20 +6772,50 @@ class ItemSearchApp(QWidget):
                 exclude_slots={4,3,110,30,31,32,33,34,35,41,42,43,44,100,101,102},
             )
 
-        f_def = int((base_lv/2) + (total_AGI/5) + (total_VIT/2))
-        c_def = int(armor_result['DEF']+body_DEF)
-        f_mdef = int((base_lv/4) + (total_VIT/5) + (total_DEX/5) + total_INT)
-        stat_res = int(total_STA + (int(total_STA/3)*5))
-        stat_mres = int(total_WIS + (int(total_WIS/3)*5))
-        total_res = int(stat_res+armor_result['RES']+body_RES)
-        total_mres = int(stat_mres+armor_result['RES']+body_MRES)
+        body_profile = core_calculate_character_defense_profile(
+            effect_dict=effect_dict,
+            base_level=base_lv,
+            total_agi=total_AGI,
+            total_vit=total_VIT,
+            total_dex=total_DEX,
+            total_int=total_INT,
+            total_sta=total_STA,
+            total_wis=total_WIS,
+            armor_def=armor_result["DEF"],
+            armor_res=armor_result["RES"],
+            target_size=target_size,
+            target_element=target_element,
+            target_race=target_race,
+            target_class=target_class,
+            monster_attack_element=monster_attack_element,
+        )
+        self.last_core_character_defense = body_profile
+        body_size_phys = body_profile["body_size_phys"]
+        body_size_phys_m = body_profile["body_size_magic"]
+        body_element_phys = body_profile["body_element_phys"]
+        body_element_phys_m = body_profile["body_element_magic"]
+        body_race_phys = body_profile["body_race_phys"]
+        body_class_phys = body_profile["body_class_phys"]
+        body_class_phys_m = body_profile["body_class_magic"]
+        body_attr_resist = body_profile["body_attr_resist"]
+        body_melee_phys = body_profile["body_melee_phys"]
+        body_range_phys = body_profile["body_range_phys"]
+        body_DEF = body_profile["body_def"]
+        body_MDEF = body_profile["body_mdef"]
+        body_RES = body_profile["body_res"]
+        body_MRES = body_profile["body_mres"]
+        f_def = body_profile["front_def"]
+        c_def = body_profile["after_def"]
+        f_mdef = body_profile["front_mdef"]
+        stat_res = body_profile["stat_res"]
+        stat_mres = body_profile["stat_mres"]
+        total_res = body_profile["total_res"]
+        total_mres = body_profile["total_mres"]
+        c_atktotal = body_profile["back_physical_multiplier"]
+        fc_melee_akttotal = body_profile["full_melee_multiplier"]
+        fc_range_akttotal = body_profile["full_range_multiplier"]
+        fc_magic_akttotal = body_profile["full_magic_multiplier"]
 
-        c_atktotal = max((1+body_size_phys/100) * (1+body_element_phys/100) * (1+body_class_phys/100) * (1-body_attr_resist/100),0)
-        
-        fc_melee_akttotal = max((1+body_race_phys/100) * (1+body_melee_phys/100),0) * (calc_final_res_damage(total_res,0)) * (calc_final_def_damage(c_def,0))
-        fc_range_akttotal = max((1+body_race_phys/100) * (1+body_range_phys/100),0) * (calc_final_res_damage(total_res,0)) * (calc_final_def_damage(c_def,0))
-        fc_magic_akttotal = max((1+body_size_phys_m/100) * (1+body_element_phys_m/100) * (1+body_class_phys_m/100) * (1-body_attr_resist/100) * (1+body_race_phys/100),0) * (calc_final_res_damage(total_mres,0)) * (calc_final_mdef_damage(body_MDEF,0))
-        
         body_results = []
         # body_results.append(f"===========================減傷顯示===========================")
         # body_results.append(f"{pad_label('體型:')}{size_map.get(target_size, target_size)}")
@@ -6830,8 +6849,8 @@ class ItemSearchApp(QWidget):
         body_results.append(f"{pad_label('受到種族物理傷害:')}{body_race_phys:.0f}%")
         body_results.append(f"{pad_label('受到近距離物理傷害:')}{body_melee_phys:.0f}%")
         body_results.append(f"{pad_label('受到遠距離物理傷害:')}{body_range_phys:.0f}%")        
-        body_results.append(f"{pad_label('RES計算倍率:')}{calc_final_res_damage(total_res,0)*100:.2f}%")
-        body_results.append(f"{pad_label('DEF計算倍率:')}{calc_final_def_damage(c_def,0)*100:.2f}%")
+        body_results.append(f"{pad_label('RES計算倍率:')}{body_profile['res_multiplier']*100:.2f}%")
+        body_results.append(f"{pad_label('DEF計算倍率:')}{body_profile['def_multiplier']*100:.2f}%")
         body_results.append(f"總計：")
         body_results.append(f"{pad_label('　全段(近)減免後傷害:')}{fc_melee_akttotal*100:.0f}% (數字越少傷害越低。)")
         body_results.append(f"{pad_label('　全段(遠)減免後傷害:')}{fc_range_akttotal*100:.0f}% (數字越少傷害越低。)")
@@ -6841,8 +6860,8 @@ class ItemSearchApp(QWidget):
         body_results.append(f"{pad_label('受到屬性對象魔法傷害:')}{body_element_phys_m:.0f}%")
         body_results.append(f"{pad_label('受到階級魔法傷害:')}{body_class_phys_m:.0f}%")
         body_results.append(f"{pad_label('屬性魔法攻擊傷害抗性:')}{body_attr_resist:.0f}%")
-        body_results.append(f"{pad_label('MRES計算倍率:')}{calc_final_res_damage(total_mres,0)*100:.2f}%")
-        body_results.append(f"{pad_label('MDEF計算倍率:')}{calc_final_mdef_damage(body_MDEF,0)*100:.2f}%")    
+        body_results.append(f"{pad_label('MRES計算倍率:')}{body_profile['mres_multiplier']*100:.2f}%")
+        body_results.append(f"{pad_label('MDEF計算倍率:')}{body_profile['mdef_multiplier']*100:.2f}%")    
         body_results.append(f"總計：")    
         body_results.append(f"{pad_label('　魔法減免後傷害:')}{fc_magic_akttotal*100:.0f}% (數字越少傷害越低。)")
 
@@ -6852,6 +6871,11 @@ class ItemSearchApp(QWidget):
             self.body_custom_calc_box.setHtml(
                 self.generate_highlighted_html(body_results)
             )
+
+        # Phase 4+5 shadow parity: Core request/result is stored for comparison.
+        # Existing rendering remains legacy until parity is proven across special skills.
+        if render_output:
+            self.refresh_core_stage17_snapshot()
 
 
     def _set_combo_data_blocked(self, combo, data):
@@ -7066,55 +7090,13 @@ class ItemSearchApp(QWidget):
             setattr(self, f"body_{prefix}_{idx}", value)
 
     def apply_all_damage_effects(self, effect_dict):
-        # === 體型加成/抗性 ===
-        size_names = ["小型", "中型", "大型"]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_size", size_names, f"對 {{}} 敵人的{ '魔法' if prefix == 'MD' else '物理' }傷害")
-            self.apply_body_effect_mapping(effect_dict, f"{prefix}_size", size_names, f"受到 {{}} 敵人的{ '魔法' if prefix == 'MD' else '物理' }傷害")
+        # Phase 4+5: mapping rules live in Core; keep legacy attributes for callers/UI.
+        profile = core_build_damage_effect_profile(effect_dict)
+        self.damage_effect_profile = profile
+        for attr_name, value in profile["legacy_attributes"].items():
+            setattr(self, attr_name, value)
+        return profile
 
-        # === 屬性對象加成/抗性 ===
-        element_target = ["無屬性", "水屬性", "地屬性", "火屬性", "風屬性",
-                          "毒屬性", "聖屬性", "暗屬性", "念屬性", "不死屬性", "全屬性"]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_element", element_target, f"對 {{}} 對象的{ '魔法' if prefix == 'MD' else '物理' }傷害")
-            self.apply_body_effect_mapping(effect_dict, f"{prefix}_element", element_target, f"受到 {{}} 對象的{ '魔法' if prefix == 'MD' else '物理' }傷害")
-
-        # === 屬性來源加成/抗性（屬性攻擊） ===
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_Damage", element_target, f"{{}} 的{ '魔法' if prefix == 'MD' else '物理' }傷害")
-            self.apply_body_effect_mapping(effect_dict, f"{prefix}_Damage", element_target, f"對 {{}} 攻擊抗性")
-
-        # === 種族加成/抗性 ===
-        race_names = ["無形", "不死", "動物", "植物", "昆蟲", "魚貝", "惡魔", "人形", "天使", "龍族", "全種族"]
-        race_indexes = list(range(10)) + [9999]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_Race", race_names, f"對 {{}} 型怪的{ '魔法' if prefix == 'MD' else '物理' }傷害", race_indexes)
-            self.apply_body_effect_mapping(effect_dict, f"{prefix}_Race", race_names, f"受到 {{}} 型怪的傷害", race_indexes)
-
-        # === 階級加成/抗性 ===
-        class_names = ["一般", "首領"]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_class", class_names, f"對 {{}} 階級的{ '魔法' if prefix == 'MD' else '物理' }傷害")
-            self.apply_body_effect_mapping(effect_dict, f"{prefix}_class", class_names, f"受到 {{}} 階級的{ '魔法' if prefix == 'MD' else '物理' }傷害")
-
-        # === 無視階級防禦 ===
-        class_def_names = ["一般", "首領", "玩家"]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_class_def", class_def_names, f"無視 {{}} 階級的{ '魔法' if prefix == 'MD' else '物理' }防禦")
-
-        # === 無視種族防禦 ===
-        race_def_names = ["無形", "不死", "動物", "植物", "昆蟲", "魚貝", "惡魔", "人形", "天使", "龍族", "全種族"]
-        race_indexes = list(range(10)) + [9999]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_Race_def", race_def_names, f"無視 {{}} 型怪的{ '魔法' if prefix == 'MD' else '物理' }防禦", race_indexes)
-        
-        # === 無視種族抗性 ===
-        race_def_names = ["無形", "不死", "動物", "植物", "昆蟲", "魚貝", "惡魔", "人形", "天使", "龍族", "全種族"]
-        race_indexes = list(range(10)) + [9999]
-        for prefix in ["MD", "D"]:
-            self.apply_effect_mapping(effect_dict, f"{prefix}_Race_res", race_def_names, f"無視 {{}} 型怪的{ '魔法' if prefix == 'MD' else '物理' }抗性", race_indexes)
-
-    
     def calc_weapon_refine_matk(self, weapon_Level, weaponRefineR, weaponGradeR):
         return _core_stage17_calc_weapon_refine_matk(weapon_Level, weaponRefineR, weaponGradeR)
         
@@ -8217,6 +8199,92 @@ class ItemSearchApp(QWidget):
 
 
     # Stage 4 Desktop effect-input snapshot
+    # === CORE DEDUP PHASE 4+5: STAGE17 REQUEST/RESULT BRIDGE ===
+    @staticmethod
+    def _core_int_from_widget(widget, default=0):
+        try:
+            return int(float(widget.text()))
+        except (AttributeError, TypeError, ValueError):
+            return default
+
+    def build_core_stage17_damage_request(self):
+        """Build a Qt-free Stage17 request from the current Desktop snapshot.
+
+        This bridge is intentionally separate from rendering for now: it creates a
+        parity result that can be compared with the legacy Desktop path before the
+        final cut-over removes the large orchestration block.
+        """
+        equipment_request = getattr(self, "last_core_effect_request", None)
+        effect_result = getattr(self, "last_core_effect_result", None)
+        if equipment_request is None or effect_result is None:
+            return None
+
+        core_context = build_desktop_calculation_context()
+        core_skillbuff_text = ""
+        skillbuff_path = os.path.join(get_app_base_dir(), "data", "skillbuff.lua")
+        try:
+            with open(skillbuff_path, "r", encoding="utf-8") as f:
+                core_skillbuff_text = f.read()
+        except OSError:
+            pass
+
+        core_data = EquipmentCalculationData(
+            parsed_items=self.parsed_items,
+            equipment_data=self.equipment_data,
+            job_dict=job_dict,
+            stat_name_sets=stat_name_sets,
+            skill_entries=all_skill_entries,
+            skillbuff_text=core_skillbuff_text,
+            skill_map=skill_map,
+            unit_map=unit_map,
+            size_map=size_map,
+            effect_map=effect_map,
+            custom_sort_orders=custom_sort_orders,
+        )
+
+        damage = {
+            "skill_id": self.skill_box.currentData(),
+            "skill_level": self._core_int_from_widget(self.skill_LV_input, 1),
+            "attack_element": self.attack_element_box.currentData(),
+            "monster": {
+                "size": self.size_box.currentData(),
+                "element": self.element_box.currentData(),
+                "element_lv": self._core_int_from_widget(self.element_lv_input, 1),
+                "race": self.race_box.currentData(),
+                "class": self.class_box.currentData(),
+                "def": self._core_int_from_widget(self.def_input, 0),
+                "defc": self._core_int_from_widget(self.defc_input, 0),
+                "res": self._core_int_from_widget(self.res_input, 0),
+                "mdef": self._core_int_from_widget(self.mdef_input, 0),
+                "mdefc": self._core_int_from_widget(self.mdefc_input, 0),
+                "mres": self._core_int_from_widget(self.mres_input, 0),
+            },
+        }
+        return CoreStage17DamageRequest(
+            request=equipment_request,
+            data=core_data,
+            context=core_context,
+            effect_result=effect_result,
+            data_dir=os.path.join(get_app_base_dir(), "data"),
+            damage=damage,
+        )
+
+    def refresh_core_stage17_snapshot(self):
+        request = self.build_core_stage17_damage_request()
+        self.last_core_damage_request = request
+        self.last_core_damage_result = None
+        self.last_core_damage_error = None
+        if request is None:
+            return None
+        try:
+            result = core_calculate_stage17_damage_request(request)
+            self.last_core_damage_result = result
+            return result
+        except Exception as exc:
+            # Shadow parity must never break the existing Desktop render path.
+            self.last_core_damage_error = str(exc)
+            return None
+
     def build_core_equipment_effect_request(self, get_values=None, refine_inputs=None):
         """Snapshot Qt controls into a Qt-free request object.
 
