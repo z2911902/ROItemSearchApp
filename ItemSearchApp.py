@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.7.16-260816"
+Version = "v0.7.17-260816"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -189,13 +189,19 @@ from recompile_service import RecompileService
 class LoadingDialog(QDialog):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle(tr("window.loading"))
         self.resize(500, 200)
-        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+
+        self.setWindowFlags(
+            self.windowFlags()
+            | Qt.WindowStaysOnTopHint
+        )
 
         layout = QVBoxLayout(self)
 
         self.label = QLabel(tr("label.loading"))
+
         self.text = QPlainTextEdit()
         self.text.setReadOnly(True)
 
@@ -204,6 +210,10 @@ class LoadingDialog(QDialog):
 
     def append_text(self, msg: str):
         self.text.appendPlainText(msg)
+
+        # 每新增一行，自動捲到最底
+        scrollbar = self.text.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
 
     def update_progress(self, msg: str):
         self.label.setText(msg)
@@ -9140,75 +9150,250 @@ class ItemSearchApp(QWidget):
 
         def _progress_percent_line(done, total, speed_bps):
             if total and total > 0:
-                percent = done / total * 100.0
+
+                # 防止伺服器 Content-Length 異常造成 > 100%
+                if done > total:
+                    total = 0
+
+            if total and total > 0:
+                percent = min(done / total * 100.0, 100.0)
+
                 if speed_bps and speed_bps > 0:
-                    eta = max(int((total - done) / speed_bps), 0)
-                    return f"{percent:6.2f}%  { _fmt_bytes(done) } / { _fmt_bytes(total) }  { _fmt_bytes(int(speed_bps)) }/s  ETA {eta}s"
-                else:
-                    return f"{percent:6.2f}%  { _fmt_bytes(done) } / { _fmt_bytes(total) }"
+                    eta = max(
+                        int((total - done) / speed_bps),
+                        0
+                    )
+
+                    return (
+                        f"{percent:6.2f}%  "
+                        f"{_fmt_bytes(done)} / {_fmt_bytes(total)}  "
+                        f"{_fmt_bytes(int(speed_bps))}/s  "
+                        f"ETA {eta}s"
+                    )
+
+                return (
+                    f"{percent:6.2f}%  "
+                    f"{_fmt_bytes(done)} / {_fmt_bytes(total)}"
+                )
+
             else:
                 if speed_bps and speed_bps > 0:
-                    return f"--.--%  { _fmt_bytes(done) } / ?  { _fmt_bytes(int(speed_bps)) }/s"
-                else:
-                    return f"--.--%  { _fmt_bytes(done) } / ?"
+                    return (
+                        f"📥 {_fmt_bytes(done)}  "
+                        f"{_fmt_bytes(int(speed_bps))}/s"
+                    )
 
-        def _download_with_progress(url: str, dest_path: str, timeout=30) -> bool:
-            import time
-            import ssl, certifi
-            ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
-            print(f"🌐 下載：{url}")
-            req = Request(url, headers={"User-Agent": "ROItemSearchApp-Updater/1.2"})
-            try:
-                with urlopen(req, timeout=timeout) as resp:
-                    # 取得 Content-Length（可能沒有）
+                return f"📥 {_fmt_bytes(done)}"
+
+        def _download_with_progress(url: str, dest_path: str) -> bool:
+            """
+            下載資料：
+            1. 優先 raw.githubusercontent.com
+            2. Raw 失敗後改用 github.io
+            3. connect/read timeout 分開
+            4. 不會因單一來源卡住 30 秒以上
+            """
+
+            PAGES_PREFIX = "https://z2911902.github.io/ROItemSearchApp/"
+            RAW_PREFIX = (
+                "https://raw.githubusercontent.com/"
+                "z2911902/ROItemSearchApp/main/"
+            )
+
+            # --------------------------------------------
+            # 建立下載來源
+            # --------------------------------------------
+            sources = []
+
+            if url.startswith(PAGES_PREFIX):
+                relative_path = url[len(PAGES_PREFIX):]
+
+                raw_url = RAW_PREFIX + relative_path
+
+                # Raw 優先
+                sources.append(("GitHub Raw", raw_url))
+
+                # GitHub Pages 當備援
+                sources.append(("GitHub Pages", url))
+            else:
+                sources.append(("原始來源", url))
+
+            tmp = dest_path + ".tmp"
+
+            headers = {
+                "User-Agent": "ROItemSearchApp-Updater/1.2",
+                "Accept": "*/*",
+                "Cache-Control": "no-cache",
+            }
+
+            # --------------------------------------------
+            # 依序嘗試不同來源
+            # --------------------------------------------
+            for source_index, (source_name, source_url) in enumerate(
+                sources, start=1
+            ):
+                print(
+                    f"🌐 [{source_index}/{len(sources)}] "
+                    f"嘗試 {source_name}："
+                    f"{os.path.basename(dest_path)}"
+                )
+
+                print(f"🔗 {source_url}")
+
+                try:
+                    # connect timeout = 4 秒
+                    # read timeout = 8 秒
+                    with requests.get(
+                        source_url,
+                        stream=True,
+                        timeout=(4, 8),
+                        headers=headers,
+                    ) as resp:
+
+                        resp.raise_for_status()
+
+                        try:
+                            total = int(
+                                resp.headers.get(
+                                    "Content-Length",
+                                    "0"
+                                )
+                            )
+                        except (TypeError, ValueError):
+                            total = 0
+
+                        done = 0
+                        start = time.monotonic()
+
+                        # 確保上次失敗留下的 tmp 被清掉
+                        try:
+                            if os.path.exists(tmp):
+                                os.remove(tmp)
+                        except OSError:
+                            pass
+
+                        with open(tmp, "wb") as f:
+
+                            for data in resp.iter_content(
+                                chunk_size=16 * 1024
+                            ):
+                                if not data:
+                                    continue
+
+                                f.write(data)
+
+                                done += len(data)
+
+                                elapsed = max(
+                                    time.monotonic() - start,
+                                    0.001,
+                                )
+
+                                speed = done / elapsed
+
+                                line = _progress_percent_line(
+                                    done,
+                                    total,
+                                    speed,
+                                )
+
+                                print(line, end="\r")
+
+                        # --------------------------------
+                        # 空檔案檢查
+                        # --------------------------------
+                        if done <= 0:
+                            raise RuntimeError("下載結果為空檔案")
+
+                        # --------------------------------
+                        # 避免下載到 HTML 錯誤頁
+                        # --------------------------------
+                        try:
+                            with open(tmp, "rb") as tf:
+                                head = (
+                                    tf.read(4096)
+                                    .decode(
+                                        "utf-8",
+                                        errors="ignore",
+                                    )
+                                    .lower()
+                                )
+
+                            if (
+                                "<html" in head
+                                or "<!doctype html" in head
+                            ):
+                                raise RuntimeError(
+                                    "下載內容疑似 HTML 錯誤頁"
+                                )
+
+                        except RuntimeError:
+                            raise
+
+                        except Exception as e:
+                            print(
+                                f"⚠️ 下載內容健檢失敗：{e}"
+                            )
+
+                        # --------------------------------
+                        # 下載成功，正式取代
+                        # --------------------------------
+                        os.replace(tmp, dest_path)
+
+                        print(
+                            f"✅ {source_name} 下載完成："
+                            f"{os.path.relpath(dest_path, BASE_DIR)} "
+                            f"(總計 {_fmt_bytes(done)})"
+                        )
+
+                        return True
+
+                except requests.exceptions.ConnectTimeout:
+                    print(
+                        f"⏱️ {source_name} 連線超時，"
+                        f"切換其他來源..."
+                    )
+
+                except requests.exceptions.ReadTimeout:
+                    print(
+                        f"⏱️ {source_name} 接收資料超時，"
+                        f"切換其他來源..."
+                    )
+
+                except requests.exceptions.ConnectionError as e:
+                    print(
+                        f"⚠️ {source_name} 連線失敗：{e}"
+                    )
+
+                except requests.exceptions.HTTPError as e:
+                    print(
+                        f"❌ {source_name} HTTP 錯誤：{e}"
+                    )
+
+                except requests.exceptions.RequestException as e:
+                    print(
+                        f"⚠️ {source_name} 網路錯誤：{e}"
+                    )
+
+                except Exception as e:
+                    print(
+                        f"❌ {source_name} 下載例外：{e}"
+                    )
+
+                finally:
+                    # 此來源失敗的 tmp 不保留
                     try:
-                        total = getattr(resp, "length", None) or int(resp.getheader("Content-Length") or 0)
-                    except Exception:
-                        total = 0
+                        if os.path.exists(tmp):
+                            os.remove(tmp)
+                    except OSError:
+                        pass
 
-                    tmp = dest_path + ".tmp"
-                    start = time.time()
-                    done = 0
-                    chunk = 64 * 1024  # 64KB
+            print(
+                f"❌ 所有下載來源都失敗："
+                f"{os.path.basename(dest_path)}"
+            )
 
-                    with open(tmp, "wb") as f:
-                        while True:
-                            data = resp.read(chunk)
-                            if not data:
-                                break
-                            f.write(data)
-                            done += len(data)
-
-                            # 計算並用「同一行覆寫」呈現（與 parse_lub_file 的做法一致）
-                            elapsed = max(time.time() - start, 1e-6)
-                            speed = done / elapsed
-                            line = _progress_percent_line(done, total, speed)
-                            print(line, end="\r")  # 👈 只這行關鍵：同一行覆寫
-
-                    #print()  # 👈 下載結束補一個換行
-
-                    # 基本健檢：避免 404 HTML
-                    try:
-                        with open(tmp, "rb") as tf:
-                            head = tf.read(4096).decode("utf-8", errors="ignore").lower()
-                            if "<html" in head:
-                                print("❌ 下載內容疑似 HTML 錯誤頁，放棄覆蓋")
-                                try: os.remove(tmp)
-                                except: pass
-                                return False
-                    except Exception as e:
-                        print(f"⚠️ 健檢失敗（但檔案已下載）：{e}")
-
-                    os.replace(tmp, dest_path)
-                    print(f"✅ 已覆蓋：{os.path.relpath(dest_path, BASE_DIR)}  (總計 { _fmt_bytes(done) })")
-                    return True
-
-            except (URLError, HTTPError) as e:
-                print(f"❌ 下載失敗：{e}")
-            except Exception as e:
-                print(f"❌ 下載例外：{e}")
             return False
-
 
         def _looks_like_file_quick(path: str) -> bool:
             """根據副檔名做快速檢查，避免把下載後的 HTML/錯誤當成合法檔案。"""
