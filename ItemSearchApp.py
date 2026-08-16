@@ -209,7 +209,6 @@ class LoadingDialog(QDialog):
         self.label.setText(msg)
 
 
-
 import os
 import subprocess
 
@@ -244,20 +243,13 @@ from collections import defaultdict
 
 # === STAGE 17 DESKTOP CORE DAMAGE PRIMITIVES ===
 from ro_core import (
-    stage17_calc_final_def_damage as _core_stage17_calc_final_def_damage,
-    stage17_calc_final_mdef_damage as _core_stage17_calc_final_mdef_damage,
-    stage17_calc_final_res_damage as _core_stage17_calc_final_res_damage,
     stage17_calculate_target_defense_factors as _core_stage17_calculate_target_defense_factors,
     stage17_calc_weapon_refine_atk as _core_stage17_calc_weapon_refine_atk,
     stage17_calc_weapon_refine_matk as _core_stage17_calc_weapon_refine_matk,
     stage17_get_damage_multiplier as _core_stage17_get_damage_multiplier,
     stage17_get_size_penalty as _core_stage17_get_size_penalty,
-    stage17_apply_stepwise as _core_stage17_apply_stepwise,
-    stage17_eval_formula_with_vars as _core_stage17_eval_formula_with_vars,
     stage17_replace_custom_calls as _core_stage17_replace_custom_calls,
-    stage17_replace_gsklv_calls as _core_stage17_replace_gsklv_calls,
     stage17_replace_gusklv_calls as _core_stage17_replace_gusklv_calls,
-    stage17_replace_size_calls as _core_stage17_replace_size_calls,
 )
 # === STAGE 21.24 DESKTOP/WEB SHARED SKILL TIMING CORE ===
 from ro_core import (
@@ -2001,7 +1993,6 @@ class DataRegistry:
                 cb(cls.window)   # 把 window 實體傳進 callback
 
 
-
  # 註冊 all_skill_entries
 DataRegistry.register(
     key="skills",
@@ -2157,8 +2148,6 @@ class_map = {
 }
 
 
-
-
 stat_name_sets  = {#裝備基礎編碼
     "armor": [
         "DEF", "STR", "INT", "VIT", "DEX", "AGI", "LUK", "未知7", "未知8",
@@ -2189,7 +2178,6 @@ weapon_type_map = { # WPon()
     11: "弓", 17: "左輪手槍", 18: "來福槍", 19: "格林機關槍",
     20: "霰彈槍", 21: "榴彈槍", 22: "風魔飛鏢"
 }
-
 
 
 weapon_class_codes = {#輸出用
@@ -2244,8 +2232,6 @@ weapon_type_size_penalty = {#武器體型修正
     23: [100, 100, 100],  # 雙手仗
 
 }
-
-
 
 
 excluded_stat_names = {#過濾不顯示到效果
@@ -2613,10 +2599,6 @@ class CastBarWidget(QWidget):
         p.end()
 
 
-
-
-
-
 from PySide6.QtWidgets import QDialog
 from UI.ui_savemanager import Ui_SaveManagerDialog
 
@@ -2667,13 +2649,9 @@ class SaveManagerDialog(QDialog, Ui_SaveManagerDialog):#儲存裝被選則
                 self.listWidget.takeItem(self.listWidget.row(current_item))
 
 
-
-
 # 特性點規律已集中到 ro_core；保留此 wrapper 避免既有 Desktop 呼叫受影響。
 def get_total_tstat_points(level: int) -> int:
     return core_get_total_tstat_points(level)
-
-
 
 
 skill_df = pd.DataFrame(columns=[#檔案不在使用硬編碼以防跳錯
@@ -2942,7 +2920,6 @@ def compare_versions(a: str, b: str) -> int:
     return (da > db) - (da < db)
 
 
-
 import sys
 import csv
 from PySide6.QtWidgets import (
@@ -3007,7 +2984,6 @@ class CSVEditor(QMainWindow):
         search_name_layout.addStretch()
 
         main_layout.addLayout(search_name_layout)
-
 
 
         # === 欄位編輯區 ===
@@ -3333,16 +3309,12 @@ class CSVEditor(QMainWindow):
                     continue
 
 
-
                 # 其它欄位照舊
                 if isinstance(widget, QComboBox):
                     idx = widget.findText(str(value))
                     widget.setCurrentIndex(idx if idx >= 0 else 0)
                 else:
                     widget.setText(str(value))
-
-
-
 
 
     def save_changes(self, close_after=True):
@@ -3504,7 +3476,6 @@ class CSVEditor(QMainWindow):
             print(f"[CSVEditor] _refresh_and_select_in_main 失敗：{e}")
 
 
-
 def open_skill_editor(app_instance=None):
     global skill_editor  
 
@@ -3534,7 +3505,6 @@ def open_skill_editor(app_instance=None):
                     print(f"[open_skill_editor] 編輯器內找不到技能：{skill_name}")
         except Exception as e:
             print(f"[open_skill_editor] 設定編輯器下拉式失敗：{e}")
-
 
 
 class FileSelectionDialog(QDialog):#刪除清單
@@ -3636,9 +3606,6 @@ class FileSelectionDialog(QDialog):#刪除清單
 
     def want_program_update(self):
         return bool(self.update_program_checkbox and self.update_program_checkbox.isChecked())
-
-
-
 
 
 # Stage 3 Desktop -> Core Lua parser wrapper
@@ -3881,7 +3848,6 @@ class PreferencesDialog(QDialog):
 
     def should_load_kro_data(self) -> bool:
         return self.load_kro_cb.isChecked()
-
 
 
 class InternalDataInspectorDialog(QDialog):
@@ -5102,7 +5068,6 @@ class ItemSearchApp(QWidget):
         self._damage_win.activateWindow()
 
 
-
     def open_skill_tree(self):
 
         skill_tree.job_dict = job_dict
@@ -5146,8 +5111,6 @@ class ItemSearchApp(QWidget):
         self.skill_tree_window.show()
 
 
-
-
     def receive_skill_tree_result(self, text):
         # ★ 將 SkillTree 回傳結果寫入 技能 note 欄位
         self.refine_inputs_ui["技能"]["note"].setPlainText(text)
@@ -5155,7 +5118,6 @@ class ItemSearchApp(QWidget):
         self.input_fields["JOB"].setEnabled(True)
         self.skill_btn.setEnabled(True)
         self.trigger_total_effect_update()
-
 
 
     def restore_skill_tree_levels(self):
@@ -5181,7 +5143,6 @@ class ItemSearchApp(QWidget):
 
         if hasattr(self, "skill_tree_window"):
             self.skill_tree_window.current_levels = restored
-
 
 
     def update_window_title(self):
@@ -5334,8 +5295,6 @@ class ItemSearchApp(QWidget):
         globals()["SPRegenPercent"] = sum(val for val, _ in effect_dict.get(("SP自然恢復%", "%"), []))
 
 
-
-
         #print(f"hp:{HP} hp%:{HPPercent}sp:{SP} sp%:{SPPercent} h恢復{HPRegenPercent}s恢復 {SPRegenPercent}")
         #呼叫處理物理,魔法增傷,無視防禦 例:(對"小型"敵人的魔法傷害 +5%)
         self.apply_all_damage_effects(effect_dict)
@@ -5457,21 +5416,14 @@ class ItemSearchApp(QWidget):
             return v
 
         #處理公式中的動態變數========================
-        def replace_gsklv_calls(formula: str) -> str:
-            return _core_stage17_replace_gsklv_calls(formula, enabled_skill_levels)
         def replace_gusklv_calls(formula: str) -> str:
             return _core_stage17_replace_gusklv_calls(formula, Use_skill_levels)
 
-        def replace_size_calls(formula: str, target_size: int) -> str:
-            return _core_stage17_replace_size_calls(formula, target_size)
 
         def replace_custom_calls(formula):
             global global_weapon_type_map
             return _core_stage17_replace_custom_calls(formula, global_weapon_type_map.get(4, 0))
         
-
-        def eval_formula_with_vars(formula: str, allowed_vars: dict):
-            return _core_stage17_eval_formula_with_vars(formula, allowed_vars)
 
 
         #=================== 特殊增傷ui取得/處理區===================
@@ -5607,15 +5559,9 @@ class ItemSearchApp(QWidget):
 
         #=======================技能欄公式====================
         #====================DEF計算==================
-        def calc_final_def_damage(d_ef: float, reduction_percent: float) -> float:
-            return _core_stage17_calc_final_def_damage(d_ef, reduction_percent)
         #====================MRES,MDEF計算===================
         #====================MDEF計算==================
-        def calc_final_mdef_damage(mdef: float, reduction_percent: float) -> float:
-            return _core_stage17_calc_final_mdef_damage(mdef, reduction_percent)
         #====================RES/MRES計算==================
-        def calc_final_res_damage(mres: float, reduction_percent: float) -> float:
-            return _core_stage17_calc_final_res_damage(mres, reduction_percent)
             
         # === [1] 取得技能 row
         skill_row = skill_df[skill_df["Name"] == selected_skill_name]
@@ -5658,7 +5604,6 @@ class ItemSearchApp(QWidget):
         # 武器體型懲罰(物理)
         def get_size_penalty(weapon_class: int, target_size: int) -> float:
             return _core_stage17_get_size_penalty(weapon_class, target_size)
-
 
 
         #==========================精煉計算=========================
@@ -6018,8 +5963,6 @@ class ItemSearchApp(QWidget):
             skill_Rangedamage = 1
 
 
-
-
         
         #print(f"攻擊模式：{attack_type}")
         
@@ -6104,7 +6047,6 @@ class ItemSearchApp(QWidget):
             if render_output:
                 self.skill_formula_result_input.setText("0%")
                 self.custom_calc_box.setPlainText("錯誤：無選擇職業、無技能公式、公式錯誤計算結果為0！")
-
 
 
          
@@ -6465,7 +6407,6 @@ class ItemSearchApp(QWidget):
         body_results.append(f"{pad_label('　魔法減免後傷害:')}{fc_magic_akttotal*100:.0f}% (數字越少傷害越低。)")
 
 
-
         if render_output:
             self.body_custom_calc_box.setHtml(
                 self.generate_highlighted_html(body_results)
@@ -6646,7 +6587,6 @@ class ItemSearchApp(QWidget):
                 )
 
 
-
     def generate_highlighted_html(self, lines: list[str]) -> str:
         app = QApplication.instance()        
         if not app:
@@ -6683,20 +6623,9 @@ class ItemSearchApp(QWidget):
 
 
         
-    def apply_effect_mapping(self, effect_dict, prefix, names, key_template, index_override=None):
-        for i, name in enumerate(names):
-            idx = index_override[i] if index_override else i
-            key = (key_template.format(name), "%")
-            value = sum(val for val, _ in effect_dict.get(key, []))
-            setattr(self, f"{prefix}_{idx}", value)
 
-    def apply_body_effect_mapping(self, effect_dict, prefix, names, key_template, index_override=None):
-        for i, name in enumerate(names):
-            idx = index_override[i] if index_override else i
-            key = (key_template.format(name), "%")
-            value = sum(val for val, _ in effect_dict.get(key, []))
-            setattr(self, f"body_{prefix}_{idx}", value)
 
+    # === CORE DEDUP PHASE 15: LEGACY CLEANUP ===
     def apply_all_damage_effects(self, effect_dict):
         # Phase 4+5: mapping rules live in Core; keep legacy attributes for callers/UI.
         profile = core_build_damage_effect_profile(effect_dict)
@@ -6798,7 +6727,6 @@ class ItemSearchApp(QWidget):
 
         #print(f"🪄 設定高度為：{new_height}")
         text_edit.setFixedHeight(new_height)
-
 
 
     def on_function_text_changed(self):
@@ -7010,7 +6938,6 @@ class ItemSearchApp(QWidget):
         self.DEX_INT_265_label.setText(
             f"※素質無詠 {shared['dex_part']} + {shared['int_part']} = {shared['score']} {status}\n{diff_text}"
         )
-
 
 
     def calc_aspd(self,#攻速計算
@@ -7232,8 +7159,6 @@ class ItemSearchApp(QWidget):
         self.syntax_result_box.setPlainText(explanation)
 
 
-
-
     def on_function_changed(self):
         map_registry = {#函數對應
             "equip_sitetype": equip_sitetype,
@@ -7265,7 +7190,6 @@ class ItemSearchApp(QWidget):
                     # 其他情況：預設填 0
                     self.param_widgets.append("0")
                 continue
-
 
 
             label = QLabel(arg["name"])
@@ -7371,8 +7295,6 @@ class ItemSearchApp(QWidget):
         row_widget = QWidget()
         row_widget.setLayout(row_layout)
         self.param_layout.addWidget(row_widget, alignment=Qt.AlignRight)
-
-
 
 
     
@@ -7504,7 +7426,6 @@ class ItemSearchApp(QWidget):
                 "available": False,
                 "error": str(e),
             }
-
 
 
     def recompile(self, program_update_info=None):
@@ -7642,7 +7563,6 @@ class ItemSearchApp(QWidget):
         )
 
 
-
     def update_total_effect_display(self):
         keyword = self.total_filter_input.text().strip()
         if not keyword:
@@ -7716,8 +7636,6 @@ class ItemSearchApp(QWidget):
                 effect_dict.setdefault((key.strip(), unit), []).append((display_value, source_str))
 
         return effect_dict
-
-
 
 
     # Stage 6 Core base-stat precompute
@@ -8066,7 +7984,6 @@ class ItemSearchApp(QWidget):
         extract_combo_items = core_extract_combo_items
 
 
-
         get_values = {}
         for gid, label in stat_fields.items():
             widget = self.input_fields[label]
@@ -8097,7 +8014,6 @@ class ItemSearchApp(QWidget):
         # 要更新顯示可以執行，但不要重複 connect
         if hasattr(self, "_update_stat_point_callback"):
             self._update_stat_point_callback()
-
 
 
         refine_inputs = {}
@@ -8279,7 +8195,6 @@ class ItemSearchApp(QWidget):
         
 
 
-
     def parse_equipment_blocks(self, content):
         # 保留既有 method 介面，實際解析改由 Desktop/Web 共用 Core 執行。
         return core_parse_equipment_blocks(content)
@@ -8449,7 +8364,6 @@ class ItemSearchApp(QWidget):
 
         print(f"✅ 增量更新完成：新增 {added} / 更新 {updated} / 跳過 {skipped} / 總計 {len(self.equipment_data)}")
         return {"added": added, "updated": updated, "skipped": skipped, "total": len(self.equipment_data)}
-
 
 
     def closeEvent(self, event):
@@ -8693,14 +8607,6 @@ class ItemSearchApp(QWidget):
                 self.load_preset(part_name, selected)
 
 
-
-
-
-
-
-
-
-
     def apply_selected_equip(self):
 
         if not self.current_edit_part:
@@ -8765,8 +8671,6 @@ class ItemSearchApp(QWidget):
         # 計算統一由按鈕既有的 trigger_total_effect_update 排程處理。
 
 
-
-
     def clear_selected_field(self):
         if not self.current_edit_part:
             print("❌ 沒有選擇編輯欄位")
@@ -8807,8 +8711,6 @@ class ItemSearchApp(QWidget):
 
         if field_type == "詞條":
             self.result_output.clear()
-
-
 
 
     # === CORE DEDUP PHASE 12+13+14: BUILD CALCULATOR DESKTOP ADAPTER ===
@@ -8889,15 +8791,9 @@ class ItemSearchApp(QWidget):
         """提供多裝備比對模組需要的主程式資料/解析器，不複製計算公式。"""
         return {
             "tr": tr,
-            "globals_map": globals(),
-            "all_skill_entries": all_skill_entries,
-            "skill_map": skill_map,
             "stat_fields": stat_fields,
             "refine_parts": refine_parts,
-            "parse_lua_effects_with_variables": parse_lua_effects_with_variables,
-            "unit_map": unit_map,
             "size_map": size_map,
-            "effect_map": effect_map,
                     "element_map": element_map,
             "race_map": race_map,
             "class_map": class_map,
@@ -9199,7 +9095,6 @@ class ItemSearchApp(QWidget):
             return False
 
 
-
         def _looks_like_file_quick(path: str) -> bool:
             """根據副檔名做快速檢查，避免把下載後的 HTML/錯誤當成合法檔案。"""
             ext = os.path.splitext(path)[1].lower()
@@ -9437,7 +9332,6 @@ class ItemSearchApp(QWidget):
             return True
 
 
-
         # === 判斷缺檔 ===
         miss_item  = not os.path.exists(iteminfo_path)
         miss_User_item  = not os.path.exists(user_iteminfo_path)
@@ -9672,8 +9566,6 @@ class ItemSearchApp(QWidget):
         print("✓ JOB 下拉選單已重新載入")
 
 
-
-
     def refresh_skill_list(self):
         # 搜尋字（只過濾，不排序）
         query = ""
@@ -9733,11 +9625,6 @@ class ItemSearchApp(QWidget):
             self.skill_checkbox_layout.addWidget(self.skill_checkboxes[name])
 
 
-
-
-
-
-
     def do_update(self, version=None):
         ver = (version or self._remote_version or "").strip()
         if not ver:
@@ -9773,11 +9660,6 @@ class ItemSearchApp(QWidget):
             )
 
         self.recompile(program_update_info=program_update_info)
-
-
-
-
-
 
 
     def __init__(self):
@@ -9870,10 +9752,6 @@ class ItemSearchApp(QWidget):
         self.sim_effect_label = QLabel(tr("label.effect_parse"))
         #self.sim_effect_text = QTextEdit()
         #self.sim_effect_text.setReadOnly(True)
-
-
-
-
 
 
         # 建立輸入欄位
@@ -10137,7 +10015,6 @@ class ItemSearchApp(QWidget):
 
                 update_hp_sp_slider_display()
                 continue
-
 
 
             # ✅ 已經在 MHP 那邊做掉了，MSP 這輪跳過
@@ -10724,7 +10601,6 @@ class ItemSearchApp(QWidget):
         self.update_skill_food_tab_checked_count()
 
 
-
         # 先把 tab_widget 存起來（可選）
         self.tab_widget = tab_widget
 
@@ -10908,7 +10784,6 @@ class ItemSearchApp(QWidget):
         self.apply_to_note_button.clicked.connect(lambda: (setattr(self, "_last_calc_state", None), self.trigger_total_effect_update()))
 
 
-
         
         self.clear_field_button2 = QPushButton(tr("button.clear"))
         self.clear_field_button2.clicked.connect(self.clear_global_state)
@@ -11025,9 +10900,6 @@ class ItemSearchApp(QWidget):
         
 
 
-
-
-
         # ===== 右側：模擬結果 + 裝備原始屬性 =====
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
@@ -11117,8 +10989,6 @@ class ItemSearchApp(QWidget):
         total_tab_widget = QWidget()
         total_tab_widget.setLayout(total_tab_layout)
         self.sim_tabs.addTab(total_tab_widget, tr("tab.overall_total_effect"))
-
-
 
 
         # 模擬效果隱藏選項
@@ -11299,9 +11169,6 @@ class ItemSearchApp(QWidget):
                 self.skill_hits_input.setText(str(skill_hits))
 
 
-
-
-
             # 設定屬性下拉
             element_key = skill_data.get("element", "")
             index = self.attack_element_box.findData(element_key)
@@ -11459,7 +11326,6 @@ class ItemSearchApp(QWidget):
             "OLEUM_attack_checkbox": QCheckBox(tr("buff.oleum_attack")),
             "PR_LEXAETERNA_checkbox": QCheckBox(tr("buff.lexaeterna")),
             #"SH_HOWLING_OF_CHUL_HO_checkbox": QCheckBox("鐵虎咆嘯"),
-
 
 
             # 可在這裡繼續新增更多項目
@@ -11650,8 +11516,6 @@ class ItemSearchApp(QWidget):
         self.MD_BETELGEUSE_combo_soul.currentIndexChanged.connect(self.trigger_total_effect_update)
 
 
-
-
         # 加到橫向排列
         MD_BETELGEUSE.addWidget(self.MD_BETELGEUSE_label_def)
         MD_BETELGEUSE.addWidget(self.MD_BETELGEUSE_combo_def)
@@ -11669,8 +11533,6 @@ class ItemSearchApp(QWidget):
 
         # 初始化一次
         update_MD_BETELGEUSE_total()
-
-
 
 
         self.btn_open_monster_lookup = QPushButton(tr("button.lookup_monster"))
@@ -11742,11 +11604,6 @@ class ItemSearchApp(QWidget):
         self.sim_tabs.addTab(self.body_custom_calc_tab, tr("tab.damage_reduction", "減傷計算"))
 
 
-
-
-
-
-
         # ===== 合併三欄 =====
         #main_layout.addWidget(left_scroll, 2)#已分頁取代
         #main_layout.addWidget(middle_scroll, 3)
@@ -11767,12 +11624,10 @@ class ItemSearchApp(QWidget):
         
 
 
-
         #讀取完先計算一次        
         
         #self.display_all_effects()
         
-
 
 
         # 初始顯示一次
@@ -12096,9 +11951,6 @@ class ItemSearchApp(QWidget):
             print(f"❌ 轉換失敗：{e}")
 
 
-
-
-
         
         
     def save_as_file(self):
@@ -12278,7 +12130,6 @@ class ItemSearchApp(QWidget):
             QMessageBox.critical(self, tr("message.title.error"), tr("message.load_failed", error=str(e)))
 
 
-
     def clear_current_edit(self):
         self.current_edit_part = None
         self.current_edit_label.setText(tr("label.current_part"))
@@ -12310,9 +12161,6 @@ class ItemSearchApp(QWidget):
         self.global_grade_combo.setVisible(True)
         self._set_enchant_tool_target()
         self._set_lapine_upgrade_tool_target()
-
-
-
 
 
     def set_edit_lock(self, part_name, field_name):
@@ -12734,7 +12582,6 @@ class ItemSearchApp(QWidget):
                     continue  # 無法解析就略過，不佔用空間
 
 
-
             combined = []
             show_source = self.show_combo_source_checkbox.isChecked()
             for (key, unit), entries in sorted(effect_dict.items(), key=lambda x: x[0][0]):
@@ -12753,8 +12600,6 @@ class ItemSearchApp(QWidget):
                 else:
                     combined.append(f"{key} {value_str}")
     
-
-
 
 
             self.sim_effect_text.setPlainText("\n".join(combined))

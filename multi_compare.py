@@ -2,20 +2,21 @@
 
 此模組只負責：
 - 多專案檔 / 目前設定 Snapshot 建立
-- 裝備、BUFF、詞條的比對資料整理
-- 計算結果解析與差異顯示
+- CharacterBuild -> Core 計算結果整理
+- 裝備、BUFF、詞條與差異顯示
 - 獨立比對視窗 UI
 
-實際傷害計算不在這裡重做；每個 Snapshot 都回呼主程式既有的
-``trigger_total_effect_update()``，確保計算核心只有一份。
+實際傷害、角色狀態與防具精煉計算由 ro_core.calculate_character_build()
+提供；MultiCompare 不再回寫 MainWindow 來取得比較結果。
 """
+
+# === CORE DEDUP PHASE 15: LEGACY CLEANUP ===
 
 # PHASE 13 JSON IMPORT HOTFIX
 import json
 
 import html
 import os
-import re
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer
@@ -99,396 +100,11 @@ class MultiCompareService:
                 pass
         return default if default is not None else key
 
-    def _recalculate_main_now(self):
-        """立即完成主畫面計算，供 Snapshot/批次比較使用。
 
-        主畫面的 trigger_total_effect_update() 現在使用 debounce QTimer，
-        一般 UI 操作應繼續走排程；但多裝備比對建立 Snapshot 時必須保證
-        計算已完成，因此這裡會先取消尚未執行的 timer，再直接呼叫完整計算。
 
-        保留舊版 fallback，讓此模組也能搭配沒有 _perform_total_effect_update()
-        的舊主程式。
-        """
-        main = self.main_window
-
-        # load_saved_inputs / setCurrentIndex 等動作可能已排入 debounce timer。
-        # Snapshot 要的是當下最後狀態，因此先取消那一輪，避免稍後再補算一次。
-        timer = getattr(main, "_calc_timer", None)
-        if timer is not None:
-            try:
-                timer.stop()
-            except Exception:
-                pass
-
-        main._last_calc_state = None
-
-        perform = getattr(main, "_perform_total_effect_update", None)
-        if callable(perform):
-            # 正常情況不會在計算中建立 Snapshot；若真的遇到重入，
-            # 不強行巢狀計算，先讓既有事件處理完再判斷一次。
-            if getattr(main, "_calc_running", False):
-                QApplication.processEvents()
-            if getattr(main, "_calc_running", False):
-                raise RuntimeError("主畫面仍在計算中，無法建立多裝備比對 Snapshot")
-
-            perform()
-            QApplication.processEvents()
-            return
-
-        # 舊版主程式相容路徑：trigger 原本是同步計算。
-        trigger = getattr(main, "trigger_total_effect_update", None)
-        if not callable(trigger):
-            raise RuntimeError("主程式缺少計算入口")
-        trigger()
-        QApplication.processEvents()
-
-    # === CORE DEDUP PHASE 9: MULTICOMPARE CHARACTER BUILD STATE ===
-    def _collect_compare_runtime_state(self):
-        """Collect UI-only compare state that is intentionally not part of CharacterBuild."""
-        main = self.main_window
-        skill_data = main.skill_box.currentData()
-        if not isinstance(skill_data, (str, int, float, bool, type(None))):
-            skill_data = str(skill_data)
-        attack_element_data = main.attack_element_box.currentData()
-        if not isinstance(attack_element_data, (str, int, float, bool, type(None))):
-            attack_element_data = str(attack_element_data)
-        return {
-            "skill_filter": main.skill_filter_input.text(),
-            "skill_name": main.skill_box.currentText(),
-            "skill_data": skill_data,
-            "skill_lv": main.skill_LV_input.text(),
-            "skill_hits": main.skill_hits_input.text(),
-            "skill_formula": main.skill_formula_input.text(),
-            "attack_element_data": attack_element_data,
-            "special_checkboxes": {
-                key: checkbox.isChecked()
-                for key, checkbox in main.special_checkboxes.items()
-            },
-        }
-
-    def collect_project_state_data(self):
-        """Snapshot the current build without duplicating Desktop project-field collection."""
-        main = self.main_window
-        collect_build = getattr(main, "collect_character_build", None)
-        if not callable(collect_build):
-            raise RuntimeError("主程式缺少 Phase 8 collect_character_build()")
-        return {
-            "build": collect_build(),
-            "runtime": self._collect_compare_runtime_state(),
-        }
-
-    def _restore_compare_runtime_state(self, runtime):
-        """Restore compare-only controls after CharacterBuild has restored project data."""
-        if not isinstance(runtime, dict) or not runtime:
-            return
-        main = self.main_window
-        saved_filter = str(runtime.get("skill_filter", ""))
-        main.skill_filter_input.setText(saved_filter)
-
-        saved_skill_data = runtime.get("skill_data")
-        saved_skill_name = str(runtime.get("skill_name", "") or "")
-        index = main.skill_box.findData(saved_skill_data)
-        if index == -1 and saved_skill_name:
-            index = main.skill_box.findText(saved_skill_name)
-
-        skill_map = self._ctx("skill_map", {}) or {}
-        if index == -1 and saved_skill_name:
-            for skill_id, display_name in skill_map.items():
-                if str(display_name) == saved_skill_name:
-                    main.skill_box.addItem(display_name, skill_id)
-                    index = main.skill_box.count() - 1
-                    break
-
-        if index != -1:
-            main.skill_box.setCurrentIndex(index)
-
-        main.skill_LV_input.setText(str(runtime.get("skill_lv", main.skill_LV_input.text())))
-        main.skill_hits_input.setText(str(runtime.get("skill_hits", main.skill_hits_input.text())))
-        main.skill_formula_input.setText(str(runtime.get("skill_formula", main.skill_formula_input.text())))
-
-        attack_element_data = runtime.get("attack_element_data")
-        attack_index = main.attack_element_box.findData(attack_element_data)
-        if attack_index != -1:
-            main.attack_element_box.setCurrentIndex(attack_index)
-
-        for key, checked in runtime.get("special_checkboxes", {}).items():
-            checkbox = main.special_checkboxes.get(key)
-            if checkbox is not None:
-                checkbox.setChecked(bool(checked))
-
-    def restore_project_state_data(self, state, recalculate=True):
-        """Restore through CharacterBuild directly; no temporary JSON file is created."""
-        main = self.main_window
-        apply_build = getattr(main, "apply_character_build", None)
-        if not callable(apply_build):
-            raise RuntimeError("主程式缺少 Phase 8 apply_character_build()")
-
-        # Phase 9 state keeps CharacterBuild and UI-only runtime separate.  The legacy
-        # branch lets an already-open compare dialog restore a snapshot created before
-        # this migration was applied.
-        if isinstance(state, dict) and "build" in state:
-            build = state.get("build")
-            runtime = state.get("runtime", {})
-        else:
-            legacy = dict(state) if isinstance(state, dict) else state
-            runtime = legacy.pop("_compare_runtime", {}) if isinstance(legacy, dict) else {}
-            build = legacy
-
-        apply_build(build)
-        main.refresh_skill_list()
-        self._restore_compare_runtime_state(runtime)
-        if recalculate:
-            self._recalculate_main_now()
-
-    def _build_compare_parse_context(self):
-        """建立詞條解析所需的目前能力值與各部位精煉值。"""
-        main = self.main_window
-        stat_fields = self._ctx("stat_fields", {}) or {}
-        refine_parts = self._ctx("refine_parts", {}) or {}
-
-        get_values = {}
-        for gid, label in stat_fields.items():
-            widget = main.input_fields.get(label)
-            if widget is None:
-                get_values[gid] = 0
-            elif isinstance(widget, QComboBox):
-                get_values[gid] = widget.currentData()
-            else:
-                try:
-                    get_values[gid] = int(widget.text())
-                except (TypeError, ValueError):
-                    get_values[gid] = 0
-
-        refine_inputs = {}
-        for part_name, info in refine_parts.items():
-            slot_id = info["slot"]
-            widget = main.input_fields.get(part_name)
-            try:
-                refine_inputs[slot_id] = int(widget.text()) if widget is not None else 0
-            except (TypeError, ValueError):
-                refine_inputs[slot_id] = 0
-        return refine_inputs, get_values
-
-    def _parse_compare_note_text(self, part, ui, refine_inputs, get_values):
-        """把 Snapshot 中 Lua 詞條轉成可讀文字。"""
-        note_widget = ui.get("note")
-        if note_widget is None:
-            return ""
-        raw_text = note_widget.toPlainText().strip()
-        if not raw_text:
-            return ""
-
-        g = self.globals_map
-        mutable_names = (
-            "global_weapon_level_map",
-            "global_weapon_atk_map",
-            "global_weapon_matk_map",
-            "global_weapon_type_map",
-            "enabled_skill_levels",
-            "Use_skill_levels",
-        )
-        mutable_globals = [g.get(name) for name in mutable_names]
-        mutable_globals = [target for target in mutable_globals if isinstance(target, dict)]
-        backups = [dict(target) for target in mutable_globals]
-
-        try:
-            parser = self._ctx("parse_lua_effects_with_variables")
-            if not callable(parser):
-                raise RuntimeError("缺少 parse_lua_effects_with_variables")
-
-            refine_parts = self._ctx("refine_parts", {}) or {}
-            grade_widget = ui.get("grade")
-            grade = grade_widget.currentIndex() if grade_widget is not None else 0
-            slot_id = refine_parts.get(part, {}).get("slot")
-            parsed_results = parser(
-                block_text=raw_text,
-                refine_inputs=refine_inputs,
-                get_values=get_values,
-                grade=grade,
-                unit_map=self._ctx("unit_map", {}) or {},
-                size_map=self._ctx("size_map", {}) or {},
-                effect_map=self._ctx("effect_map", {}) or {},
-                hide_unrecognized=True,
-                hide_physical=False,
-                hide_magical=False,
-                current_location_slot=slot_id,
-            )
-            parsed_lines = [str(line).strip() for line in parsed_results if str(line).strip()]
-            if parsed_lines:
-                return "\n".join(parsed_lines)
-        except Exception as exc:
-            print(f"⚠️ 多裝備比對詞條解析失敗 [{part}]：{exc}")
-        finally:
-            for target, backup in zip(mutable_globals, backups):
-                target.clear()
-                target.update(backup)
-
-        note_ui = ui.get("note_ui")
-        if note_ui is not None:
-            parsed_fallback = note_ui.toPlainText().strip()
-            if parsed_fallback and "Add" not in parsed_fallback and "Sub" not in parsed_fallback:
-                return parsed_fallback
-        return "（無可解析詞條）"
-
-    def _collect_compare_equipment(self):
-        main = self.main_window
-        flat = {}
-        refine_inputs, get_values = self._build_compare_parse_context()
-
-        for part, ui in main.refine_inputs_ui.items():
-            if part == "技能":
-                continue
-            flat[f"{part} / 裝備"] = ui["equip"].text()
-            if "refine" in ui:
-                flat[f"{part} / 精煉"] = ui["refine"].text()
-            if "grade" in ui:
-                flat[f"{part} / 階級"] = ui["grade"].currentText()
-            for i, card in enumerate(ui.get("cards", []), 1):
-                flat[f"{part} / 卡片{i}"] = card.text()
-            if "note" in ui:
-                flat[f"{part} / 詞條"] = self._parse_compare_note_text(
-                    part, ui, refine_inputs, get_values
-                )
-
-        buff_names = [
-            str(name)
-            for name, checkbox in getattr(main, "skill_checkboxes", {}).items()
-            if checkbox.isChecked()
-        ]
-        flat["BUFF / 技能、料理"] = "\n".join(buff_names)
-        return flat
 
     @staticmethod
-    def _parse_compare_result_text(text):
-        result = {}
-        skip_keys = {"技能公式", "技能說明"}
-        for line in str(text or "").splitlines():
-            if ":" not in line:
-                continue
-            key, val = line.split(":", 1)
-            key = key.strip()
-            if not key or key in skip_keys:
-                continue
-            display = val.strip()
-            clean = display.replace(",", "")
-            match = re.search(r"[-]?\d+(?:\.\d+)?", clean)
-            if not match:
-                continue
-            try:
-                number = float(match.group(0))
-            except ValueError:
-                number = None
-            result[key] = {
-                "display": display,
-                "number": number,
-                "suffix": "%" if "%" in display else "",
-            }
-        return result
 
-    def _collect_compare_skill_results(self):
-        main = self.main_window
-        skill_name = main.skill_box.currentText().strip() if hasattr(main, "skill_box") else ""
-        attack_element = (
-            main.attack_element_box.currentText().strip()
-            if hasattr(main, "attack_element_box")
-            else ""
-        )
-        try:
-            skill_lv = int(main.skill_LV_input.text())
-            skill_lv_display = f"{skill_lv:,}"
-            skill_lv_number = float(skill_lv)
-        except (AttributeError, TypeError, ValueError):
-            raw_lv = main.skill_LV_input.text().strip() if hasattr(main, "skill_LV_input") else ""
-            skill_lv_display = raw_lv
-            skill_lv_number = None
-        return {
-            "技能名稱": {"display": skill_name, "number": None, "suffix": ""},
-            "技能等級": {"display": skill_lv_display, "number": skill_lv_number, "suffix": ""},
-            "技能攻擊屬性": {"display": attack_element, "number": None, "suffix": ""},
-        }
-
-    def _collect_compare_monster_results(self):
-        """收集目前專案檔可可靠還原的魔物設定，供 Snapshot 顯示與比對。"""
-        main = self.main_window
-        results = {}
-
-        def combo_text(name):
-            widget = getattr(main, name, None)
-            return widget.currentText().strip() if widget is not None else ""
-
-        def field_text(name, default=""):
-            widget = getattr(main, name, None)
-            if widget is None:
-                return default
-            try:
-                return widget.text().strip()
-            except Exception:
-                return default
-
-        size_text = combo_text("size_box")
-        race_text = combo_text("race_box")
-        element_text = combo_text("element_box")
-        class_text = combo_text("class_box")
-        element_lv = field_text("element_lv_input", "1")
-        target_display = (
-            f"{size_text} /{race_text} /{element_text} Lv.{element_lv} /{class_text}"
-        )
-        results["魔物 / 體種屬階"] = {
-            "display": target_display,
-            "number": None,
-            "suffix": "",
-        }
-
-        for key, attr in (
-            ("魔物 / 後 DEF", "def_input"),
-            ("魔物 / 前 DEF", "defc_input"),
-            ("魔物 / RES", "res_input"),
-            ("魔物 / 後 MDEF", "mdef_input"),
-            ("魔物 / 前 MDEF", "mdefc_input"),
-            ("魔物 / MRES", "mres_input"),
-        ):
-            raw = field_text(attr, "0")
-            try:
-                number = float(raw.replace(",", ""))
-            except (TypeError, ValueError):
-                number = None
-            results[key] = {
-                "display": raw,
-                "number": number,
-                "suffix": "",
-            }
-
-        return results
-
-    def _collect_compare_character_results(self):
-        main = self.main_window
-        g = self.globals_map
-        results = {}
-
-        def add_value(key, value):
-            try:
-                number = float(value)
-                display = f"{int(number):,}" if number.is_integer() else f"{number:,.2f}"
-            except (TypeError, ValueError):
-                number = None
-                display = str(value or "")
-            results[key] = {"display": display, "number": number, "suffix": ""}
-
-        for field_name in ("BaseLv", "JobLv"):
-            field = main.input_fields.get(field_name)
-            raw = field.text() if field is not None else g.get(field_name, 0)
-            add_value(f"角色等級 / {field_name}", raw)
-
-        for stat in ("STR", "AGI", "VIT", "INT", "DEX", "LUK"):
-            field = main.input_fields.get(stat)
-            fallback = field.text() if field is not None else 0
-            add_value(f"素質 / {stat}", g.get(f"total_{stat}", fallback))
-
-        for stat in ("POW", "STA", "WIS", "SPL", "CON", "CRT"):
-            field = main.input_fields.get(stat)
-            fallback = field.text() if field is not None else 0
-            add_value(f"特性素質 / {stat}", g.get(f"total_{stat}", fallback))
-        return results
 
     # === CORE DEDUP PHASE 10: MULTICOMPARE STRUCTURED CORE DAMAGE ===
     @staticmethod
@@ -535,33 +151,6 @@ class MultiCompareService:
             number=low,
         )
 
-    def _get_parity_valid_core_damage_payload(self):
-        """Return Stage17 structured data only after Phase 6 parity has passed.
-
-        MultiCompare must never silently switch to a Core value that the Desktop
-        parity gate already identified as different from the legacy calculation.
-        """
-        main = self.main_window
-        parity = getattr(main, "last_core_damage_parity", None)
-        parity_ok = getattr(main, "stage17_core_parity_ok", None)
-        if parity_ok is None and isinstance(parity, dict):
-            parity_ok = bool(parity.get("ok"))
-        if not parity_ok:
-            return None
-
-        payload = getattr(main, "last_core_damage_result", None)
-        if payload is None:
-            return None
-        if hasattr(payload, "to_dict"):
-            try:
-                payload = payload.to_dict()
-            except Exception:
-                return None
-        if not isinstance(payload, dict):
-            return None
-        if payload.get("coverage") != "shared-desktop-standard-path":
-            return None
-        return payload
 
     def _collect_compare_core_damage_results(self, payload=None):
         """Convert Stage17 structured result into MultiCompare's existing row contract.
@@ -570,13 +159,10 @@ class MultiCompareService:
         damage numbers and damage-breakdown rows come from Core rather than regex
         parsing the Desktop text box.
         """
-        supplied_payload = payload is not None
-        if payload is None:
-            payload = self._get_parity_valid_core_damage_payload()
-        elif hasattr(payload, "to_dict"):
+        if hasattr(payload, "to_dict"):
             payload = payload.to_dict()
         if not isinstance(payload, dict):
-            return {}, "legacy-text"
+            return {}, "core-unavailable"
 
         results = {}
         display_meta = payload.get("display", {}) if isinstance(payload.get("display"), dict) else {}
@@ -696,38 +282,7 @@ class MultiCompareService:
                 digits=row.get("digits"),
             )
 
-        return results, ("core-character-build" if supplied_payload else "core-stage17")
-
-    def _build_compare_snapshot(self, name, source=None):
-        main = self.main_window
-        result_text = main.custom_calc_box.toPlainText()
-        results = self._collect_compare_skill_results()
-
-        # Keep parsing the Desktop text for non-Stage17 legacy rows (HP/SP/status/etc.).
-        # Stage17 damage rows are overwritten from the parity-validated structured Core
-        # result below, so comparison numbers no longer depend on regex text parsing.
-        parsed_results = self._parse_compare_result_text(result_text)
-        parsed_results.pop("使用技能", None)
-        parsed_results.pop("技能名稱", None)
-        parsed_results.pop("技能等級", None)
-        parsed_results.pop("技能攻擊屬性", None)
-        results.update(parsed_results)
-
-        core_damage_results, damage_result_source = self._collect_compare_core_damage_results()
-        if core_damage_results:
-            results.update(core_damage_results)
-
-        results.update(self._collect_compare_monster_results())
-        results.update(self._collect_compare_character_results())
-        return {
-            "name": str(name or "未命名"),
-            "source": source,
-            "equipment": self._collect_compare_equipment(),
-            "results": results,
-            # Retain original Desktop text for debugging/export compatibility only.
-            "result_text": result_text,
-            "damage_result_source": damage_result_source,
-        }
+        return results, "core-character-build"
 
 
     # === CORE DEDUP PHASE 12+13+14: HEADLESS MULTICOMPARE ===
@@ -924,7 +479,6 @@ class MultiCompareService:
         build = CoreCharacterBuild.from_dict(payload)
         calculation = self._calculate_character_build_core(build, for_saved_build=True)
         return self._build_compare_snapshot_from_core(Path(file_path).stem, build, calculation, source=file_path)
-
 
 
 class MultiCompareDialog(QDialog):
