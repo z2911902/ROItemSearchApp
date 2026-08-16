@@ -247,6 +247,7 @@ from ro_core import (
     stage17_calc_final_def_damage as _core_stage17_calc_final_def_damage,
     stage17_calc_final_mdef_damage as _core_stage17_calc_final_mdef_damage,
     stage17_calc_final_res_damage as _core_stage17_calc_final_res_damage,
+    stage17_calculate_target_defense_factors as _core_stage17_calculate_target_defense_factors,
     stage17_calc_weapon_refine_atk as _core_stage17_calc_weapon_refine_atk,
     stage17_calc_weapon_refine_matk as _core_stage17_calc_weapon_refine_matk,
     stage17_get_damage_multiplier as _core_stage17_get_damage_multiplier,
@@ -5607,32 +5608,31 @@ class ItemSearchApp(QWidget):
         else:
             skill_row = skill_row.iloc[0]
 
-        #半無視防禦取得
-        half_bypass_def = int(skill_row["half_bypass_def"]) if pd.notna(skill_row.get("half_bypass_def")) else 0 
-        half_bypass_res = int(skill_row["half_bypass_res"]) if pd.notna(skill_row.get("half_bypass_res")) else 0 
+        # 半無視 / DEF / MDEF / RES / MRES 已集中到 ro_core，Desktop 只保留變數相容層。
+        half_bypass_def = int(skill_row["half_bypass_def"]) if pd.notna(skill_row.get("half_bypass_def")) else 0
+        half_bypass_res = int(skill_row["half_bypass_res"]) if pd.notna(skill_row.get("half_bypass_res")) else 0
+        defense_factors = _core_stage17_calculate_target_defense_factors(
+            effect_dict=effect_dict,
+            target_race=target_race,
+            target_class=target_class,
+            target_def=target_def,
+            target_defc=target_defc,
+            target_res=target_res,
+            target_mdef=target_mdef,
+            target_mres=target_mres,
+            half_bypass_def=half_bypass_def,
+            half_bypass_res=half_bypass_res,
+        )
+        def_reduction = defense_factors["def_reduction"]
+        mdef_reduction = defense_factors["mdef_reduction"]
+        res_reduction = defense_factors["res_reduction"]
+        mres_reduction = defense_factors["mres_reduction"]
+        damage_nodef = defense_factors["def_multiplier"]
+        Mdamage_nomdef = defense_factors["mdef_multiplier"]
+        damage_nores = defense_factors["res_multiplier"]
+        Mdamage_nomres = defense_factors["mres_multiplier"]
+        target_defc = defense_factors["target_defc"]
 
-        #物理破防
-        def_reduction = ((get_effect_multiplier('D_Race_def', target_race))+(get_effect_multiplier('D_Race_def', 9999))+(get_effect_multiplier('D_class_def', target_class)))
-        #半無視def判斷
-        damage_nodef = 1 if half_bypass_def == 1 else calc_final_def_damage(target_def, def_reduction)             
-        target_defc = target_def + target_defc if half_bypass_def == 1 else target_defc
-        #魔法破防
-        mdef_reduction = ((get_effect_multiplier('MD_Race_def', target_race))+(get_effect_multiplier('MD_Race_def', 9999))+(get_effect_multiplier('MD_class_def', target_class)))
-        Mdamage_nomdef = calc_final_mdef_damage(target_mdef, mdef_reduction)       
-
-        #res        
-        res_reduction = 50 if half_bypass_res == 1 else ((get_effect_multiplier('D_Race_res', target_race))+(get_effect_multiplier('D_Race_res', 9999)))
-        res_reduction = min(res_reduction, 50)#破抗性最大50%
-        #無視res判斷
-        damage_nores = calc_final_res_damage(target_res, res_reduction)
-
-        
-        #MRES
-        mres_reduction = ((get_effect_multiplier('MD_Race_res', target_race))+(get_effect_multiplier('MD_Race_res', 9999)))
-        mres_reduction = min(mres_reduction, 50)#破抗性最大50%
-        Mdamage_nomres = calc_final_res_damage(target_mres, mres_reduction)
-
-        
         # 查詢屬性倍率函數
         def get_damage_multiplier(attacker_element: int, defender_element: int, level: int) -> int:
             return _core_stage17_get_damage_multiplier(attacker_element, defender_element, level)

@@ -6247,6 +6247,88 @@ def _stage17_effect_multiplier(effect_dict, category, index):
     return 0
 
 
+# === CORE DEDUP PHASE 3: SHARED TARGET DEFENSE FACTORS ===
+def stage17_calculate_target_defense_factors(
+    *,
+    effect_dict,
+    target_race,
+    target_class,
+    target_def,
+    target_defc,
+    target_res,
+    target_mdef,
+    target_mres,
+    half_bypass_def=0,
+    half_bypass_res=0,
+):
+    """Calculate Stage 17 target defense/ignore factors shared by Desktop/Web.
+
+    This intentionally preserves the current Desktop semantics:
+    - half_bypass_def makes the after-DEF multiplier 1 and moves DEF into
+      the flat pre-DEF subtraction;
+    - half_bypass_res forces physical RES ignore to the 50% cap;
+    - RES/MRES ignore are capped at 50%; DEF/MDEF ignore are not capped here.
+    """
+    target_race = _stage17_int(target_race)
+    target_class = _stage17_int(target_class)
+    half_bypass_def = _stage17_int(half_bypass_def)
+    half_bypass_res = _stage17_int(half_bypass_res)
+    target_def = _stage17_number(target_def, 0)
+    target_defc = _stage17_number(target_defc, 0)
+    target_res = _stage17_number(target_res, 0)
+    target_mdef = _stage17_number(target_mdef, 0)
+    target_mres = _stage17_number(target_mres, 0)
+
+    def_reduction = (
+        _stage17_effect_multiplier(effect_dict, "D_Race_def", target_race)
+        + _stage17_effect_multiplier(effect_dict, "D_Race_def", 9999)
+        + _stage17_effect_multiplier(effect_dict, "D_class_def", target_class)
+    )
+    mdef_reduction = (
+        _stage17_effect_multiplier(effect_dict, "MD_Race_def", target_race)
+        + _stage17_effect_multiplier(effect_dict, "MD_Race_def", 9999)
+        + _stage17_effect_multiplier(effect_dict, "MD_class_def", target_class)
+    )
+    res_reduction = 50 if half_bypass_res == 1 else (
+        _stage17_effect_multiplier(effect_dict, "D_Race_res", target_race)
+        + _stage17_effect_multiplier(effect_dict, "D_Race_res", 9999)
+    )
+    mres_reduction = (
+        _stage17_effect_multiplier(effect_dict, "MD_Race_res", target_race)
+        + _stage17_effect_multiplier(effect_dict, "MD_Race_res", 9999)
+    )
+    res_reduction = min(res_reduction, 50)
+    mres_reduction = min(mres_reduction, 50)
+
+    def_multiplier = (
+        1.0
+        if half_bypass_def == 1
+        else stage17_calc_final_def_damage(target_def, def_reduction)
+    )
+    adjusted_defc = target_def + target_defc if half_bypass_def == 1 else target_defc
+    mdef_multiplier = stage17_calc_final_mdef_damage(target_mdef, mdef_reduction)
+    res_multiplier = stage17_calc_final_res_damage(target_res, res_reduction)
+    mres_multiplier = stage17_calc_final_res_damage(target_mres, mres_reduction)
+
+    return {
+        "half_bypass_def": half_bypass_def,
+        "half_bypass_res": half_bypass_res,
+        "def_reduction": def_reduction,
+        "mdef_reduction": mdef_reduction,
+        "res_reduction": res_reduction,
+        "mres_reduction": mres_reduction,
+        "def_multiplier": def_multiplier,
+        "mdef_multiplier": mdef_multiplier,
+        "res_multiplier": res_multiplier,
+        "mres_multiplier": mres_multiplier,
+        "target_def": target_def,
+        "target_defc": adjusted_defc,
+        "target_res": target_res,
+        "target_mdef": target_mdef,
+        "target_mres": target_mres,
+    }
+
+
 def _stage17_slot_grade(request, slot_id):
     for slot in getattr(request, "slots", []) or []:
         if _stage17_int(getattr(slot, "slot_id", 0)) == slot_id:
@@ -6704,42 +6786,32 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     target_class = _stage17_int(monster.get("class", 0))
     half_bypass_def = _stage17_int(row.get("half_bypass_def", 0))
     half_bypass_res = _stage17_int(row.get("half_bypass_res", 0))
-    # Desktop half_bypass_def semantics are not a 50% defense reduction:
-    # after-DEF multiplier becomes 1 and after DEF is moved into the flat
-    # before-DEF subtraction. Keep normal def_reduction because Investigate
-    # still reads it when calculating its fixed ATK bonus.
-    def_reduction = (
-        _stage17_effect_multiplier(effect_dict, "D_Race_def", target_race)
-        + _stage17_effect_multiplier(effect_dict, "D_Race_def", 9999)
-        + _stage17_effect_multiplier(effect_dict, "D_class_def", target_class)
-    )
-    mdef_reduction = (
-        _stage17_effect_multiplier(effect_dict, "MD_Race_def", target_race)
-        + _stage17_effect_multiplier(effect_dict, "MD_Race_def", 9999)
-        + _stage17_effect_multiplier(effect_dict, "MD_class_def", target_class)
-    )
-    res_reduction = 50 if half_bypass_res == 1 else (
-        _stage17_effect_multiplier(effect_dict, "D_Race_res", target_race)
-        + _stage17_effect_multiplier(effect_dict, "D_Race_res", 9999)
-    )
-    mres_reduction = (
-        _stage17_effect_multiplier(effect_dict, "MD_Race_res", target_race)
-        + _stage17_effect_multiplier(effect_dict, "MD_Race_res", 9999)
-    )
-    res_reduction = min(res_reduction, 50)
-    mres_reduction = min(mres_reduction, 50)
     target_def = _stage17_number(monster.get("def", 0), 0)
     target_mdef = _stage17_number(monster.get("mdef", 0), 0)
     target_res = _stage17_number(monster.get("res", 0), 0)
     target_mres = _stage17_number(monster.get("mres", 0), 0)
     target_defc = _stage17_number(monster.get("defc", 0), 0)
-    def_multiplier = 1.0 if half_bypass_def == 1 else stage17_calc_final_def_damage(target_def, def_reduction)
-    if half_bypass_def == 1:
-        target_defc = target_def + target_defc
-    mdef_multiplier = stage17_calc_final_mdef_damage(target_mdef, mdef_reduction)
-    res_multiplier = stage17_calc_final_res_damage(target_res, res_reduction)
-    mres_multiplier = stage17_calc_final_res_damage(target_mres, mres_reduction)
-
+    defense_factors = stage17_calculate_target_defense_factors(
+        effect_dict=effect_dict,
+        target_race=target_race,
+        target_class=target_class,
+        target_def=target_def,
+        target_defc=target_defc,
+        target_res=target_res,
+        target_mdef=target_mdef,
+        target_mres=target_mres,
+        half_bypass_def=half_bypass_def,
+        half_bypass_res=half_bypass_res,
+    )
+    def_reduction = defense_factors["def_reduction"]
+    mdef_reduction = defense_factors["mdef_reduction"]
+    res_reduction = defense_factors["res_reduction"]
+    mres_reduction = defense_factors["mres_reduction"]
+    def_multiplier = defense_factors["def_multiplier"]
+    mdef_multiplier = defense_factors["mdef_multiplier"]
+    res_multiplier = defense_factors["res_multiplier"]
+    mres_multiplier = defense_factors["mres_multiplier"]
+    target_defc = defense_factors["target_defc"]
     investigate = 0
     if _stage17_int(used.get(266, 0)) == 1:
         temp = int(100 - def_reduction)
