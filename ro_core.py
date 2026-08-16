@@ -10053,23 +10053,26 @@ def stage21_9_parse_note_preview(
 # === STAGE 21.9 NOTE EDITOR CORE END ===
 
 # === CORE DEDUP PHASE 8: CHARACTER BUILD MODEL ===
+# === CORE DEDUP PHASE 16: CHARACTER BUILD SCHEMA V2 ===
 CHARACTER_BUILD_SCHEMA = "ROItemSearchApp.CharacterBuild"
-CHARACTER_BUILD_VERSION = 1
+CHARACTER_BUILD_VERSION = 2
 CHARACTER_BUILD_META_KEY = "_roitemsearch_build"
+CHARACTER_BUILD_COMBAT_KEY = "_roitemsearch_combat"
 
 
 @dataclass
+@dataclass
 class CharacterBuild:
-    """Qt-free project/build payload shared by Desktop, Web, and compare tools.
+    """Versioned Qt-free build shared by Desktop, Web, and comparison tools.
 
-    The existing project JSON is intentionally kept as a flat mapping for backward
-    compatibility.  Phase 8 adds one namespaced metadata key when saving, while
-    :meth:`from_dict` continues to accept every legacy JSON file that has no metadata.
-    Unknown project keys are preserved unchanged so newer Desktop fields can round-trip
-    through older Core-aware code without being discarded.
+    Schema v2 keeps the historical flat project fields in ``values`` and stores
+    transient combat controls in a separate namespaced ``combat_state`` object.
+    Old v0/v1 JSON remains readable.  ``to_legacy_dict()`` deliberately excludes
+    v2 metadata/state so old Desktop field-application code continues to work.
     """
 
     values: dict[str, Any] = field(default_factory=dict)
+    combat_state: dict[str, Any] = field(default_factory=dict)
     schema: str = CHARACTER_BUILD_SCHEMA
     version: int = CHARACTER_BUILD_VERSION
     source_version: int = 0
@@ -10079,6 +10082,7 @@ class CharacterBuild:
         if isinstance(payload, cls):
             return cls(
                 values=dict(payload.values),
+                combat_state=dict(payload.combat_state),
                 schema=payload.schema,
                 version=CHARACTER_BUILD_VERSION,
                 source_version=payload.source_version,
@@ -10088,6 +10092,12 @@ class CharacterBuild:
 
         values = dict(payload)
         metadata = values.pop(CHARACTER_BUILD_META_KEY, None)
+        combat_state = values.pop(CHARACTER_BUILD_COMBAT_KEY, {})
+        if combat_state is None:
+            combat_state = {}
+        if not isinstance(combat_state, dict):
+            raise ValueError(f"{CHARACTER_BUILD_COMBAT_KEY} must be an object")
+
         source_version = 0
         schema = CHARACTER_BUILD_SCHEMA
         if metadata is not None:
@@ -10110,18 +10120,50 @@ class CharacterBuild:
 
         return cls(
             values=values,
+            combat_state=dict(combat_state),
             schema=CHARACTER_BUILD_SCHEMA,
             version=CHARACTER_BUILD_VERSION,
             source_version=source_version,
         )
 
+    def with_combat_state(self, combat_state: Any) -> "CharacterBuild":
+        if combat_state is None:
+            combat_state = {}
+        if not isinstance(combat_state, dict):
+            raise TypeError("combat_state must be a mapping")
+        return CharacterBuild(
+            values=dict(self.values),
+            combat_state=dict(combat_state),
+            schema=CHARACTER_BUILD_SCHEMA,
+            version=CHARACTER_BUILD_VERSION,
+            source_version=self.source_version,
+        )
+
+    def merge_runtime_overrides(self, runtime_overrides: Any = None) -> dict[str, Any]:
+        """Merge persisted v2 combat state with explicit caller overrides.
+
+        Explicit runtime values win.  ``special`` is merged key-by-key so a caller
+        can override one transient flag without deleting the other persisted flags.
+        """
+        merged = dict(self.combat_state or {})
+        runtime = dict(runtime_overrides or {})
+        saved_special = dict(merged.pop("special", {}) or {})
+        runtime_special = runtime.pop("special", None)
+        merged.update(runtime)
+        if runtime_special is not None:
+            saved_special.update(dict(runtime_special or {}))
+        if saved_special:
+            merged["special"] = saved_special
+        return merged
+
     def to_legacy_dict(self) -> dict[str, Any]:
-        """Return the old flat project mapping without Phase-8 metadata."""
+        """Return only the historical flat project mapping."""
         return dict(self.values)
 
     def to_dict(self, *, include_metadata: bool = True) -> dict[str, Any]:
-        """Return a JSON-ready mapping while preserving the legacy flat fields."""
+        """Return a JSON-ready build payload using CharacterBuild schema v2."""
         result = dict(self.values)
+        result[CHARACTER_BUILD_COMBAT_KEY] = dict(self.combat_state or {})
         if include_metadata:
             result[CHARACTER_BUILD_META_KEY] = {
                 "schema": CHARACTER_BUILD_SCHEMA,
@@ -10486,6 +10528,7 @@ def calculate_character_build(
     if not isinstance(build, CharacterBuild):
         build = CharacterBuild.from_dict(build)
     values = build.to_legacy_dict()
+    runtime_overrides = build.merge_runtime_overrides(runtime_overrides)
     warnings = []
 
     request = character_build_to_equipment_request(

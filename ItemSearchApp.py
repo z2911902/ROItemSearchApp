@@ -8473,6 +8473,7 @@ class ItemSearchApp(QWidget):
             note_key = f"{part}_note"
             if note_key in saved_data and "note" in info:
                 info["note"].setPlainText(saved_data[note_key])
+        self.apply_character_combat_state(build)
 
     def load_saved_inputs(self, filename="saved_inputs.json"):
         if not os.path.exists(filename):
@@ -8742,8 +8743,111 @@ class ItemSearchApp(QWidget):
             data_dir=data_dir,
         )
 
+    # === CORE DEDUP PHASE 16: CHARACTER BUILD SCHEMA V2 ===
+    def apply_character_combat_state(self, build):
+        """Restore CharacterBuild-v2 transient combat controls without changing legacy JSON fields."""
+        if not isinstance(build, CoreCharacterBuild):
+            build = CoreCharacterBuild.from_dict(build)
+        state = dict(getattr(build, "combat_state", {}) or {})
+        if not state:
+            return
+
+        def set_combo_data(widget, value):
+            if widget is None or value is None:
+                return
+            previous = widget.blockSignals(True)
+            try:
+                index = widget.findData(value)
+                if index == -1:
+                    try:
+                        index = widget.findData(int(value))
+                    except (TypeError, ValueError):
+                        pass
+                if index != -1:
+                    widget.setCurrentIndex(index)
+            finally:
+                widget.blockSignals(previous)
+
+        def set_combo_text(widget, value):
+            if widget is None or value is None:
+                return
+            previous = widget.blockSignals(True)
+            try:
+                index = widget.findText(str(value))
+                if index != -1:
+                    widget.setCurrentIndex(index)
+            finally:
+                widget.blockSignals(previous)
+
+        set_combo_data(getattr(self, "skill_box", None), state.get("skill_id"))
+        if state.get("skill_level") is not None and getattr(self, "skill_LV_input", None) is not None:
+            self.skill_LV_input.setText(str(state.get("skill_level")))
+        if "formula_override" in state and getattr(self, "skill_formula_input", None) is not None:
+            formula = state.get("formula_override")
+            if formula is not None:
+                self.skill_formula_input.setText(str(formula))
+        set_combo_data(getattr(self, "attack_element_box", None), state.get("attack_element"))
+
+        if getattr(self, "hp_slider", None) is not None and state.get("hp_percent") is not None:
+            self.hp_slider.setValue(max(0, min(100, int(state.get("hp_percent")))))
+        if getattr(self, "sp_slider", None) is not None and state.get("sp_percent") is not None:
+            self.sp_slider.setValue(max(0, min(100, int(state.get("sp_percent")))))
+        if getattr(self, "use_logout_hpsp_checkbox", None) is not None and "use_logout_hpsp" in state:
+            self.use_logout_hpsp_checkbox.setChecked(bool(state.get("use_logout_hpsp")))
+
+        if state.get("damage_multiplier_percent") is not None:
+            try:
+                number = float(state.get("damage_multiplier_percent"))
+                text = f"{number:g}%"
+            except (TypeError, ValueError):
+                text = str(state.get("damage_multiplier_percent"))
+            set_combo_text(getattr(self, "damage_reduction_combobox", None), text)
+
+        if state.get("betelgeuse_def") is not None:
+            set_combo_text(getattr(self, "MD_BETELGEUSE_combo_def", None), int(state.get("betelgeuse_def")))
+        if state.get("betelgeuse_soul") is not None:
+            set_combo_text(getattr(self, "MD_BETELGEUSE_combo_soul", None), int(state.get("betelgeuse_soul")))
+        try:
+            star = int(self.MD_BETELGEUSE_combo_def.currentText())
+            soul = int(self.MD_BETELGEUSE_combo_soul.currentText())
+            self.MD_BETELGEUSE_total = min((star + soul) * 10, 99)
+            if getattr(self, "MD_BETELGEUSE_label_total", None) is not None:
+                self.MD_BETELGEUSE_label_total.setText(f"{int(self.MD_BETELGEUSE_total)}%")
+        except Exception:
+            if state.get("betelgeuse_reduction_percent") is not None:
+                self.MD_BETELGEUSE_total = int(state.get("betelgeuse_reduction_percent") or 0)
+
+        special = dict(state.get("special") or {})
+        checkbox_names = {
+            "wanzih": "wanzih_checkbox",
+            "poison_weak": "poison_weak_checkbox",
+            "magic_poison": "magic_poison_checkbox",
+            "attribute_seal": "attribute_seal_checkbox",
+            "sneak_attack": "sneak_attack_checkbox",
+            "spore_attack": "SPORE_attack_checkbox",
+            "dark_crow": "DARKCROW_attack_checkbox",
+            "rush_attack": "RUSH_attack_checkbox",
+            "oleum_attack": "OLEUM_attack_checkbox",
+            "lex_aeterna": "PR_LEXAETERNA_checkbox",
+        }
+        widgets = getattr(self, "special_checkboxes", {}) or {}
+        for state_name, widget_name in checkbox_names.items():
+            if state_name not in special:
+                continue
+            widget = widgets.get(widget_name)
+            if widget is not None:
+                previous = widget.blockSignals(True)
+                try:
+                    widget.setChecked(bool(special.get(state_name)))
+                finally:
+                    widget.blockSignals(previous)
+        if "total_srl" in special:
+            globals()["total_SRL"] = special.get("total_srl", 0)
+
+        self.last_character_build = build
+
     def collect_character_calculation_runtime(self):
-        """Snapshot only transient combat controls that CharacterBuild intentionally does not persist."""
+        """Snapshot persisted CharacterBuild-v2 combat controls from Desktop widgets."""
         special_checks = getattr(self, "special_checkboxes", {}) or {}
 
         def checked(name):
@@ -8762,6 +8866,14 @@ class ItemSearchApp(QWidget):
             sp_percent = int(self.sp_slider.value())
         except Exception:
             sp_percent = 100
+        try:
+            betelgeuse_def = int(self.MD_BETELGEUSE_combo_def.currentText())
+        except Exception:
+            betelgeuse_def = 0
+        try:
+            betelgeuse_soul = int(self.MD_BETELGEUSE_combo_soul.currentText())
+        except Exception:
+            betelgeuse_soul = 0
 
         return {
             "skill_id": self.skill_box.currentData(),
@@ -8770,7 +8882,10 @@ class ItemSearchApp(QWidget):
             "attack_element": self.attack_element_box.currentData(),
             "hp_percent": hp_percent,
             "sp_percent": sp_percent,
+            "use_logout_hpsp": bool(getattr(self, "use_logout_hpsp_checkbox", None) is not None and self.use_logout_hpsp_checkbox.isChecked()),
             "damage_multiplier_percent": damage_multiplier,
+            "betelgeuse_def": betelgeuse_def,
+            "betelgeuse_soul": betelgeuse_soul,
             "betelgeuse_reduction_percent": int(getattr(self, "MD_BETELGEUSE_total", 0) or 0),
             "special": {
                 "wanzih": checked("wanzih_checkbox"),
@@ -12028,6 +12143,8 @@ class ItemSearchApp(QWidget):
 
         build = CoreCharacterBuild.from_dict(data)
         self.last_character_build = build
+        build = build.with_combat_state(self.collect_character_calculation_runtime())
+        self.last_character_build = build
         return build
 
     def save_to_file(self, file_path):
@@ -12056,6 +12173,8 @@ class ItemSearchApp(QWidget):
             self.load_saved_inputs(file_path)
             #self.update_window_title()
             self.refresh_skill_list()
+            if getattr(self, "last_character_build", None) is not None:
+                self.apply_character_combat_state(self.last_character_build)
             self.trigger_total_effect_update()
         except Exception as e:
             QMessageBox.critical(self, tr("message.title.error"), tr("message.load_failed", error=str(e)))
@@ -12123,6 +12242,8 @@ class ItemSearchApp(QWidget):
             # self.update_dex_int_half_note()
             # self.jobsphp_display()
             self.refresh_skill_list()
+            if getattr(self, "last_character_build", None) is not None:
+                self.apply_character_combat_state(self.last_character_build)
             self.trigger_total_effect_update()
 
 

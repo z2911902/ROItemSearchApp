@@ -40,6 +40,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+# === CORE DEDUP PHASE 16: CHARACTER BUILD SCHEMA V2 ===
 # === CORE DEDUP PHASE 12+13+14: HEADLESS MULTICOMPARE ===
 from ro_core import (
     CharacterBuild as CoreCharacterBuild,
@@ -301,19 +302,20 @@ class MultiCompareService:
         self._phase121314_core_runtime = runtime
         return runtime
 
-    def _core_runtime_overrides(self, *, for_saved_build=False):
+    def _core_runtime_overrides(self, *, for_saved_build=False, build=None):
         collector = self._ctx("collect_character_calculation_runtime")
         raw = collector() if callable(collector) else {}
         raw = dict(raw or {})
+        if for_saved_build and getattr(build, "combat_state", None):
+            # Schema-v2 project files are self-contained.  Do not let the currently
+            # open Desktop's transient controls overwrite the saved combat state.
+            return {}
         if for_saved_build:
-            # Loading a project historically changed skill/formula/HP sources according to
-            # that build, but kept global transient toggles such as target attack element,
-            # special checkboxes and the monster damage multiplier.
+            # v0/v1 compatibility: these project files did not persist combat state,
+            # so retain the historical fallback to current global/transient controls.
             raw.pop("skill_id", None)
             raw.pop("skill_level", None)
             raw.pop("formula_override", None)
-            # load_saved_inputs() selects the saved skill after signals are restored;
-            # the Desktop skill handler then restores that skill's default element.
             raw.pop("attack_element", None)
             special = dict(raw.get("special") or {})
             special.pop("total_srl", None)
@@ -329,7 +331,7 @@ class MultiCompareService:
             stat_fields=self._ctx("stat_fields", {}) or {},
             refine_parts=self._ctx("refine_parts", {}) or {},
             grade_index_maps=self._ctx("grade_index_maps", {}) or {},
-            runtime_overrides=self._core_runtime_overrides(for_saved_build=for_saved_build),
+            runtime_overrides=self._core_runtime_overrides(for_saved_build=for_saved_build, build=build),
         )
 
     def _collect_compare_equipment_from_build(self, build, calculation):
