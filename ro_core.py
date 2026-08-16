@@ -7378,6 +7378,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
             "mres_multiplier": mres_multiplier,
         },
         "breakdown": damage_breakdown,
+        "raw_segments": results,  # Phase 11: preserve pre-display Stage17 segments
         "segments": display_results,
         "total_damage_min": total_min,
         "total_damage": total_max,
@@ -7418,6 +7419,10 @@ class Stage17DamageResult:
     @property
     def breakdown(self):
         return self.data.get("breakdown", {})
+
+    @property
+    def raw_segments(self):
+        return self.data.get("raw_segments", self.data.get("segments", []))
 
     @property
     def warnings(self):

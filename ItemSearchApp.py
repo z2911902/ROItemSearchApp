@@ -5670,15 +5670,6 @@ class ItemSearchApp(QWidget):
         #============================魔法各增傷計算區============================
 
 
-        def apply_stepwise_percent_mode(base, *items):
-            result, _core_steps = _core_stage17_apply_stepwise(base, *items)
-            for _step in _core_steps:
-                _value = 40 + _step['value'] if _step['mode'] == 1.4 else _step['value']
-                self.steps.append([_step['name'], _value])
-            return result
-            
-
-                
         def visual_length(s: str) -> int:
             """計算視覺寬度：全形字算2，半形算1"""
             width = 0
@@ -6027,481 +6018,77 @@ class ItemSearchApp(QWidget):
         
 
         
+        # === CORE DEDUP PHASE 11: CORE-ONLY STAGE17 DAMAGE SEGMENTS ===
+        # Core is now the only source for Stage17 damage/formula segment values.
+        # Desktop keeps the existing legacy presenter below so text order/spacing stays unchanged.
+        core_snapshot = self.refresh_core_stage17_snapshot()
+        if core_snapshot is None:
+            if render_output:
+                self.skill_formula_result_input.setText("0%")
+                error_text = self.last_core_damage_error or "Core Stage17 計算失敗"
+                self.custom_calc_box.setPlainText(f"錯誤：{error_text}")
+            return
+
+        core_payload = core_snapshot.to_dict() if hasattr(core_snapshot, "to_dict") else dict(core_snapshot or {})
+        results = [
+            dict(item)
+            for item in (core_payload.get("segments", []) or [])
+            if isinstance(item, dict)
+        ]
+        raw_core_segments = [
+            dict(item)
+            for item in (core_payload.get("raw_segments", []) or [])
+            if isinstance(item, dict)
+        ]
+        if not raw_core_segments:
+            raw_core_segments = list(results)
+
+        # Keep the original bottom formula section contract. raw_segments preserves
+        # repeated/negative-hit formula rows even when display segments are normalized.
         bottom_result = []
-        def compute_and_record_damage(formula, repeat_count=1, bonus_add=0, bonus_step=0, label="main", skill_hits=1, user_attack_element=0):
-            
-            results = []
-            allowed_vars = {k: v for k, v in globals().items() if isinstance(v, (int, float))}
-            symbols_dict = {k: Symbol(k) for k in allowed_vars}
+        label_counts = {}
+        for item in raw_core_segments:
+            label_key = str(item.get("label", "main") or "main")
+            label_counts[label_key] = label_counts.get(label_key, 0) + 1
+        for item in raw_core_segments:
+            label_key = str(item.get("label", "main") or "main")
+            total_rounds = max(1, int(label_counts.get(label_key, 1) or 1))
+            try:
+                round_no = int(item.get("round", 1) or 1)
+            except (TypeError, ValueError):
+                round_no = 1
+            formula_show = item.get("formula_expanded") or item.get("formula") or ""
+            bottom_result.append(
+                f"{pad_label('技能公式:')}[{round_no}/{total_rounds}] {formula_show}"
+            )
 
-            for i in range(repeat_count):
-                add_expr = (str(bonus_add).strip() if bonus_add not in [None, "nan"] else "")
-                step_expr = (str(bonus_step).strip() if bonus_step not in [None, "nan"] else "")
+        # Damage_view historically used the final legacy step list. Rebuild that list
+        # from the final Core raw segment instead of recalculating damage in Desktop.
+        self.steps = []
+        step_source = raw_core_segments[-1] if raw_core_segments else (results[-1] if results else {})
+        for step in (step_source.get("steps", []) or []):
+            if not isinstance(step, dict):
+                continue
+            name = str(step.get("name", "") or "")
+            value = step.get("value", 0)
+            mode = step.get("mode")
+            try:
+                if mode == 1.4:
+                    value = 40 + float(value)
+            except (TypeError, ValueError):
+                pass
+            self.steps.append([name, value])
 
-                # 嘗試解析 step
-                try:
-                    step_val = float(step_expr) if step_expr else 0.0
-                except ValueError:
-                    step_val = 0.0
-
-                # === 如果沒有 decay 或沒有加成輸入，保持原公式 ===
-                if repeat_count <= 1 and not add_expr and not step_expr:
-                    full_formula = formula
-                else:
-                    if add_expr.startswith('*'):
-                        # === 乘法模式 ===
-                        try:
-                            base_mult = float(add_expr[1:] or 1)
-                        except ValueError:
-                            base_mult = 1.0
-                        current_mult = base_mult + step_val * i
-                        full_formula = f"({formula}) * {current_mult}"
-
-                    elif add_expr or step_expr:
-                        # === 加減模式 ===
-                        try:
-                            base_add = float(add_expr or 0)
-                        except ValueError:
-                            base_add = 0.0
-                        current_add = base_add + step_val * i
-                        if current_add == 0:
-                            full_formula = f"{formula}"  # 不顯示 +0
-                        else:
-                            sign = '+' if current_add > 0 else ''
-                            full_formula = f"({formula}) {sign} {current_add}"
-                    else:
-                        # 完全沒輸入加成
-                        full_formula = formula
-
-                # === 套用替換函式 ===
-
-
-                full_formula = replace_gsklv_calls(full_formula)#替換gsklv
-                full_formula = replace_gusklv_calls(full_formula)#替換gusklv
-                full_formula = replace_size_calls(full_formula,target_size)#替換size
-                full_formula = replace_custom_calls(full_formula)#替換wpon(0)2:1
-                full_formula_show,full_formula = eval_formula_with_vars(full_formula, allowed_vars)# 手動變數替換後的字串公式 支援捨去計算               
-                skill_SpecialATK_show , skill_SpecialATK = eval_formula_with_vars(str(skill_row["skill_SpecialATK"]).strip() if pd.notna(skill_row.get("skill_SpecialATK")) else "0", allowed_vars) #技能隱藏段
-                
-
-                #print(f"轉換後的公式：{full_formula_show}")
-                bottom_result.append(f"{pad_label('技能公式:')}[{i+1}/{repeat_count}] {full_formula_show}")
-                #怪物減傷取得
-                def get_damage_reduction_value(self):
-                    text = self.damage_reduction_combobox.currentText()  # 例如 "100%"
-                    percent = float(text.replace('%', ''))
-                    value = percent / 100
-                    return value
-                
-
-
-                try:
-                    expr = sympify(full_formula, locals=symbols_dict)
-                    used_symbols = {str(s) for s in expr.free_symbols}
-                    missing_symbols = used_symbols - set(allowed_vars.keys())
-                    if missing_symbols:
-                        raise ValueError(f"公式中錯誤的符號： {missing_symbols}")
-
-                    calc_result = expr.evalf(subs=allowed_vars)
-                    #skill_result = round(calc_result, 2)
-                    skill_result = int(calc_result)
-                    #skill_result = calc_result
-
-                    #狙殺瞄準20%加在增/減益後
-                    skill_result = skill_result + 20 if int(GUSklv(380)) == 1 else skill_result
-                    
-
-                    print(f"[{i+1}/{repeat_count}] 技能公式結果: {skill_result}")
-                    self.steps = []
-                    if attack_type == "magic":                        
-                        final_damage ,final_damage_min = apply_stepwise_percent_mode(
-                            #初始值
-                            (armorMATK_MAGICPOWER,armorMATK_MAGICPOWER_min),
-                            #MATK%
-                            (MATK_percent,1,"MATK%"),
-                            #體型
-                            (get_effect_multiplier('MD_size', target_size),1,"體型%"),
-                            #屬性敵人
-                            (get_effect_multiplier('MD_element', target_element) + get_effect_multiplier('MD_element', 10),1,"屬性敵人%"),
-                            #敵人屬性耐性(1+萬紫+毒弱+彗星)
-                            ((1 + skill_wanzih4_buff + skill_poison_weak_buff + magic_poison_buff),"raw","屬性耐受性%"),
-                            #屬性魔法
-                            (get_effect_multiplier('MD_Damage', user_attack_element) + get_effect_multiplier('MD_Damage', 10),1,"屬性魔法%"),
-                            #種族
-                            (get_effect_multiplier('MD_Race', target_race) + get_effect_multiplier('MD_Race', 9999),1,"種族%"),
-                            #階級
-                            (get_effect_multiplier('MD_class', target_class),1,"階級%"),
-                            #特定魔物增傷
-                            (target_monsterMDamage,1,"特定魔物增傷%"),
-                            #smatk 
-                            (total_SMATK,1,"SMATK"),
-                            #技能倍率
-                            (skill_result,0,"技能倍率%"),
-                            #屬性倍率
-                            (get_damage_multiplier(user_attack_element, target_element, target_element_lv),0,"屬性倍率%"),
-                            #敵人MRES減傷
-                            (Mdamage_nomres,"raw","MRES減傷%"),
-                            #敵人MDEF減傷
-                            (Mdamage_nomdef,"raw","MDEF減傷%"),
-                            #敵人MDEF減算
-                            (target_mdefc,None,"MDEF減算"),
-                            #裝備段技能增傷
-                            (Use_Skills,1,"技能增傷%(裝備段)"),
-                            #技能段技能增傷
-                            (passive_skill_buff,1,"技能增傷%(技能段)"),
-                            #念力?
-                            #潛擊 自動判斷階級
-                            (sneak_MDattack_buff,1,"潛擊"),
-                            #屬性紋章 風水火地
-                            (attribute_seal_buff,"raw","紋章"),
-                            #天怒
-                            (PR_LEXAETERNA_buff,1,"天怒")
-                        )
-                        
-                    elif attack_type == "physical":
-                        #先計算ATK%已利後續計算
-                        ATK_percent_sign_min = int(ATKC_Mweapon_ALL_min * (ATK_percent/100))
-                        ATK_percent_sign = int(ATKC_Mweapon_ALL * (ATK_percent/100))
-                        #爆傷+技能爆擊判斷
-                        CRI_Critical_hit = (Damage_CRI * Critical_hit)
-                        #(潛擊)+(爪痕)+(撼動)
-                        special_melee_BUFF = max(1, sneak_attack_buff + DARKCROW_attack_buff + RUSH_attack_buff)
-                        #(潛擊)+(孢子)+(撼動)+(聖油)
-                        special_away_BUFF = max(1, sneak_attack_buff + SPORE_attack_buff + RUSH_attack_buff + OLEUM_attack_buff)
-
-                        #技能砲彈ATK判斷             
-                        Excel_CannonballATK = CannonballATK if skill_cannon == 1 else 0
-
-                        #技能遠傷進傷
-                        if skill_Rangedamage == 1:
-                            if skill_delayed_Rangedamage == 1:
-                                MR_AttackDamage = 0
-                                delayed_MR_AttackDamage = RangeAttackDamage + BowAtk if weapon_class == 11 else RangeAttackDamage
-                            else:
-                                MR_AttackDamage = RangeAttackDamage + BowAtk if weapon_class == 11 else RangeAttackDamage
-                                delayed_MR_AttackDamage = 0
-                            specialatkbuff = special_away_BUFF
-                        else:
-                            MR_AttackDamage = MeleeAttackDamage
-                            specialatkbuff = special_melee_BUFF
-                            delayed_MR_AttackDamage = 0
-
-                        #是否技能爆擊/命中增傷
-                        if Critical_hit < 0:#負值兩者不吃
-                            Critical_hitmag = 0#不吃crate
-                            CRI_Critical_hit = 0
-                            excel_Damage_HIT = 0
-                        elif Critical_hit == 0:#0值吃命中增傷
-                            Critical_hitmag = 0
-                            CRI_Critical_hit = 0
-                            excel_Damage_HIT = Damage_HIT
-                        elif Critical_hit > 0:#正值吃爆傷
-                            CRI_Critical_hit = CRI_Critical_hit
-                            Critical_hitmag = total_CRATE + 40
-                            excel_Damage_HIT = 0#技能爆擊不吃命中增傷
-                        else:#非數字
-                            Critical_hitmag = 0#不吃crate
-                            excel_Damage_HIT = Damage_HIT
-                            CRI_Critical_hit = 0
-
-                        final_damage_1,final_damage_1_min = apply_stepwise_percent_mode(
-                            #初始值 後武器ATK
-                            (ATKC_Mweapon_ALL,ATKC_Mweapon_ALL_min),
-                            #種族
-                            (get_effect_multiplier('D_Race', target_race) + get_effect_multiplier('D_Race', 9999),1,"種族%"),
-                            #體型
-                            (get_effect_multiplier('D_size', target_size),1,"體型%"),
-                            #致命塗毒
-                            (EDP_attack,1,"致命塗毒%"),
-                            #屬性敵人
-                            (get_effect_multiplier('D_element', target_element) + get_effect_multiplier('D_element', 10),1,"屬性敵人%"),
-                            #階級
-                            (get_effect_multiplier('D_class', target_class),1,"階級%"),
-                            #特定魔物增傷
-                            (target_monsterDamage,1,"特定魔物增傷%"),
-                            #後總ATK
-                            (ATK_percent_sign,ATK_percent_sign_min,"+","ATK%"),
-                            #敵人屬性耐性(1+萬紫+毒弱+彗星)
-                            ((1 + skill_wanzih4_buff + skill_poison_weak_buff + magic_poison_buff),"raw","屬性耐受性%"),
-
-                        )
-                        #print(f"屬性倍率計算前: {final_damage_1}")
-                        #屬性倍率
-                        final_damage_1_min = math.ceil(final_damage_1_min * get_damage_multiplier(user_attack_element, target_element, target_element_lv) / 100)
-                        final_damage_1 = math.ceil(final_damage_1 * get_damage_multiplier(user_attack_element, target_element, target_element_lv) / 100)
-                        self.steps.append(["屬性倍率%", math.ceil(get_damage_multiplier(user_attack_element, target_element, target_element_lv))])                        
-                        #print(f"屬性倍率計算後: {final_damage_1}")
-
-                        if weapon_class in (11,13,14,17,18,19,20,21):#DEX系
-                            final_damage,final_damage_min = apply_stepwise_percent_mode(
-                                #最終ATK初始值
-                                (final_damage_1,final_damage_1_min),
-                                #最終ATK
-                                (ATKF,"+","前ATK"),
-                                #神威ATK
-                                (KamuiATK,"+","神威ATK"),
-                                #P.ATK
-                                (total_PATK,1,"PATK"),
-                                #砲彈atk
-                                (Excel_CannonballATK,"+","砲彈ATK"),
-                                #跆拳加油段
-                                (tk_power,1,"加油"),
-                                #奇蹟憎惡段
-                                (SG_HATE_EXCEL,1,"奇蹟/憎惡"),
-                                #物理命中傷害
-                                (excel_Damage_HIT,1,"命中增傷%"),
-                                #爆傷
-                                (CRI_Critical_hit,1,"爆擊傷害%"),
-                                #遠傷% 技能判斷
-                                (MR_AttackDamage,1,"近/遠傷%"),
-                                #技能倍率
-                                (skill_result,0,"技能倍率%"),
-                                #敵人RES減傷
-                                (damage_nores,"raw","RES減傷%"),
-                                #敵人DEF減傷
-                                (damage_nodef,"raw","DEF減傷%"),
-                                #敵人DEF減算
-                                (target_defc,None,"DEF減算"),
-                                #靈氣劍固定數值
-                                (LK_AURABLADE,"+","靈氣劍"),
-                                #後遠傷% 技能判斷
-                                (delayed_MR_AttackDamage,1,"後計算遠傷%"),
-                                #裝備段技能增傷
-                                (Use_Skills,1,"技能增傷%(裝備段)"),
-                                #技能段技能增傷
-                                (passive_skill_buff,1,"技能增傷%(技能段)"),
-                                #C.RATE
-                                (Critical_hitmag,1,"C.RATE"),
-                                #(潛擊)+(孢子)+(爪痕)+(撼動) 遠傷判斷類型
-                                (specialatkbuff,"raw","混傷BUFF"),
-                                #屬性紋章 風水火地
-                                (attribute_seal_buff,"raw","紋章"),
-                                #天怒
-                                (PR_LEXAETERNA_buff,1,"天怒")
-                            )
-                            #print(f"技能爆擊最終傷害: {final_damage}")
-                        else:#STR系
-                            final_damage,final_damage_min = apply_stepwise_percent_mode(
-                                #最終ATK初始值
-                                (final_damage_1,final_damage_1_min),
-                                #最終ATK
-                                (ATKF,"+","前ATK"),
-                                #神威ATK
-                                (KamuiATK,"+","神威ATK"),
-                                #P.ATK
-                                (total_PATK,1,"PATK"),
-                                #砲彈atk
-                                (Excel_CannonballATK,"+","砲彈ATK"),
-                                #武器修煉ATK
-                                (WeaponMasteryATK,"+","武器修煉ATK"),
-                                #跆拳加油段
-                                (tk_power,1,"加油"),
-                                #奇蹟憎惡段
-                                (SG_HATE_EXCEL,1,"奇蹟/憎惡"),
-                                #物理命中傷害
-                                (excel_Damage_HIT,1,"命中增傷%"),
-                                #爆傷
-                                (CRI_Critical_hit,1,"爆擊傷害%"),
-                                #近傷% 技能判斷
-                                (MR_AttackDamage,1,"近/遠傷%"),
-                                #技能倍率
-                                (skill_result,0,"技能倍率%"),
-                                #高階拳刃修煉
-                                (SKILL_ASC_KATAR,1,"高階拳刃修煉"),
-                                #敵人RES減傷
-                                (damage_nores,"raw","RES減傷%"),
-                                #敵人DEF減傷
-                                (damage_nodef,"raw","DEF減傷%"),
-                                #敵人DEF減算
-                                (target_defc,None,"DEF減算"),
-                                #靈氣劍固定數值
-                                (LK_AURABLADE,"+","靈氣劍"),
-                                #後遠傷% 技能判斷
-                                (delayed_MR_AttackDamage,1,"後計算遠傷%"),
-                                #裝備段技能增傷
-                                (Use_Skills,1,"技能增傷%(裝備段)"),
-                                #技能段技能增傷
-                                (passive_skill_buff,1,"技能增傷%(技能段)"),
-                                #C.RATE
-                                (Critical_hitmag,1,"C.RATE"),
-                                #(潛擊)+(爪痕)+(撼動) 遠傷判斷類型
-                                (specialatkbuff,"raw","混傷BUFF"),
-                                #屬性紋章 風水火地
-                                (attribute_seal_buff,"raw","紋章"),
-                                #天怒
-                                (PR_LEXAETERNA_buff,1,"天怒")
-                            )
-                            #print(f"技能爆擊最終傷害: {final_damage}")
-                    
-                    elif attack_type == "d_b":
-                        #技能遠傷進傷
-                        if skill_Rangedamage == 1:
-                            MR_AttackDamage = RangeAttackDamage + BowAtk if weapon_class == 11 else RangeAttackDamage
-                        else:
-                            MR_AttackDamage = MeleeAttackDamage
-
-
-                        default = 1#龍火只吃技能倍率 給他個1做基礎
-                        final_damage_min = 0
-                        final_damage = apply_stepwise_percent_mode(
-                            default,
-                            #技能倍率
-                            (skill_result,"raw","技能倍率%"),
-                            #敵人屬性耐性(1+萬紫+彗星)
-                            ((1 + magic_poison_buff),"raw","屬性耐受性%"),
-                            #敵人RES減傷
-                            (damage_nores,"raw","RES減傷%"),
-                            #敵人DEF減傷
-                            (damage_nodef,"raw","DEF減傷%"),
-                            #敵人DEF減算
-                            (target_defc,None,"DEF減算"),
-                            #裝備段技能增傷
-                            (Use_Skills,1,"技能增傷%(裝備段)"),
-                            #技能段技能增傷
-                            (passive_skill_buff,1,"技能增傷%(技能段)"),
-                            #遠傷% 技能判斷
-                            (MR_AttackDamage,1,"近/遠傷%"),
-                            #屬性倍率
-                            (get_damage_multiplier(user_attack_element, target_element, target_element_lv),0,"屬性倍率%")
-                        )
-                        
-                    elif attack_type == "shield":
-                        final_damage_min = 0
-                        final_damage = 0
-                        pass
-
-
-                    else:
-                        raise ValueError(f"未知的攻擊類型: {attack_type}")
-                    #最終隱藏段加算
-                    final_damage_min += skill_SpecialATK
-                    final_damage += skill_SpecialATK
-                    #最終怪物強制減傷(boss綠光)
-                    final_damage_min = int(final_damage_min * get_damage_reduction_value(self))
-                    final_damage = int(final_damage * get_damage_reduction_value(self))
-                    self.steps.append(["綠光減傷%", get_damage_reduction_value(self)*100])
-
-                    final_damage_min = int(final_damage_min * (1-(MD_BETELGEUSE_data/100)))
-                    final_damage = int(final_damage * (1-(MD_BETELGEUSE_data/100)))
-                    self.steps.append(["星座塔減傷%", 100-(MD_BETELGEUSE_data)])
-                    
-                    #武器值最大化/魔法省悟min = max #移到基礎ATK位置
-                    # if attack_type == "physical" and int(GUSklv(114)) == 1:
-                    #     final_damage_min = final_damage
-                    # elif attack_type == "magic" and int(GUSklv(2206)) == 1:
-                    #     final_damage_min = final_damage
-                    # elif attack_type == "d_b":
-                    #     final_damage_min = final_damage
-                    # # else:
-                    # #     final_damage_min = final_damage
-
-                    if skill_hits < 0:# skill_hits < 0 表示這段總傷害要「均分」為多次
-                        times = abs(skill_hits)
-                        damage_by_hit_min = int(final_damage_min / times)   
-                        damage_by_hit = int(final_damage / times)                     
-                        total_damage_min = damage_by_hit_min * times
-                        total_damage = damage_by_hit * times
-                    else:
-                        times = skill_hits
-                        damage_by_hit_min = final_damage_min
-                        damage_by_hit = final_damage
-                        total_damage_min = final_damage_min# * times
-                        total_damage = final_damage# * times
-
-                    results.append({
-                        "round": i+1,
-                        "label": label,
-                        "formula": full_formula,
-                        "skill_result": skill_result,
-                        "damage_by_hit_min": damage_by_hit_min,
-                        "damage_by_hit": damage_by_hit,
-                        "total_damage_min": total_damage_min,
-                        "total_damage": total_damage,
-                        "times": times,
-                        "user_attack_element": user_attack_element,
-                    })
-
-                except Exception as e:
-                    print(f"錯誤 [{i+1}/{repeat_count}]：", e)
-
-            return results
-       
-        
-
-        results = []
-        results.extend(compute_and_record_damage(
-            formula=formula_str,
-            repeat_count=1 if skill_hits < 0 else skill_hits,
-            bonus_add=bonus_add,
-            bonus_step=bonus_step,
-            label="main",
-            skill_hits=skill_hits,  # 加入這個
-            user_attack_element=User_attack_element
-        ))
-        
-        
-        # === [5] combo 計算（如果有）
-        if pd.notna(skill_row.get("combo")) and pd.notna(skill_row.get("combo_hits")):
-
-            # --- 先算：是否觸發「特殊替換」（種族 OR buff技能有被使用）---
-            trigger_combo_special = False
-
-            # 1) 種族觸發
-            if pd.notna(skill_row.get("monster_race")):
-                allowed_races = {r.strip() for r in str(skill_row["monster_race"]).split(",") if r.strip()}
-                if str(target_race).strip() in allowed_races:
-                    trigger_combo_special = True
-
-            # 2) buff技能觸發（Use_skill_levels[skill_id] = True 代表使用過）
-            if (not trigger_combo_special) and pd.notna(skill_row.get("skill_buff")):
-                buff_ids = []
-                for x in str(skill_row["skill_buff"]).split(","):
-                    x = x.strip()
-                    if x.isdigit():
-                        buff_ids.append(int(x))
-
-                if any(Use_skill_levels.get(bid, False) for bid in buff_ids):
-                    trigger_combo_special = True
-
-            # --- 決定 combo 公式：符合條件才用 combo_Special_Calculation ---
-            combo_formula = str(skill_row["combo"]).strip()
-
-            if (
-                trigger_combo_special
-                and pd.notna(skill_row.get("combo_Special_Calculation"))
-                and str(skill_row.get("combo_Special_Calculation")).strip()
-            ):
-                combo_formula = str(skill_row["combo_Special_Calculation"]).strip()
-
-            raw_combo_hits = parse_hits(skill_row["combo_hits"], Sklv)
-
-            if raw_combo_hits < 0:
-                combo_hits = abs(raw_combo_hits)
-                label = "combo (均分)"
-            else:
-                combo_hits = raw_combo_hits
-                label = "combo"
-
-            # ✅ 套用 combo_element 若存在，暫時覆蓋 user_attack_element
-            combo_element_val = User_attack_element
-            if pd.notna(skill_row.get("combo_element")) and str(skill_row.get("combo_element")).strip():
-                try:
-                    combo_element_val = int(skill_row["combo_element"])
-                    print(f"⚡ combo_element 套用屬性：{element_map.get(combo_element_val, combo_element_val)}")
-                except Exception as e:
-                    print(f"combo_element 解析錯誤：{e}")
-                    combo_element_val = User_attack_element
-
-            results.extend(compute_and_record_damage(
-                formula=combo_formula,
-                repeat_count=combo_hits,
-                bonus_add=0,
-                bonus_step=0,
-                label=label,
-                skill_hits=raw_combo_hits,
-                user_attack_element=combo_element_val
-            ))
-
+        core_monster = dict(core_payload.get("monster", {}) or {})
+        try:
+            self.steps.append(["綠光減傷%", float(core_monster.get("damage_multiplier_percent", 100) or 100)])
+        except (TypeError, ValueError):
+            pass
+        try:
+            betel_reduction = float(core_monster.get("betelgeuse_reduction_percent", 0) or 0)
+            self.steps.append(["星座塔減傷%", 100 - betel_reduction])
+        except (TypeError, ValueError):
+            pass
 
         if results:
             if render_output:
@@ -6877,20 +6464,20 @@ class ItemSearchApp(QWidget):
                 self.generate_highlighted_html(body_results)
             )
 
-        # Phase 6 layout fix: Core owns calculation parity; Desktop keeps the legacy text presenter.
-        # The legacy `result` list has already been rendered above in its original order/spacing.
-        # Do not overwrite custom_calc_box with a second Core-specific formatter here.
+        # Phase 11: Stage17 damage is Core-only; Desktop still owns text presentation.
         if render_output:
-            core_snapshot = self.refresh_core_stage17_snapshot()
-            core_payload = core_snapshot.to_dict() if core_snapshot is not None else None
-            parity = core_stage17_compare_damage_parity(results, core_payload)
-            self.last_core_damage_parity = parity
-            self.stage17_core_parity_ok = bool(core_snapshot is not None and parity.get("ok"))
-            # Kept for compatibility: Core is validating values, not owning UI text rendering.
+            self.last_core_damage_parity = {
+                "ok": True,
+                "mode": "core-only",
+                "mismatches": [],
+                "core_count": len(results),
+                "core_total_damage_min": core_payload.get("total_damage_min", 0),
+                "core_total_damage": core_payload.get("total_damage", 0),
+            }
+            self.stage17_core_parity_ok = True
+            # Compatibility flag: Core owns values, not Desktop text rendering.
             self.stage17_core_render_active = False
-            if self.stage17_core_parity_ok:
-                self.last_core_damage_error = None
-
+            self.last_core_damage_error = None
 
     def _set_combo_data_blocked(self, combo, data):
         idx = combo.findData(data)
