@@ -10,6 +10,9 @@
 ``trigger_total_effect_update()``，確保計算核心只有一份。
 """
 
+# PHASE 13 JSON IMPORT HOTFIX
+import json
+
 import html
 import os
 import re
@@ -34,6 +37,12 @@ from PySide6.QtWidgets import (
     QToolButton,
     QVBoxLayout,
     QWidget,
+)
+
+# === CORE DEDUP PHASE 12+13+14: HEADLESS MULTICOMPARE ===
+from ro_core import (
+    CharacterBuild as CoreCharacterBuild,
+    calculate_character_build as core_calculate_character_build,
 )
 
 
@@ -554,15 +563,19 @@ class MultiCompareService:
             return None
         return payload
 
-    def _collect_compare_core_damage_results(self):
+    def _collect_compare_core_damage_results(self, payload=None):
         """Convert Stage17 structured result into MultiCompare's existing row contract.
 
         The comparison table keeps the same {display, number, suffix} schema, but
         damage numbers and damage-breakdown rows come from Core rather than regex
         parsing the Desktop text box.
         """
-        payload = self._get_parity_valid_core_damage_payload()
+        supplied_payload = payload is not None
         if payload is None:
+            payload = self._get_parity_valid_core_damage_payload()
+        elif hasattr(payload, "to_dict"):
+            payload = payload.to_dict()
+        if not isinstance(payload, dict):
             return {}, "legacy-text"
 
         results = {}
@@ -683,7 +696,7 @@ class MultiCompareService:
                 digits=row.get("digits"),
             )
 
-        return results, "core-stage17"
+        return results, ("core-character-build" if supplied_payload else "core-stage17")
 
     def _build_compare_snapshot(self, name, source=None):
         main = self.main_window
@@ -716,34 +729,202 @@ class MultiCompareService:
             "damage_result_source": damage_result_source,
         }
 
-    def create_current_compare_snapshot(self, name="目前設定"):
-        """走主程式原本完整計算後建立目前設定 Snapshot。"""
-        main = self.main_window
-        auto_compare = bool(
-            hasattr(main, "auto_compare_checkbox")
-            and main.auto_compare_checkbox.isChecked()
+
+    # === CORE DEDUP PHASE 12+13+14: HEADLESS MULTICOMPARE ===
+    def _core_build_runtime(self):
+        # Data/runtime is immutable for one application session; reuse it across JSON
+        # snapshots so a large compare batch does not reload skillbuff.lua every time.
+        runtime = getattr(self, "_phase121314_core_runtime", None)
+        if runtime is not None:
+            return runtime
+        factory = self._ctx("core_runtime_factory")
+        if not callable(factory):
+            raise RuntimeError("主程式缺少 Phase 12 Core runtime factory")
+        runtime = factory()
+        if runtime is None:
+            raise RuntimeError("Core runtime factory 回傳空值")
+        self._phase121314_core_runtime = runtime
+        return runtime
+
+    def _core_runtime_overrides(self, *, for_saved_build=False):
+        collector = self._ctx("collect_character_calculation_runtime")
+        raw = collector() if callable(collector) else {}
+        raw = dict(raw or {})
+        if for_saved_build:
+            # Loading a project historically changed skill/formula/HP sources according to
+            # that build, but kept global transient toggles such as target attack element,
+            # special checkboxes and the monster damage multiplier.
+            raw.pop("skill_id", None)
+            raw.pop("skill_level", None)
+            raw.pop("formula_override", None)
+            # load_saved_inputs() selects the saved skill after signals are restored;
+            # the Desktop skill handler then restores that skill's default element.
+            raw.pop("attack_element", None)
+            special = dict(raw.get("special") or {})
+            special.pop("total_srl", None)
+            raw["special"] = special
+        return raw
+
+    def _calculate_character_build_core(self, build, *, for_saved_build=False):
+        if not isinstance(build, CoreCharacterBuild):
+            build = CoreCharacterBuild.from_dict(build)
+        return core_calculate_character_build(
+            build,
+            runtime=self._core_build_runtime(),
+            stat_fields=self._ctx("stat_fields", {}) or {},
+            refine_parts=self._ctx("refine_parts", {}) or {},
+            grade_index_maps=self._ctx("grade_index_maps", {}) or {},
+            runtime_overrides=self._core_runtime_overrides(for_saved_build=for_saved_build),
         )
-        if hasattr(main, "auto_compare_checkbox"):
-            main.auto_compare_checkbox.setChecked(False)
-        try:
-            self._recalculate_main_now()
-            return self._build_compare_snapshot(name, source="current")
-        finally:
-            if hasattr(main, "auto_compare_checkbox"):
-                main.auto_compare_checkbox.setChecked(auto_compare)
-                if auto_compare:
-                    try:
-                        main.compare_with_base()
-                    except Exception:
-                        pass
+
+    def _collect_compare_equipment_from_build(self, build, calculation):
+        values = build.to_legacy_dict() if hasattr(build, "to_legacy_dict") else dict(build or {})
+        flat = {}
+        for part, info in (self._ctx("refine_parts", {}) or {}).items():
+            if part == "技能":
+                continue
+            flat[f"{part} / 裝備"] = str(values.get(f"{part}_equip", "") or "")
+            if part in values:
+                flat[f"{part} / 精煉"] = str(values.get(part, "") or "")
+            grade_key = f"{part}_階級"
+            if grade_key in values:
+                flat[f"{part} / 階級"] = str(values.get(grade_key, "") or "")
+            for i in range(1, 5):
+                card_key = f"{part}_card{i}"
+                if card_key in values:
+                    flat[f"{part} / 卡片{i}"] = str(values.get(card_key, "") or "")
+            note_key = f"{part}_note"
+            if note_key in values:
+                parsed_notes = getattr(calculation, "equipment_notes", {}) or {}
+                flat[f"{part} / 詞條"] = str(parsed_notes.get(part, "") or "")
+        request = getattr(calculation, "equipment_request", None)
+        enabled = list(getattr(request, "enabled_skill_names", []) or [])
+        flat["BUFF / 技能、料理"] = "\n".join(str(name) for name in enabled)
+        return flat
+
+    def _collect_compare_skill_from_core(self, build, calculation):
+        values = build.to_legacy_dict() if hasattr(build, "to_legacy_dict") else dict(build or {})
+        payload = calculation.damage_result.to_dict() if getattr(calculation, "damage_result", None) is not None else {}
+        skill = payload.get("skill", {}) if isinstance(payload, dict) else {}
+        name = str(skill.get("name", values.get("skill_name", "")) or "")
+        level = skill.get("level", None)
+        element_id = skill.get("attack_element", None)
+        element_map = self._ctx("element_map", {}) or {}
+        element_display = element_map.get(element_id, element_map.get(str(element_id), str(element_id if element_id is not None else "")))
+        result = {
+            "技能名稱": {"display": name, "number": None, "suffix": ""},
+            "技能攻擊屬性": {"display": str(element_display), "number": None, "suffix": ""},
+        }
+        if level is not None:
+            result["技能等級"] = self._core_compare_entry(level)
+        return result
+
+    def _collect_compare_monster_from_build(self, build):
+        values = build.to_legacy_dict() if hasattr(build, "to_legacy_dict") else dict(build or {})
+        def mapped(map_name, key, default=""):
+            mapping = self._ctx(map_name, {}) or {}
+            try:
+                key_int = int(float(values.get(key, 0)))
+            except (TypeError, ValueError):
+                key_int = values.get(key, 0)
+            return mapping.get(key_int, mapping.get(str(key_int), default if default != "" else str(key_int)))
+        size = mapped("size_map", "size")
+        race = mapped("race_map", "race")
+        element = mapped("element_map", "element")
+        klass = mapped("class_map", "class")
+        element_lv = str(values.get("element_lv", "1") or "1")
+        result = {
+            "魔物 / 體種屬階": {
+                "display": f"{size} /{race} /{element} Lv.{element_lv} /{klass}",
+                "number": None,
+                "suffix": "",
+            }
+        }
+        for label, key in (
+            ("魔物 / 後 DEF", "def"), ("魔物 / 前 DEF", "defc"), ("魔物 / RES", "res"),
+            ("魔物 / 後 MDEF", "mdef"), ("魔物 / 前 MDEF", "mdefc"), ("魔物 / MRES", "mres"),
+        ):
+            result[label] = self._core_compare_entry(values.get(key, 0))
+        return result
+
+    def _collect_compare_character_from_core(self, calculation):
+        summary = getattr(calculation, "stat_summary", {}) or {}
+        result = {
+            "角色等級 / BaseLv": self._core_compare_entry(summary.get("BaseLv", 0)),
+            "角色等級 / JobLv": self._core_compare_entry(summary.get("JobLv", 0)),
+        }
+        stats = summary.get("stats", {}) if isinstance(summary, dict) else {}
+        for stat in ("STR", "AGI", "VIT", "INT", "DEX", "LUK"):
+            result[f"素質 / {stat}"] = self._core_compare_entry((stats.get(stat) or {}).get("total", 0))
+        for stat in ("POW", "STA", "WIS", "SPL", "CON", "CRT"):
+            result[f"特性素質 / {stat}"] = self._core_compare_entry((stats.get(stat) or {}).get("total", 0))
+
+        status = getattr(calculation, "status", {}) or {}
+        hpsp = status.get("hpsp", {}) if isinstance(status, dict) else {}
+        if isinstance(hpsp, dict):
+            for label, key in (
+                ("角色狀態 / MHP", "mhp"), ("角色狀態 / MSP", "msp"),
+                ("角色狀態 / 目前HP", "mhp_now"), ("角色狀態 / 目前SP", "msp_now"),
+            ):
+                if key in hpsp:
+                    result[label] = self._core_compare_entry(hpsp.get(key, 0))
+        aspd = status.get("aspd", {}) if isinstance(status, dict) else {}
+        if isinstance(aspd, dict) and aspd.get("supported") and aspd.get("value") is not None:
+            result["角色狀態 / ASPD"] = self._core_compare_entry(aspd.get("value"), digits=3)
+            if aspd.get("attacks_per_second") is not None:
+                result["角色狀態 / 每秒攻擊次數"] = self._core_compare_entry(aspd.get("attacks_per_second"), digits=4)
+        no_cast = status.get("no_cast", {}) if isinstance(status, dict) else {}
+        if isinstance(no_cast, dict):
+            if "score" in no_cast:
+                result["角色狀態 / 無詠唱素質值"] = self._core_compare_entry(no_cast.get("score", 0))
+            if "gap" in no_cast:
+                result["角色狀態 / 無詠唱差距"] = self._core_compare_entry(no_cast.get("gap", 0))
+
+        armor = getattr(calculation, "armor_bonus", {}) or {}
+        result["防具精煉 / DEF"] = self._core_compare_entry(armor.get("DEF", 0))
+        result["防具精煉 / RES"] = self._core_compare_entry(armor.get("RES", 0))
+        return result
+
+    def _build_compare_snapshot_from_core(self, name, build, calculation, source=None):
+        results = self._collect_compare_skill_from_core(build, calculation)
+        damage_payload = (
+            calculation.damage_result.to_dict()
+            if getattr(calculation, "damage_result", None) is not None
+            else None
+        )
+        core_damage_results, damage_source = self._collect_compare_core_damage_results(damage_payload)
+        results.update(core_damage_results)
+        results.update(self._collect_compare_monster_from_build(build))
+        results.update(self._collect_compare_character_from_core(calculation))
+        warnings = list(getattr(calculation, "warnings", []) or [])
+        return {
+            "name": str(name or "未命名"),
+            "source": source,
+            "equipment": self._collect_compare_equipment_from_build(build, calculation),
+            "results": results,
+            "result_text": "",
+            "damage_result_source": damage_source,
+            "core_warnings": warnings,
+        }
+
+    def create_current_compare_snapshot(self, name="目前設定"):
+        """Calculate the current CharacterBuild directly in Core without recalculating MainWindow."""
+        collect_build = getattr(self.main_window, "collect_character_build", None)
+        if not callable(collect_build):
+            raise RuntimeError("主程式缺少 Phase 8 collect_character_build()")
+        build = collect_build()
+        calculation = self._calculate_character_build_core(build, for_saved_build=False)
+        return self._build_compare_snapshot_from_core(name, build, calculation, source="current")
+
 
     def create_json_compare_snapshot(self, file_path):
-        """專案檔 -> 原本 UI 載入 -> 原本 trigger_total_effect_update -> Snapshot。"""
-        main = self.main_window
-        main.load_saved_inputs(file_path)
-        main.refresh_skill_list()
-        self._recalculate_main_now()
-        return self._build_compare_snapshot(Path(file_path).stem, source=file_path)
+        """Project JSON -> CharacterBuild -> Core. MainWindow is never loaded or recalculated."""
+        with open(file_path, "r", encoding="utf-8-sig") as fh:
+            payload = json.load(fh)
+        build = CoreCharacterBuild.from_dict(payload)
+        calculation = self._calculate_character_build_core(build, for_saved_build=True)
+        return self._build_compare_snapshot_from_core(Path(file_path).stem, build, calculation, source=file_path)
+
 
 
 class MultiCompareDialog(QDialog):
@@ -1214,24 +1395,12 @@ class MultiCompareDialog(QDialog):
         if not paths:
             return
 
-        # 批次計算會暫時把主畫面切換成各專案檔，最後一定還原進入批次前的狀態。
-        restore_state = self.service.collect_project_state_data()
-        auto_compare = bool(
-            hasattr(self.main_window, "auto_compare_checkbox")
-            and self.main_window.auto_compare_checkbox.isChecked()
-        )
-
+        # Phase 13: JSON comparison is headless. It no longer loads/restores MainWindow.
         try:
-            if hasattr(self.main_window, "auto_compare_checkbox"):
-                self.main_window.auto_compare_checkbox.setChecked(False)
-
             for i, path in enumerate(paths, 1):
                 self.status_label.setText(f"計算 {i}/{len(paths)}：{Path(path).name}")
                 QApplication.processEvents()
-
                 snapshot = self.service.create_json_compare_snapshot(path)
-
-                # 同一路徑再次加入時更新，不建立重複欄位。
                 replaced = False
                 for idx, old in enumerate(self.json_snapshots):
                     if old.get("source") == path:
@@ -1242,33 +1411,10 @@ class MultiCompareDialog(QDialog):
                     self.json_snapshots.append(snapshot)
         except Exception as exc:
             QMessageBox.critical(self, "多裝備比對", f"專案檔比對計算失敗：\n{exc}")
-        finally:
-            restore_error = None
-            try:
-                self.status_label.setText("正在恢復主畫面...")
-                QApplication.processEvents()
-                self.service.restore_project_state_data(restore_state, recalculate=True)
-            except Exception as exc:
-                restore_error = exc
-                print(f"⚠️ 多裝備比對後恢復主畫面失敗：{exc}")
-            finally:
-                if hasattr(self.main_window, "auto_compare_checkbox"):
-                    self.main_window.auto_compare_checkbox.setChecked(auto_compare)
-                    if auto_compare:
-                        try:
-                            self.main_window.compare_with_base()
-                        except Exception:
-                            pass
-
-            if restore_error is not None:
-                QMessageBox.warning(
-                    self,
-                    "多裝備比對",
-                    f"專案檔已完成處理，但恢復主畫面時發生錯誤：\n{restore_error}",
-                )
 
         self.refresh_tables()
         self.status_label.setText(f"已載入 {len(self.json_snapshots)} 個專案檔")
+
 
     def remove_selected_json(self):
         idx = self._selected_json_index()
