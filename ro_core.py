@@ -10137,3 +10137,498 @@ def normalize_character_build_payload(
 ) -> dict[str, Any]:
     """Normalize either legacy or Phase-8 project data through CharacterBuild."""
     return CharacterBuild.from_dict(payload).to_dict(include_metadata=include_metadata)
+
+# === CORE DEDUP PHASE 12+13+14: CHARACTER BUILD CALCULATOR + ARMOR SET ===
+
+@dataclass(frozen=True)
+class ArmorRefineSlotInput:
+    """Qt-free armor-refine input for one equipment position."""
+
+    part_name: str
+    slot_id: int | str | None
+    part_type: str = ""
+    equipped: bool = False
+    refine: int = 0
+    armor_level: int = 0
+
+
+@dataclass
+class CharacterBuildCalculationResult:
+    """One Core result shared by Desktop, MultiCompare and future Web callers."""
+
+    build: CharacterBuild
+    equipment_request: EquipmentEffectRequest
+    effect_result: EquipmentEffectResult
+    damage_result: Stage17DamageResult | None = None
+    status: dict[str, Any] = field(default_factory=dict)
+    stat_summary: dict[str, Any] = field(default_factory=dict)
+    armor_bonus: dict[str, Any] = field(default_factory=dict)
+    equipment_notes: dict[str, str] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        damage = self.damage_result.to_dict() if self.damage_result is not None else None
+        return {
+            "build": self.build.to_dict(include_metadata=True),
+            "damage": damage,
+            "status": dict(self.status or {}),
+            "stat_summary": dict(self.stat_summary or {}),
+            "armor_bonus": dict(self.armor_bonus or {}),
+            "equipment_notes": dict(self.equipment_notes or {}),
+            "warnings": list(self.warnings or []),
+            "equipment": {
+                "combined_lines": list(getattr(self.effect_result, "combined_lines", []) or []),
+                "combo_lines": list(getattr(self.effect_result, "combo_lines", []) or []),
+                "triggered_combo_ids": list(getattr(self.effect_result, "triggered_combo_ids", []) or []),
+                "warnings": list(getattr(self.effect_result, "warnings", []) or []),
+            },
+        }
+
+
+def calculate_armor_set_refine_bonus(
+    slots,
+    *,
+    exclude_parts=None,
+    exclude_slots=None,
+    exclude_types=None,
+):
+    """Sum armor-refine DEF/RES without any Qt/widget dependency."""
+    exclude_parts = set(exclude_parts or ())
+    exclude_slots = set(exclude_slots or ())
+    exclude_types = set(exclude_types or ())
+    total_def = 0.0
+    total_res = 0
+    details = {}
+
+    for raw in slots or ():
+        if isinstance(raw, ArmorRefineSlotInput):
+            item = raw
+        elif isinstance(raw, dict):
+            item = ArmorRefineSlotInput(**raw)
+        else:
+            raise TypeError("armor slots must be ArmorRefineSlotInput or dict")
+
+        if item.part_name in exclude_parts:
+            continue
+        if item.slot_id in exclude_slots:
+            continue
+        if item.part_type in exclude_types:
+            continue
+        if not item.equipped:
+            continue
+
+        try:
+            refine = int(item.refine)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{item.part_name} 的精煉值格式錯誤：{item.refine!r}") from exc
+        try:
+            armor_level = int(item.armor_level or 0)
+        except (TypeError, ValueError):
+            armor_level = 0
+        if armor_level not in (1, 2):
+            continue
+
+        # Phase 1 is the single-item source of truth.
+        bonus = calculate_armor_refine_bonus(refine, armor_level)
+        total_def += float(bonus.get("DEF", 0) or 0)
+        total_res += int(bonus.get("RES", 0) or 0)
+        details[item.part_name] = {
+            "slot": item.slot_id,
+            "type": item.part_type,
+            "refine": refine,
+            "armor_level": armor_level,
+            "DEF": bonus.get("DEF", 0),
+            "RES": bonus.get("RES", 0),
+        }
+
+    return {"DEF": round(total_def, 1), "RES": int(total_res), "details": details}
+
+
+def _character_build_int(value, default=0):
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return int(default)
+
+
+def _character_build_number(value, default=0.0):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _character_build_text(value):
+    return str(value or "").strip()
+
+
+def _character_build_parse_buff_ids(raw_buff):
+    if raw_buff is None:
+        return set()
+    if isinstance(raw_buff, (int, float)):
+        return {str(int(raw_buff))}
+    if isinstance(raw_buff, (list, tuple, set)):
+        result = set()
+        for value in raw_buff:
+            text = _character_build_text(value)
+            if text:
+                result.add(text)
+        return result
+    text = _character_build_text(raw_buff)
+    return {part.strip() for part in text.split(",") if part.strip()} if text else set()
+
+
+def _character_build_exclusive_groups(raw):
+    if not raw:
+        return []
+    if isinstance(raw, str):
+        return [part.strip() for part in raw.split(",") if part.strip()]
+    try:
+        return [str(part).strip() for part in raw if str(part).strip()]
+    except TypeError:
+        text = _character_build_text(raw)
+        return [text] if text else []
+
+
+def character_build_enabled_skill_names(raw_buff, skill_entries):
+    """Mirror Desktop apply_buff_to_skill_checkboxes(), including exclusivity."""
+    target_ids = _character_build_parse_buff_ids(raw_buff)
+    matched = []
+    used_exclusive_groups = set()
+    for name, info in (skill_entries or {}).items():
+        info = info if isinstance(info, dict) else {}
+        if not (_character_build_parse_buff_ids(info.get("buff")) & target_ids):
+            continue
+        groups = _character_build_exclusive_groups(info.get("exclusive"))
+        if any(group in used_exclusive_groups for group in groups):
+            continue
+        matched.append(str(name))
+        used_exclusive_groups.update(groups)
+    return matched
+
+
+def _character_build_resolve_job_id(raw_job, job_dict):
+    if raw_job in (job_dict or {}):
+        return raw_job
+    text = _character_build_text(raw_job)
+    if text:
+        try:
+            numeric = int(text)
+            if numeric in (job_dict or {}):
+                return numeric
+            if str(numeric) in (job_dict or {}):
+                return str(numeric)
+        except ValueError:
+            pass
+        for job_id, info in (job_dict or {}).items():
+            if _character_build_text((info or {}).get("name")) == text:
+                return job_id
+    return 0
+
+
+def _character_build_grade_index(part_name, raw_grade, grade_index_maps=None):
+    text = _character_build_text(raw_grade)
+    per_part = (grade_index_maps or {}).get(part_name, {}) if isinstance(grade_index_maps, dict) else {}
+    if isinstance(per_part, dict) and text in per_part:
+        return _character_build_int(per_part[text], 0)
+    normal = {"N": 0, "D": 1, "C": 2, "B": 3, "A": 4}
+    if text.upper() in normal:
+        return normal[text.upper()]
+    try:
+        return max(0, int(text))
+    except (TypeError, ValueError):
+        return 0
+
+
+def character_build_to_equipment_request(
+    build,
+    *,
+    data,
+    stat_fields=None,
+    refine_parts=None,
+    grade_index_maps=None,
+):
+    """Convert persisted CharacterBuild data into the same Qt-free request used by Desktop."""
+    if not isinstance(build, CharacterBuild):
+        build = CharacterBuild.from_dict(build)
+    values = build.to_legacy_dict()
+    stat_fields = dict(stat_fields or STAGE21_9_FUNCTION_MAPS.get("stat_fields", {}))
+    refine_parts = dict(refine_parts or {})
+
+    get_values = {}
+    for raw_gid, label in stat_fields.items():
+        try:
+            gid = int(raw_gid)
+        except (TypeError, ValueError):
+            gid = raw_gid
+        raw = values.get(label, 0)
+        if str(label) == "JOB":
+            get_values[gid] = _character_build_resolve_job_id(raw, data.job_dict)
+        else:
+            get_values[gid] = _character_build_int(raw, 0)
+
+    refine_inputs = {}
+    slots = []
+    for part_name, info in refine_parts.items():
+        info = info if isinstance(info, dict) else {}
+        slot_id = info.get("slot")
+        refine = _character_build_int(values.get(part_name, values.get(f"{part_name}_refine", 0)), 0)
+        refine_inputs[slot_id] = refine
+        cards = [
+            _character_build_text(values.get(f"{part_name}_card{i}", ""))
+            for i in range(1, 5)
+        ]
+        slots.append(
+            EquipmentSlotInput(
+                part_name=str(part_name),
+                slot_id=_character_build_int(slot_id, 0),
+                equip_name=_character_build_text(values.get(f"{part_name}_equip", "")),
+                grade=_character_build_grade_index(
+                    part_name,
+                    values.get(f"{part_name}_階級", 0),
+                    grade_index_maps,
+                ),
+                cards=cards,
+                note=_character_build_text(values.get(f"{part_name}_note", "")),
+            )
+        )
+
+    enabled_skill_names = character_build_enabled_skill_names(
+        values.get("buff", ""),
+        data.skill_entries,
+    )
+    return EquipmentEffectRequest(
+        get_values=get_values,
+        refine_inputs=refine_inputs,
+        slots=slots,
+        enabled_skill_names=enabled_skill_names,
+        hide_unrecognized=False,
+        hide_physical=False,
+        hide_magical=False,
+        show_source=False,
+        sort_mode="來源順序",
+    )
+
+
+def _character_build_find_skill_id(skill_name, skill_map):
+    name = _character_build_text(skill_name)
+    if not name:
+        return None
+    for skill_id, mapped_name in (skill_map or {}).items():
+        if _character_build_text(mapped_name) == name:
+            return _character_build_int(skill_id, skill_id)
+    try:
+        numeric = int(name)
+    except ValueError:
+        return None
+    return numeric if numeric in (skill_map or {}) else None
+
+
+def _character_build_damage_payload(values, data, runtime_overrides, status):
+    runtime_overrides = dict(runtime_overrides or {})
+    skill_id = runtime_overrides.get("skill_id")
+    if skill_id is None:
+        skill_id = _character_build_find_skill_id(values.get("skill_name"), data.skill_map)
+    if skill_id is None:
+        return None
+
+    monster = {
+        "size": _character_build_int(values.get("size", 1), 1),
+        "element": _character_build_int(values.get("element", 0), 0),
+        "element_lv": max(1, min(4, _character_build_int(values.get("element_lv", 1), 1))),
+        "race": _character_build_int(values.get("race", 0), 0),
+        "class": _character_build_int(values.get("class", 0), 0),
+        "def": _character_build_int(values.get("def", 0), 0),
+        "defc": _character_build_int(values.get("defc", 0), 0),
+        "res": _character_build_int(values.get("res", 0), 0),
+        "mdef": _character_build_int(values.get("mdef", 0), 0),
+        "mdefc": _character_build_int(values.get("mdefc", 0), 0),
+        "mres": _character_build_int(values.get("mres", 0), 0),
+        "damage_multiplier_percent": _character_build_number(
+            runtime_overrides.get("damage_multiplier_percent", 100), 100
+        ),
+        "betelgeuse_reduction_percent": _character_build_int(
+            runtime_overrides.get("betelgeuse_reduction_percent", 0), 0
+        ),
+    }
+    hpsp = (status or {}).get("hpsp", {}) if isinstance(status, dict) else {}
+    payload = {
+        "skill_id": _character_build_int(skill_id, 0),
+        "monster": monster,
+        "mhp": _character_build_int(runtime_overrides.get("mhp", hpsp.get("mhp", values.get("MHP", 0))), 0),
+        "msp": _character_build_int(runtime_overrides.get("msp", hpsp.get("msp", values.get("MSP", 0))), 0),
+        "mhp_now": _character_build_int(runtime_overrides.get("mhp_now", hpsp.get("mhp_now", 0)), 0),
+        "msp_now": _character_build_int(runtime_overrides.get("msp_now", hpsp.get("msp_now", 0)), 0),
+        "special": dict(runtime_overrides.get("special") or {}),
+    }
+    if runtime_overrides.get("skill_level") is not None:
+        payload["skill_level"] = _character_build_int(runtime_overrides.get("skill_level"), 1)
+    if runtime_overrides.get("attack_element") is not None:
+        payload["attack_element"] = _character_build_int(runtime_overrides.get("attack_element"), 0)
+    formula_override = _character_build_text(runtime_overrides.get("formula_override"))
+    if formula_override:
+        payload["formula_override"] = formula_override
+    return payload
+
+
+def calculate_character_build(
+    build,
+    *,
+    runtime,
+    stat_fields=None,
+    refine_parts=None,
+    grade_index_maps=None,
+    runtime_overrides=None,
+):
+    """Full Qt-free CharacterBuild -> equipment/status/damage calculation facade."""
+    if not isinstance(runtime, CoreRuntimeBundle):
+        raise TypeError("runtime must be CoreRuntimeBundle")
+    if not isinstance(build, CharacterBuild):
+        build = CharacterBuild.from_dict(build)
+    values = build.to_legacy_dict()
+    warnings = []
+
+    request = character_build_to_equipment_request(
+        build,
+        data=runtime.data,
+        stat_fields=stat_fields,
+        refine_parts=refine_parts,
+        grade_index_maps=grade_index_maps,
+    )
+    context = CalculationContext()
+    dependencies = fork_core_dependencies(runtime.core.dependencies)
+    effect_result = calculate_equipment_effects(
+        request,
+        runtime.data,
+        context=context,
+        dependencies=dependencies,
+    )
+    warnings.extend(list(getattr(effect_result, "warnings", []) or []))
+
+    status = {}
+    status_settings = {
+        "mhp_input": _character_build_int(values.get("MHP", 0), 0),
+        "msp_input": _character_build_int(values.get("MSP", 0), 0),
+        "hp_percent": _character_build_int((runtime_overrides or {}).get("hp_percent", 100), 100),
+        "sp_percent": _character_build_int((runtime_overrides or {}).get("sp_percent", 100), 100),
+        "use_logout_hpsp": bool((runtime_overrides or {}).get("use_logout_hpsp", False)),
+    }
+    try:
+        status = stage20_calculate_status(
+            request=request,
+            data=runtime.data,
+            context=context,
+            effect_result=effect_result,
+            data_dir=runtime.data_dir,
+            settings=status_settings,
+        )
+    except Exception as exc:
+        warnings.append(f"角色狀態計算略過：{exc}")
+
+    damage_payload = _character_build_damage_payload(values, runtime.data, runtime_overrides, status)
+    damage_result = None
+    if damage_payload is None:
+        warnings.append("CharacterBuild 找不到可計算的技能；傷害結果略過。")
+    else:
+        try:
+            damage_result = Stage17DamageResult(
+                calculate_stage17_damage(
+                    request=request,
+                    data=runtime.data,
+                    context=context,
+                    effect_result=effect_result,
+                    data_dir=runtime.data_dir,
+                    damage=damage_payload,
+                )
+            )
+            warnings.extend(list(damage_result.warnings or []))
+        except Exception as exc:
+            warnings.append(f"Stage17 傷害計算略過：{exc}")
+
+    effect_dict = getattr(effect_result, "legacy_effect_dict", {}) or {}
+    variables = _stage17_build_variables(
+        request,
+        runtime.data,
+        context,
+        effect_dict,
+        damage_payload or {},
+    )
+    stat_summary = {
+        "BaseLv": _character_build_int(variables.get("BaseLv", 0)),
+        "JobLv": _character_build_int(variables.get("JobLv", 0)),
+        "JOB": request.get_values.get(19, 0),
+        "stats": {},
+    }
+    for stat in STAGE17_STAT_NAMES:
+        stat_summary["stats"][stat] = {
+            "base": _character_build_int(variables.get(f"base_{stat}", 0)),
+            "job": _character_build_int(variables.get(f"job_{stat}", 0)),
+            "equip": _character_build_int(variables.get(f"equip_{stat}", 0)),
+            "base_equip": _character_build_int(variables.get(f"base_equip_{stat}", 0)),
+            "total": _character_build_int(variables.get(f"total_{stat}", 0)),
+        }
+
+    refine_parts = dict(refine_parts or {})
+    armor_slots = []
+    for slot in request.slots:
+        info = refine_parts.get(slot.part_name, {}) if isinstance(refine_parts, dict) else {}
+        slot_id = getattr(slot, "slot_id", 0)
+        armor_level = context.armor_level_map.get(
+            slot_id,
+            context.armor_level_map.get(str(slot_id), 0),
+        )
+        armor_slots.append(
+            ArmorRefineSlotInput(
+                part_name=slot.part_name,
+                slot_id=slot_id,
+                part_type=str((info or {}).get("type", "") or ""),
+                equipped=bool(_character_build_text(slot.equip_name)),
+                refine=request.refine_inputs.get(slot_id, 0),
+                armor_level=_character_build_int(armor_level, 0),
+            )
+        )
+    armor_bonus = calculate_armor_set_refine_bonus(armor_slots)
+
+    # Parse persisted custom Lua notes headlessly so MultiCompare keeps the same
+    # human-readable note rows without loading QTextEdit/MainWindow.  Use the
+    # already-precomputed context so GetEquip* helpers see the selected slot data.
+    equipment_notes = {}
+    note_dependencies = fork_core_dependencies(runtime.core.dependencies)
+    for slot in request.slots:
+        raw_note = _character_build_text(getattr(slot, "note", ""))
+        if not raw_note:
+            equipment_notes[slot.part_name] = ""
+            continue
+        try:
+            parsed_note = parse_lua_effects_with_variables(
+                raw_note,
+                request.refine_inputs,
+                request.get_values,
+                getattr(slot, "grade", 0),
+                runtime.data.unit_map,
+                runtime.data.size_map,
+                runtime.data.effect_map,
+                hide_unrecognized=True,
+                hide_physical=False,
+                hide_magical=False,
+                current_location_slot=getattr(slot, "slot_id", None),
+                context=context,
+                dependencies=note_dependencies,
+            )
+            lines = [str(line).strip() for line in (parsed_note or []) if str(line).strip()]
+            equipment_notes[slot.part_name] = "\n".join(lines) if lines else "（無可解析詞條）"
+        except Exception as exc:
+            warnings.append(f"{slot.part_name} 詞條解析略過：{exc}")
+            equipment_notes[slot.part_name] = "（無可解析詞條）"
+
+    return CharacterBuildCalculationResult(
+        build=build,
+        equipment_request=request,
+        effect_result=effect_result,
+        damage_result=damage_result,
+        status=status,
+        stat_summary=stat_summary,
+        armor_bonus=armor_bonus,
+        equipment_notes=equipment_notes,
+        warnings=warnings,
+    )

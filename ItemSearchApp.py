@@ -320,6 +320,13 @@ from ro_core import (
 
 # === CORE DEDUP PHASE 8: CHARACTER BUILD ADAPTER ===
 from ro_core import CharacterBuild as CoreCharacterBuild
+
+# === CORE DEDUP PHASE 12+13+14: BUILD CALCULATOR DESKTOP ADAPTER ===
+from ro_core import (
+    ArmorRefineSlotInput as CoreArmorRefineSlotInput,
+    CoreRuntimeBundle as CoreRuntimeBundle,
+    calculate_armor_set_refine_bonus as core_calculate_armor_set_refine_bonus,
+)
 from datetime import datetime
 
 # === 條件輸入：上方條件產生器與下方 FunctionSyntaxTextEdit 共用 ===
@@ -6715,89 +6722,46 @@ class ItemSearchApp(QWidget):
         exclude_slots=None,
         exclude_types=None,
     ) -> dict:
-        """從 UI 讀取所有部位精煉值，並加總防具精煉 DEF、RES。"""
-
-        exclude_parts = set(exclude_parts or ())
-        exclude_slots = set(exclude_slots or ())
-        exclude_types = set(exclude_types or ())
-
-        total_def = 0.0
-        total_res = 0
-        details = {}
-
-        # 關鍵修正：slot/type 要從 refine_parts 取得
+        """Snapshot armor UI only; all filtering/refine arithmetic lives in Core."""
+        slots = []
         for part_name, part_info in refine_parts.items():
-            slot = part_info.get("slot")
-            part_type = part_info.get("type")
-
-            if part_name in exclude_parts:
-                continue
-
-            if slot in exclude_slots:
-                continue
-
-            if part_type in exclude_types:
-                continue
-
             ui_data = self.refine_inputs_ui.get(part_name)
             if not ui_data:
                 continue
-
-            # 沒穿裝備時不計算
             equip_widget = ui_data.get("equip")
-            if equip_widget is not None:
-                if not equip_widget.text().strip():
-                    continue
-
+            equip_name = equip_widget.text().strip() if equip_widget is not None else ""
             refine_widget = ui_data.get("refine")
-            if refine_widget is None:
-                continue
-
-            refine_text = refine_widget.text().strip()
-
+            refine_text = refine_widget.text().strip() if refine_widget is not None else "0"
             try:
                 refine = int(refine_text or 0)
             except ValueError as exc:
-                raise ValueError(
-                    f"{part_name} 的精煉值格式錯誤：{refine_text!r}"
-                ) from exc
-
-            # 同時相容 int key 與 str key
+                raise ValueError(f"{part_name} 的精煉值格式錯誤：{refine_text!r}") from exc
+            slot_id = part_info.get("slot")
             armor_level_raw = armor_level_map.get(
-                slot,
-                armor_level_map.get(str(slot), 0),
+                slot_id,
+                armor_level_map.get(str(slot_id), 0),
             )
-
             try:
                 armor_level = int(armor_level_raw or 0)
             except (TypeError, ValueError):
                 armor_level = 0
-
-            if armor_level not in (1, 2):
-                continue
-
-            bonus = self.get_armor_bonus(
-                refine=refine,
-                armor_level=armor_level,
+            slots.append(
+                CoreArmorRefineSlotInput(
+                    part_name=part_name,
+                    slot_id=slot_id,
+                    part_type=str(part_info.get("type", "") or ""),
+                    equipped=bool(equip_name),
+                    refine=refine,
+                    armor_level=armor_level,
+                )
             )
+        return core_calculate_armor_set_refine_bonus(
+            slots,
+            exclude_parts=exclude_parts,
+            exclude_slots=exclude_slots,
+            exclude_types=exclude_types,
+        )
 
-            total_def += bonus["DEF"]
-            total_res += bonus["RES"]
-
-            details[part_name] = {
-                "slot": slot,
-                "type": part_type,
-                "refine": refine,
-                "armor_level": armor_level,
-                "DEF": bonus["DEF"],
-                "RES": bonus["RES"],
-            }
-
-        return {
-            "DEF": round(total_def, 1),
-            "RES": int(total_res),
-            "details": details,
-        }
 
     def update_note_widget_with_delay(self, widget: QTextEdit, text: str):
         widget.setPlainText(text)
@@ -8846,6 +8810,81 @@ class ItemSearchApp(QWidget):
 
 
 
+
+    # === CORE DEDUP PHASE 12+13+14: BUILD CALCULATOR DESKTOP ADAPTER ===
+    def build_character_core_runtime(self):
+        """Create a Qt-free runtime from the Desktop's already-loaded data."""
+        data_dir = os.path.join(get_app_base_dir(), "data")
+        skillbuff_path = os.path.join(data_dir, "skillbuff.lua")
+        try:
+            with open(skillbuff_path, "r", encoding="utf-8-sig") as fh:
+                skillbuff_text = fh.read()
+        except FileNotFoundError:
+            skillbuff_text = ""
+        core_data = EquipmentCalculationData(
+            parsed_items=self.parsed_items,
+            equipment_data=self.equipment_data,
+            job_dict=job_dict,
+            stat_name_sets=stat_name_sets,
+            skill_entries=all_skill_entries,
+            skillbuff_text=skillbuff_text,
+            skill_map=skill_map,
+            unit_map=unit_map,
+            size_map=size_map,
+            effect_map=effect_map,
+            custom_sort_orders=custom_sort_orders,
+        )
+        return CoreRuntimeBundle(
+            core=ROItemCore(dependencies=build_desktop_core_dependencies()),
+            data=core_data,
+            data_dir=data_dir,
+        )
+
+    def collect_character_calculation_runtime(self):
+        """Snapshot only transient combat controls that CharacterBuild intentionally does not persist."""
+        special_checks = getattr(self, "special_checkboxes", {}) or {}
+
+        def checked(name):
+            widget = special_checks.get(name)
+            return bool(widget is not None and widget.isChecked())
+
+        try:
+            damage_multiplier = float(str(self.damage_reduction_combobox.currentText()).replace("%", "") or 100)
+        except (AttributeError, TypeError, ValueError):
+            damage_multiplier = 100.0
+        try:
+            hp_percent = int(self.hp_slider.value())
+        except Exception:
+            hp_percent = 100
+        try:
+            sp_percent = int(self.sp_slider.value())
+        except Exception:
+            sp_percent = 100
+
+        return {
+            "skill_id": self.skill_box.currentData(),
+            "skill_level": self._core_int_from_widget(self.skill_LV_input, 1),
+            "formula_override": self.skill_formula_input.text().strip() or None,
+            "attack_element": self.attack_element_box.currentData(),
+            "hp_percent": hp_percent,
+            "sp_percent": sp_percent,
+            "damage_multiplier_percent": damage_multiplier,
+            "betelgeuse_reduction_percent": int(getattr(self, "MD_BETELGEUSE_total", 0) or 0),
+            "special": {
+                "wanzih": checked("wanzih_checkbox"),
+                "poison_weak": checked("poison_weak_checkbox"),
+                "magic_poison": checked("magic_poison_checkbox"),
+                "attribute_seal": checked("attribute_seal_checkbox"),
+                "sneak_attack": checked("sneak_attack_checkbox"),
+                "spore_attack": checked("SPORE_attack_checkbox"),
+                "dark_crow": checked("DARKCROW_attack_checkbox"),
+                "rush_attack": checked("RUSH_attack_checkbox"),
+                "oleum_attack": checked("OLEUM_attack_checkbox"),
+                "lex_aeterna": checked("PR_LEXAETERNA_checkbox"),
+                "total_srl": globals().get("total_SRL", 0),
+            },
+        }
+
     def _get_multi_compare_context(self):
         """提供多裝備比對模組需要的主程式資料/解析器，不複製計算公式。"""
         return {
@@ -8859,7 +8898,17 @@ class ItemSearchApp(QWidget):
             "unit_map": unit_map,
             "size_map": size_map,
             "effect_map": effect_map,
-        }
+                    "element_map": element_map,
+            "race_map": race_map,
+            "class_map": class_map,
+            "core_runtime_factory": self.build_character_core_runtime,
+            "collect_character_calculation_runtime": self.collect_character_calculation_runtime,
+            "grade_index_maps": {
+                part_name: {str(ui["grade"].itemText(i)): i for i in range(ui["grade"].count())}
+                for part_name, ui in self.refine_inputs_ui.items()
+                if ui.get("grade") is not None
+            },
+}
 
     def open_multi_compare(self):
         """開啟獨立多裝備比對模組視窗。"""
