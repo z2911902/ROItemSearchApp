@@ -7347,6 +7347,10 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
 
     return {
         "coverage": "shared-desktop-standard-path",
+        "display": {
+            "critical_hit": critical_hit,
+            "decay_hits": _stage17_int(row.get("decay_hits", 0)),
+        },
         "skill": {
             "skill_id": skill_id,
             "name": skill_name,
@@ -7648,6 +7652,100 @@ def calculate_character_defense_profile(
         "full_melee_multiplier": full_melee_multiplier,
         "full_range_multiplier": full_range_multiplier,
         "full_magic_multiplier": full_magic_multiplier,
+    }
+
+
+# === CORE DEDUP PHASE 6: STAGE17 PARITY-GATED CUTOVER ===
+def stage17_normalize_display_segments(segments):
+    """Normalize legacy/Core segment lists to the Desktop display semantics."""
+    rows = [dict(item) for item in (segments or []) if isinstance(item, dict)]
+    if len(rows) <= 1:
+        return rows
+
+    combo_split = [
+        item for item in rows[1:]
+        if str(item.get("label", "")) == "combo (均分)"
+        and _stage17_int(item.get("times", 1), 1) > 1
+        and _stage17_int(item.get("damage_by_hit", 0)) * _stage17_int(item.get("times", 1), 1)
+            == _stage17_int(item.get("total_damage", 0))
+    ]
+    if combo_split:
+        return [rows[0], combo_split[0]]
+    return rows
+
+
+def stage17_compare_damage_parity(legacy_segments, core_result, *, numeric_tolerance=1e-6):
+    """Compare the legacy Desktop Stage17 result with the Core render contract.
+
+    This deliberately compares only values that affect the visible damage result.
+    A mismatch returns diagnostics instead of raising so Desktop can safely retain
+    its legacy rendering path.
+    """
+    if hasattr(core_result, "to_dict"):
+        core_result = core_result.to_dict()
+    if not isinstance(core_result, dict):
+        return {
+            "ok": False,
+            "mismatches": ["Core result is missing or is not a mapping"],
+            "legacy_count": 0,
+            "core_count": 0,
+        }
+
+    legacy = stage17_normalize_display_segments(legacy_segments)
+    core = stage17_normalize_display_segments(core_result.get("segments", []))
+    mismatches = []
+
+    if core_result.get("coverage") != "shared-desktop-standard-path":
+        mismatches.append(f"unsupported coverage={core_result.get('coverage')!r}")
+
+    if len(legacy) != len(core):
+        mismatches.append(f"segment count legacy={len(legacy)} core={len(core)}")
+
+    int_fields = (
+        "damage_by_hit_min",
+        "damage_by_hit",
+        "total_damage_min",
+        "total_damage",
+        "times",
+        "user_attack_element",
+    )
+    for idx, (old, new) in enumerate(zip(legacy, core), start=1):
+        old_label = str(old.get("label", ""))
+        new_label = str(new.get("label", ""))
+        if old_label != new_label:
+            mismatches.append(f"segment {idx} label legacy={old_label!r} core={new_label!r}")
+        for field in int_fields:
+            old_value = _stage17_int(old.get(field, 0))
+            new_value = _stage17_int(new.get(field, 0))
+            if old_value != new_value:
+                mismatches.append(
+                    f"segment {idx} {field} legacy={old_value} core={new_value}"
+                )
+        old_skill = _stage17_number(old.get("skill_result", 0), 0)
+        new_skill = _stage17_number(new.get("skill_result", 0), 0)
+        if abs(old_skill - new_skill) > float(numeric_tolerance):
+            mismatches.append(
+                f"segment {idx} skill_result legacy={old_skill} core={new_skill}"
+            )
+
+    legacy_total_min = sum(_stage17_int(item.get("total_damage_min", 0)) for item in legacy)
+    legacy_total_max = sum(_stage17_int(item.get("total_damage", 0)) for item in legacy)
+    core_total_min = _stage17_int(core_result.get("total_damage_min", 0))
+    core_total_max = _stage17_int(core_result.get("total_damage", 0))
+    if legacy_total_min != core_total_min:
+        mismatches.append(f"total_damage_min legacy={legacy_total_min} core={core_total_min}")
+    if legacy_total_max != core_total_max:
+        mismatches.append(f"total_damage legacy={legacy_total_max} core={core_total_max}")
+
+    return {
+        "ok": not mismatches,
+        "mismatches": mismatches,
+        "legacy_count": len(legacy),
+        "core_count": len(core),
+        "legacy_total_damage_min": legacy_total_min,
+        "legacy_total_damage": legacy_total_max,
+        "core_total_damage_min": core_total_min,
+        "core_total_damage": core_total_max,
     }
 
 

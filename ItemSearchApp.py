@@ -314,6 +314,8 @@ from ro_core import (
     build_damage_effect_profile as core_build_damage_effect_profile,
     calculate_character_defense_profile as core_calculate_character_defense_profile,
 
+    stage17_compare_damage_parity as core_stage17_compare_damage_parity,
+
 )
 from datetime import datetime
 
@@ -6872,10 +6874,19 @@ class ItemSearchApp(QWidget):
                 self.generate_highlighted_html(body_results)
             )
 
-        # Phase 4+5 shadow parity: Core request/result is stored for comparison.
-        # Existing rendering remains legacy until parity is proven across special skills.
+        # Phase 6 layout fix: Core owns calculation parity; Desktop keeps the legacy text presenter.
+        # The legacy `result` list has already been rendered above in its original order/spacing.
+        # Do not overwrite custom_calc_box with a second Core-specific formatter here.
         if render_output:
-            self.refresh_core_stage17_snapshot()
+            core_snapshot = self.refresh_core_stage17_snapshot()
+            core_payload = core_snapshot.to_dict() if core_snapshot is not None else None
+            parity = core_stage17_compare_damage_parity(results, core_payload)
+            self.last_core_damage_parity = parity
+            self.stage17_core_parity_ok = bool(core_snapshot is not None and parity.get("ok"))
+            # Kept for compatibility: Core is validating values, not owning UI text rendering.
+            self.stage17_core_render_active = False
+            if self.stage17_core_parity_ok:
+                self.last_core_damage_error = None
 
 
     def _set_combo_data_blocked(self, combo, data):
@@ -8242,10 +8253,34 @@ class ItemSearchApp(QWidget):
             custom_sort_orders=custom_sort_orders,
         )
 
+        special_checks = getattr(self, "special_checkboxes", {}) or {}
+
+        def special_checked(name):
+            widget = special_checks.get(name)
+            return bool(widget is not None and widget.isChecked())
+
         damage = {
             "skill_id": self.skill_box.currentData(),
             "skill_level": self._core_int_from_widget(self.skill_LV_input, 1),
             "attack_element": self.attack_element_box.currentData(),
+            "formula_override": self.skill_formula_input.text().strip() or None,
+            "mhp": globals().get("MHP", 0),
+            "msp": globals().get("MSP", 0),
+            "mhp_now": globals().get("MHP_NOW", 0),
+            "msp_now": globals().get("MSP_NOW", 0),
+            "special": {
+                "wanzih": special_checked("wanzih_checkbox"),
+                "poison_weak": special_checked("poison_weak_checkbox"),
+                "magic_poison": special_checked("magic_poison_checkbox"),
+                "attribute_seal": special_checked("attribute_seal_checkbox"),
+                "sneak_attack": special_checked("sneak_attack_checkbox"),
+                "spore_attack": special_checked("SPORE_attack_checkbox"),
+                "dark_crow": special_checked("DARKCROW_attack_checkbox"),
+                "rush_attack": special_checked("RUSH_attack_checkbox"),
+                "oleum_attack": special_checked("OLEUM_attack_checkbox"),
+                "lex_aeterna": special_checked("PR_LEXAETERNA_checkbox"),
+                "total_srl": globals().get("total_SRL", 0),
+            },
             "monster": {
                 "size": self.size_box.currentData(),
                 "element": self.element_box.currentData(),
@@ -8258,6 +8293,12 @@ class ItemSearchApp(QWidget):
                 "mdef": self._core_int_from_widget(self.mdef_input, 0),
                 "mdefc": self._core_int_from_widget(self.mdefc_input, 0),
                 "mres": self._core_int_from_widget(self.mres_input, 0),
+                "damage_multiplier_percent": float(
+                    str(self.damage_reduction_combobox.currentText()).replace("%", "") or 100
+                ),
+                "betelgeuse_reduction_percent": int(
+                    getattr(self, "MD_BETELGEUSE_total", 0) or 0
+                ),
             },
         }
         return CoreStage17DamageRequest(
@@ -8284,6 +8325,124 @@ class ItemSearchApp(QWidget):
             # Shadow parity must never break the existing Desktop render path.
             self.last_core_damage_error = str(exc)
             return None
+
+    # === CORE DEDUP PHASE 6: PARITY-GATED CORE RENDER ===
+    @staticmethod
+    def _format_core_stage17_value(value, digits=None):
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        if digits is not None:
+            return f"{number:.{int(digits)}f}"
+        if number.is_integer():
+            return f"{int(number):,}"
+        return f"{number:,.2f}".rstrip("0").rstrip(".")
+
+    def build_core_stage17_output_lines(self, core_result, extra_lines=None):
+        """Translate the Qt-free Core result into the existing Desktop text contract."""
+        raw = core_result.to_dict() if hasattr(core_result, "to_dict") else dict(core_result or {})
+        skill = dict(raw.get("skill", {}) or {})
+        display = dict(raw.get("display", {}) or {})
+        breakdown = dict(raw.get("breakdown", {}) or {})
+        segments = [dict(item) for item in (raw.get("segments", []) or []) if isinstance(item, dict)]
+        warnings = list(raw.get("warnings", []) or [])
+
+        if not segments:
+            raise ValueError("Core Stage17 result has no renderable segments")
+
+        skill_name = str(skill.get("name", "") or "")
+        attack_type = str(skill.get("attack_type", "") or "")
+        critical_display = float(display.get("critical_hit", 0) or 0) > 0
+        decay_hits = int(display.get("decay_hits", 0) or 0)
+        lines = [f"使用技能: {skill_name}"]
+
+        def fmt_damage(min_value, max_value):
+            min_value = int(min_value or 0)
+            max_value = int(max_value or 0)
+            if critical_display:
+                return f"{max_value:,}"
+            return f"{min_value:,} ~ {max_value:,}"
+
+        if attack_type == "shield":
+            lines.append("")
+            lines.append(f"護盾可抵擋傷害: {self._format_core_stage17_value(segments[0].get('skill_result', 0))}")
+            lines.append("")
+        else:
+            combo_split = len(segments) == 2 and str(segments[1].get("label", "")) == "combo (均分)"
+            if combo_split:
+                main = segments[0]
+                combo = segments[1]
+                main_element = element_map.get(main.get("user_attack_element"), main.get("user_attack_element"))
+                combo_element = element_map.get(combo.get("user_attack_element"), combo.get("user_attack_element"))
+                lines.append(f"[{main_element}] ==================主技能總傷害===========================")
+                lines.append(f"單次傷害:     {fmt_damage(main.get('damage_by_hit_min'), main.get('damage_by_hit'))}")
+                lines.append(f"打擊次數:     {int(main.get('times', 1) or 1)} 次")
+                lines.append(f"主技能總傷害: {fmt_damage(main.get('total_damage_min'), main.get('total_damage'))}")
+                lines.append(f"[{combo_element}] ===============COMBO 技能（均分）========================")
+                lines.append(f"單次傷害(COMBO): {fmt_damage(combo.get('damage_by_hit_min'), combo.get('damage_by_hit'))}")
+                lines.append(f"打擊次數(COMBO): {int(combo.get('times', 1) or 1)} 次")
+                lines.append(f"總傷害(COMBO):   {fmt_damage(combo.get('total_damage_min'), combo.get('total_damage'))}")
+                lines.append("")
+                lines.append(f"總傷害:  {fmt_damage(raw.get('total_damage_min'), raw.get('total_damage'))}")
+            elif len(segments) > 1:
+                attack_element = skill.get("attack_element")
+                element_name = element_map.get(attack_element, attack_element)
+                lines.append(f"[{element_name}] ===========以下總傷害數值（共 {len(segments)} 次）====================")
+                for idx, item in enumerate(segments, start=1):
+                    lines.append(
+                        f"第 {idx}/{len(segments)} 次傷害: "
+                        f"{fmt_damage(item.get('total_damage_min'), item.get('total_damage'))}"
+                    )
+                lines.append(f"總傷害:  {fmt_damage(raw.get('total_damage_min'), raw.get('total_damage'))}")
+            else:
+                item = segments[0]
+                attack_element = item.get("user_attack_element", skill.get("attack_element"))
+                element_name = element_map.get(attack_element, attack_element)
+                lines.append(f"[{element_name}] =================以下總傷害數值===========================")
+                lines.append(f"單次傷害: {fmt_damage(item.get('damage_by_hit_min'), item.get('damage_by_hit'))}")
+                lines.append(f"打擊次數: {int(item.get('times', 1) or 1)} 次")
+                lines.append(f"總傷害:   {fmt_damage(item.get('total_damage_min'), item.get('total_damage'))}")
+
+            if decay_hits > 1:
+                avg_damage = int(int(raw.get("total_damage", 0) or 0) / decay_hits)
+                lines.append(f"遞增/減段數: {decay_hits} 段")
+                lines.append(f"平均每段傷害: {avg_damage:,}")
+
+            rows = list(breakdown.get("rows", []) or [])
+            if rows:
+                lines.append("=========================以下各增傷數值===========================")
+                for row in rows:
+                    if not isinstance(row, dict):
+                        continue
+                    label = str(row.get("label", row.get("key", "")) or "")
+                    value = self._format_core_stage17_value(row.get("value", 0), row.get("digits"))
+                    unit = str(row.get("unit", "") or "")
+                    lines.append(f"{label}: {value}{unit}")
+                lines.append("==================================================================")
+
+        lines.append(f"技能等級: {int(skill.get('level', 0) or 0)}")
+        if extra_lines:
+            lines.extend(list(extra_lines))
+        for warning in warnings:
+            lines.append(f"⚠ Core: {warning}")
+        return lines
+
+    def render_core_stage17_result(self, core_result, *, extra_lines=None):
+        lines = self.build_core_stage17_output_lines(core_result, extra_lines=extra_lines)
+        raw = core_result.to_dict() if hasattr(core_result, "to_dict") else dict(core_result or {})
+        segments = list(raw.get("segments", []) or [])
+        if segments:
+            self.skill_formula_result_input.setText(
+                f"{self._format_core_stage17_value(segments[0].get('skill_result', 0))} %"
+            )
+        final_output = lines
+        if self.auto_compare_checkbox.isChecked():
+            compared_output = self.compare_with_base(current_lines=lines, render=False)
+            if compared_output is not None:
+                final_output = compared_output
+        self.custom_calc_box.setHtml(self.generate_highlighted_html(final_output))
+        return final_output
 
     def build_core_equipment_effect_request(self, get_values=None, refine_inputs=None):
         """Snapshot Qt controls into a Qt-free request object.
