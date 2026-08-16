@@ -11,10 +11,8 @@
 """
 
 import html
-import json
 import os
 import re
-import tempfile
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer
@@ -135,34 +133,17 @@ class MultiCompareService:
         trigger()
         QApplication.processEvents()
 
-    def collect_project_state_data(self):
-        """把目前主畫面收成與專案檔相同的資料格式，不寫檔。"""
+    # === CORE DEDUP PHASE 9: MULTICOMPARE CHARACTER BUILD STATE ===
+    def _collect_compare_runtime_state(self):
+        """Collect UI-only compare state that is intentionally not part of CharacterBuild."""
         main = self.main_window
-        data = {}
-
-        for key, field in main.input_fields.items():
-            if isinstance(field, QComboBox):
-                data[key] = field.currentText()
-            else:
-                data[key] = field.text()
-
-        for part, info in main.refine_inputs_ui.items():
-            data[f"{part}_equip"] = info["equip"].text()
-            for i, card_input in enumerate(info["cards"]):
-                data[f"{part}_card{i+1}"] = card_input.text()
-            if "note" in info:
-                data[f"{part}_note"] = info["note"].toPlainText()
-
-        data["skill_name"] = main.skill_box.currentText()
-
         skill_data = main.skill_box.currentData()
         if not isinstance(skill_data, (str, int, float, bool, type(None))):
             skill_data = str(skill_data)
         attack_element_data = main.attack_element_box.currentData()
         if not isinstance(attack_element_data, (str, int, float, bool, type(None))):
             attack_element_data = str(attack_element_data)
-
-        data["_compare_runtime"] = {
+        return {
             "skill_filter": main.skill_filter_input.text(),
             "skill_name": main.skill_box.currentText(),
             "skill_data": skill_data,
@@ -176,88 +157,79 @@ class MultiCompareService:
             },
         }
 
-        data["size"] = main.size_box.currentIndex()
-        data["element"] = main.element_box.currentIndex()
-        data["race"] = main.race_box.currentIndex()
-        data["class"] = main.class_box.currentIndex()
-        data["mdef"] = main.mdef_input.text()
-        data["mdefc"] = main.mdefc_input.text()
-        data["mres"] = main.mres_input.text()
-        data["def"] = main.def_input.text()
-        data["defc"] = main.defc_input.text()
-        data["res"] = main.res_input.text()
-        data["element_lv"] = main.element_lv_input.text()
-
-        all_skill_entries = self._ctx("all_skill_entries", {}) or {}
-        buff_ids = []
-        for name, checkbox in main.skill_checkboxes.items():
-            if not checkbox.isChecked():
-                continue
-            entry = all_skill_entries.get(name, {})
-            raw_buff = entry.get("buff") if isinstance(entry, dict) else None
-            buff_ids.extend(sorted(_parse_buff_ids(raw_buff)))
-        data["buff"] = ",".join(
-            sorted(set(buff_ids), key=lambda x: int(x) if x.isdigit() else x)
-        )
-        return data
-
-    def restore_project_state_data(self, data, recalculate=True):
-        """使用主程式既有 load_saved_inputs 流程還原批次比較前狀態。"""
+    def collect_project_state_data(self):
+        """Snapshot the current build without duplicating Desktop project-field collection."""
         main = self.main_window
-        temp_path = None
-        try:
-            fd, temp_path = tempfile.mkstemp(prefix="ro_compare_restore_", suffix=".json")
-            os.close(fd)
-            with open(temp_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+        collect_build = getattr(main, "collect_character_build", None)
+        if not callable(collect_build):
+            raise RuntimeError("主程式缺少 Phase 8 collect_character_build()")
+        return {
+            "build": collect_build(),
+            "runtime": self._collect_compare_runtime_state(),
+        }
 
-            runtime = data.get("_compare_runtime", {}) if isinstance(data, dict) else {}
-            main.load_saved_inputs(temp_path)
-            main.refresh_skill_list()
+    def _restore_compare_runtime_state(self, runtime):
+        """Restore compare-only controls after CharacterBuild has restored project data."""
+        if not isinstance(runtime, dict) or not runtime:
+            return
+        main = self.main_window
+        saved_filter = str(runtime.get("skill_filter", ""))
+        main.skill_filter_input.setText(saved_filter)
 
-            if isinstance(runtime, dict) and runtime:
-                saved_filter = str(runtime.get("skill_filter", ""))
-                main.skill_filter_input.setText(saved_filter)
+        saved_skill_data = runtime.get("skill_data")
+        saved_skill_name = str(runtime.get("skill_name", "") or "")
+        index = main.skill_box.findData(saved_skill_data)
+        if index == -1 and saved_skill_name:
+            index = main.skill_box.findText(saved_skill_name)
 
-                saved_skill_data = runtime.get("skill_data")
-                saved_skill_name = str(runtime.get("skill_name", "") or "")
-                index = main.skill_box.findData(saved_skill_data)
-                if index == -1 and saved_skill_name:
-                    index = main.skill_box.findText(saved_skill_name)
+        skill_map = self._ctx("skill_map", {}) or {}
+        if index == -1 and saved_skill_name:
+            for skill_id, display_name in skill_map.items():
+                if str(display_name) == saved_skill_name:
+                    main.skill_box.addItem(display_name, skill_id)
+                    index = main.skill_box.count() - 1
+                    break
 
-                skill_map = self._ctx("skill_map", {}) or {}
-                if index == -1 and saved_skill_name:
-                    for skill_id, display_name in skill_map.items():
-                        if str(display_name) == saved_skill_name:
-                            main.skill_box.addItem(display_name, skill_id)
-                            index = main.skill_box.count() - 1
-                            break
+        if index != -1:
+            main.skill_box.setCurrentIndex(index)
 
-                if index != -1:
-                    main.skill_box.setCurrentIndex(index)
+        main.skill_LV_input.setText(str(runtime.get("skill_lv", main.skill_LV_input.text())))
+        main.skill_hits_input.setText(str(runtime.get("skill_hits", main.skill_hits_input.text())))
+        main.skill_formula_input.setText(str(runtime.get("skill_formula", main.skill_formula_input.text())))
 
-                main.skill_LV_input.setText(str(runtime.get("skill_lv", main.skill_LV_input.text())))
-                main.skill_hits_input.setText(str(runtime.get("skill_hits", main.skill_hits_input.text())))
-                main.skill_formula_input.setText(str(runtime.get("skill_formula", main.skill_formula_input.text())))
+        attack_element_data = runtime.get("attack_element_data")
+        attack_index = main.attack_element_box.findData(attack_element_data)
+        if attack_index != -1:
+            main.attack_element_box.setCurrentIndex(attack_index)
 
-                attack_element_data = runtime.get("attack_element_data")
-                attack_index = main.attack_element_box.findData(attack_element_data)
-                if attack_index != -1:
-                    main.attack_element_box.setCurrentIndex(attack_index)
+        for key, checked in runtime.get("special_checkboxes", {}).items():
+            checkbox = main.special_checkboxes.get(key)
+            if checkbox is not None:
+                checkbox.setChecked(bool(checked))
 
-                for key, checked in runtime.get("special_checkboxes", {}).items():
-                    checkbox = main.special_checkboxes.get(key)
-                    if checkbox is not None:
-                        checkbox.setChecked(bool(checked))
+    def restore_project_state_data(self, state, recalculate=True):
+        """Restore through CharacterBuild directly; no temporary JSON file is created."""
+        main = self.main_window
+        apply_build = getattr(main, "apply_character_build", None)
+        if not callable(apply_build):
+            raise RuntimeError("主程式缺少 Phase 8 apply_character_build()")
 
-            if recalculate:
-                self._recalculate_main_now()
-        finally:
-            if temp_path and os.path.exists(temp_path):
-                try:
-                    os.remove(temp_path)
-                except OSError:
-                    pass
+        # Phase 9 state keeps CharacterBuild and UI-only runtime separate.  The legacy
+        # branch lets an already-open compare dialog restore a snapshot created before
+        # this migration was applied.
+        if isinstance(state, dict) and "build" in state:
+            build = state.get("build")
+            runtime = state.get("runtime", {})
+        else:
+            legacy = dict(state) if isinstance(state, dict) else state
+            runtime = legacy.pop("_compare_runtime", {}) if isinstance(legacy, dict) else {}
+            build = legacy
+
+        apply_build(build)
+        main.refresh_skill_list()
+        self._restore_compare_runtime_state(runtime)
+        if recalculate:
+            self._recalculate_main_now()
 
     def _build_compare_parse_context(self):
         """建立詞條解析所需的目前能力值與各部位精煉值。"""
@@ -509,16 +481,229 @@ class MultiCompareService:
             add_value(f"特性素質 / {stat}", g.get(f"total_{stat}", fallback))
         return results
 
+    # === CORE DEDUP PHASE 10: MULTICOMPARE STRUCTURED CORE DAMAGE ===
+    @staticmethod
+    def _core_compare_number(value, default=0.0):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return float(default)
+
+    @staticmethod
+    def _core_compare_format_number(value, digits=None):
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return str(value or "")
+        if digits is not None:
+            return f"{number:,.{int(digits)}f}"
+        if number.is_integer():
+            return f"{int(number):,}"
+        return f"{number:,.2f}".rstrip("0").rstrip(".")
+
+    @classmethod
+    def _core_compare_entry(cls, value, *, unit="", digits=None, display=None, number=None):
+        numeric = cls._core_compare_number(value) if number is None else cls._core_compare_number(number)
+        if display is None:
+            display = cls._core_compare_format_number(value, digits=digits)
+            if unit:
+                display = f"{display}{unit}"
+        return {
+            "display": str(display),
+            "number": numeric,
+            "suffix": "%" if unit == "%" else "",
+        }
+
+    @classmethod
+    def _core_compare_damage_range_entry(cls, minimum, maximum, *, critical=False):
+        low = int(cls._core_compare_number(minimum))
+        high = int(cls._core_compare_number(maximum))
+        if critical:
+            return cls._core_compare_entry(high, display=f"{high:,}", number=high)
+        return cls._core_compare_entry(
+            low,
+            display=f"{low:,} ~ {high:,}",
+            number=low,
+        )
+
+    def _get_parity_valid_core_damage_payload(self):
+        """Return Stage17 structured data only after Phase 6 parity has passed.
+
+        MultiCompare must never silently switch to a Core value that the Desktop
+        parity gate already identified as different from the legacy calculation.
+        """
+        main = self.main_window
+        parity = getattr(main, "last_core_damage_parity", None)
+        parity_ok = getattr(main, "stage17_core_parity_ok", None)
+        if parity_ok is None and isinstance(parity, dict):
+            parity_ok = bool(parity.get("ok"))
+        if not parity_ok:
+            return None
+
+        payload = getattr(main, "last_core_damage_result", None)
+        if payload is None:
+            return None
+        if hasattr(payload, "to_dict"):
+            try:
+                payload = payload.to_dict()
+            except Exception:
+                return None
+        if not isinstance(payload, dict):
+            return None
+        if payload.get("coverage") != "shared-desktop-standard-path":
+            return None
+        return payload
+
+    def _collect_compare_core_damage_results(self):
+        """Convert Stage17 structured result into MultiCompare's existing row contract.
+
+        The comparison table keeps the same {display, number, suffix} schema, but
+        damage numbers and damage-breakdown rows come from Core rather than regex
+        parsing the Desktop text box.
+        """
+        payload = self._get_parity_valid_core_damage_payload()
+        if payload is None:
+            return {}, "legacy-text"
+
+        results = {}
+        display_meta = payload.get("display", {}) if isinstance(payload.get("display"), dict) else {}
+        critical = self._core_compare_number(display_meta.get("critical_hit", 0)) > 0
+        decay_hits = int(self._core_compare_number(display_meta.get("decay_hits", 0)))
+
+        skill = payload.get("skill", {}) if isinstance(payload.get("skill"), dict) else {}
+        attack_type = str(skill.get("attack_type", "") or "").lower()
+        segments = [
+            dict(row) for row in (payload.get("segments") or [])
+            if isinstance(row, dict)
+        ]
+
+        if attack_type == "shield":
+            breakdown = payload.get("breakdown", {}) if isinstance(payload.get("breakdown"), dict) else {}
+            for row in breakdown.get("rows", []) or []:
+                if isinstance(row, dict) and row.get("key") == "shield_formula":
+                    results[str(row.get("label") or "護盾可抵擋傷害")] = self._core_compare_entry(
+                        row.get("value", 0),
+                        unit=str(row.get("unit", "") or ""),
+                        digits=row.get("digits"),
+                    )
+                    break
+        elif segments:
+            combo_split = (
+                len(segments) > 1
+                and str(segments[1].get("label", "")) == "combo (均分)"
+            )
+            if combo_split:
+                main_seg = segments[0]
+                combo_seg = segments[1]
+                results["單次傷害"] = self._core_compare_damage_range_entry(
+                    main_seg.get("damage_by_hit_min", 0),
+                    main_seg.get("damage_by_hit", 0),
+                    critical=critical,
+                )
+                results["打擊次數"] = self._core_compare_entry(
+                    main_seg.get("times", 1),
+                    display=f"{int(self._core_compare_number(main_seg.get('times', 1), 1))} 次",
+                )
+                results["主技能總傷害"] = self._core_compare_damage_range_entry(
+                    main_seg.get("total_damage_min", 0),
+                    main_seg.get("total_damage", 0),
+                    critical=critical,
+                )
+                results["單次傷害(COMBO)"] = self._core_compare_damage_range_entry(
+                    combo_seg.get("damage_by_hit_min", 0),
+                    combo_seg.get("damage_by_hit", 0),
+                    critical=critical,
+                )
+                results["打擊次數(COMBO)"] = self._core_compare_entry(
+                    combo_seg.get("times", 1),
+                    display=f"{int(self._core_compare_number(combo_seg.get('times', 1), 1))} 次",
+                )
+                results["總傷害(COMBO)"] = self._core_compare_damage_range_entry(
+                    combo_seg.get("total_damage_min", 0),
+                    combo_seg.get("total_damage", 0),
+                    critical=critical,
+                )
+                results["總傷害"] = self._core_compare_damage_range_entry(
+                    payload.get("total_damage_min", 0),
+                    payload.get("total_damage", 0),
+                    critical=critical,
+                )
+            elif len(segments) > 1:
+                total_count = len(segments)
+                for idx, seg in enumerate(segments, start=1):
+                    results[f"第 {idx}/{total_count} 次傷害"] = self._core_compare_damage_range_entry(
+                        seg.get("total_damage_min", 0),
+                        seg.get("total_damage", 0),
+                        critical=critical,
+                    )
+                results["總傷害"] = self._core_compare_damage_range_entry(
+                    payload.get("total_damage_min", 0),
+                    payload.get("total_damage", 0),
+                    critical=critical,
+                )
+            else:
+                seg = segments[0]
+                results["單次傷害"] = self._core_compare_damage_range_entry(
+                    seg.get("damage_by_hit_min", 0),
+                    seg.get("damage_by_hit", 0),
+                    critical=critical,
+                )
+                results["打擊次數"] = self._core_compare_entry(
+                    seg.get("times", 1),
+                    display=f"{int(self._core_compare_number(seg.get('times', 1), 1))} 次",
+                )
+                results["總傷害"] = self._core_compare_damage_range_entry(
+                    seg.get("total_damage_min", 0),
+                    seg.get("total_damage", 0),
+                    critical=critical,
+                )
+
+            if decay_hits > 1:
+                total_max = int(self._core_compare_number(payload.get("total_damage", 0)))
+                results["遞增/減段數"] = self._core_compare_entry(
+                    decay_hits,
+                    display=f"{decay_hits} 段",
+                )
+                average = int(total_max / decay_hits)
+                results["平均每段傷害"] = self._core_compare_entry(
+                    average,
+                    display=f"{average:,}",
+                )
+
+        breakdown = payload.get("breakdown", {}) if isinstance(payload.get("breakdown"), dict) else {}
+        for row in breakdown.get("rows", []) or []:
+            if not isinstance(row, dict):
+                continue
+            label = str(row.get("label", "") or "").strip()
+            if not label or row.get("key") == "shield_formula":
+                continue
+            results[label] = self._core_compare_entry(
+                row.get("value", 0),
+                unit=str(row.get("unit", "") or ""),
+                digits=row.get("digits"),
+            )
+
+        return results, "core-stage17"
+
     def _build_compare_snapshot(self, name, source=None):
         main = self.main_window
         result_text = main.custom_calc_box.toPlainText()
         results = self._collect_compare_skill_results()
+
+        # Keep parsing the Desktop text for non-Stage17 legacy rows (HP/SP/status/etc.).
+        # Stage17 damage rows are overwritten from the parity-validated structured Core
+        # result below, so comparison numbers no longer depend on regex text parsing.
         parsed_results = self._parse_compare_result_text(result_text)
         parsed_results.pop("使用技能", None)
         parsed_results.pop("技能名稱", None)
         parsed_results.pop("技能等級", None)
         parsed_results.pop("技能攻擊屬性", None)
         results.update(parsed_results)
+
+        core_damage_results, damage_result_source = self._collect_compare_core_damage_results()
+        if core_damage_results:
+            results.update(core_damage_results)
+
         results.update(self._collect_compare_monster_results())
         results.update(self._collect_compare_character_results())
         return {
@@ -526,7 +711,9 @@ class MultiCompareService:
             "source": source,
             "equipment": self._collect_compare_equipment(),
             "results": results,
+            # Retain original Desktop text for debugging/export compatibility only.
             "result_text": result_text,
+            "damage_result_source": damage_result_source,
         }
 
     def create_current_compare_snapshot(self, name="目前設定"):
