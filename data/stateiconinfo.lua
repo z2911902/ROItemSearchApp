@@ -4569,4 +4569,31 @@ descript = {
 {"尼芙菲姆南瓜登場"}, 
 {"古代神殿阿克赫特"}, 
 {"未知的藍洞"}}}
+StateIconList[EFST_IDs.EFST_CONTENTS_37] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
+descript = {
+{"賦予次元魔力抗性 (1階段)", COLOR_TITLE_BUFF}, 
+{"%s", COLOR_TIME}, 
+{"已賦予對破壞的巴基力雷恩地區"}, 
+{"次元魔力抗性。"}}}
+StateIconList[EFST_IDs.EFST_CONTENTS_38] = {haveTimeLimit = 1, posTimeLimitStr = 2, 
+descript = {
+{"賦予次元魔力抗性 (2階段)", COLOR_TITLE_BUFF}, 
+{"%s", COLOR_TIME}, 
+{"已賦予對被侵蝕的葛帔尼亞地區"}, 
+{"次元魔力抗性。"}}}
+StateIconList[EFST_IDs.EFST_GEFFEN_MAGIC1] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
+descript = {
+{"對人類型魔物的"}, 
+{"物理傷害增加"}, 
+{"%s", COLOR_TIME}}}
+StateIconList[EFST_IDs.EFST_GEFFEN_MAGIC2] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
+descript = {
+{"對人類型魔物的"}, 
+{"魔法傷害增加"}, 
+{"%s", COLOR_TIME}}}
+StateIconList[EFST_IDs.EFST_GEFFEN_MAGIC3] = {haveTimeLimit = 1, posTimeLimitStr = 3, 
+descript = {
+{"受人類型魔物的"}, 
+{"傷害減少"}, 
+{"%s", COLOR_TIME}}}
 
