@@ -1,4 +1,4 @@
-"""ROItemSearchApp shared Python core (stage 3).
+﻿"""ROItemSearchApp shared Python core (stage 3).
 
 This module intentionally has no PySide6/FastAPI dependency. Desktop and Web
 can both import it directly. Stage 3 adds an explicit dependency container for
@@ -7,6 +7,9 @@ current Desktop parser implementation into this same module.
 """
 
 from __future__ import annotations
+
+# Manual shared-core version. Bump this whenever ro_core.py calculation logic changes.
+RO_CORE_VERSION = "v0.21.74"
 
 from dataclasses import dataclass, field
 import ast
@@ -4020,6 +4023,7 @@ class ROItemCore:
 
 
 __all__ = [
+    "RO_CORE_VERSION",
     "CalculationContext",
     "CoreDependencyError",
     "CoreDependencies",
@@ -5425,7 +5429,7 @@ def stage17_calc_final_def_damage(d_ef: float, reduction_percent: float) -> floa
     if adj <= -399:
         adj = -399
     resistance = (4000 + adj) / (4000 + adj * 10)
-    return min(max(resistance, -0.99), 1)
+    return 1 if d_ef == 0 else max(resistance, -0.99) 
 
 
 def stage17_calc_final_mdef_damage(mdef: float, reduction_percent: float) -> float:
@@ -5436,7 +5440,7 @@ def stage17_calc_final_mdef_damage(mdef: float, reduction_percent: float) -> flo
     if adj <= -99:
         adj = -99
     resistance = (1000 + adj) / (1000 + adj * 10)
-    return min(max(resistance, -0.99), 1)
+    return 1 if mdef == 0 else max(resistance, -0.99) 
 
 
 def stage17_calc_final_res_damage(mres: float, reduction_percent: float) -> float:
