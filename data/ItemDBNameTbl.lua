@@ -5273,7 +5273,14 @@ ItemDBNameTbl = {
   Dark_Rot_Cape_UPD = 480911,
   Caesar_Boots = 470462,
   Caesar_Boots_LT = 470463,
-  Will_of_Resolution_TW = 1003116
+  Will_of_Resolution_TW = 1003116,
+  Bind_Soul_Cape_TW = 480925,
+  Time_Gap_SH_Foxtail = 550159,
+  Time_Gap_MT_Axe = 620043,
+  S_EM_DS_Earring = 1270119,
+  S_EM_DS_Pendant = 1270120,
+  S_EM_TP_Armor = 1270121,
+  S_EM_TP_Shoes = 1270122
 }
 
 function ItemDB_To_ItemID(in_ItemDB)

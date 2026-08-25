@@ -2150,8 +2150,7 @@ tblLapineUpgradeBox = {
 			NotSocketEnchantItem = false,
 			TargetItems = {
 				{ "Ultio_Cape_TW", 480088 },
-				{ "Ultio_Cape_LT_TW", 480428 },
-				{ "Ultio_Cape_UPD", 480893 }
+				{ "Ultio_Cape_LT_TW", 480428 }
 			},
 			NeedSource_String = "烏爾蒂奧聖魔法斗篷"
 		},
@@ -5073,6 +5072,10 @@ tblLapineUpgradeBox = {
 			NeedOptionNumMin = 0,
 			NotSocketEnchantItem = false,
 			TargetItems = {
+				{ "S_EM_DS_Earring", 1270119 },
+				{ "S_EM_DS_Pendant", 1270120 },
+				{ "S_EM_TP_Armor", 1270121 },
+				{ "S_EM_TP_Shoes", 1270122 },
 				{ "S_SS_KK_Earring", 1270123 },
 				{ "S_SS_KK_Pendant", 1270124 },
 				{ "S_SS_KF_Armor", 1270125 },
@@ -6611,6 +6614,10 @@ tblLapineUpgradeBox = {
 			NeedOptionNumMin = 0,
 			NotSocketEnchantItem = false,
 			TargetItems = {
+				{ "S_EM_DS_Earring", 1270119 },
+				{ "S_EM_DS_Pendant", 1270120 },
+				{ "S_EM_TP_Armor", 1270121 },
+				{ "S_EM_TP_Shoes", 1270122 },
 				{ "S_SS_KK_Earring", 1270123 },
 				{ "S_SS_KK_Pendant", 1270124 },
 				{ "S_SS_KF_Armor", 1270125 },
