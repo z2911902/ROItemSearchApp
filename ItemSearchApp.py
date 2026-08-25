@@ -6637,6 +6637,13 @@ class ItemSearchApp(QWidget):
 
     # === CORE DEDUP PHASE 15: LEGACY CLEANUP ===
     def apply_all_damage_effects(self, effect_dict):
+        """
+        原本這裡依序整理：體型、屬性對象、屬性來源、種族、階級、
+        無視階級防禦、無視種族防禦、無視種族抗性。
+
+        mapping 規則已拆到 ro_core.build_damage_effect_profile()；
+        這裡只把結果回填成舊 Desktop attribute 名稱，避免既有 UI / 呼叫端失效。
+        """
         # Phase 4+5: mapping rules live in Core; keep legacy attributes for callers/UI.
         profile = core_build_damage_effect_profile(effect_dict)
         self.damage_effect_profile = profile
@@ -6645,13 +6652,45 @@ class ItemSearchApp(QWidget):
         return profile
 
     def calc_weapon_refine_matk(self, weapon_Level, weaponRefineR, weaponGradeR):
+        """
+        回傳： (MATK 總加成, S.MATK 總加成, 浮動上限, 浮動最小值)
+        說明：
+          1~4 階：每 +1 固定加成；超過安定值後，每 +1 額外給「浮動加成(取上限)」；
+                  若精煉 > 15，沿用原本 over16_bonus 規則。
+          5 階：依品級每 +1 固定 MATK，加上每 +1 固定 +2 S.MATK。
+
+        實際公式已拆到 ro_core.py，這裡保留 Desktop 相容入口與原本說明。
+        """
         return _core_stage17_calc_weapon_refine_matk(weapon_Level, weaponRefineR, weaponGradeR)
         
     def calc_weapon_refine_atk(self, weapon_Level, weaponRefineR, weaponGradeR):
+        """
+        回傳： (ATK 總加成, P.ATK 總加成, 浮動上限, 浮動最小值)
+        說明：
+          1~4 階：每 +1 固定加成；超過安定值後，每 +1 額外給「浮動加成(這裡取上限)」；
+                  若精煉 > 15，沿用原本 over16_bonus 規則。
+          5 階：依品級每 +1 固定 ATK，加上每 +1 固定 +2 P.ATK。
+
+        實際公式已拆到 ro_core.py，這裡保留 Desktop 相容入口與原本說明。
+        """
         return _core_stage17_calc_weapon_refine_atk(weapon_Level, weaponRefineR, weaponGradeR)
 
     def get_armor_bonus(self, refine: int, armor_level: int) -> dict:
-        """Desktop compatibility wrapper; formula is owned by ro_core."""
+        """
+        計算單一防具的精煉 DEF、RES。
+        DEF 累加規則：
+            +1～+4   每次 +1
+            +5～+8   每次 +2
+            +9～+12  每次 +3
+            +13～+16 每次 +4
+            +17～+20 每次 +5
+
+        防具等級：
+            1級防具：DEF 使用原始累加值，RES = 0
+            2級防具：DEF 為原始累加值 × 1.2，RES = 精煉 × 2
+
+        實際公式已拆到 ro_core.py；此函式只保留 Desktop 相容入口。
+        """
         return core_calculate_armor_refine_bonus(refine, armor_level)
 
     def get_total_armor_bonus(
@@ -6974,6 +7013,12 @@ class ItemSearchApp(QWidget):
         # 最後四捨五入位數
         round_digits: int = 3,
     ) -> float:
+        """
+        回傳：套完基礎 ASPD + 類別1 / 類別2 後的 ASPD，
+        四捨五入到小數 round_digits 位（ROUND_HALF_UP）。
+
+        實際公式已拆到 ro_core.py；這裡保留原 Desktop 呼叫介面。
+        """
         return _core_stage20_calc_aspd(
             wpasdp_data,
             job_id=job_id,
@@ -10249,6 +10294,12 @@ class ItemSearchApp(QWidget):
 
                     # 登出畫面顯示值已包含 VIT / INT 倍率。勾選後先回推基礎值，
                     # 並依需求採無條件進位，之後再套用既有裝備與百分比加成。
+                    #
+                    # 拆分前公式順序仍保留在 ro_core.py：
+                    # 1) 固定 HP / SP 先吃 HP% / SP%。
+                    # 2) 基礎值套 total VIT / INT 與百分比。
+                    # 3) 使用者沒輸入或輸入 0 時，回退 BaseLv 201~275 的職業表。
+                    # 4) 最後依滑桿百分比計算 MHP_NOW / MSP_NOW。
                     status = _core_stage20_calculate_hpsp_values(
                         job_base_hp=self.jobhp,
                         job_base_sp=self.jobsp,

@@ -1,14 +1,13 @@
-﻿"""ROItemSearchApp shared Python core (stage 3).
+﻿"""ROItemSearchApp 共用 Python 核心（Stage 3）。
 
-This module intentionally has no PySide6/FastAPI dependency. Desktop and Web
-can both import it directly. Stage 3 adds an explicit dependency container for
-the Lua equipment parser and is designed for the migration script to move the
-current Desktop parser implementation into this same module.
+此模組刻意不依賴 PySide6 / FastAPI，Desktop 與 Web 都可以直接匯入。
+Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷移腳本
+可以把目前 Desktop 的 parser 實作搬進同一個模組。
 """
 
 from __future__ import annotations
 
-# Manual shared-core version. Bump this whenever ro_core.py calculation logic changes.
+# 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
 RO_CORE_VERSION = "v0.21.74"
 
 from dataclasses import dataclass, field
@@ -21,21 +20,21 @@ from typing import Any, Iterable
 
 
 # =========================================================
-# Core state containers
+# 核心狀態容器
 # =========================================================
 
 
 @dataclass
 class CalculationContext:
-    """Per-calculation mutable state shared by Desktop and future Web calls.
+    """Desktop 與未來 Web 呼叫共用的單次計算可變狀態。
 
-    Stage 2 deliberately keeps ``variables`` flexible so the existing Desktop
-    names (``total_DEX``, ``base_STR`` ...etc.) can migrate without a large
-    rewrite.  Mutable equipment/skill maps are explicit fields so the Lua
-    parser no longer needs to reach into ``ItemSearchApp`` module globals.
+    Stage 2 刻意讓 ``variables`` 保持彈性，讓既有 Desktop 名稱
+    （如 ``total_DEX``、``base_STR`` 等）可以在不大幅重寫的情況下遷移。
+    可變的裝備 / 技能 map 改成明確欄位，使 Lua parser 不再需要直接存取
+    ``ItemSearchApp`` 模組全域變數。
 
-    Desktop may pass its existing dict objects by reference during migration;
-    Web should create a fresh context per request.
+    遷移期間 Desktop 可以直接以參照方式傳入現有 dict；
+    Web 則應為每個 request 建立新的 context。
     """
 
     get_values: dict[int, Any] = field(default_factory=dict)
@@ -62,12 +61,11 @@ class CalculationContext:
 
     @classmethod
     def from_state(cls, state: Any) -> "CalculationContext":
-        """Create a context from a mapping-like legacy state object.
+        """由類 mapping 的舊版 state 物件建立 context。
 
-        This is primarily a migration bridge for Desktop.  Mutable dicts are
-        intentionally *not copied*: the context points at the same existing
-        dictionaries, preserving current Desktop side effects while moving the
-        parser behind an explicit state boundary.
+        主要作為 Desktop 遷移橋接。可變 dict 刻意*不複製*：context 直接指向
+        現有 dictionary，在把 parser 移到明確狀態邊界後方的同時，保留目前
+        Desktop 的既有副作用。
         """
         try:
             getter = state.get
@@ -115,7 +113,7 @@ class CalculationContext:
         refine_inputs: dict[int, int] | None = None,
         grade: Any = None,
     ) -> "CalculationContext":
-        """Attach the current call inputs and return ``self`` for convenience."""
+        """綁定目前這次呼叫的輸入，並回傳 ``self`` 方便串接。"""
         if get_values is not None:
             self.get_values = get_values
         if refine_inputs is not None:
@@ -126,18 +124,17 @@ class CalculationContext:
 
 
 class CoreDependencyError(RuntimeError):
-    """Raised when the Lua parser is called without a required shared dependency."""
+    """Lua parser 被呼叫但缺少必要共用 dependency 時拋出的例外。"""
 
 
 @dataclass
 class CoreDependencies:
-    """Read-mostly dependencies used by the Lua equipment parser.
+    """Lua 裝備 parser 使用、以唯讀為主的 dependency。
 
-    ``CalculationContext`` owns per-request mutable calculation state. This
-    object is intentionally separate: it contains lookup maps / registries that
-    can normally be shared across requests. During Desktop migration the values
-    point at the existing ItemSearchApp objects; Web can construct the same
-    container without importing PySide6 or ItemSearchApp.
+    ``CalculationContext`` 負責每個 request 的可變計算狀態。此物件刻意分離，
+    只存放一般可跨 request 共用的查表 map / registry。Desktop 遷移期間，
+    這些值直接指向既有 ItemSearchApp 物件；Web 則可以在不匯入 PySide6 或
+    ItemSearchApp 的情況下建立同樣的 container。
     """
 
     values: dict[str, Any] = field(default_factory=dict)
@@ -152,7 +149,7 @@ class CoreDependencies:
         return self.values[name]
 
     def register_function(self, name: str, desc: str, args: Any, vars: Any = None) -> None:
-        """Core equivalent of Desktop register_function(), preserving semantics."""
+        """Core 版 Desktop register_function()，保留原本語意。"""
         if name in self.function_defs:
             return
         self.function_defs[name] = {
@@ -176,10 +173,10 @@ class CoreDependencies:
         state: Any,
         required_names: Iterable[str] = (),
     ) -> "CoreDependencies":
-        """Desktop migration bridge from module globals or another mapping.
+        """從模組全域變數或其他 mapping 橋接 Desktop 遷移資料。
 
-        Objects are kept by reference; maps are not deep-copied. The generated
-        Stage 3 Desktop wrapper uses this only to bridge existing shared data.
+        物件以參照方式保留，map 不做 deep copy。產生的 Stage 3 Desktop wrapper
+        只用它來橋接既有共用資料。
         """
         try:
             getter = state.get
@@ -200,14 +197,14 @@ class CoreDependencies:
         return cls(values=values, function_defs=defs)
 
 
-# Filled by apply_core_stage3.py after it analyzes the parser that actually
-# exists in the user's current ItemSearchApp.py.
+# 由 apply_core_stage3.py 分析目前實際使用的 parser 後填入；
+# 來源是使用者目前 ItemSearchApp.py 內的實際 parser。
 CORE_LUA_DEPENDENCY_NAMES: tuple[str, ...] = ('class_map', 'element_map', 'excluded_stat_names', 'race_map', 'skill_map', 'stat_name_sets', 'weapon_type_map')
 
 
 @dataclass
 class CoreData:
-    """Read-mostly data shared by Desktop and Web processes."""
+    """Desktop 與 Web process 共用、以唯讀為主的資料。"""
 
     items: dict[int, dict[str, Any]] = field(default_factory=dict)
     equipment_blocks: dict[int, str] = field(default_factory=dict)
@@ -216,12 +213,12 @@ class CoreData:
 
 
 # =========================================================
-# Stat calculation
+# 素質點數計算
 # =========================================================
 
 
 def calculate_stat_points(level: int, job_id: int) -> int:
-    """Calculate available stat points. Logic kept identical to Desktop."""
+    """計算可用素質點數；邏輯與 Desktop 完全一致。"""
     if 4302 <= job_id <= 4308:
         pt = 48
     else:
@@ -240,7 +237,7 @@ def calculate_stat_points(level: int, job_id: int) -> int:
 
 
 def raising_stats(stat_str: str) -> int:
-    """Calculate stat-point consumption. Logic kept identical to Desktop."""
+    """計算素質點消耗；邏輯與 Desktop 完全一致。"""
     try:
         val = int(stat_str.split("+")[0])
     except Exception:
@@ -255,14 +252,14 @@ def raising_stats(stat_str: str) -> int:
     return pt
 
 
-# === CORE DEDUP PHASE 1: DESKTOP/WEB SHARED RULES ===
-# These helpers are intentionally UI-free.  Desktop adapters may still keep
-# compatibility wrappers, but the actual rule/formula lives here only.
+# === 核心去重階段 1：DESKTOP / WEB 共用規則 ===
+# 這些 helper 刻意不依賴 UI；Desktop adapter 仍可保留
+# 相容 wrapper，但真正的規則 / 公式只保留在這裡。
 TRAIT_STAT_NAMES = ("POW", "STA", "WIS", "SPL", "CON", "CRT")
 
 
 def get_total_tstat_points(level: int) -> int:
-    """Return the total available trait-stat points for a BaseLv."""
+    """回傳指定 BaseLv 可用的特性素質總點數。"""
     try:
         level = int(level)
     except (TypeError, ValueError):
@@ -271,17 +268,17 @@ def get_total_tstat_points(level: int) -> int:
     if level < 200:
         return 0
 
-    # Preserve the existing Desktop/ROCalculator-compatible cap.
+    # 保留目前與 Desktop / ROCalculator 相容的上限。
     level = min(level, 285)
     block, offset = divmod(level - 200, 5)
     return 7 + block * 19 + offset * 3
 
 
 def calculate_tstat_total_used(values) -> int:
-    """Sum used trait-stat points from a mapping or iterable.
+    """從 mapping 或 iterable 加總已使用的特性素質點數。
 
-    Desktop can pass UI text values; Web can pass ints. Invalid values keep the
-    previous Desktop behavior and count as zero.
+    Desktop 可以傳入 UI 文字值，Web 可以直接傳 int。無效值沿用舊版 Desktop
+    行為，視為 0。
     """
     if hasattr(values, "get"):
         mapping = values
@@ -297,10 +294,21 @@ def calculate_tstat_total_used(values) -> int:
 
 
 def calculate_armor_refine_bonus(refine: int, armor_level: int) -> dict:
-    """Calculate DEF/RES gained from one armor refine level.
+    """
+    計算單一防具的精煉 DEF、RES。
 
-    This is the former Desktop ``get_armor_bonus`` formula moved into Core so
-    Desktop and Web have one source of truth.
+    DEF 累加規則：
+        +1～+4   每次 +1
+        +5～+8   每次 +2
+        +9～+12  每次 +3
+        +13～+16 每次 +4
+        +17～+20 每次 +5
+
+    防具等級：
+        1級防具：DEF 使用原始累加值，RES = 0
+        2級防具：DEF 為原始累加值 × 1.2，RES = 精煉 × 2
+
+    這是拆分前 Desktop ``get_armor_bonus`` 的同一套公式；現在由 Core 作為唯一來源。
     """
     try:
         refine = int(refine)
@@ -314,9 +322,10 @@ def calculate_armor_refine_bonus(refine: int, armor_level: int) -> dict:
     if armor_level not in (1, 2):
         return {"DEF": 0.0, "RES": 0}
 
-    # +1~+4: +1 each, +5~+8: +2 each, ... +17~+20: +5 each.
+    # 每 4 點精煉提升一個 DEF 增量階段。
     full_groups = refine // 4
     remainder = refine % 4
+    # 例如 +10：4×1 + 4×2 + 2×3 = 18。
     def_units = (
         4 * full_groups * (full_groups + 1) // 2
         + remainder * (full_groups + 1)
@@ -333,7 +342,7 @@ def calculate_armor_refine_bonus(refine: int, armor_level: int) -> dict:
 
 
 # =========================================================
-# Item data parsing
+# 物品資料解析
 # =========================================================
 
 
@@ -345,11 +354,10 @@ def parse_lub_text(
     source_name: str = "<memory>",
     verbose: bool = False,
 ) -> dict[int, dict[str, Any]]:
-    """Parse iteminfo-style Lua text into the existing Desktop dictionary shape.
+    """把 iteminfo 格式的 Lua 文字解析成既有 Desktop dictionary 結構。
 
-    The parsing rules mirror the current ``ItemSearchApp.parse_lub_file``.
-    Unlike the Desktop function this takes text, making it suitable for API use
-    and unit testing without filesystem/UI dependencies.
+    解析規則與目前 ``ItemSearchApp.parse_lub_file`` 一致。與 Desktop 函式不同，
+    此處直接接受文字，因此可用於 API 與單元測試，不需要 filesystem / UI 依賴。
     """
     item_entries = re.findall(
         r"\[(\d+)\]\s*=\s*{(.*?)}(?=,\s*\[\d+\]|\s*\[\d+\]|\s*$)",
@@ -427,7 +435,7 @@ def parse_lub_text(
                     parsed_items[item_id] = new_item
                     added_count += 1
         except Exception:
-            # Preserve current Desktop behavior: malformed entries are skipped.
+            # 保留目前 Desktop 行為：格式錯誤的資料直接略過。
             continue
 
     if verbose:
@@ -447,10 +455,10 @@ def parse_lub_file(
     *,
     verbose: bool = True,
 ) -> dict[int, dict[str, Any]]:
-    """Read and parse an iteminfo-style file.
+    """讀取並解析 iteminfo 格式檔案。
 
-    File/UI error presentation intentionally stays outside the core.  Therefore
-    ``FileNotFoundError`` is allowed to propagate to Desktop/FastAPI callers.
+    檔案 / UI 錯誤顯示刻意留在 Core 外，因此允許 ``FileNotFoundError``
+    直接往 Desktop / FastAPI 呼叫端傳遞。
     """
     with open(filename, "r", encoding="utf-8") as file:
         content = file.read()
@@ -468,9 +476,9 @@ def resolve_name_conflicts(
     parsed_items: dict[int, dict[str, Any]],
     equipment_blocks: dict[int, str],
 ) -> dict[int, dict[str, Any]]:
-    """Append item ID only for duplicate names that have equipment blocks.
+    """只有同名且存在裝備 block 的物品才附加 Item ID。
 
-    Mutation semantics intentionally match the existing Desktop implementation.
+    修改資料的語意刻意與現有 Desktop 實作一致。
     """
     affected_items = {
         item_id: parsed_items[item_id]
@@ -492,7 +500,7 @@ def resolve_name_conflicts(
 
 
 def parse_equipment_blocks(content: str, *, verbose: bool = True) -> dict[int, str]:
-    """Parse equipment Lua blocks using the same algorithm as Desktop."""
+    """使用與 Desktop 相同的演算法解析裝備 Lua block。"""
     blocks: dict[int, str] = {}
     pattern = re.compile(r"\[(\d+)\]\s*=\s*{", re.MULTILINE)
     matches = list(pattern.finditer(content))
@@ -521,13 +529,13 @@ def parse_equipment_blocks(content: str, *, verbose: bool = True) -> dict[int, s
 
 
 # =========================================================
-# Lua equipment effect parser (Stage 3 injection point)
+# Lua 裝備效果 parser（Stage 3 注入點）
 # =========================================================
 
-# apply_core_stage3.py inserts the transformed parser immediately below.
+# apply_core_stage3.py 會把轉換後的 parser 插入在正下方。
 
-# === STAGE 3 LUA PARSER BEGIN ===
-# Extracted from the local Stage-2 ItemSearchApp.py by apply_core_stage3.py.
+# === STAGE 3 LUA PARSER 開始 ===
+# 由 apply_core_stage3.py 從本機 Stage 2 的 ItemSearchApp.py 抽出。
 def parse_lua_effects_with_variables(
     block_text,
     refine_inputs,
@@ -625,7 +633,7 @@ def parse_lua_effects_with_variables(
     _RE_ALLOWED_EVAL = regex_cache["ALLOWED_EVAL"]
 
     def get_grade_value(slot=None):
-        """Return grade for a specific slot; supports both int grade and per-slot dict grade."""
+        """回傳指定 slot 的階級；同時支援整數 grade 與依 slot 儲存的 dict grade。"""
         if isinstance(grade, dict):
             target_slot = current_location_slot if slot is None else slot
             try:
@@ -638,7 +646,7 @@ def parse_lua_effects_with_variables(
             return 0
 
     def normalize_lua_expr(expr, variables, get_values, refine_inputs):
-        """Normalize simple Lua expressions into Python-evaluable expressions."""
+        """把簡單 Lua expression 正規化成 Python 可求值的 expression。"""
         expr = str(expr).strip()
 
         expr = _RE_GET.sub(lambda m: str(get_values.get(int(m.group(1)), 0)), expr)
@@ -747,7 +755,7 @@ def parse_lua_effects_with_variables(
 
 
     def split_lua_args(args_text: str):
-        """Split simple Lua-style function arguments while preserving nested calls."""
+        """切分簡單 Lua 風格函式參數，同時保留巢狀呼叫。"""
         args = []
         current = []
         depth = 0
@@ -2430,14 +2438,14 @@ def parse_lua_effects_with_variables(
    
     final_results = combine_effects(results) if hide_unrecognized else results
     return filter_hidden_effects(final_results)
-# === STAGE 3 LUA PARSER END ===
+# === STAGE 3 LUA PARSER 結束 ===
 
 
-# === STAGE 4 EFFECT AGGREGATION BEGIN ===
+# === STAGE 4 效果彙總開始 ===
 
 @dataclass
 class EquipmentSlotInput:
-    """Qt-free snapshot of one Desktop equipment slot."""
+    """單一 Desktop 裝備 slot 的不依賴 Qt 快照。"""
 
     part_name: str
     slot_id: int
@@ -2449,11 +2457,10 @@ class EquipmentSlotInput:
 
 @dataclass
 class EquipmentEffectRequest:
-    """Serializable-ish input boundary for the future full equipment calculator.
+    """供未來完整裝備計算器使用、可序列化的輸入邊界。
 
-    Stage 4 only creates/snapshots this request on Desktop.  The existing
-    display_all_effects loop still controls equipment traversal, so calculation
-    behaviour is not changed all at once.
+    Stage 4 在 Desktop 只負責建立 / 快照這個 request；既有 display_all_effects
+    迴圈仍控制裝備遍歷，因此不會一次改掉全部計算行為。
     """
 
     get_values: dict[int, Any] = field(default_factory=dict)
@@ -2483,30 +2490,30 @@ class EffectTotal:
 
 @dataclass
 class EquipmentEffectResult:
-    """API-friendly result shape introduced before the full calculator migration."""
+    """完整計算器遷移前先導入、方便 API 使用的結果結構。"""
 
     effects: list[EffectTotal] = field(default_factory=list)
     combined_lines: list[str] = field(default_factory=list)
     combo_lines: list[str] = field(default_factory=list)
     triggered_combo_ids: list[int] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
-    # Transitional Desktop compatibility; API should prefer `effects`.
+    # Desktop 過渡期相容欄位；API 應優先使用 `effects`。
     legacy_effect_dict: dict[tuple[str, str], list[tuple[float | int, str]]] = field(default_factory=dict, repr=False)
 
 
 def normalize_effect_key(key: str) -> str:
-    """Core equivalent of the legacy Desktop normalize_effect_key()."""
+    """舊版 Desktop normalize_effect_key() 的 Core 對應實作。"""
     key = str(key).strip()
-    # Keep the currently-observed Desktop semantics exactly.  These replacements
-    # intentionally look redundant; retaining them avoids changing output while
-    # the responsibility moves into Core.
+    # 完整保留目前觀察到的 Desktop 語意。這些替換看起來可能
+    # 有些重複，但在職責搬進 Core 的過渡期間保留它們，
+    # 可以避免輸出結果跟著改變。
     key = key.replace("固定詠唱時間", "固定詠唱時間")
     key = key.replace("變動詠唱時間", "變動詠唱時間")
     return key
 
 
 def try_extract_effect(line: str):
-    """Parse one rendered effect line with legacy Desktop semantics."""
+    """依舊版 Desktop 語意解析一行已渲染效果文字。"""
     line = str(line)
 
     match = re.match(r"(.+?)\s*([+-]?[0-9]+)\%$", line)
@@ -2531,7 +2538,7 @@ def filter_effects(
     hide_physical: bool = False,
     hide_magical: bool = False,
 ) -> list[str]:
-    """Qt-free equivalent of ItemSearchApp.filter_effects()."""
+    """ItemSearchApp.filter_effects() 的不依賴 Qt 對應實作。"""
     hide_keywords: list[str] = []
     if hide_physical:
         hide_keywords.extend(["物理", "爆擊", "CRI", "武器ATK", "P.ATK"])
@@ -2556,7 +2563,7 @@ def add_effect_lines(
     lines: Iterable[str],
     source_label: str,
 ) -> dict[tuple[str, str], list[tuple[float | int, str]]]:
-    """Accumulate parser output into the legacy effect_dict shape."""
+    """把 parser 輸出累積成舊版 effect_dict 結構。"""
     for line in lines:
         if not str(line).strip():
             continue
@@ -2574,16 +2581,16 @@ def add_effect_lines(
 
 
 def extract_combi_ids(block_text: str) -> list[int]:
-    """Extract Combiitem IDs with the legacy Desktop semantics."""
+    """依舊版 Desktop 語意抽出 Combiitem ID。"""
     match = re.search(r"Combiitem\s*=\s*\{([^}]*)}", str(block_text))
     if match:
-        # Keep legacy behaviour intentionally: malformed non-integer data raises.
+        # 刻意保留舊行為：格式錯誤的非整數資料會直接拋出例外。
         return [int(item.strip()) for item in match.group(1).split(",")]
     return []
 
 
 def extract_combo_items(combo_text: str) -> set[int]:
-    """Extract Item={...} IDs with the legacy Desktop semantics."""
+    """依舊版 Desktop 語意抽出 Item={...} 內的 ID。"""
     match = re.search(r"Item\s*=\s*\{([^}]*)}", str(combo_text))
     if match:
         items = match.group(1).split(",")
@@ -2638,7 +2645,7 @@ def build_effect_totals(
     sort_mode: str = "來源順序",
     custom_sort_orders: dict[str, list[str]] | None = None,
 ) -> list[EffectTotal]:
-    """Convert legacy tuple-key dict into an API-friendly ordered list."""
+    """把舊版 tuple-key dict 轉成方便 API 使用的有序 list。"""
     totals: list[EffectTotal] = []
     for (key, unit), entries in _sorted_effect_items(
         effect_dict,
@@ -2669,7 +2676,7 @@ def format_effect_dict(
     sort_mode: str = "來源順序",
     custom_sort_orders: dict[str, list[str]] | None = None,
 ) -> list[str]:
-    """Render the final Desktop effect table with the existing formatting."""
+    """依既有格式輸出最終 Desktop 效果表。"""
     combined: list[str] = []
     totals = build_effect_totals(
         effect_dict,
@@ -2697,18 +2704,18 @@ def format_effect_dict(
 
     return combined
 
-# === STAGE 4 EFFECT AGGREGATION END ===
+# === STAGE 4 效果彙總結束 ===
 
 
-# === STAGE 5 EQUIPMENT CALCULATOR BEGIN ===
+# === STAGE 5 裝備計算核心開始 ===
 
 @dataclass
 class EquipmentCalculationData:
-    """Read-mostly data shared by Desktop and future Web requests.
+    """Desktop 與未來 Web request 共用、以唯讀為主的資料。
 
-    This object intentionally contains no per-user/request mutable combat state.
-    Desktop can point these fields at its existing loaded dictionaries. A Web
-    process can build one instance at startup and reuse it for many requests.
+    此物件刻意不包含任何每位使用者 / request 專屬的可變戰鬥狀態。Desktop 可以
+    讓這些欄位直接指向既有已載入 dictionary；Web process 則可在啟動時建立一次，
+    後續重複供多個 request 使用。
     """
 
     parsed_items: dict[int, dict[str, Any]] = field(default_factory=dict)
@@ -2728,7 +2735,7 @@ def _iter_item_ids_by_name(
     parsed_items: dict[int, dict[str, Any]],
     name: str,
 ):
-    """Yield all matching IDs in the same insertion order as legacy Desktop."""
+    """依舊版 Desktop 相同的插入順序逐一產生所有符合的 ID。"""
     for item_id, item in parsed_items.items():
         if item.get("name") == name:
             yield item_id
@@ -2779,7 +2786,7 @@ def _add_numeric_only_effect_lines(
     lines: Iterable[str],
     source_label: str,
 ) -> None:
-    """Legacy skill/food behaviour: only parsed numeric lines enter total effects."""
+    """舊版技能 / 料理行為：只有成功解析的數值行會進入總效果。"""
     for line in lines:
         if not str(line).strip():
             continue
@@ -2796,7 +2803,7 @@ def _add_combo_effect_lines_legacy(
     lines: Iterable[str],
     source_label: str,
 ) -> None:
-    """Keep the combo-total regex semantics used by legacy display_all_effects()."""
+    """保留舊版 display_all_effects() 使用的 combo-total 正則語意。"""
     for line in lines:
         match = re.match(r"(.+?) ([+\-]?\d+(?:\.\d+)?)(%|秒)?", str(line))
         if not match:
@@ -2819,7 +2826,7 @@ def _apply_skillbuff_text_into_effect_dict(
     context: CalculationContext,
     dependencies: CoreDependencies,
 ) -> None:
-    """Core version of Desktop apply_skill_buffs_into_effect_dict()."""
+    """Desktop apply_skill_buffs_into_effect_dict() 的 Core 版本。"""
     content = data.skillbuff_text or ""
     if not content:
         return
@@ -2827,7 +2834,7 @@ def _apply_skillbuff_text_into_effect_dict(
     def skill_level(skill_id: int) -> int:
         return context.enabled_skill_levels.get(skill_id, 0)
 
-    # Preserve legacy iteration semantics: use the live enabled-skill dictionary.
+    # 保留舊版迭代語意：直接使用目前的 enabled-skill dictionary。
     for skill_id, level in context.enabled_skill_levels.items():
         pattern = rf"\[{skill_id}\]\s*=\s*\{{(.*?)\}}"
         match = re.search(pattern, content, re.DOTALL)
@@ -2884,11 +2891,11 @@ def calculate_equipment_effects(
     context: CalculationContext | None = None,
     dependencies: CoreDependencies | None = None,
 ) -> EquipmentEffectResult:
-    """Calculate all equipment effects without Qt.
+    """在不依賴 Qt 的情況下計算全部裝備效果。
 
-    This is the Stage-5 Desktop/Web shared boundary. `request` is per-user input,
-    `data` is read-mostly shared game data, `context` is per-calculation mutable
-    state, and `dependencies` contains the Lua parser's shared lookup registries.
+    這是 Stage 5 的 Desktop / Web 共用邊界。`request` 是每位使用者的輸入，
+    `data` 是以唯讀為主的共用遊戲資料，`context` 是單次計算可變狀態，
+    `dependencies` 則存放 Lua parser 共用的查表 registry。
     """
     if not isinstance(request, EquipmentEffectRequest):
         raise TypeError("request 必須是 EquipmentEffectRequest")
@@ -2902,7 +2909,7 @@ def calculate_equipment_effects(
         refine_inputs=request.refine_inputs,
     )
 
-    # Stage 6: build base/job/base-equipment Stat context before Lua parsing.
+    # Stage 6：在解析 Lua 前先建立 base / job / base-equipment Stat context。
     precompute_base_equipment_stats(
         request,
         data,
@@ -2917,13 +2924,13 @@ def calculate_equipment_effects(
     triggered_combo_ids: list[int] = []
     legacy_grade: Any = 0
 
-    # Legacy Desktop clears every equipment slot before rebuilding the map.
+    # 舊版 Desktop 會先清空所有裝備部位，再重新建立 map。
     slot_ids = set(request.refine_inputs.keys())
     slot_ids.update(slot.slot_id for slot in request.slots)
     for slot_id in slot_ids:
         context.slot_item_id_map[slot_id] = 0
 
-    # Equipment / cards / manual option text.
+    # 裝備 / 卡片 / 手動輸入的附加效果文字。
     for slot in request.slots:
         if slot.equip_name:
             source = f"{slot.part_name}：{slot.equip_name}"
@@ -2975,7 +2982,7 @@ def calculate_equipment_effects(
             )
             add_effect_lines(effect_dict, lines, f"{slot.part_name}：詞條")
 
-    # Enabled skill / food entries. Preserve source order from skill_entries.
+    # 已啟用技能 / 料理資料；保留 skill_entries 原始順序。
     enabled_names = set(request.enabled_skill_names)
     for skill_name, entry in data.skill_entries.items():
         if skill_name not in enabled_names:
@@ -2995,7 +3002,7 @@ def calculate_equipment_effects(
         source = f"{entry.get('type', '技能')}：{skill_name}"
         _add_numeric_only_effect_lines(effect_dict, lines, source)
 
-    # Gather equipped IDs (equipment + cards) exactly from names, as Desktop did.
+    # 比照 Desktop，直接由名稱收集已裝備 ID（裝備 + 卡片）。
     equipped_ids: set[int] = set()
     for slot in request.slots:
         if slot.equip_name:
@@ -3005,8 +3012,8 @@ def calculate_equipment_effects(
                 equipped_ids.update(_iter_item_ids_by_name(data.parsed_items, card_name))
 
     grade_map = {slot.slot_id: slot.grade for slot in request.slots}
-    # Legacy display_all_effects used the loop's final part_name for combo GetLocation().
-    # Keeping that observable behaviour avoids silently changing combo calculations.
+    # 舊版 display_all_effects 會把迴圈最後一個 part_name 給 combo 的 GetLocation() 使用。
+    # 保留這個可觀察行為，避免 combo 計算在重構時被悄悄改變。
     legacy_combo_slot = request.slots[-1].slot_id if request.slots else None
 
     for item_id in equipped_ids:
@@ -3049,7 +3056,7 @@ def calculate_equipment_effects(
 
             _add_combo_effect_lines_legacy(effect_dict, lines, source_label)
 
-    # Passive skill buffs are intentionally last, matching legacy Desktop order.
+    # 被動技能 buff 刻意放在最後，與舊版 Desktop 順序一致。
     _apply_skillbuff_text_into_effect_dict(
         effect_dict,
         request,
@@ -3079,10 +3086,10 @@ def calculate_equipment_effects(
         legacy_effect_dict=effect_dict,
     )
 
-# === STAGE 5 EQUIPMENT CALCULATOR END ===
+# === STAGE 5 裝備計算核心結束 ===
 
 
-# === STAGE 6 BASE STAT PRECOMPUTE / API SERIALIZATION BEGIN ===
+# === STAGE 6 基礎素質預計算 / API 序列化開始 ===
 
 BASE_STAT_NAMES: tuple[str, ...] = (
     "STR", "AGI", "VIT", "INT", "DEX", "LUK",
@@ -3105,9 +3112,9 @@ BASE_STAT_GIDS: dict[str, int] = {
 }
 
 
-# === CORE DEDUP PHASE 2: SHARED STAT BREAKDOWN ===
-# One source of truth for: base stat + Job bonus + equipment effect = total stat.
-# Desktop remains responsible only for collecting Qt widget values / rendering.
+# === 核心去重階段 2：共用素質拆解 ===
+# 唯一計算來源：基礎素質 + Job 加成 + 裝備效果 = 最終素質。
+# Desktop 只負責收集 Qt widget 數值與畫面呈現。
 def _shared_stat_to_int(value, default=0):
     try:
         return int(value)
@@ -3142,11 +3149,11 @@ def calculate_stat_breakdown(
     base_equipment_stats=None,
     integer_effects=False,
 ):
-    """Return shared stat components for all 12 character stats.
+    """回傳 12 種角色素質的共用拆解結果。
 
-    ``get_values`` is the Core/API form keyed by RO get(id).
-    ``base_values`` is the Desktop-friendly form keyed by stat name.
-    ``integer_effects=True`` preserves Stage17/Stage20 legacy int semantics.
+    ``get_values`` 是 Core / API 使用的形式，以 RO get(id) 為 key。
+    ``base_values`` 是方便 Desktop 使用、以素質名稱為 key 的形式。
+    ``integer_effects=True`` 會保留 Stage17 / Stage20 舊版整數語意。
     """
     get_values = get_values or {}
     base_values = base_values or {}
@@ -3183,7 +3190,7 @@ def calculate_stat_breakdown(
             "base_equip": base_equip,
             "job_equip": job + equip,
             "total": total,
-            # Legacy skill_focus_* intentionally excludes parsed Lua effects.
+            # 舊版 skill_focus_* 刻意不包含解析後的 Lua 效果。
             "focus": base + job + base_equip,
         }
     return result
@@ -3191,7 +3198,7 @@ def calculate_stat_breakdown(
 
 @dataclass
 class BaseEquipmentStatResult:
-    """Structured output of the pre-Lua base equipment Stat scan."""
+    """Lua 解析前基礎裝備 Stat 掃描的結構化輸出。"""
 
     base_stats: dict[str, int] = field(default_factory=dict)
     job_stats: dict[str, int] = field(default_factory=dict)
@@ -3210,13 +3217,13 @@ def precompute_base_equipment_stats(
     context: CalculationContext | None = None,
     dependencies: CoreDependencies | None = None,
 ) -> BaseEquipmentStatResult:
-    """Build base/job/base-equipment Stat values before Lua effect parsing.
+    """在解析 Lua 效果前建立 base / job / base-equipment Stat 數值。
 
-    This preserves the legacy Desktop semantics:
-    - only the equipped item's main ``Stat = {...}`` block is scanned;
-    - refine / grade / cards / notes / combos are not included;
-    - duplicate matching item names are traversed in parsed-item insertion order;
-    - skill_focus_AGI/DEX are base + Job + base-equipment Stat only.
+    保留舊版 Desktop 語意：
+    - 只掃描已裝備物品主要的 ``Stat = {...}`` block；
+    - 不包含精煉 / grade / 卡片 / 備註 / combo；
+    - 同名物品依 parsed-item 的插入順序遍歷；
+    - skill_focus_AGI / DEX 只包含 base + Job + base-equipment Stat。
     """
     if not isinstance(request, EquipmentEffectRequest):
         raise TypeError("request 必須是 EquipmentEffectRequest")
@@ -3313,10 +3320,10 @@ def precompute_base_equipment_stats(
 
 
 def equipment_effect_request_from_dict(payload: Any) -> EquipmentEffectRequest:
-    """Convert JSON/Pydantic-like data to the Core request dataclass.
+    """把 JSON / 類 Pydantic 資料轉成 Core request dataclass。
 
-    No FastAPI/Pydantic import is required in Core. JSON object keys for gid/slot
-    dictionaries are normalized back to int when possible.
+    Core 不需要匯入 FastAPI / Pydantic。JSON object 中 gid / slot dictionary 的 key
+    在可能的情況下會正規化回 int。
     """
     if isinstance(payload, EquipmentEffectRequest):
         return payload
@@ -3381,7 +3388,7 @@ def equipment_effect_request_from_dict(payload: Any) -> EquipmentEffectRequest:
 
 
 def equipment_effect_result_to_dict(result: EquipmentEffectResult) -> dict[str, Any]:
-    """Return a JSON-safe public result; transitional tuple-key dict is excluded."""
+    """回傳可安全 JSON 化的公開結果；不包含過渡期 tuple-key dict。"""
     if not isinstance(result, EquipmentEffectResult):
         raise TypeError("result 必須是 EquipmentEffectResult")
 
@@ -3404,14 +3411,14 @@ def equipment_effect_result_to_dict(result: EquipmentEffectResult) -> dict[str, 
         "warnings": list(result.warnings),
     }
 
-# === STAGE 6 BASE STAT PRECOMPUTE / API SERIALIZATION END ===
+# === STAGE 6 基礎素質預計算 / API 序列化結束 ===
 
 
-# === STAGE 7 PRODUCTION CORE RUNTIME BEGIN ===
+# === STAGE 7 正式版核心 Runtime 開始 ===
 
-# Generated once by apply_core_stage7.py from the user's currently verified
-# Desktop source. These are read-only parser/data maps; request-specific state
-# remains in CalculationContext and is never stored here.
+# 由 apply_core_stage7.py 根據使用者目前已驗證的
+# Desktop 原始碼產生一次。這些是唯讀 parser / data map；每次 request 專屬狀態
+# 仍留在 CalculationContext，不會存放在這裡。
 CORE_STATIC_DEPENDENCY_VALUES: dict[str, Any] = {'class_map': {0: '一般', 1: '首領', 2: '監護人'},
  'custom_sort_orders': {'增傷詞條': ['ATK',
                                  'MATK',
@@ -3603,7 +3610,7 @@ CORE_STATIC_DEPENDENCY_VALUES: dict[str, Any] = {'class_map': {0: '一般', 1: '
 
 @dataclass(frozen=True)
 class CoreRuntimeBundle:
-    """Production read-mostly runtime shared by many Desktop/Web calculations."""
+    """供多個 Desktop / Web 計算共用、以唯讀為主的正式版 runtime。"""
 
     core: ROItemCore
     data: EquipmentCalculationData
@@ -3619,7 +3626,7 @@ def _runtime_read_text(path: Any, *, required: bool = True) -> str:
         if required:
             raise FileNotFoundError(f"Core runtime 缺少資料檔：{p}")
         return ""
-    # utf-8-sig accepts both BOM and normal UTF-8 files.
+    # utf-8-sig 可同時接受含 BOM 與一般 UTF-8 檔案。
     return p.read_text(encoding="utf-8-sig")
 
 
@@ -3661,7 +3668,7 @@ def _runtime_load_skill_map(path: Any) -> dict[int, str]:
 
 
 def _runtime_prefix_combiitem_ids(content: str, prefix: Any) -> str:
-    """Core copy of Desktop's KRO Combiitem-ID prefixing rule."""
+    """Desktop KRO Combiitem-ID 前綴規則的 Core 版本。"""
     if prefix is None:
         return content
     prefix_text = str(prefix).strip()
@@ -3784,11 +3791,10 @@ def build_production_core_runtime(
     include_kro: bool = False,
     verbose: bool = False,
 ) -> CoreRuntimeBundle:
-    """Build a production ROItemCore runtime from the shared project data/.
+    """由共用專案 data/ 建立正式版 ROItemCore runtime。
 
-    Runtime loading is Qt-free and does not import ItemSearchApp.py. The object
-    returned here is read-mostly and may be shared by many HTTP requests. Each
-    request must still create its own CalculationContext.
+    Runtime 載入不依賴 Qt，也不會匯入 ItemSearchApp.py。此處回傳的物件以唯讀為主，
+    可供多個 HTTP request 共用；但每個 request 仍必須建立自己的 CalculationContext。
     """
     from pathlib import Path
 
@@ -3807,7 +3813,7 @@ def build_production_core_runtime(
     skillbuff_path = data_path / "skillbuff.lua"
     skill_names_path = data_path / "skillneme.csv"
 
-    # Match Desktop load order: TWRO base -> User overwrite -> optional KRO skip.
+    # 與 Desktop 載入順序一致：TWRO 基底 -> User 覆蓋 -> 視設定略過 KRO。
     parsed_items = parse_lub_file(iteminfo_path, verbose=verbose)
     if user_iteminfo_path.exists():
         parsed_items = parse_lub_file(
@@ -3903,22 +3909,22 @@ def build_production_core_runtime(
 
 
 def fork_core_dependencies(dependencies: CoreDependencies) -> CoreDependencies:
-    """Share read-only maps but isolate function_defs for one request."""
+    """共用唯讀 map，但讓每個 request 擁有獨立的 function_defs。"""
     return CoreDependencies(
         values=dependencies.values,
         function_defs={},
     )
 
-# === STAGE 7 PRODUCTION CORE RUNTIME END ===
+# === STAGE 7 正式版核心 Runtime 結束 ===
 
 
 # =========================================================
-# Public core facade
+# 對外核心介面
 # =========================================================
 
 
 class ROItemCore:
-    """Small stable entry point shared by Desktop and future FastAPI code."""
+    """Desktop 與未來 FastAPI 程式共用的小型穩定入口。"""
 
     def __init__(
         self,
@@ -3935,7 +3941,7 @@ class ROItemCore:
         return raising_stats(stat_str)
 
     def new_context(self, **kwargs: Any) -> CalculationContext:
-        """Create a fresh per-request calculation context."""
+        """為每個 request 建立全新的計算 context。"""
         return CalculationContext(**kwargs)
 
     def parse_item_file(
@@ -3981,7 +3987,7 @@ class ROItemCore:
         hide_magical: bool = False,
         current_location_slot: int | None = None,
     ) -> list[str]:
-        """Parse one equipment Lua block through the shared Core parser."""
+        """透過共用 Core parser 解析單一裝備 Lua block。"""
         try:
             parser = parse_lua_effects_with_variables
         except NameError as exc:
@@ -4013,7 +4019,7 @@ class ROItemCore:
         context: CalculationContext | None = None,
         dependencies: CoreDependencies | None = None,
     ) -> EquipmentEffectResult:
-        """Run the shared Stage-5 equipment calculator."""
+        """執行共用 Stage 5 裝備計算器。"""
         return calculate_equipment_effects(
             request,
             data,
@@ -4064,9 +4070,9 @@ __all__ = [
     "fork_core_dependencies",
 ]
 
-# === STAGE 13 WEB ENCHANT/LAPINE TOOL CORE ===
-# Pure standard-library helpers. Keep this block framework-free:
-# no FastAPI, no Pydantic, no PySide6.
+# === STAGE 13 WEB 附魔 / Lapine 工具核心 ===
+# 純標準函式庫 helper；此區塊不要依賴任何 framework：
+# 不使用 FastAPI、Pydantic、PySide6。
 from collections import defaultdict as _stage13_defaultdict
 import json as _stage13_json
 import os as _stage13_os
@@ -4123,7 +4129,7 @@ def _stage13_file_signature(paths):
 
 
 def get_stage13_calculation_meta():
-    """Return JSON-safe parser target maps for the Web calculator."""
+    """回傳可安全 JSON 化、供 Web 計算器使用的 parser 目標 map。"""
     def rows(mapping):
         return [{"value": int(key), "label": str(value)} for key, value in mapping.items()]
     return {
@@ -4201,7 +4207,7 @@ def _stage13_resolve_raw_name(raw_name, itemdb, parsed_items):
 
 
 # ---------------------------------------------------------------------------
-# EnchantList.lua
+# EnchantList.lua 附魔資料
 # ---------------------------------------------------------------------------
 
 def parse_stage13_itemdb_name_tbl(filename):
@@ -4229,7 +4235,7 @@ def _stage13_enchant_slot_default():
 
 
 def parse_stage13_enchant_list(filename):
-    """Qt-free parser matching the current desktop enchant.py data structure."""
+    """不依賴 Qt、且與目前 Desktop enchant.py 資料結構一致的 parser。"""
     if not _stage13_os.path.isfile(filename):
         return {}
     content = _stage13_read_text(filename)
@@ -4563,7 +4569,7 @@ def get_stage13_enchant_item(data_dir, parsed_items, item_id):
     slots = []
     slot_order = list(table.get("slot_order", []) or [])
     existing_ids = set(table.get("slots", {}).keys())
-    # Desktop enchant.py builds tabs using reversed(slot_order).
+    # Desktop 的 enchant.py 會使用 reversed(slot_order) 建立分頁。
     ordered = [sid for sid in reversed(slot_order) if sid in existing_ids]
     ordered.extend(sorted(existing_ids.difference(ordered), reverse=True))
     for slot_id in ordered:
@@ -4731,7 +4737,7 @@ def roll_stage13_enchant(data_dir, parsed_items, item_id, slot_id, current_encha
 
 
 # ---------------------------------------------------------------------------
-# LapineUpgradeBox / random-option probability tables
+# LapineUpgradeBox / 隨機選項機率表
 # ---------------------------------------------------------------------------
 
 def _stage13_skip_quoted(text, index):
@@ -5361,8 +5367,8 @@ def roll_stage13_lapine(data_dir, parsed_items, item_id, table_key, seed=None):
         ),
     }
 
-# === STAGE 17 SHARED DAMAGE CORE ===
-# Qt-free standard damage pipeline extracted from current Desktop semantics.
+# === STAGE 17 共用傷害核心 ===
+# 從目前 Desktop 語意抽出的、不依賴 Qt 的標準傷害流程。
 import ast as _stage17_ast
 import csv as _stage17_csv
 import math as _stage17_math
@@ -5387,9 +5393,9 @@ STAGE17_ELEMENT_NAMES = [
     "無屬性", "水屬性", "地屬性", "火屬性", "風屬性",
     "毒屬性", "聖屬性", "暗屬性", "念屬性", "不死屬性", "全屬性",
 ]
-# Keep these effect-label maps identical to Desktop apply_all_damage_effects().
-# UI target maps are broader (e.g. player races / guardian class), but Desktop
-# only materializes damage-effect attributes for the names below.
+# 這些效果名稱 map 必須與 Desktop 的 apply_all_damage_effects() 完全一致。
+# UI 的目標 map 範圍更廣（例如玩家種族 / 守護者階級），但 Desktop
+# 只會為下列名稱建立實際使用的傷害效果屬性。
 STAGE17_RACE_DAMAGE_NAMES = ["無形", "不死", "動物", "植物", "昆蟲", "魚貝", "惡魔", "人形", "天使", "龍族"]
 STAGE17_CLASS_DAMAGE_NAMES = ["一般", "首領"]
 STAGE17_CLASS_DEF_NAMES = ["一般", "首領", "玩家"]
@@ -5421,7 +5427,15 @@ def _stage17_text(value):
     return "" if text.lower() == "nan" else text
 
 
+# ==================== DEF 計算 ==================
 def stage17_calc_final_def_damage(d_ef: float, reduction_percent: float) -> float:
+    """
+    根據原 Desktop / Excel 公式計算最終物理傷害比例。
+
+    d_ef: 後 DEF 數值
+    reduction_percent: DEF 破防百分比（例如 64 表示 64%）
+    回傳: 傷害倍率（小數，例如 0.4222）
+    """
     reduction = float(reduction_percent) / 100
     if reduction > 0.99:
         return 1.0
@@ -5429,10 +5443,21 @@ def stage17_calc_final_def_damage(d_ef: float, reduction_percent: float) -> floa
     if adj <= -399:
         adj = -399
     resistance = (4000 + adj) / (4000 + adj * 10)
+    # 原 Desktop 註解：範圍限制在 -0.99~1。
+    # 來源：https://forum.gamer.com.tw/C.php?bsn=4212&snA=440067&tnum=5&bPage=2
     return 1 if d_ef == 0 else max(resistance, -0.99) 
 
 
+# ==================== MRES / MDEF 計算 ===================
+# ==================== MDEF 計算 ==================
 def stage17_calc_final_mdef_damage(mdef: float, reduction_percent: float) -> float:
+    """
+    根據原 Desktop / Excel 公式計算最終魔法傷害比例。
+
+    mdef: 後 MDEF 數值
+    reduction_percent: MDEF 破防百分比（例如 64 表示 64%）
+    回傳: 傷害倍率（小數，例如 0.4222）
+    """
     reduction = float(reduction_percent) / 100
     if reduction > 0.99:
         return 1.0
@@ -5440,51 +5465,89 @@ def stage17_calc_final_mdef_damage(mdef: float, reduction_percent: float) -> flo
     if adj <= -99:
         adj = -99
     resistance = (1000 + adj) / (1000 + adj * 10)
+    # 原 Desktop 註解：範圍限制在 -0.99~1。
+    # 來源：https://forum.gamer.com.tw/C.php?bsn=4212&snA=440067&tnum=5&bPage=2
     return 1 if mdef == 0 else max(resistance, -0.99) 
 
 
+# ==================== RES / MRES 計算 ==================
 def stage17_calc_final_res_damage(mres: float, reduction_percent: float) -> float:
     reduction = float(reduction_percent) / 100
     if reduction > 0.99:
         return 1.0
     adj = float(mres) - (float(mres) * reduction) - reduction
     resistance = (2000 + adj) / (2000 + adj * 5)
-    return min(resistance, 1.0)
+    return min(resistance, 1.0)  # 保證不超過 1.0
 
 
+# ========================== 精煉計算 =========================
 def _stage17_weapon_refine(level, refine, grade, *, magic=False):
+    """ATK / MATK 共用的武器精煉核心。
+
+    原 Desktop 兩支函式的共同規則：
+    - 1~4 階：每 +1 有固定加成；超過安定值後，每 +1 再給浮動加成（這裡取上限）。
+    - 精煉 > 15：沿用舊邏輯，固定加成切換成 over16_bonus 對應值。
+    - 5 階：依品級每 +1 固定 ATK/MATK，並每 +1 固定 +2 P.ATK/S.MATK。
+    - magic=True 時使用原 MATK 的五階安定值設定；False 時使用 ATK 設定。
+    """
     level = _stage17_int(level)
     refine = _stage17_int(refine)
     grade = _stage17_int(grade)
     if level == 0 or refine <= 0:
         return 0, 0, 0, 0
+
+    # 每精煉 +1 增加 ATK / MATK。
     base_per_refine = {1: 2, 2: 3, 3: 5, 4: 7, 5: 0}
+    # 超過安定值後，每 +1 額外「浮動」增加的上限值。
     extra_after_safe = {1: 3, 2: 5, 3: 8, 4: 14, 5: 0}
+    # 精煉 16 以上使用的下一階額外加成。
     over16_bonus = {1: 3, 2: 5, 3: 7, 4: 10, 5: 0}
+    # 安定值：原 MATK 五階為 0；ATK 五階為 4。
     safe_threshold = {1: 7, 2: 6, 3: 5, 4: 4, 5: 0 if magic else 4}
+    # 五階各品級的每 +1 ATK / MATK（N / D / C / B / A）。
     grade_bonus = {0: 8.0, 1: 8.8, 2: 10.4, 3: 12.0, 4: 16.0}
     if level < 5:
         if level not in base_per_refine:
             return 0, 0, 0, 0
+        # 固定加成：所有等級都算。
         base = refine * base_per_refine[level]
+        # 浮動加成：只在超過安定值的精煉級數計算（取上限）。
         safe = safe_threshold[level]
         variance = max(0, refine - safe) * extra_after_safe[level]
-        variance_min = 1
+        variance_min = 1  # 基礎最小值
+        # 16 以上更換下一階額外加成；保留拆分前 Desktop 行為。
         if refine > 15:
             base = refine * over16_bonus[level]
         return base + variance, 0, variance, variance_min
+
+    # 五階：依品級固定 ATK/MATK，並每 +1 固定 +2 P.ATK/S.MATK。
     per_refine = grade_bonus.get(grade, 0.0)
     return refine * per_refine, refine * 2, 0, 0
 
 
 def stage17_calc_weapon_refine_atk(weapon_Level, weaponRefineR, weaponGradeR):
+    """
+    回傳： (ATK 總加成, P.ATK 總加成, 浮動上限, 浮動最小值)
+    說明：
+      1~4 階：每 +1 固定加成；超過安定值後，每 +1 額外給「浮動加成(這裡取上限)」；
+              若精煉 > 15，則沿用舊版 over16_bonus 規則。
+      5 階：依品級每 +1 固定 ATK，加上每 +1 固定 +2 P.ATK。
+    """
     return _stage17_weapon_refine(weapon_Level, weaponRefineR, weaponGradeR, magic=False)
 
 
 def stage17_calc_weapon_refine_matk(weapon_Level, weaponRefineR, weaponGradeR):
+    """
+    回傳： (MATK 總加成, S.MATK 總加成, 浮動上限, 浮動最小值)
+    說明：
+      1~4 階：每 +1 固定加成；超過安定值後，每 +1 額外給「浮動加成(取上限)」；
+              若精煉 > 15，則沿用舊版 over16_bonus 規則。
+      5 階：依品級每 +1 固定 MATK，加上每 +1 固定 +2 S.MATK。
+    """
     return _stage17_weapon_refine(weapon_Level, weaponRefineR, weaponGradeR, magic=True)
 
 
+# 查詢屬性倍率函數
 def stage17_get_damage_multiplier(attacker_element: int, defender_element: int, level: int) -> int:
     attacker_element = _stage17_int(attacker_element)
     defender_element = _stage17_int(defender_element)
@@ -5496,19 +5559,34 @@ def stage17_get_damage_multiplier(attacker_element: int, defender_element: int, 
     return STAGE17_DAMAGE_TABLES[level][attacker_element][defender_element]
 
 
+# 武器體型懲罰（物理）
 def stage17_get_size_penalty(weapon_class: int, target_size: int) -> float:
+    """根據武器類型與目標體型回傳懲罰倍率（小數，例如 1.0, 0.75）。"""
     penalties = STAGE17_WEAPON_TYPE_SIZE_PENALTY.get(_stage17_int(weapon_class), [100, 100, 100])
     target_size = _stage17_int(target_size)
     if 0 <= target_size < len(penalties):
         raw = float(penalties[target_size])
-        # Current Desktop table stores percentages (100/75/50).  The branch
-        # below also accepts normalized test/custom tables (1.0/0.75/0.5)
-        # without changing real Desktop semantics.
+        # 目前 Desktop 表格存的是百分比（100/75/50）。下方分支
+        # 也接受正規化後的測試 / 自訂表格（1.0/0.75/0.5），
+        # 不會改變真正 Desktop 的既有語意。
         return raw if abs(raw) <= 1.5 else raw / 100.0
     return 1.0
 
 
 def stage17_apply_stepwise(base, *items):
+    """
+    每層乘完取整，依據 mode 控制加 / 減 / 固定值：
+    - mode = 1      → 加成百分比：乘 (1 + bonus / 100)
+    - mode = 1.4    → 特殊加成百分比：乘 (1.4 + bonus / 100)
+    - mode = 0      → 原始倍率：乘 (bonus / 100)
+    - mode = -1     → 減傷百分比：乘 (1 - bonus / 100)
+    - mode = None   → 固定扣值：value -= bonus
+    - mode = "raw"  → 直接乘：value *= bonus（不除以 100）
+    - mode = "+"    → 直接加：value += bonus
+
+    base 可傳單值，或 (base, base_min) 雙值；後者會同步計算最大/最小傷害。
+    """
+    # base: 單值 或 (base, base_min)
     is_pair = isinstance(base, (tuple, list)) and len(base) == 2
     if is_pair:
         value, value_min = base
@@ -5631,7 +5709,7 @@ def stage17_replace_custom_calls(formula, weapon_class):
 
 
 def stage17_eval_formula_with_vars(formula, allowed_vars):
-    """Desktop-compatible formula expansion + evaluation."""
+    """與 Desktop 相容的公式展開與求值。"""
     expanded = _stage17_text(formula)
     variables = allowed_vars if isinstance(allowed_vars, dict) else {}
     for name, value in variables.items():
@@ -5741,9 +5819,9 @@ def _stage17_sum_effect(effect_dict, name, unit=""):
 
 
 def _stage17_sum_skill_effect(effect_dict, skill_name, suffix):
-    # Desktop currently decorates skill names in display strings.  Keep the
-    # shared runner tolerant of those wrappers by matching the semantic pieces
-    # instead of relying on one exact presentation token.
+    # Desktop 目前會在顯示字串中裝飾技能名稱；共用 runner
+    # 透過比對實際語意片段來容忍這些外層格式，
+    # 而不是依賴單一固定的顯示 token。
     target_name = str(skill_name or "")
     target_suffix = str(suffix or "")
     total = 0.0
@@ -5760,10 +5838,10 @@ def _stage17_sum_skill_effect(effect_dict, skill_name, suffix):
 
 
 
-# === STAGE 21.24 DESKTOP/WEB SHARED SKILL TIMING CORE ===
-# Source of truth extracted from Desktop ItemSearchApp.update_skill_delay_labels().
-# Desktop keeps only QLabel/CastBar presentation; Web and Desktop both call these
-# Qt/FastAPI-free helpers for skilldelaylist.lua parsing and timing calculations.
+# === STAGE 21.24 DESKTOP / WEB 共用技能時間核心 ===
+# 唯一計算來源，抽自 Desktop 的 ItemSearchApp.update_skill_delay_labels()。
+# Desktop 只保留 QLabel / CastBar 顯示層；Web 與 Desktop 都呼叫這些
+# 不依賴 Qt / FastAPI 的 helper，負責解析 skilldelaylist.lua 與時間計算。
 _STAGE23_SKILL_DELAY_CACHE = {"path": None, "mtime_ns": None, "text": ""}
 
 
@@ -5805,7 +5883,7 @@ def _stage23_load_skill_delay_text(data_dir):
 
 
 def stage24_resolve_skill_code(skill_name, skill_map_all):
-    """Desktop-compatible Name -> Code resolver without UI dependencies."""
+    """不依賴 UI、與 Desktop 相容的 Name -> Code 解析器。"""
     target_name = str(skill_name or "")
     for _skill_id, row in (skill_map_all or {}).items():
         if not isinstance(row, dict) or str(row.get("Name") or "") != target_name:
@@ -5817,7 +5895,7 @@ def stage24_resolve_skill_code(skill_name, skill_map_all):
 
 
 def stage24_find_skill_delay_block(lua_text, skill_code):
-    """Return one [SKID.CODE] Lua table block using Desktop brace semantics."""
+    """使用 Desktop 的大括號語意，回傳一個 [SKID.CODE] Lua table block。"""
     if not lua_text or not skill_code:
         return None
 
@@ -5843,7 +5921,7 @@ def stage24_find_skill_delay_block(lua_text, skill_code):
 
 
 def stage24_parse_skill_delay_array(block, field):
-    """Parse one Desktop skill-delay array; missing/empty fields become [0]."""
+    """解析一個 Desktop 技能延遲 array；缺少或空欄位視為 [0]。"""
     match = re.search(
         rf"{re.escape(str(field))}\s*=\s*\{{([^}}]*)\}}",
         str(block or ""),
@@ -5856,7 +5934,7 @@ def stage24_parse_skill_delay_array(block, field):
 
 
 def stage24_format_delay_ms(values, skill_level):
-    """Desktop's old pick() formatting, moved to Core."""
+    """Desktop 舊版 pick() 格式化邏輯，已搬到 Core。"""
     values = list(values or [0])
     if not values:
         values = [0]
@@ -5883,11 +5961,11 @@ def _stage24_pick_display_ms(values, skill_level):
 
 
 def _stage24_pick_desktop_runtime_ms(values, skill_level):
-    """Preserve Desktop CastBar/ASPD legacy indexing exactly.
+    """完整保留 Desktop CastBar / ASPD 的舊版索引方式。
 
-    ItemSearchApp historically used skill_level-1 for label text but skill_level
-    for CastBar / raw GCD.  Keep that behavior during the Core extraction so
-    Stage 21.24 is an architecture refactor, not a silent gameplay behavior fix.
+    ItemSearchApp 過去在 label 文字使用 skill_level-1，但 CastBar / raw GCD 使用
+    skill_level。Core 抽離期間保留此行為，確保 Stage 21.24 只是架構重構，
+    而不是悄悄修改遊戲計算行為。
     """
     values = list(values or [0])
     if not values:
@@ -5911,14 +5989,13 @@ def stage24_calculate_skill_timing_values(
     equip_cooldown_ms=0.0,
     selected_variable_cast_ms=0.0,
 ):
-    """Shared Desktop/Web skill cast, post-delay and cooldown calculation.
+    """Desktop / Web 共用的技能詠唱、後延遲與冷卻時間計算。
 
-    This is the extracted non-UI body of Desktop
-    ``update_skill_delay_labels()``.  All delay arrays are milliseconds.
+    這是從 Desktop ``update_skill_delay_labels()`` 抽出的非 UI 主體。
+    所有延遲 array 的單位都是毫秒。
 
-    ``base_stat`` is Desktop's ``DEX + INT/2`` value.
-    Equipment modifiers use the exact signs/units already produced by the
-    existing effect parser.
+    ``base_stat`` 是 Desktop 使用的 ``DEX + INT/2`` 數值。
+    裝備修正沿用既有效果 parser 已產生的正負號與單位。
     """
     code = str(skill_code or "").strip()
     if not code:
@@ -6001,7 +6078,7 @@ def stage24_calculate_skill_timing_values(
         "cooldown_raw_ms": _stage24_pick_display_ms(cooldown_raw, level),
     }
 
-    # Keep Desktop's historical CastBar / ASPD-GCD indexing untouched.
+    # 保留 Desktop 歷史上的 CastBar / ASPD-GCD 索引方式，不做變更。
     desktop_runtime = {
         "fixed_ms": _stage24_pick_desktop_runtime_ms(fixed_ms, skill_level),
         "variable_ms": _stage24_pick_desktop_runtime_ms(variable_ms, skill_level),
@@ -6053,7 +6130,7 @@ def stage24_calculate_skill_timing_values(
 
 
 def stage24_extract_skill_timing_modifiers(effect_dict, skill_name):
-    """Extract all equipment timing modifiers once for Desktop and Web."""
+    """一次抽出 Desktop 與 Web 共用的全部裝備時間修正。"""
     effect_dict = effect_dict or {}
     skill_name = str(skill_name or "")
 
@@ -6063,8 +6140,8 @@ def stage24_extract_skill_timing_modifiers(effect_dict, skill_name):
         for value, _source in effect_dict.get(("固定詠唱時間", "%"), [])
         if isinstance(value, (int, float))
     ]
-    # Desktop semantics: fixed-cast percentage does not stack; strongest
-    # negative entry is used.
+    # Desktop 語意：固定詠唱百分比不疊加；只採用
+    # 負值中效果最強的一筆。
     fixed_percent = min(fixed_percent_values, default=0.0)
     variable_percent = _stage17_sum_effect(effect_dict, "變動詠唱時間", "%")
     global_post_percent = _stage17_sum_effect(effect_dict, "技能後延遲", "%")
@@ -6100,10 +6177,10 @@ def stage24_calculate_skill_timing_from_effects(
     skill_map_all=None,
     skill_code=None,
 ):
-    """Shared high-level timing entry used by both Desktop and Web.
+    """Desktop 與 Web 共用的高階時間計算入口。
 
-    The caller provides the already-aggregated equipment effect dictionary and
-    character DEX/INT.  Modifier extraction and all timing math remain in Core.
+    呼叫端提供已彙總的裝備效果 dictionary 與角色 DEX / INT；
+    修正值抽取與全部時間公式都留在 Core。
     """
     modifiers = stage24_extract_skill_timing_modifiers(effect_dict, skill_name)
     shared = stage24_calculate_skill_timing_values(
@@ -6125,7 +6202,7 @@ def stage24_calculate_skill_timing_from_effects(
 
 
 def calculate_stage23_skill_timing(*, data_dir, skill_row, skill_level, effect_dict, total_dex, total_int):
-    """Web/API adapter over the exact same high-level Core entry as Desktop."""
+    """Web / API adapter，使用與 Desktop 完全相同的高階 Core 入口。"""
     row = skill_row if isinstance(skill_row, dict) else {}
     skill_name = _stage17_text(row.get("Name"))
     skill_code = (
@@ -6204,7 +6281,7 @@ def calculate_stage23_skill_timing(*, data_dir, skill_row, skill_level, effect_d
     }
 
 
-# Backward-compatible internal aliases for any Stage 21.23 code/tests.
+# 提供給 Stage 21.23 舊程式 / 測試使用的向下相容內部 alias。
 _stage23_find_skill_delay_block = stage24_find_skill_delay_block
 _stage23_parse_delay_array = stage24_parse_skill_delay_array
 _stage23_pick_delay_value = _stage24_pick_display_ms
@@ -6251,7 +6328,7 @@ def _stage17_effect_multiplier(effect_dict, category, index):
     return 0
 
 
-# === CORE DEDUP PHASE 3: SHARED TARGET DEFENSE FACTORS ===
+# === 核心去重階段 3：共用目標防禦係數 ===
 def stage17_calculate_target_defense_factors(
     *,
     effect_dict,
@@ -6265,13 +6342,12 @@ def stage17_calculate_target_defense_factors(
     half_bypass_def=0,
     half_bypass_res=0,
 ):
-    """Calculate Stage 17 target defense/ignore factors shared by Desktop/Web.
+    """計算 Desktop / Web 共用的 Stage 17 目標防禦 / 無視係數。
 
-    This intentionally preserves the current Desktop semantics:
-    - half_bypass_def makes the after-DEF multiplier 1 and moves DEF into
-      the flat pre-DEF subtraction;
-    - half_bypass_res forces physical RES ignore to the 50% cap;
-    - RES/MRES ignore are capped at 50%; DEF/MDEF ignore are not capped here.
+    此處刻意保留目前 Desktop 語意：
+    - half_bypass_def 會讓 DEF 後倍率變成 1，並把 DEF 移到 DEF 前的固定扣除；
+    - half_bypass_res 會強制物理 RES 無視達到 50% 上限；
+    - RES / MRES 無視上限為 50%；DEF / MDEF 無視在這裡不設上限。
     """
     target_race = _stage17_int(target_race)
     target_class = _stage17_int(target_class)
@@ -6283,27 +6359,33 @@ def stage17_calculate_target_defense_factors(
     target_mdef = _stage17_number(target_mdef, 0)
     target_mres = _stage17_number(target_mres, 0)
 
+    # 物理破防：種族 + 全種族 + 階級。
     def_reduction = (
         _stage17_effect_multiplier(effect_dict, "D_Race_def", target_race)
         + _stage17_effect_multiplier(effect_dict, "D_Race_def", 9999)
         + _stage17_effect_multiplier(effect_dict, "D_class_def", target_class)
     )
+    # 魔法破防：種族 + 全種族 + 階級。
     mdef_reduction = (
         _stage17_effect_multiplier(effect_dict, "MD_Race_def", target_race)
         + _stage17_effect_multiplier(effect_dict, "MD_Race_def", 9999)
         + _stage17_effect_multiplier(effect_dict, "MD_class_def", target_class)
     )
+    # RES：半無視 RES 時直接視為 50% 破抗；其餘取種族 + 全種族。
     res_reduction = 50 if half_bypass_res == 1 else (
         _stage17_effect_multiplier(effect_dict, "D_Race_res", target_race)
         + _stage17_effect_multiplier(effect_dict, "D_Race_res", 9999)
     )
+    # MRES：魔法種族抗性 + 全種族抗性。
     mres_reduction = (
         _stage17_effect_multiplier(effect_dict, "MD_Race_res", target_race)
         + _stage17_effect_multiplier(effect_dict, "MD_Race_res", 9999)
     )
+    # 原 Desktop 規則：RES / MRES 破抗上限 50%。
     res_reduction = min(res_reduction, 50)
     mres_reduction = min(mres_reduction, 50)
 
+    # 半無視 DEF：後 DEF 乘區直接視為 1，並把後 DEF 併入前 DEF 減算。
     def_multiplier = (
         1.0
         if half_bypass_def == 1
@@ -6683,6 +6765,13 @@ def _stage17_calculate_one(*, formula, round_index, label, skill_hits, attack_el
 
 
 def calculate_stage17_damage(*, request, data, context, effect_result, data_dir, damage):
+    """拆分前 Desktop 傷害計算的 Qt-free 核心。
+
+    計算順序仍依原本區塊：技能資料 → 武器/精煉 → PATK/SMATK → 武器基礎 ATK →
+    體型/屬性與特殊技能 → DEF/RES/MDEF/MRES → 前後 ATK/MATK → 技能公式 →
+    逐段增傷/減傷 → 多段傷害與顯示明細。
+    """
+    # === [1] 取得技能 row / 技能基本資料 ===
     skill_id = _stage17_int(damage.get("skill_id", 0))
     if skill_id <= 0:
         raise ValueError("請選擇傷害技能")
@@ -6699,6 +6788,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     variables["Sklv"] = skill_level
     variables["SLV"] = skill_level
 
+    # ========================== 武器 / 精煉資料 =========================
     weapon_type_map = _stage17_context_map(context, "weapon_type_map")
     weapon_level_map = _stage17_context_map(context, "weapon_level_map")
     weapon_atk_map = _stage17_context_map(context, "weapon_atk_map")
@@ -6715,6 +6805,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     grade_r = _stage17_slot_grade(request, 4)
     grade_l = _stage17_slot_grade(request, 3)
 
+    # 武器 ATK / MATK 精煉計算；副手 ATK 本體不進主傷害，但 P.ATK / S.MATK 仍會加總。
     atk_refine, patk_refine, refine_over_atk, refine_over_atk_min = stage17_calc_weapon_refine_atk(weapon_r_level, refine_r, grade_r)
     _atk_refine_l, patk_refine_l, _roal, _roalm = stage17_calc_weapon_refine_atk(weapon_l_level, refine_l, grade_l)
     matk_refine, smatk_refine, refine_over_matk, refine_over_matk_min = stage17_calc_weapon_refine_matk(weapon_r_level, refine_r, grade_r)
@@ -6730,6 +6821,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     total_crt = variables["total_CRT"]
     base_lv = variables["BaseLv"]
 
+    # P.ATK / S.MATK = 裝備 + 特性素質 + 主副手五階精煉。
     patk = _stage17_sum_effect(effect_dict, "P.ATK", "")
     smatk = _stage17_sum_effect(effect_dict, "S.MATK", "")
     total_patk = patk + int(total_pow / 3) + int(total_con / 5) + patk_refine + patk_refine_l
@@ -6755,6 +6847,8 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     melee_damage = _stage17_sum_effect(effect_dict, "近距離物理傷害", "%")
     range_damage = _stage17_sum_effect(effect_dict, "遠距離物理傷害", "%")
 
+    # ========================== 武器基礎 ATK =========================
+    # DEX 系武器與 STR 系武器使用不同主素質；Maximize Power 影響最小武器 ATK。
     used = _stage17_used_levels(context)
     enabled = _stage17_enabled_levels(context)
     maximize = _stage17_int(used.get(114, 0)) == 1
@@ -6769,6 +6863,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
         refine_weapon_min = int(weapon_base_min + atk_refine + refine_over_atk_min - refine_over_atk)
         refine_weapon_max = int(weapon_base_max + atk_refine)
 
+    # 武器體型修正；若裝備效果已達 100% 忽略體型，倍率固定為 1。
     target_size = _stage17_int(monster.get("size", 1))
     weapon_penalty = 1 if ignore_size >= 100 else stage17_get_size_penalty(weapon_class, target_size)
     refine_ammo_min = int(refine_weapon_min * weapon_penalty) + ammo_atk
@@ -6786,6 +6881,8 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     else:
         special_atk_min, special_atk_max = int(refine_ammo_min), int(refine_ammo_max)
 
+    # ========================== DEF / RES / MDEF / MRES =========================
+    # 技能 row 內的 half_bypass_def / half_bypass_res 會在 共用防禦 helper 統一處理。
     target_race = _stage17_int(monster.get("race", 0))
     target_class = _stage17_int(monster.get("class", 0))
     half_bypass_def = _stage17_int(row.get("half_bypass_def", 0))
@@ -6816,6 +6913,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     res_multiplier = defense_factors["res_multiplier"]
     mres_multiplier = defense_factors["mres_multiplier"]
     target_defc = defense_factors["target_defc"]
+    # 浸透勁效果：依剩餘 DEF 轉成額外 ATK，並把前 DEF 減算清零。
     investigate = 0
     if _stage17_int(used.get(266, 0)) == 1:
         temp = int(100 - def_reduction)
@@ -6823,9 +6921,12 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
         target_defc = 0
     monster["defc"] = target_defc
 
+    # 後 ATK（裝備 / 武器段）與前 ATK（素質段）。
     weapon_back_min = special_atk_min + atk_armor + investigate
     weapon_back_max = special_atk_max + atk_armor + investigate
+    # 近傷前 ATK（STR 系）
     natk = int(base_lv / 4 + total_str + total_dex / 5 + total_luk / 3 + total_pow * 5)
+    # 遠傷前 ATK（DEX 系：弓 / 槍 / 樂器 / 鞭等）
     fatk = int(base_lv / 4 + total_str / 5 + total_dex + total_luk / 3 + total_pow * 5)
     sevenwind = _stage17_int(used.get(425, 0)) == 1
     row_element = _stage17_int(row.get("element", 0), 0)
@@ -6835,6 +6936,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     front_element = attack_element if sevenwind else 0
     front_atk = int(front_base * 2 * stage17_get_damage_multiplier(front_element, target_element, target_element_lv) / 100)
 
+    # ========================== MATK 基礎區 =========================
     matkf = int(base_lv / 4) + int(total_int * 1.5) + int(total_dex / 5) + int(total_luk / 3) + int(total_spl * 5)
     magic_max_raw = matkf + ((matk_refine + matk_refine_l + weapon_r_matk + weapon_l_matk) * (1 + weapon_r_level * 0.1))
     if _stage17_int(used.get(2206, 0)) == 1:
@@ -6992,9 +7094,9 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
                 special=special,
             ))
 
-    # Match Desktop display/aggregation semantics for a negative-hit combo:
-    # compute_and_record_damage() creates repeated identical split records, but
-    # the Desktop result UI only counts the first split-combo record once.
+    # 比照 Desktop 對負 hit combo 的顯示 / 彙總語意：
+    # compute_and_record_damage() 會建立重複且相同的分段紀錄，但
+    # Desktop 結果 UI 只會把第一筆 split-combo 紀錄計算一次。
     combo_split_results = [
         item for item in results[1:]
         if item.get("label") == "combo (均分)"
@@ -7008,7 +7110,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
 
     total_min = sum(_stage17_int(item["total_damage_min"]) for item in display_results)
     total_max = sum(_stage17_int(item["total_damage"]) for item in display_results)
-    # === STAGE 21.17 DESKTOP DAMAGE BREAKDOWN ===
+    # === STAGE 21.17 DESKTOP 傷害明細 ===
     breakdown_skill_result = (
         _stage17_number(
             display_results[0].get("skill_result", 0),
@@ -7382,17 +7484,17 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
             "mres_multiplier": mres_multiplier,
         },
         "breakdown": damage_breakdown,
-        "raw_segments": results,  # Phase 11: preserve pre-display Stage17 segments
+        "raw_segments": results,  # Phase 11：保留顯示前的 Stage17 分段資料
         "segments": display_results,
         "total_damage_min": total_min,
         "total_damage": total_max,
         "warnings": warnings,
     }
 
-# === CORE DEDUP PHASE 4+5: DAMAGE REQUEST + CHARACTER DEFENSE ===
+# === 核心去重階段 4+5：傷害 Request + 角色防禦 ===
 @dataclass(frozen=True)
 class Stage17DamageRequest:
-    """Qt/FastAPI-free request envelope around the existing Stage 17 calculator."""
+    """包住既有 Stage 17 計算器、且不依賴 Qt / FastAPI 的 request 容器。"""
 
     request: object
     data: object
@@ -7404,7 +7506,7 @@ class Stage17DamageRequest:
 
 @dataclass(frozen=True)
 class Stage17DamageResult:
-    """Typed compatibility wrapper without changing calculate_stage17_damage()."""
+    """不修改 calculate_stage17_damage() 的 typed 相容 wrapper。"""
 
     data: dict
 
@@ -7437,7 +7539,7 @@ class Stage17DamageResult:
 
 
 def calculate_stage17_damage_request(payload):
-    """Calculate Stage 17 through one request/result boundary shared by UIs/APIs."""
+    """透過 UI / API 共用的單一 request / result 邊界執行 Stage 17 計算。"""
     if not isinstance(payload, Stage17DamageRequest):
         raise TypeError("payload must be Stage17DamageRequest")
     raw = calculate_stage17_damage(
@@ -7467,11 +7569,10 @@ def _phase45_effect_sum(effect_dict, label, unit="%"):
 
 
 def build_damage_effect_profile(effect_dict):
-    """Build all legacy outgoing/received damage attributes without Qt/MainWindow.
+    """在不依賴 Qt / MainWindow 的情況下建立全部舊版輸出 / 承受傷害屬性。
 
-    The returned ``legacy_attributes`` keys intentionally match the names used by
-    ItemSearchApp.py so Desktop can stay backward-compatible while the source of
-    truth moves into Core.
+    回傳的 ``legacy_attributes`` key 刻意與 ItemSearchApp.py 使用的名稱一致，
+    讓唯一計算來源搬進 Core 的同時，Desktop 仍能保持向下相容。
     """
     effect_dict = effect_dict or {}
     attrs = {}
@@ -7483,40 +7584,47 @@ def build_damage_effect_profile(effect_dict):
             attr = f"{'body_' if body else ''}{prefix}_{idx}"
             attrs[attr] = _phase45_effect_sum(effect_dict, label, "%")
 
+    # === 體型加成 / 抗性 ===
     size_names = ["小型", "中型", "大型"]
     for prefix in ("MD", "D"):
         kind = "魔法" if prefix == "MD" else "物理"
         apply(prefix + "_size", size_names, f"對 {{}} 敵人的{kind}傷害")
         apply(prefix + "_size", size_names, f"受到 {{}} 敵人的{kind}傷害", body=True)
 
+    # === 屬性對象加成 / 抗性 ===
     elements = ["無屬性", "水屬性", "地屬性", "火屬性", "風屬性", "毒屬性", "聖屬性", "暗屬性", "念屬性", "不死屬性", "全屬性"]
     for prefix in ("MD", "D"):
         kind = "魔法" if prefix == "MD" else "物理"
         apply(prefix + "_element", elements, f"對 {{}} 對象的{kind}傷害")
         apply(prefix + "_element", elements, f"受到 {{}} 對象的{kind}傷害", body=True)
+        # === 屬性來源加成 / 抗性（屬性攻擊） ===
         apply(prefix + "_Damage", elements, f"{{}} 的{kind}傷害")
         apply(prefix + "_Damage", elements, "對 {} 攻擊抗性", body=True)
 
+    # === 種族加成 / 抗性 ===
     races = ["無形", "不死", "動物", "植物", "昆蟲", "魚貝", "惡魔", "人形", "天使", "龍族", "全種族"]
     race_indexes = list(range(10)) + [9999]
     for prefix in ("MD", "D"):
         kind = "魔法" if prefix == "MD" else "物理"
         apply(prefix + "_Race", races, f"對 {{}} 型怪的{kind}傷害", race_indexes)
-        # Existing Desktop semantics intentionally use the same received-race label
-        # for both MD and D, so preserve that behavior during deduplication.
+        # 目前 Desktop 語意刻意讓 MD 與 D 使用相同的「受到種族傷害」標籤，
+        # 因此去重重構期間也保留這個行為。
         apply(prefix + "_Race", races, "受到 {} 型怪的傷害", race_indexes, body=True)
 
+    # === 階級加成 / 抗性 ===
     classes = ["一般", "首領"]
     for prefix in ("MD", "D"):
         kind = "魔法" if prefix == "MD" else "物理"
         apply(prefix + "_class", classes, f"對 {{}} 階級的{kind}傷害")
         apply(prefix + "_class", classes, f"受到 {{}} 階級的{kind}傷害", body=True)
 
+    # === 無視階級防禦 ===
     class_def_names = ["一般", "首領", "玩家"]
     for prefix in ("MD", "D"):
         kind = "魔法" if prefix == "MD" else "物理"
         apply(prefix + "_class_def", class_def_names, f"無視 {{}} 階級的{kind}防禦")
 
+    # === 無視種族防禦 / 抗性 ===
     for prefix in ("MD", "D"):
         kind = "魔法" if prefix == "MD" else "物理"
         apply(prefix + "_Race_def", races, f"無視 {{}} 型怪的{kind}防禦", race_indexes)
@@ -7550,11 +7658,10 @@ def calculate_character_defense_profile(
     target_class,
     monster_attack_element,
 ):
-    """Pure Core version of Desktop's character DEF/MDEF/RES/MRES reduction block.
+    """Desktop 角色 DEF / MDEF / RES / MRES 減傷區塊的純 Core 版本。
 
-    Current Desktop behavior is preserved exactly, including using received-race
-    damage for the magic path and using equipment MDEF (not front MDEF) in the
-    final magic MDEF multiplier. Behavior changes can be made separately later.
+    完整保留目前 Desktop 行為，包括魔法路徑使用「受到種族傷害」，以及最終魔法
+    MDEF 倍率使用裝備 MDEF（不是前 MDEF）。若要改行為，之後應另外處理。
     """
     effect_dict = effect_dict or {}
     profile = build_damage_effect_profile(effect_dict)
@@ -7664,9 +7771,9 @@ def calculate_character_defense_profile(
     }
 
 
-# === CORE DEDUP PHASE 6: STAGE17 PARITY-GATED CUTOVER ===
+# === 核心去重階段 6：STAGE17 同結果驗證後切換 ===
 def stage17_normalize_display_segments(segments):
-    """Normalize legacy/Core segment lists to the Desktop display semantics."""
+    """把 legacy / Core 分段 list 正規化成 Desktop 顯示語意。"""
     rows = [dict(item) for item in (segments or []) if isinstance(item, dict)]
     if len(rows) <= 1:
         return rows
@@ -7684,11 +7791,10 @@ def stage17_normalize_display_segments(segments):
 
 
 def stage17_compare_damage_parity(legacy_segments, core_result, *, numeric_tolerance=1e-6):
-    """Compare the legacy Desktop Stage17 result with the Core render contract.
+    """比較舊版 Desktop Stage17 結果與 Core render contract。
 
-    This deliberately compares only values that affect the visible damage result.
-    A mismatch returns diagnostics instead of raising so Desktop can safely retain
-    its legacy rendering path.
+    刻意只比較會影響可見傷害結果的數值。若不一致，回傳診斷資訊而不是拋例外，
+    讓 Desktop 可以安全保留舊版顯示路徑。
     """
     if hasattr(core_result, "to_dict"):
         core_result = core_result.to_dict()
@@ -7758,12 +7864,12 @@ def stage17_compare_damage_parity(legacy_segments, core_result, *, numeric_toler
     }
 
 
-# === STAGE 18 SHARED MONSTER LOOKUP CORE ===
-# Pure standard-library monster helpers shared by Desktop and Web.
-# Keep this block free of PySide6 / FastAPI / network I/O.
+# === STAGE 18 共用怪物查詢核心 ===
+# Desktop 與 Web 共用的純標準函式庫怪物 helper。
+# 此區塊不要依賴 PySide6 / FastAPI / 網路 I/O。
 
 def stage18_decode_monster_element(element_code):
-    """Match Desktop monster_lookup_dialog.decode_element()."""
+    """與 Desktop monster_lookup_dialog.decode_element() 行為一致。"""
     try:
         code = int(element_code)
     except (TypeError, ValueError):
@@ -7783,7 +7889,7 @@ def stage18_decode_monster_element(element_code):
 
 
 def stage18_load_monster_presets(data_dir):
-    """Load data/monsters.json in source order."""
+    """依原始順序載入 data/monsters.json。"""
     from pathlib import Path
     import json
 
@@ -7824,7 +7930,7 @@ def stage18_monster_cache_path(data_dir, monster_id):
 
 
 def stage18_load_cached_monster_payload(data_dir, monster_id):
-    """Return raw cached Divine-Pride payload or None."""
+    """回傳原始 Divine-Pride 快取 payload；不存在則回傳 None。"""
     import json
 
     path = stage18_monster_cache_path(data_dir, monster_id)
@@ -7839,7 +7945,7 @@ def stage18_load_cached_monster_payload(data_dir, monster_id):
 
 
 def stage18_parse_monster_payload(data):
-    """Normalize Divine-Pride monster JSON exactly like Desktop."""
+    """完全依照 Desktop 方式正規化 Divine-Pride 怪物 JSON。"""
     if not isinstance(data, dict):
         raise ValueError("monster payload 必須是 dict")
 
@@ -7915,9 +8021,9 @@ def stage18_parse_monster_payload(data):
         "monster_c_matk": int(combat_matk),
     }
 
-# === STAGE 19 SHARED SKILL TREE AND RRF IMPORT CORE ===
-# Pure standard-library helpers shared by Desktop and Web.
-# No PySide6 / FastAPI / subprocess / network I/O here.
+# === STAGE 19 共用技能樹與 RRF 匯入核心 ===
+# Desktop 與 Web 共用的純標準函式庫 helper。
+# 此處不使用 PySide6 / FastAPI / subprocess / 網路 I/O。
 
 STAGE19_RRF_GRADE_MAP = {0: "N", 1: "D", 2: "C", 3: "B", 4: "A"}
 
@@ -7932,8 +8038,8 @@ STAGE19_RRF_SHADOW_GROUP_NAME_MAP = {
     9: "服飾頭上", 10: "服飾頭中",
 }
 
-# source set -> resulting state ids. A matching source state is removed first,
-# matching the Desktop transform used before writing the flat `buff` field.
+# source set -> 最終 state ID；會先移除符合的來源 state，
+# 與 Desktop 在寫入平面 `buff` 欄位前使用的轉換方式一致。
 STAGE19_RRF_EFST_COMBO_RULES = [
     ({241, 242, 243, 244, 245, 246}, {1641}, {1034, 685}),
     ({150, 151, 247, 248}, {796}, set()),
@@ -7962,7 +8068,7 @@ def _stage19_read_text_auto(path):
 
 
 # ---------------------------------------------------------------------------
-# Skill tree
+# 技能樹
 # ---------------------------------------------------------------------------
 
 def stage19_parse_skill_tree_data(data):
@@ -8396,7 +8502,7 @@ def stage19_apply_skill_level_change(tree_payload, levels, code, target_level):
 
 
 # ---------------------------------------------------------------------------
-# RRF replay dump parser
+# RRF replay dump 解析器
 # ---------------------------------------------------------------------------
 
 def stage19_rrf_parse_skillinfo_list_from_text(content):
@@ -8542,7 +8648,7 @@ def stage19_rrf_parse_equipment_chunk_from_text(content, parsed_items, enchant_j
     import re
     group_map = group_map or STAGE19_RRF_GROUP_NAME_MAP
     flat, warnings = {}, []
-    # Stage19 RRF encoding fix: do not depend on the Unicode arrow.
+    # Stage19 RRF 編碼修正：不要依賴 Unicode 箭頭字元。
     pattern = (
         r"\[Chunk Items\] Unparsed opcode "
         + re.escape(chunk_name)
@@ -8695,7 +8801,7 @@ def stage19_build_rrf_desktop_json_from_dump_text(replay_text, data_dir, parsed_
     }
 
 
-# === STAGE 21.25 SHARED NO-CAST STATUS CORE ===
+# === STAGE 21.25 共用素質無詠核心 ===
 
 def stage25_calculate_no_cast_status(
     *,
@@ -8703,12 +8809,12 @@ def stage25_calculate_no_cast_status(
     total_int,
     target=265,
 ):
-    """Desktop's 素質無詠 threshold calculation, moved to shared Core.
+    """Desktop 的素質無詠門檻計算，已搬到共用 Core。
 
-    Desktop historically evaluates:
+    Desktop 歷史上使用：
         DEX + int(INT / 2) >= 265
 
-    Keep the integer-half INT behavior exactly so Desktop/Web remain identical.
+    完整保留 INT 除 2 後取整的行為，確保 Desktop / Web 結果一致。
     """
     dex_part = _stage20_int(total_dex)
     int_total = _stage20_int(total_int)
@@ -8741,10 +8847,10 @@ def stage25_calculate_no_cast_from_effects(
     effect_dict,
     target=265,
 ):
-    """Shared high-level Desktop/Web entry for 素質無詠.
+    """Desktop / Web 共用的素質無詠高階入口。
 
-    UI callers provide only raw character/job/equipment inputs; job/equipment
-    DEX/INT aggregation and the 265 threshold remain in Core.
+    UI 呼叫端只提供角色 / job / 裝備原始輸入；job / 裝備 DEX / INT 彙總與
+    265 門檻判斷都留在 Core。
     """
     bonuses = list(job_bonus or [])
     job_dex = _stage20_int(bonuses[4] if len(bonuses) > 4 else 0)
@@ -8774,10 +8880,10 @@ def stage25_calculate_no_cast_from_effects(
     )
     return result
 
-# === STAGE 21.25 SHARED NO-CAST STATUS CORE END ===
+# === STAGE 21.25 共用素質無詠核心結束 ===
 
-# === STAGE 20 SHARED HP SP ASPD CORE ===
-# Pure standard-library helpers shared by Desktop and Web.
+# === STAGE 20 共用 HP / SP / ASPD 核心 ===
+# Desktop 與 Web 共用的純標準函式庫 helper。
 
 _STAGE20_STATUS_TABLE_CACHE = {}
 
@@ -8823,7 +8929,7 @@ def _stage20_map_get(mapping, key, default=0):
 
 
 def stage20_load_job_status_tables(data_dir):
-    """Load job_4th_hpsp and WPASPDdata from data/job_dict.py."""
+    """從 data/job_dict.py 載入 job_4th_hpsp 與 WPASPDdata。"""
     import ast
     from pathlib import Path
 
@@ -8880,6 +8986,7 @@ def stage20_load_job_status_tables(data_dir):
     return result
 
 
+# ===== 4轉職業 HP / SP 表 + 手動輸入共用計算 =====
 def stage20_calculate_hpsp_values(
     *,
     job_base_hp,
@@ -8898,7 +9005,13 @@ def stage20_calculate_hpsp_values(
     hp_current_percent=100,
     sp_current_percent=100,
 ):
-    """Exact Desktop HP/SP arithmetic, isolated from Qt widgets."""
+    """拆分前 Desktop HP/SP 算式，移除 Qt 後供 Desktop / Web 共用。
+
+    - job_base_hp / job_base_sp：BaseLv 201~275 對應的四轉職業表基礎值。
+    - mhp_input / msp_input：使用者手動輸入；若為 0 則回退職業表。
+    - use_logout_values：輸入值若來自登出畫面，先反推尚未套 VIT / INT 的基礎值。
+    - 裝備固定 HP/SP 也會先套用 HP% / SP%，再與基礎值合併。
+    """
     import math
 
     job_base_hp = _stage20_number(job_base_hp)
@@ -8917,6 +9030,8 @@ def stage20_calculate_hpsp_values(
     adjusted_mhp_input = mhp_input
     adjusted_msp_input = msp_input
 
+    # 登出畫面顯示值已包含 VIT / INT 倍率。勾選後先回推基礎值，
+    # 並依原需求採無條件進位，之後再套用既有裝備與百分比加成。
     if use_logout_values:
         hp_stat_multiplier = 1 + (base_vit / 100)
         sp_stat_multiplier = 1 + (base_int / 100)
@@ -8925,6 +9040,7 @@ def stage20_calculate_hpsp_values(
         if adjusted_msp_input > 0 and sp_stat_multiplier > 0:
             adjusted_msp_input = math.ceil(adjusted_msp_input / sp_stat_multiplier)
 
+    # 原 Desktop：固定 HP / SP 先吃對應百分比。
     hp_flat_scaled = hp_flat * (1 + hp_percent_bonus / 100)
     sp_flat_scaled = sp_flat * (1 + sp_percent_bonus / 100)
     hp_multiplier = (100 + total_vit) / 100
@@ -8932,14 +9048,17 @@ def stage20_calculate_hpsp_values(
     hp_percent_multiplier = 1 + hp_percent_bonus / 100
     sp_percent_multiplier = 1 + sp_percent_bonus / 100
 
+    # 職業表基礎值與手動輸入值都使用相同 VIT / INT 與 HP% / SP% 公式。
     job_max_hp = int(job_base_hp * hp_multiplier * hp_percent_multiplier + hp_flat_scaled)
     job_max_sp = int(job_base_sp * sp_multiplier * sp_percent_multiplier + sp_flat_scaled)
     user_max_hp = int(adjusted_mhp_input * hp_multiplier * hp_percent_multiplier + hp_flat_scaled)
     user_max_sp = int(adjusted_msp_input * sp_multiplier * sp_percent_multiplier + sp_flat_scaled)
 
+    # 使用者沒輸入或輸入 0 → 使用職業表。
     mhp = user_max_hp if adjusted_mhp_input > 0 else job_max_hp
     msp = user_max_sp if adjusted_msp_input > 0 else job_max_sp
 
+    # HP / SP 滑桿只影響目前值，不改最大值。
     hp_pct = max(0, min(100, _stage20_int(hp_current_percent, 100)))
     sp_pct = max(0, min(100, _stage20_int(sp_current_percent, 100)))
     mhp_now = int(mhp * hp_pct / 100) if mhp > 0 else 0
@@ -8968,6 +9087,7 @@ def stage20_calculate_hpsp_values(
     }
 
 
+# 攻速計算
 def stage20_calc_aspd(
     wpasdp_data,
     job_id,
@@ -8985,11 +9105,17 @@ def stage20_calc_aspd(
     cat2_flat=0.0,
     round_digits=3,
 ):
-    """Desktop calc_aspd() moved to Qt-free shared Core."""
+    """
+    回傳：套完基礎 ASPD + 類別1 / 類別2 後的 ASPD，
+    四捨五入到小數 round_digits 位（ROUND_HALF_UP）。
+
+    這是拆分前 Desktop ``calc_aspd()`` 的同一套公式。
+    """
     import math
     from decimal import Decimal, ROUND_HALF_UP
 
     def rate_to_decimal(value):
+        # 允許傳 0.15 或 15（代表 15%）。
         value = _stage20_number(value)
         if value < 0:
             return value
@@ -9012,7 +9138,9 @@ def stage20_calc_aspd(
     agi = _stage20_number(agi)
     dex = _stage20_number(dex)
 
+    # --- 1) 先算基礎 ASPD ---
     if dual_wield:
+        # 雙刀模式：左右手都要有可用的職業基礎 ASPD。
         if right_weapon_type is None or left_weapon_type is None:
             raise ValueError("dual_wield=True 時必須提供 right_weapon_type 與 left_weapon_type")
         base_r = _stage20_map_get(job_table, right_weapon_type, None)
@@ -9037,16 +9165,22 @@ def stage20_calc_aspd(
             return "基礎ASPD <= 0"
 
         stat_term = math.sqrt(agi * 10.09 + dex * 11 / 60)
+        # 基礎 ASPD 145 以上採用係數。
         if base >= 145:
             stat_term *= (1 - (base - 144) / 50)
+        # 盾牌修正通常為負數。
         shield_penalty = _stage20_number(_stage20_map_get(job_table, 50, 0)) if has_shield else 0.0
         aspd = base + stat_term + shield_penalty
 
+    # --- 2) 類別1 ---
     aspd_1 = 200 - (200 - aspd) * (1 - cat1_rate) + _stage20_number(cat1_flat)
+    # --- 3) 類別2 ---
     aspd_2 = 195 - (195 - aspd_1) * (1 - cat2_rate) + _stage20_number(cat2_flat)
+    # --- 4) 小數第 3 位（或指定的位數） ---
     return round_half_up(aspd_2, round_digits)
 
 
+# 將 HP / SP / ASPD / 素質無詠整理成同一份角色狀態結果。
 def stage20_calculate_status(
     *,
     request,
@@ -9083,6 +9217,7 @@ def stage20_calculate_status(
     base_dex, job_dex, equip_dex, total_dex = (dex_values["base"], dex_values["job"], dex_values["equip"], dex_values["total"])
     job_hpsp, wpasdp_data = stage20_load_job_status_tables(data_dir)
 
+    # ===== 4轉職業 HP / SP 表（BaseLv 201~275） =====
     job_base_hp = 0
     job_base_sp = 0
     if 201 <= base_lv <= 275:
@@ -9096,6 +9231,7 @@ def stage20_calculate_status(
             if index < len(sp_list):
                 job_base_sp = _stage20_int(sp_list[index])
 
+    # HP / SP 真正算式統一交給 共用 helper。
     hpsp = stage20_calculate_hpsp_values(
         job_base_hp=job_base_hp,
         job_base_sp=job_base_sp,
@@ -9119,12 +9255,14 @@ def stage20_calculate_status(
     if not armor_weapon_map:
         armor_weapon_map = _stage20_context_map(context, "global_armor_weapon_map")
 
+    # 主手 / 副手武器類型與盾牌狀態，沿用 Desktop slot：4=右手、3=左手。
     right_weapon_type = _stage20_map_get(weapon_type_map, 4, 0)
     left_weapon_type = _stage20_map_get(weapon_type_map, 3, 0)
     left_kind = _stage20_map_get(armor_weapon_map, 3, "")
     has_shield = left_kind == "armor"
     dual_wield = left_kind in ("Mweapon", "Rweapon")
 
+    # ASPD 類別1 / 類別2：攻擊後延遲減少在公式中以負 rate 傳入。
     cat1_rate = -_stage20_sum_effect(effect_dict, "(2轉以下)攻擊後延遲", "%")
     cat1_flat = _stage20_sum_effect(effect_dict, "(2轉以下)ASPD", "")
     cat2_rate = -_stage20_sum_effect(effect_dict, "攻擊後延遲", "%")
@@ -9222,8 +9360,8 @@ def stage20_calculate_status(
         },
     }
 
-# === STAGE 21 EQUIPMENT SEARCH AND TWO HAND CORE ===
-# Qt/FastAPI-free helpers shared by Desktop semantics and Web.
+# === STAGE 21 裝備搜尋與雙手裝備核心 ===
+# Desktop 與 Web 共用、不依賴 Qt / FastAPI 的 helper。
 
 STAGE21_BLOCK_LEFT_WEAPON_TYPES = frozenset({
     3,   # 雙手劍
@@ -9266,11 +9404,11 @@ def _stage21_description_lines(value):
 
 
 def stage21_extract_equipment_meta(block_text):
-    """Extract weapon Type/Stat metadata from one equipment block.
+    """從單一裝備 block 抽出武器 Type / Stat metadata。
 
-    Desktop stat layout:
-      Mweapon: Stat[1] = weapon type
-      Rweapon: Stat[0] = weapon type
+    Desktop stat 配置：
+      Mweapon：Stat[1] = 武器類型
+      Rweapon：Stat[0] = 武器類型
     """
     import re
 
@@ -9379,13 +9517,13 @@ def stage21_search_equipment_items(
     offset=0,
     limit=50,
 ):
-    """Match current Desktop update_combobox() semantics.
+    """與目前 Desktop update_combobox() 語意一致。
 
     - query.strip().split()
-    - searchable text = Item ID + name + joined description
-    - every keyword must match (AND)
-    - only IDs that exist in equipment_data
-    - result order sorted by Item ID
+    - 可搜尋文字 = Item ID + 名稱 + 合併後描述
+    - 每個關鍵字都必須符合（AND）
+    - 只保留存在於 equipment_data 的 ID
+    - 結果依 Item ID 排序
     """
     keywords = str(query or "").strip().split()
 
@@ -9420,7 +9558,7 @@ def stage21_search_equipment_items(
             None,
         )
 
-        # Exact Desktop behavior: only equipment_data IDs.
+        # 完整保留 Desktop 行為：只接受 equipment_data 內的 ID。
         if block is None:
             continue
 
@@ -9497,9 +9635,9 @@ def stage21_get_equipment_item(
         block,
     )
 
-# === STAGE 21.9 NOTE EDITOR CORE ===
-# Generated from the user's current Desktop source by apply_stage21_9.py.
-# It is data-only: Web runtime never imports ItemSearchApp.py or PySide6.
+# === STAGE 21.9 備註編輯器核心 ===
+# 由 apply_stage21_9.py 根據使用者目前的 Desktop 原始碼產生。
+# 這裡只有資料；Web runtime 不會匯入 ItemSearchApp.py 或 PySide6。
 STAGE21_9_FUNCTION_DEFS = {'EnableSkill': {'desc': '可使用技能', 'args': [{'name': '技能', 'map': 'skill_map'}, {'name': '等級', 'type': 'value'}]},
  'AddExtParam': {'desc': '增加基礎能力',
                  'args': [{'name': '無意義', 'map': '1'},
@@ -9827,7 +9965,7 @@ def _stage21_9_function_arg_meta(arg, index):
 
     fixed_value = None
 
-    # Exact Desktop FunctionSyntaxTextEdit placeholder/fixed-value rules.
+    # 完整保留 Desktop FunctionSyntaxTextEdit 的 placeholder / 固定值規則。
     if map_name.isdigit():
         fixed_value = map_name
         placeholder = map_name
@@ -10019,7 +10157,7 @@ def stage21_9_parse_note_preview(
     context=None,
     dependencies=None,
 ):
-    """Return Desktop-style note_ui lines while raw Lua stays untouched."""
+    """回傳 Desktop 風格的 note_ui 行，同時保持原始 Lua 不變。"""
     raw = str(block_text or "")
 
     if not raw.strip():
@@ -10054,10 +10192,10 @@ def stage21_9_parse_note_preview(
     )
 
 
-# === STAGE 21.9 NOTE EDITOR CORE END ===
+# === STAGE 21.9 備註編輯器核心結束 ===
 
-# === CORE DEDUP PHASE 8: CHARACTER BUILD MODEL ===
-# === CORE DEDUP PHASE 16: CHARACTER BUILD SCHEMA V2 ===
+# === 核心去重階段 8：角色配裝模型 ===
+# === 核心去重階段 16：角色配裝 Schema V2 ===
 CHARACTER_BUILD_SCHEMA = "ROItemSearchApp.CharacterBuild"
 CHARACTER_BUILD_VERSION = 2
 CHARACTER_BUILD_META_KEY = "_roitemsearch_build"
@@ -10067,12 +10205,11 @@ CHARACTER_BUILD_COMBAT_KEY = "_roitemsearch_combat"
 @dataclass
 @dataclass
 class CharacterBuild:
-    """Versioned Qt-free build shared by Desktop, Web, and comparison tools.
+    """Desktop、Web 與比較工具共用、帶版本且不依賴 Qt 的配裝資料。
 
-    Schema v2 keeps the historical flat project fields in ``values`` and stores
-    transient combat controls in a separate namespaced ``combat_state`` object.
-    Old v0/v1 JSON remains readable.  ``to_legacy_dict()`` deliberately excludes
-    v2 metadata/state so old Desktop field-application code continues to work.
+    Schema v2 把歷史上的平面專案欄位保留在 ``values``，並把暫時戰鬥控制項
+    存在獨立 namespace 的 ``combat_state`` 物件。舊 v0 / v1 JSON 仍可讀取。
+    ``to_legacy_dict()`` 刻意排除 v2 metadata / state，讓舊 Desktop 欄位套用程式繼續運作。
     """
 
     values: dict[str, Any] = field(default_factory=dict)
@@ -10144,10 +10281,10 @@ class CharacterBuild:
         )
 
     def merge_runtime_overrides(self, runtime_overrides: Any = None) -> dict[str, Any]:
-        """Merge persisted v2 combat state with explicit caller overrides.
+        """合併已儲存的 v2 戰鬥狀態與呼叫端明確覆蓋值。
 
-        Explicit runtime values win.  ``special`` is merged key-by-key so a caller
-        can override one transient flag without deleting the other persisted flags.
+        明確傳入的 runtime 值優先。``special`` 逐 key 合併，因此呼叫端可以只覆蓋
+        一個暫時 flag，而不會刪掉其他已儲存 flag。
         """
         merged = dict(self.combat_state or {})
         runtime = dict(runtime_overrides or {})
@@ -10161,11 +10298,11 @@ class CharacterBuild:
         return merged
 
     def to_legacy_dict(self) -> dict[str, Any]:
-        """Return only the historical flat project mapping."""
+        """只回傳歷史上的平面專案 mapping。"""
         return dict(self.values)
 
     def to_dict(self, *, include_metadata: bool = True) -> dict[str, Any]:
-        """Return a JSON-ready build payload using CharacterBuild schema v2."""
+        """使用 CharacterBuild schema v2 回傳可直接 JSON 化的 build payload。"""
         result = dict(self.values)
         result[CHARACTER_BUILD_COMBAT_KEY] = dict(self.combat_state or {})
         if include_metadata:
@@ -10181,14 +10318,14 @@ def normalize_character_build_payload(
     *,
     include_metadata: bool = False,
 ) -> dict[str, Any]:
-    """Normalize either legacy or Phase-8 project data through CharacterBuild."""
+    """透過 CharacterBuild 正規化舊版或 Phase 8 專案資料。"""
     return CharacterBuild.from_dict(payload).to_dict(include_metadata=include_metadata)
 
-# === CORE DEDUP PHASE 12+13+14: CHARACTER BUILD CALCULATOR + ARMOR SET ===
+# === 核心去重階段 12+13+14：角色配裝計算 + 防具精煉組合 ===
 
 @dataclass(frozen=True)
 class ArmorRefineSlotInput:
-    """Qt-free armor-refine input for one equipment position."""
+    """單一裝備位置、不依賴 Qt 的防具精煉輸入。"""
 
     part_name: str
     slot_id: int | str | None
@@ -10200,7 +10337,7 @@ class ArmorRefineSlotInput:
 
 @dataclass
 class CharacterBuildCalculationResult:
-    """One Core result shared by Desktop, MultiCompare and future Web callers."""
+    """Desktop、MultiCompare 與未來 Web 呼叫端共用的單一 Core 結果。"""
 
     build: CharacterBuild
     equipment_request: EquipmentEffectRequest
@@ -10238,7 +10375,7 @@ def calculate_armor_set_refine_bonus(
     exclude_slots=None,
     exclude_types=None,
 ):
-    """Sum armor-refine DEF/RES without any Qt/widget dependency."""
+    """在不依賴 Qt / widget 的情況下加總防具精煉 DEF / RES。"""
     exclude_parts = set(exclude_parts or ())
     exclude_slots = set(exclude_slots or ())
     exclude_types = set(exclude_types or ())
@@ -10274,7 +10411,7 @@ def calculate_armor_set_refine_bonus(
         if armor_level not in (1, 2):
             continue
 
-        # Phase 1 is the single-item source of truth.
+        # Phase 1 是單件防具計算的唯一來源。
         bonus = calculate_armor_refine_bonus(refine, armor_level)
         total_def += float(bonus.get("DEF", 0) or 0)
         total_res += int(bonus.get("RES", 0) or 0)
@@ -10337,7 +10474,7 @@ def _character_build_exclusive_groups(raw):
 
 
 def character_build_enabled_skill_names(raw_buff, skill_entries):
-    """Mirror Desktop apply_buff_to_skill_checkboxes(), including exclusivity."""
+    """比照 Desktop apply_buff_to_skill_checkboxes()，包含互斥規則。"""
     target_ids = _character_build_parse_buff_ids(raw_buff)
     matched = []
     used_exclusive_groups = set()
@@ -10394,7 +10531,7 @@ def character_build_to_equipment_request(
     refine_parts=None,
     grade_index_maps=None,
 ):
-    """Convert persisted CharacterBuild data into the same Qt-free request used by Desktop."""
+    """把已儲存的 CharacterBuild 資料轉成 Desktop 同樣使用、不依賴 Qt 的 request。"""
     if not isinstance(build, CharacterBuild):
         build = CharacterBuild.from_dict(build)
     values = build.to_legacy_dict()
@@ -10526,7 +10663,7 @@ def calculate_character_build(
     grade_index_maps=None,
     runtime_overrides=None,
 ):
-    """Full Qt-free CharacterBuild -> equipment/status/damage calculation facade."""
+    """完整、不依賴 Qt 的 CharacterBuild -> 裝備 / 狀態 / 傷害計算 facade。"""
     if not isinstance(runtime, CoreRuntimeBundle):
         raise TypeError("runtime must be CoreRuntimeBundle")
     if not isinstance(build, CharacterBuild):
@@ -10636,9 +10773,9 @@ def calculate_character_build(
         )
     armor_bonus = calculate_armor_set_refine_bonus(armor_slots)
 
-    # Parse persisted custom Lua notes headlessly so MultiCompare keeps the same
-    # human-readable note rows without loading QTextEdit/MainWindow.  Use the
-    # already-precomputed context so GetEquip* helpers see the selected slot data.
+    # 無介面解析已儲存的自訂 Lua 備註，讓 MultiCompare 保持相同的
+    # 可讀備註列，而不需要載入 QTextEdit / MainWindow。使用
+    # 已預先計算好的 context，讓 GetEquip* helper 能讀到所選部位資料。
     equipment_notes = {}
     note_dependencies = fork_core_dependencies(runtime.core.dependencies)
     for slot in request.slots:
