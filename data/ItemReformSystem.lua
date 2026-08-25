@@ -4179,7 +4179,7 @@ InformationString = {"<B>組合成果資訊說明</B>", "1) 精練值 : ^FF0000-5^000000", 
 Material = {Armor_Stone_3 = 200, EP19_D_P_Stone = 50, Bar_D_Co_Essence = 80, Bar_D_Po_Essence = 80, Zelunium = 1000, Energy_Xtal_DRC_TW = 1}, ResultItem = "Dark_Rot_Cape_UPD", NeedRefineMin = 9, NeedRefineMax = 20, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = -5, RandomOptionCode = "", PreserveSocketItem = true, PreserveGrade = true, 
 InformationString = {"<B>組合成果資訊說明</B>", "1) 精練值 : ^FF0000-5^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留"}}, 
 [10197] = {BaseItem = "Caesar_Boots", 
-Material = {Armor_Stone_3 = 200, Zelunium = 500, M_Dimension_Essence = 1, SR_Heart_TW = 5, Dawn_Heart_TW = 5, Will_of_Resolution_TW = 1}, ResultItem = "Caesar_Boots_LT", NeedRefineMin = 11, NeedRefineMax = 20, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = -5, RandomOptionCode = "", PreserveSocketItem = true, PreserveGrade = true, 
+Material = {Armor_Stone_3 = 200, Zelunium = 500, M_Dimension_Essence = 1, SR_Heart_TW = 5, Dawn_Heart_TW = 5, Will_of_Resolution_TW = 1}, ResultItem = "Caesar_Boots_LT", NeedRefineMin = 10, NeedRefineMax = 20, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = -5, RandomOptionCode = "", PreserveSocketItem = true, PreserveGrade = true, 
 InformationString = {"<B>組合成果資訊說明</B>", "1) 精練值 : ^FF0000-5^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留"}}}
 ReformItemList = {
 Thanos_W_Reform_1 = {12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24}, 
