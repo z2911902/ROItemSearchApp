@@ -8,7 +8,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.74"
+RO_CORE_VERSION = "v0.21.77"
 
 from dataclasses import dataclass, field
 import ast
@@ -612,6 +612,7 @@ def parse_lua_effects_with_variables(
             "WEAPON_CLASS_LOCATION": re.compile(r"GetWeaponClass\s*\(\s*GetLocation\s*\(\s*\)\s*\)"),
             "ITEM_ID_LOCATION": re.compile(r"GetItemIDLocation\((\d+)\)"),
             "SKILL_LEVEL": re.compile(r"GetSkillLevel\((\d+)\)"),
+            "USED_SKILL": re.compile(r"GUSklv\(\s*(\d+)\s*\)"),
             "PET_RELATIONSHIP": re.compile(r"GetPetRelationship\s*\(\s*\)"),
             "ALLOWED_EVAL": re.compile(r"^[0-9A-Za-z_+\-*/%().<>=!&|,\[\]\s]+$"),
         }
@@ -629,6 +630,7 @@ def parse_lua_effects_with_variables(
     _RE_WEAPON_CLASS_LOCATION = regex_cache["WEAPON_CLASS_LOCATION"]
     _RE_ITEM_ID_LOCATION = regex_cache["ITEM_ID_LOCATION"]
     _RE_SKILL_LEVEL = regex_cache["SKILL_LEVEL"]
+    _RE_USED_SKILL = regex_cache["USED_SKILL"]
     _RE_PET_RELATIONSHIP = regex_cache["PET_RELATIONSHIP"]
     _RE_ALLOWED_EVAL = regex_cache["ALLOWED_EVAL"]
 
@@ -661,6 +663,12 @@ def parse_lua_effects_with_variables(
         expr = _RE_WEAPON_CLASS_LOCATION.sub(lambda m: str(context.weapon_type_map.get(current_location_slot, 0) if current_location_slot is not None else 0), expr)
         expr = _RE_ITEM_ID_LOCATION.sub(lambda m: str(context.slot_item_id_map.get(int(m.group(1)), 0)), expr)
         expr = _RE_SKILL_LEVEL.sub(lambda m: str(context.enabled_skill_levels.get(int(m.group(1)), 0)), expr)
+        # GUSklv(skill_id)：讀取 UseSkill(skill_id) 記錄的使用狀態。
+        # used_skill_levels 目前是 bool map，因此統一輸出 1 / 0，方便 Lua 條件與 temp 計算。
+        expr = _RE_USED_SKILL.sub(
+            lambda m: str(int(bool(context.used_skill_levels.get(int(m.group(1)), False)))),
+            expr,
+        )
         expr = _RE_PET_RELATIONSHIP.sub(lambda m: str(get_grade_value()), expr)
 
         pure_jobs = context.pure_jobs
@@ -2909,6 +2917,26 @@ def calculate_equipment_effects(
         refine_inputs=request.refine_inputs,
     )
 
+    # UseSkill 是「本輪計算」的暫態狀態。Desktop bridge 可能讓這個 dict
+    # 直接指向舊版全域 Use_skill_levels，因此每輪都必須先清掉上一輪殘留，
+    # 否則取消技能後仍可能被 GUSklv() 判定為已使用。
+    context.used_skill_levels.clear()
+
+    # 先建立本輪所有已選技能的 UseSkill 狀態，再解析裝備 / 技能效果。
+    # 這讓 GUSklv(skill_id) 不受 all_skill_entries 的排列順序影響：
+    # 即使「精靈控制」排在「召喚元素」前面，第一輪也能直接讀到 5375。
+    enabled_names = set(request.enabled_skill_names)
+    for skill_name, entry in data.skill_entries.items():
+        if skill_name not in enabled_names:
+            continue
+        code = entry.get("code", [])
+        code_block = code if isinstance(code, str) else "\n".join(code)
+        for used_skill_id in re.findall(
+            r"\bUseSkill\s*\(\s*(\d+)\s*\)",
+            code_block,
+        ):
+            context.used_skill_levels[int(used_skill_id)] = True
+
     # Stage 6：在解析 Lua 前先建立 base / job / base-equipment Stat context。
     precompute_base_equipment_stats(
         request,
@@ -2982,8 +3010,8 @@ def calculate_equipment_effects(
             )
             add_effect_lines(effect_dict, lines, f"{slot.part_name}：詞條")
 
-    # 已啟用技能 / 料理資料；保留 skill_entries 原始順序。
-    enabled_names = set(request.enabled_skill_names)
+    # 已啟用技能 / 料理資料；正式效果仍保留 skill_entries 原始順序。
+    # UseSkill 狀態已在本輪前置掃描完成，因此 GUSklv() 不再依賴這裡的先後順序。
     for skill_name, entry in data.skill_entries.items():
         if skill_name not in enabled_names:
             continue
@@ -6036,6 +6064,12 @@ def stage24_calculate_skill_timing_values(
         if base_stat_number > 0
         else 0.0
     )
+    #多處理一個不可為負值。
+    reduction_multiplier = max(
+        0.0,
+        (100.0 - stat_reduction_percent) / 100.0
+    )
+
 
     fixed_ms = [
         max(
@@ -6045,11 +6079,12 @@ def stage24_calculate_skill_timing_values(
         )
         for value in fixed_raw
     ]
+
     variable_ms = [
         max(
             0.0,
             (float(value) + _stage17_number(selected_variable_cast_ms, 0.0))
-            * ((100.0 - stat_reduction_percent) / 100.0)
+            * reduction_multiplier
             * ((100.0 + _stage17_number(equip_variable_percent, 0.0)) / 100.0),
         )
         for value in variable_raw

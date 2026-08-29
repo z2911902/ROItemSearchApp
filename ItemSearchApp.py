@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.7.17-260816"
+Version = "v0.7.19-260830"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -5793,9 +5793,19 @@ class ItemSearchApp(QWidget):
             if not expr:
                 return 1
 
-            # 只允許數字、四則、括號、小數點、空白、%（需要就留，不需要可拿掉）
+
+            # 先把 Sklv 替換成目前技能等級
+            try:
+                sklv = int(globals().get("Sklv", 0))
+            except (TypeError, ValueError):
+                sklv = 0
+
+            expr = re.sub(r"\bSklv\b", str(sklv), expr)
+
+            # Sklv 已經轉成數字，所以後面仍然只允許數字與運算符
             if not re.fullmatch(r"[0-9+\-*/().\s%]+", expr):
-                raise ValueError(f"公式含不允許字元：{expr}")
+                print(f"⚠️ 技能攻擊次數公式含不允許字元：{expr!r}，改用 1")
+                return 1
 
             try:
                 val = eval(expr, {"__builtins__": None}, {})  # 關掉 builtins
@@ -9864,7 +9874,7 @@ class ItemSearchApp(QWidget):
             self.skill_checkbox_layout.addWidget(checkbox)
 
             # 保留原本事件
-            checkbox.stateChanged.connect(self.clear_global_state)
+            #checkbox.stateChanged.connect(self.clear_global_state)#先移除 攻速可能被這邊清掉 依照學習的技能等級來給攻速的功能異常。
             checkbox.stateChanged.connect(self.trigger_total_effect_update)
             checkbox.stateChanged.connect(self.update_skill_food_tab_checked_count)
 

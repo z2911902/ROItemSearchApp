@@ -34163,6 +34163,383 @@
           "note": "技能後延遲-1~3%"
         }
       ]
+    },
+    "REFORM_TAB_ITEM::103309": {
+      "title": "四轉次上位影子附加能力箱",
+      "box_item_id": 103309,
+      "updated_at": "2026-08-26T12:10:20+08:00",
+      "groups": [
+        {
+          "name": "1",
+          "probability": 100.0
+        },
+        {
+          "name": "2",
+          "probability": 33.0
+        }
+      ],
+      "rows": [
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPAMOUNT",
+          "min_value": 100,
+          "max_value": 500,
+          "value_choices": [],
+          "probability": 6.3,
+          "raw_effect": "MHP + 100~500",
+          "note": "MHP + 100~500"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPAMOUNT",
+          "min_value": 20,
+          "max_value": 100,
+          "value_choices": [],
+          "probability": 6.3,
+          "raw_effect": "MSP + 20~100",
+          "note": "MSP + 20~100"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 6.3,
+          "raw_effect": "MaxHP+1%",
+          "note": "MaxHP+1%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXHPPERCENT",
+          "min_value": 2,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 0.6,
+          "raw_effect": "MaxHP+2%",
+          "note": "MaxHP+2%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 6.3,
+          "raw_effect": "MaxSP+1%",
+          "note": "MaxSP+1%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAXSPPERCENT",
+          "min_value": 2,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 0.6,
+          "raw_effect": "MaxSP+2%",
+          "note": "MaxSP+2%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTPOWER",
+          "min_value": 1,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 6.0,
+          "raw_effect": "ATK+1~15",
+          "note": "ATK+1~15"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATTMPOWER",
+          "min_value": 1,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 6.0,
+          "raw_effect": "MATK+1~15",
+          "note": "MATK+1~15"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ATKPERCENT",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 3.0,
+          "raw_effect": "ATK+1~3%",
+          "note": "ATK+1~3%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MAGICATKPERCENT",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 3.0,
+          "raw_effect": "MATK+1~3%",
+          "note": "MATK+1~3%"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPD",
+          "min_value": 1,
+          "max_value": 1,
+          "value_choices": [],
+          "probability": 1.5,
+          "raw_effect": "ASPD+1",
+          "note": "ASPD+1"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_PLUSASPDPERCENT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 1.9,
+          "raw_effect": "攻擊速度增加1~5%",
+          "note": "未自動配對 EnumVAR"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_HITSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 6.33,
+          "raw_effect": "HIT+5~15",
+          "note": "HIT+5~15"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_AVOIDSUCCESSVALUE",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 6.33,
+          "raw_effect": "FLEE+5~15",
+          "note": "FLEE+5~15"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_ITEMDEFPOWER",
+          "min_value": 10,
+          "max_value": 25,
+          "value_choices": [],
+          "probability": 6.33,
+          "raw_effect": "DEF+10~25",
+          "note": "DEF+10~25"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_MDEFPOWER",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 6.33,
+          "raw_effect": "MDEF+1~3",
+          "note": "MDEF+1~3"
+        },
+        {
+          "group": "1",
+          "option_code": "VAR_CRITICALSUCCESSVALUE",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 6.33,
+          "raw_effect": "CRI+1~5",
+          "note": "CRI+1~5"
+        },
+        {
+          "group": "1",
+          "option_code": "DAMAGE_CRI_TARGET",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 1.5,
+          "raw_effect": "暴擊傷害+1~5%",
+          "note": "暴擊傷害+1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "ADDSKILLMDAMAGE_ALL",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 1.5,
+          "raw_effect": "全屬性魔法傷害+1~5%",
+          "note": "全屬性魔法傷害+1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "RANGE_ATTACK_DAMAGE_TARGET",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 1.5,
+          "raw_effect": "遠距離物理傷害+1~5%",
+          "note": "遠距離物理傷害+1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "MELEE_ATTACK_DAMAGE_TARGET",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 1.5,
+          "raw_effect": "近距離物理傷害+1~5%",
+          "note": "近距離物理傷害+1~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "HEAL_VALUE",
+          "min_value": 3,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 6.32,
+          "raw_effect": "治癒量+3~5%",
+          "note": "治癒量+3~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "HEAL_VALUE",
+          "min_value": 3,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 6.33,
+          "raw_effect": "受到治癒量+3~5%",
+          "note": "受到治癒量+3~5%"
+        },
+        {
+          "group": "1",
+          "option_code": "DEC_SPELL_CAST_TIME",
+          "min_value": 1,
+          "max_value": 3,
+          "value_choices": [],
+          "probability": 1.9,
+          "raw_effect": "變動詠唱-1~3%",
+          "note": "變動詠唱-1~3%"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CRITICAL_RATE",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 14.0,
+          "raw_effect": "C.RATE+1~5",
+          "note": "C.RATE+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_HEAL_PLUS",
+          "min_value": 3,
+          "max_value": 10,
+          "value_choices": [],
+          "probability": 14.0,
+          "raw_effect": "H.PLUS+3~10",
+          "note": "H.PLUS+3~10"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_POWAMOUNT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "POW+1~5",
+          "note": "POW+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CONAMOUNT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "CON+1~5",
+          "note": "CON+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_WISAMOUNT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "WIS+1~5",
+          "note": "WIS+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_STAAMOUNT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "STA+1~5",
+          "note": "STA+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_SPLAMOUNT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "SPL+1~5",
+          "note": "SPL+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_CRTAMOUNT",
+          "min_value": 1,
+          "max_value": 5,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "CRT+1~5",
+          "note": "CRT+1~5"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_PATKAMOUNT",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "P.ATK+1~2",
+          "note": "P.ATK+1~2"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_SMATKAMOUNT",
+          "min_value": 1,
+          "max_value": 2,
+          "value_choices": [],
+          "probability": 5.5,
+          "raw_effect": "S.MATK+1~2",
+          "note": "S.MATK+1~2"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_RESAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 14.0,
+          "raw_effect": "RES+5~15",
+          "note": "RES+5~15"
+        },
+        {
+          "group": "2",
+          "option_code": "VAR_MRESAMOUNT",
+          "min_value": 5,
+          "max_value": 15,
+          "value_choices": [],
+          "probability": 14.0,
+          "raw_effect": "MRES+5~15",
+          "note": "MRES+5~15"
+        }
+      ]
     }
   }
 }

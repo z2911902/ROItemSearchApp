@@ -3270,3 +3270,555 @@ if __name__ == "__main__":
     print(f"Lapine boxes: {len(data)}")
     print(f"Target item IDs: {len(target_map)}")
     print(f"Target references: {sum(len(v) for v in target_map.values())}")
+
+# ===== BEGIN REFORM ENCHANT MERGED EXTENSION v10 =====
+# 改造附魔功能直接整合進 lapine_upgrade.py。
+# v10：附加能力視窗的改造分頁「只顯示自訂附魔機率」。
+import reform_viewer
+
+def _reform_coerce_int(value: Any) -> Optional[int]:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _reform_strip_ro_color_codes(text: Any) -> str:
+    return re.sub(r"\^[0-9A-Fa-f]{6}", "", str(text or ""))
+
+
+def _build_reform_target_item_map(
+    reform_data: Mapping[Any, Mapping[str, Any]],
+    itemdb: Mapping[str, int],
+    reform_item_list: Optional[Mapping[str, List[int]]] = None,
+) -> Dict[int, List[Dict[str, Any]]]:
+    """
+    建立：
+        改造前 ItemID -> [改造後分頁資料, ...]
+
+    分頁資料刻意做成 LapineUpgradeUI 可以直接吃的 box 形狀，
+    如此就能完全沿用既有的「自訂附魔機率」編輯器與 JSON 儲存格式。
+    """
+    result: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
+
+    # 完全沿用 reform_viewer.ReformUI.load_tabs() 的分頁命名來源：
+    # ReformID -> ReformItemList 的 key -> ItemDBNameTbl -> iteminfo 顯示名稱。
+    reform_tab_group_by_rid: Dict[int, str] = {}
+    for group_name, id_list in (reform_item_list or {}).items():
+        for raw_group_rid in id_list or []:
+            group_rid = _reform_coerce_int(raw_group_rid)
+            if group_rid is not None and group_rid not in reform_tab_group_by_rid:
+                reform_tab_group_by_rid[group_rid] = str(group_name)
+
+    for raw_rid, raw_info in (reform_data or {}).items():
+        if not isinstance(raw_info, Mapping):
+            continue
+
+        rid = _reform_coerce_int(raw_rid)
+        if rid is None:
+            continue
+
+        base_dbname = str(raw_info.get("BaseItem") or "").strip()
+        result_dbname = str(raw_info.get("ResultItem") or "").strip()
+        if not base_dbname or not result_dbname:
+            continue
+
+        base_item_id = _reform_coerce_int(itemdb.get(base_dbname))
+        result_item_id = _reform_coerce_int(itemdb.get(result_dbname))
+        if base_item_id is None or result_item_id is None:
+            continue
+
+        # 完全參考 reform_viewer.ReformUI.load_tabs()：
+        # 先用 Reform ID 找到它所屬的 ReformItemList key，
+        # 再經 ItemDBNameTbl 把該 key 轉成真正的「改造道具 ItemID」。
+        #
+        # 例如 Reform_4th_Skill_Shadow -> 103309。
+        # 自訂附魔機率必須屬於這個改造道具，而不是 BaseItem / ResultItem。
+        reform_tab_group_dbname = str(reform_tab_group_by_rid.get(rid, "") or "").strip()
+        reform_tab_item_id = _reform_coerce_int(itemdb.get(reform_tab_group_dbname))
+
+        if reform_tab_item_id is not None:
+            reform_probability_key = f"REFORM_TAB_ITEM::{reform_tab_item_id}"
+            probability_item_id = reform_tab_item_id
+        elif reform_tab_group_dbname:
+            # 極少數 ItemDBNameTbl 缺 ID 的情況，仍以分頁 DBName 共用，
+            # 絕不退回綁定單一裝備。
+            reform_probability_key = f"REFORM_TAB_DB::{reform_tab_group_dbname}"
+            probability_item_id = 0
+        else:
+            # ReformItemList 本身找不到群組時才用 Reform ID 當最後 fallback。
+            reform_probability_key = f"REFORM_TAB_ID::{rid}"
+            probability_item_id = 0
+
+        matched_target = {
+            "internal_name": base_dbname,
+            "item_id": base_item_id,
+        }
+
+        record: Dict[str, Any] = {
+            # 自訂附魔資料以「改造功能的 ReformItemList 道具」為唯一主體。
+            #
+            # 例如：
+            #   ReformItemList key = Reform_4th_Skill_Shadow
+            #   ItemDBNameTbl      = 103309
+            #   儲存 key           = REFORM_TAB_ITEM::103309
+            #
+            # 因此所有由 103309 這個改造道具處理的裝備，
+            # 全部共用 103309 的同一份附魔機率。
+            "key": reform_probability_key,
+
+            # LapineProbabilityEditor / 自訂附魔區塊會使用 box["item_id"]
+            # 當作名稱與 box_item_id，因此這裡也必須是「Tab 物品」。
+            "item_id": probability_item_id,
+            "need_refine_min": int(raw_info.get("NeedRefineMin", 0) or 0),
+            "need_refine_max": int(raw_info.get("NeedRefineMax", 20) or 20),
+            "need_option_num_min": int(raw_info.get("NeedOptionNumMin", 0) or 0),
+            "not_socket_enchant_item": False,
+            "need_source_string": "ItemReformSystem.lua",
+            "target_items": [dict(matched_target)],
+            "matched_target": dict(matched_target),
+
+            # 改造專用欄位
+            "source_type": "reform",
+            "reform_id": rid,
+
+            # 改造功能真正的「改造道具」資訊：這才是附魔機率 owner。
+            "reform_control_item_id": reform_tab_item_id or 0,
+            "reform_control_item_dbname": reform_tab_group_dbname,
+
+            # 相容舊 bridge 欄位名稱。
+            "reform_tab_item_id": reform_tab_item_id or 0,
+            "reform_tab_item_dbname": reform_tab_group_dbname,
+
+            # 舊版錯誤 key 僅留作辨識，不會讀寫。
+            "reform_legacy_probability_key": f"REFORM::{rid}::{base_item_id}::{result_item_id}",
+            "reform_v4_probability_key": f"REFORM_ITEM::{result_item_id}",
+
+            "reform_base_item_id": base_item_id,
+            "reform_result_item_id": result_item_id,
+            "reform_base_dbname": base_dbname,
+            "reform_result_dbname": result_dbname,
+            "reform_materials": list(raw_info.get("Material", []) or []),
+            "reform_change_refine_value": int(raw_info.get("ChangeRefineValue", 0) or 0),
+            "reform_is_empty_socket": bool(raw_info.get("IsEmptySocket", False)),
+            "reform_preserve_socket_item": bool(raw_info.get("PreserveSocketItem", False)),
+            "reform_preserve_grade": bool(raw_info.get("PreserveGrade", False)),
+            "reform_information": list(raw_info.get("InformationString", []) or []),
+            # 原 reform_viewer 上方 Tab 的名稱來源。
+            "reform_tab_group_dbname": reform_tab_group_dbname,
+        }
+        result[base_item_id].append(record)
+
+    for base_item_id, records in result.items():
+        records.sort(
+            key=lambda row: (
+                int(row.get("reform_id", 0) or 0),
+                int(row.get("reform_result_item_id", 0) or 0),
+            )
+        )
+    return dict(result)
+
+
+_LapineUpgradeUIBase = LapineUpgradeUI
+
+
+class LapineUpgradeUI(_LapineUpgradeUIBase):
+    """
+    在原本附加能力 UI 上加入 ItemReformSystem.lua 的改造分頁。
+    """
+
+    def __init__(
+        self,
+        lapine_data: Mapping[str, Mapping[str, Any]],
+        item_data: Mapping[Any, Mapping[str, Any]],
+        initial_target_item_id: Optional[int] = None,
+        initial_equipment_name: str = "",
+        target_part_name: str = "",
+        base_dir: Optional[str] = None,
+    ):
+        super().__init__(
+            lapine_data,
+            item_data,
+            initial_target_item_id=initial_target_item_id,
+            initial_equipment_name=initial_equipment_name,
+            target_part_name=target_part_name,
+            base_dir=base_dir,
+        )
+
+        self._reform_data: Dict[int, Dict[str, Any]] = {}
+        self._reform_itemdb: Dict[str, int] = {}
+        self._reform_item_list: Dict[str, List[int]] = {}
+        self._reform_target_map: Dict[int, List[Dict[str, Any]]] = {}
+
+        self._load_reform_extension()
+
+        self.setWindowTitle("附加能力／改造附魔工具")
+        self.show_all_enchantable_checkbox.setToolTip(
+            "未勾選時：顯示已有附魔機率表的附加能力資料，以及所有可改造裝備。"
+            "勾選後：另外顯示所有尚未建立機率表的附加能力資料，"
+            "包含改造分頁尚未建立的附魔資料，可直接建立／編輯。"
+        )
+
+        # super().__init__ 在改造資料合併前已經建立過一次清單；
+        # 合併後必須重建索引，再重新套用主畫面的鎖定裝備。
+        self._list_rows = self._build_list_rows()
+        self.refresh_item_list(self.search_box.text())
+        self.set_target_context(
+            self.target_part_name,
+            initial_target_item_id,
+            self.initial_equipment_name,
+        )
+
+    def _load_reform_extension(self) -> None:
+        reform_path = os.path.join(self.base_dir, "data", "ItemReformSystem.lua")
+        itemdb_path = os.path.join(self.base_dir, "data", "ItemDBNameTbl.lua")
+
+        if not os.path.isfile(reform_path) or not os.path.isfile(itemdb_path):
+            print("⚠️ 改造分頁未載入：找不到 ItemReformSystem.lua 或 ItemDBNameTbl.lua")
+            return
+
+        try:
+            self._reform_data = reform_viewer.parse_reform_info(reform_path)
+            self._reform_itemdb = reform_viewer.parse_itemdb_name_tbl(itemdb_path)
+            self._reform_item_list = reform_viewer.parse_reform_item_list(reform_path)
+            self._reform_target_map = _build_reform_target_item_map(
+                self._reform_data,
+                self._reform_itemdb,
+                self._reform_item_list,
+            )
+        except Exception as exc:
+            print(f"⚠️ 改造分頁載入失敗：{exc}")
+            return
+
+        for target_item_id, reform_records in self._reform_target_map.items():
+            bucket = self.target_map.setdefault(int(target_item_id), [])
+            bucket.extend(dict(row) for row in reform_records)
+            # 改造分頁排在前面；既有附加能力分頁排在後面。
+            bucket.sort(
+                key=lambda row: (
+                    0 if str(row.get("source_type") or "") == "reform" else 1,
+                    int(row.get("reform_id", 0) or 0),
+                    int(row.get("item_id", 0) or 0),
+                    str(row.get("key") or ""),
+                )
+            )
+
+        print(
+            "✅ 附加能力 UI 已加入改造資料："
+            f"{len(self._reform_target_map)} 件改造前裝備"
+        )
+
+    def _visible_boxes_for_target(
+        self,
+        target_item_id: int,
+        configured_keys: Optional[Set[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        預設只顯示「已有有效附魔清單」的分頁。
+
+        - 一般 Lapine 分頁：key 必須存在於已設定機率表。
+        - 改造分頁：以改造道具 ItemID 對應的 REFORM_TAB_ITEM key 判斷。
+        - 勾選「顯示所有附魔選項」後，才顯示尚未建立附魔清單的分頁。
+        """
+        boxes = [dict(box) for box in self.target_map.get(target_item_id, [])]
+        if self._show_all_enchantable_options():
+            return boxes
+
+        keys = configured_keys
+        if keys is None:
+            keys = self._configured_probability_table_keys()
+
+        visible_boxes: List[Dict[str, Any]] = []
+        for box in boxes:
+            probability_box = (
+                self._reform_probability_box(box)
+                if str(box.get("source_type") or "") == "reform"
+                else box
+            )
+            if str(probability_box.get("key") or "") in keys:
+                visible_boxes.append(box)
+
+        return visible_boxes
+
+    def _list_row_has_probability_table(
+        self,
+        row: Mapping[str, Any],
+        configured_keys: Set[str],
+    ) -> bool:
+        """
+        預設左側只顯示至少有一個「有效附魔清單分頁」的裝備。
+
+        有改造資料本身不再構成顯示條件；改造分頁也必須真的有
+        REFORM_TAB_ITEM::<改造道具ItemID> 的附魔清單才會讓裝備出現。
+        """
+        target_item_id = _reform_coerce_int(row.get("item_id"))
+        if target_item_id is None:
+            return False
+
+        for box in self.target_map.get(target_item_id, []):
+            probability_box = (
+                self._reform_probability_box(box)
+                if str(box.get("source_type") or "") == "reform"
+                else box
+            )
+            if str(probability_box.get("key") or "") in configured_keys:
+                return True
+
+        return False
+
+    def _resolve_reform_tab_group_name(self, group_dbname: str) -> str:
+        """
+        對齊 reform_viewer.ReformUI.resolve_item_name()：
+        ReformItemList key -> ItemDBNameTbl -> iteminfo 顯示名稱。
+        """
+        group_dbname = str(group_dbname or "").strip()
+        if not group_dbname:
+            return ""
+
+        item_id = _reform_coerce_int(self._reform_itemdb.get(group_dbname))
+        if item_id is None:
+            return f"[未知DBName]{group_dbname}"
+
+        info = self.items.get(item_id)
+        if info is None:
+            info = self.items.get(str(item_id))
+
+        if isinstance(info, Mapping):
+            name = str(info.get("name") or "").strip()
+            if name:
+                return name
+
+        return f"[未知ID]{item_id}"
+
+    def _box_tab_title(self, box: Mapping[str, Any]) -> str:
+        if str(box.get("source_type") or "") == "reform":
+            # 與 reform_viewer.py 的 load_tabs() 相同：
+            # 找 rid 所屬的 ReformItemList key，解析後直接當分頁名稱。
+            group_dbname = str(box.get("reform_tab_group_dbname") or "").strip()
+            if group_dbname:
+                return self._resolve_reform_tab_group_name(group_dbname)
+
+            return f"ID {int(box.get('reform_id', 0) or 0)}"
+
+        return super()._box_tab_title(box)
+
+    def _resolve_reform_material_text(self, materials: Any) -> str:
+        lines: List[str] = []
+        for material in materials or []:
+            if not isinstance(material, Mapping):
+                continue
+            dbname = str(material.get("name") or "").strip()
+            count = int(material.get("count", 0) or 0)
+            item_id = _reform_coerce_int(self._reform_itemdb.get(dbname))
+            if item_id is None:
+                display_name = dbname or "未知材料"
+            else:
+                display_name = get_item_display_name(
+                    self.items,
+                    item_id,
+                    dbname,
+                )
+            lines.append(f"{display_name} × {count}")
+        return "\n".join(lines) if lines else "（無材料資料）"
+
+    def _reform_probability_box(self, box: Mapping[str, Any]) -> Dict[str, Any]:
+        """
+        建立專供附魔機率 UI 使用的 box。
+
+        關鍵規則：
+        - owner ItemID = ReformItemList key 經 ItemDBNameTbl 解析出的改造道具 ID。
+        - 絕不使用 BaseItem / ResultItem / 左側目前裝備 ID。
+        - key 也只跟改造道具 ID 綁定。
+        """
+        probability_box = dict(box)
+        control_item_id = int(
+            box.get("reform_control_item_id",
+                    box.get("reform_tab_item_id", 0)) or 0
+        )
+        control_dbname = str(
+            box.get("reform_control_item_dbname",
+                    box.get("reform_tab_item_dbname", "")) or ""
+        ).strip()
+
+        if control_item_id > 0:
+            probability_box["item_id"] = control_item_id
+            probability_box["key"] = f"REFORM_TAB_ITEM::{control_item_id}"
+        elif control_dbname:
+            probability_box["item_id"] = 0
+            probability_box["key"] = f"REFORM_TAB_DB::{control_dbname}"
+        else:
+            rid = int(box.get("reform_id", 0) or 0)
+            probability_box["item_id"] = 0
+            probability_box["key"] = f"REFORM_TAB_ID::{rid}"
+
+        return probability_box
+
+    def _create_reform_info_group(self, box: Mapping[str, Any]) -> QGroupBox:
+        group = QGroupBox("改造物品資料")
+        form = QFormLayout(group)
+
+        base_item_id = int(box.get("reform_base_item_id", 0) or 0)
+        result_item_id = int(box.get("reform_result_item_id", box.get("item_id", 0)) or 0)
+
+        base_name = get_item_display_name(
+            self.items,
+            base_item_id,
+            str(box.get("reform_base_dbname") or ""),
+        )
+        result_name = get_item_display_name(
+            self.items,
+            result_item_id,
+            str(box.get("reform_result_dbname") or ""),
+        )
+
+        form.addRow(
+            "改造前",
+            self._selectable_label(f"{base_name}  [ItemID: {base_item_id}]"),
+        )
+        form.addRow(
+            "改造後",
+            self._selectable_label(f"{result_name}  [ItemID: {result_item_id}]"),
+        )
+        control_item_id = int(
+            box.get("reform_control_item_id",
+                    box.get("reform_tab_item_id", 0)) or 0
+        )
+        control_dbname = str(
+            box.get("reform_control_item_dbname",
+                    box.get("reform_tab_item_dbname", "")) or ""
+        )
+        control_name = (
+            get_item_display_name(
+                self.items,
+                control_item_id,
+                control_dbname,
+            )
+            if control_item_id > 0
+            else (control_dbname or "未知改造道具")
+        )
+
+        form.addRow(
+            "改造道具",
+            self._selectable_label(
+                f"{control_name}  [ItemID: {control_item_id}]"
+                if control_item_id > 0 else control_name
+            ),
+        )
+        form.addRow(
+            "Reform ID",
+            self._selectable_label(str(int(box.get("reform_id", 0) or 0))),
+        )
+        form.addRow(
+            "精煉需求",
+            self._selectable_label(
+                f"+{int(box.get('need_refine_min', 0) or 0)} ～ "
+                f"+{int(box.get('need_refine_max', 20) or 20)}"
+            ),
+        )
+        form.addRow(
+            "改變精煉值",
+            self._selectable_label(
+                str(int(box.get("reform_change_refine_value", 0) or 0))
+            ),
+        )
+        form.addRow(
+            "最低附魔數量",
+            self._selectable_label(
+                str(int(box.get("need_option_num_min", 0) or 0))
+            ),
+        )
+        form.addRow(
+            "保留卡片／附魔",
+            self._selectable_label(
+                "是" if bool(box.get("reform_preserve_socket_item")) else "否"
+            ),
+        )
+        form.addRow(
+            "保留評價階級",
+            self._selectable_label(
+                "是" if bool(box.get("reform_preserve_grade")) else "否"
+            ),
+        )
+        form.addRow(
+            "材料",
+            self._selectable_label(
+                self._resolve_reform_material_text(box.get("reform_materials"))
+            ),
+        )
+
+        information = [
+            _reform_strip_ro_color_codes(line).strip()
+            for line in (box.get("reform_information") or [])
+            if _reform_strip_ro_color_codes(line).strip()
+        ]
+        if information:
+            form.addRow(
+                "改造說明",
+                self._selectable_label("\n".join(information)),
+            )
+
+        return group
+
+    def _create_box_tab(
+        self,
+        selected_target_id: int,
+        box: Mapping[str, Any],
+    ) -> QWidget:
+        if str(box.get("source_type") or "") != "reform":
+            return super()._create_box_tab(selected_target_id, box)
+
+        # 改造分頁在「附加能力」視窗中只負責自訂附魔機率。
+        # 不顯示改造前／改造後、Reform ID、材料、精煉需求、改造說明等內容。
+        page = QWidget()
+        layout = QVBoxLayout(page)
+
+        probability_box = self._reform_probability_box(box)
+        configured_keys = self._configured_probability_table_keys()
+        box_key = str(probability_box.get("key") or "")
+        has_enchant_data = box_key in configured_keys
+        show_all_enchant = self._show_all_enchantable_options()
+
+        # 顯示規則：
+        # 1. 已有自訂機率 -> 顯示。
+        # 2. 沒有資料，但勾選「顯示所有附魔選項」 -> 顯示空白機率區，可建立。
+        # 3. 沒有資料且未勾選 -> 分頁內容保持空白。
+        if has_enchant_data or show_all_enchant:
+            probability_group = self._create_probability_group(probability_box, page)
+            layout.addWidget(probability_group, 1)
+
+            for attr in (
+                "_lapine_probability_edit_button",
+                "_lapine_probability_reload_button",
+            ):
+                button = getattr(page, attr, None)
+                if isinstance(button, QPushButton):
+                    button.setVisible(True)
+        else:
+            layout.addStretch(1)
+
+        return page
+
+    def _roll_random_enchant(
+        self,
+        box: Mapping[str, Any],
+        result_label: QLabel,
+    ):
+        """
+        改造分頁的機率來源使用「改造道具」的機率表，
+        但抽到的結果仍與一般附加能力相同，直接套用到目前主畫面裝備的詞條。
+
+        也就是：
+        - 機率 owner：ReformItemList -> ItemDBNameTbl 的改造道具 ItemID
+          （例如 103309）
+        - 詞條套用目標：目前主畫面鎖定的裝備部位
+        """
+        if str(box.get("source_type") or "") != "reform":
+            return super()._roll_random_enchant(box, result_label)
+
+        probability_box = self._reform_probability_box(box)
+
+        # 保留 target_part_name / target_context_item_id，
+        # 讓 lapine_upgrade.LapineUpgradeUI 原本的
+        # randomEnchantApplyRequested 流程正常把結果寫入詞條。
+        return super()._roll_random_enchant(probability_box, result_label)
+# ===== END REFORM ENCHANT MERGED EXTENSION v10 =====
