@@ -5280,7 +5280,11 @@ ItemDBNameTbl = {
   S_EM_DS_Earring = 1270119,
   S_EM_DS_Pendant = 1270120,
   S_EM_TP_Armor = 1270121,
-  S_EM_TP_Shoes = 1270122
+  S_EM_TP_Shoes = 1270122,
+  SuNovice_Top = 312403,
+  SuNovice_Middle = 312404,
+  SuNovice_Bottom = 312405,
+  SuNovice_Robe = 312402
 }
 
 function ItemDB_To_ItemID(in_ItemDB)
