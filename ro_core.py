@@ -8,7 +8,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.80"
+RO_CORE_VERSION = "v0.21.82"
 
 from dataclasses import dataclass, field
 import ast
@@ -2544,6 +2544,7 @@ class EquipmentEffectRequest:
     slots: list[EquipmentSlotInput] = field(default_factory=list)
     enabled_skill_names: list[str] = field(default_factory=list)
     hide_unrecognized: bool = False
+    # 下列兩個旗標只控制輸出文字顯示，不得影響 effects / legacy_effect_dict 計算資料。
     hide_physical: bool = False
     hide_magical: bool = False
     show_source: bool = False
@@ -2607,6 +2608,40 @@ def try_extract_effect(line: str):
     return None
 
 
+def _effect_display_has_token(text: str, token: str) -> bool:
+    """英文效果名稱用 token 邊界判斷，避免 MATK 被 ATK 誤判成物理。"""
+    return re.search(
+        r"(?<![A-Z0-9_.])" + re.escape(token) + r"(?![A-Z0-9_.])",
+        str(text or "").upper(),
+    ) is not None
+
+
+def _effect_display_category(line: str) -> str | None:
+    """只供顯示過濾使用；不參與任何裝備或傷害計算。"""
+    text = str(line or "")
+
+    # 先判斷魔法，避免 MATK / S.MATK 之類被 ATK 規則誤吃。
+    if any(keyword in text for keyword in (
+        "魔法", "變動詠唱", "固定詠唱", "詠唱",
+    )):
+        return "magical"
+    if any(_effect_display_has_token(text, token) for token in (
+        "MATK", "S.MATK", "MDEF", "MRES",
+    )):
+        return "magical"
+
+    if any(keyword in text for keyword in (
+        "物理", "近距離", "遠距離", "爆擊", "暴擊", "武器", "誘導攻擊",
+    )):
+        return "physical"
+    if any(_effect_display_has_token(text, token) for token in (
+        "P.ATK", "ATK", "CRI", "C.RATE", "HIT",
+    )):
+        return "physical"
+
+    return None
+
+
 def filter_effects(
     effects: Iterable[str],
     *,
@@ -2614,24 +2649,46 @@ def filter_effects(
     hide_physical: bool = False,
     hide_magical: bool = False,
 ) -> list[str]:
-    """ItemSearchApp.filter_effects() 的不依賴 Qt 對應實作。"""
-    hide_keywords: list[str] = []
-    if hide_physical:
-        hide_keywords.extend(["物理", "爆擊", "CRI", "武器ATK", "P.ATK"])
-    if hide_magical:
-        hide_keywords.extend(["魔法", "武器MATK", "S.MATK"])
+    """效果文字的「顯示層」過濾。
 
-    filtered = [
-        line for line in effects
-        if not any(keyword in line for keyword in hide_keywords)
-    ]
+    hide_physical / hide_magical 只能決定文字是否顯示；
+    計算核心必須使用未經此過濾的完整 effect_dict。
+    """
+    filtered: list[str] = []
+
+    for raw_line in effects:
+        line = str(raw_line)
+        category = _effect_display_category(line)
+
+        if hide_physical and category == "physical":
+            continue
+        if hide_magical and category == "magical":
+            continue
+        filtered.append(line)
 
     if hide_unrecognized:
         filtered = [
             line for line in filtered
             if not line.startswith(("🟡", "⚠️", "❌", "📌", "✅", "⛔", "可使用"))
         ]
-    return filtered
+
+    # show_source=True 時，每個效果組最後會有一個空白分隔行。
+    # 如果整組效果被隱藏，分隔行也要一起消失，避免累積大片空白。
+    # 可見效果組之間最多保留一行空白，頭尾不留空白。
+    compacted: list[str] = []
+    pending_blank = False
+    for line in filtered:
+        if not str(line).strip():
+            if compacted:
+                pending_blank = True
+            continue
+
+        if pending_blank and compacted:
+            compacted.append("")
+        compacted.append(line)
+        pending_blank = False
+
+    return compacted
 
 
 def add_effect_lines(
@@ -2834,6 +2891,8 @@ def _parse_effect_block_for_equipment_calc(
             "Lua parser 尚未存在於 ro_core.py；請先完成 Stage 3。"
         ) from exc
 
+    # 重要：hide_physical / hide_magical 是純顯示選項。
+    # 裝備計算階段永遠解析完整物理 + 魔法效果，避免 UI 隱藏選項污染 effect_dict。
     effects = parser(
         block_text,
         request.refine_inputs,
@@ -2843,8 +2902,8 @@ def _parse_effect_block_for_equipment_calc(
         data.size_map,
         data.effect_map,
         hide_unrecognized=request.hide_unrecognized,
-        hide_physical=request.hide_physical,
-        hide_magical=request.hide_magical,
+        hide_physical=False,
+        hide_magical=False,
         current_location_slot=current_location_slot,
         context=context,
         dependencies=dependencies,
@@ -2852,8 +2911,8 @@ def _parse_effect_block_for_equipment_calc(
     return filter_effects(
         effects,
         hide_unrecognized=request.hide_unrecognized,
-        hide_physical=request.hide_physical,
-        hide_magical=request.hide_magical,
+        hide_physical=False,
+        hide_magical=False,
     )
 
 
@@ -3176,21 +3235,38 @@ def calculate_equipment_effects(
         dependencies=dependencies,
     )
 
+    # 計算資料永遠由完整 effect_dict 建立。
     totals = build_effect_totals(
         effect_dict,
         sort_mode=request.sort_mode,
         custom_sort_orders=data.custom_sort_orders,
     )
-    combined = format_effect_dict(
+    combined_raw = format_effect_dict(
         effect_dict,
         show_source=request.show_source,
         sort_mode=request.sort_mode,
         custom_sort_orders=data.custom_sort_orders,
     )
+
+    # hide_physical / hide_magical 到最後顯示階段才套用。
+    # effects / legacy_effect_dict 保持完整，供素質、ASPD、HP/SP、技能時間與傷害使用。
+    combined_display = filter_effects(
+        combined_raw,
+        hide_unrecognized=False,
+        hide_physical=request.hide_physical,
+        hide_magical=request.hide_magical,
+    )
+    combo_display = filter_effects(
+        combo_lines,
+        hide_unrecognized=False,
+        hide_physical=request.hide_physical,
+        hide_magical=request.hide_magical,
+    )
+
     return EquipmentEffectResult(
         effects=totals,
-        combined_lines=combined,
-        combo_lines=combo_lines,
+        combined_lines=combined_display,
+        combo_lines=combo_display,
         triggered_combo_ids=triggered_combo_ids,
         warnings=warnings,
         legacy_effect_dict=effect_dict,

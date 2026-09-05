@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.0-260904"
+Version = "v0.8.2-260905"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -5226,8 +5226,8 @@ class ItemSearchApp(QWidget):
         skill_lv = int(self.skill_LV_input.text()) if self.skill_LV_input.text().isdigit() else 0
 
         
-        # ✅ 裝備狀態（你可以根據實際來源換成 combo_effect_text.text() 之類的）
-        equip_state = self.total_effect_text.toPlainText()
+        # 計算狀態使用完整效果，不使用會被「隱藏物理/魔法」改變的 UI 文字。
+        equip_state = "\n".join(getattr(self, "total_combined_raw", []) or [])
         # 目標設定選項
         size_key = self.size_box.currentData()
         element_key = self.element_box.currentData()
@@ -7066,6 +7066,10 @@ class ItemSearchApp(QWidget):
         self.equip_text_label.setVisible(not hidden)
         self.combi_raw_text.setVisible(not hidden)
         
+    def refresh_current_item_effect_preview(self, *_):
+        """只刷新目前選取裝備的效果解析，不重算整套裝備 / 傷害。"""
+        self.display_item_info(refresh_total_effects=False)
+
     def filter_effects(self, effects: list[str]) -> list[str]:
         return core_filter_effects(
             effects,
@@ -7631,13 +7635,24 @@ class ItemSearchApp(QWidget):
 
 
     def update_total_effect_display(self):
+        """只更新總效果文字顯示；不修改 effect_dict_raw，也不觸發傷害重算。"""
+        # total_combined_raw 永遠保留完整效果，隱藏物理/魔法只在這裡套用。
+        raw_lines = list(getattr(self, "total_combined_raw", []) or [])
+        lines = self.filter_effects(raw_lines)
+
         keyword = self.total_filter_input.text().strip()
-        if not keyword:
-            lines = self.total_combined_raw
-        else:
-            lines = [line for line in self.total_combined_raw if keyword in line]
+        if keyword:
+            lines = [line for line in lines if keyword in line]
 
         self.safe_update_textbox(self.total_effect_text, "\n".join(lines))
+
+    def update_effect_visibility_display(self, *_):
+        """隱藏物理/魔法 checkbox 的純顯示刷新，不重新計算任何數值。"""
+        self.update_total_effect_display()
+
+        combo_raw = list(getattr(self, "combo_effects_raw", []) or [])
+        combo_lines = self.filter_effects(combo_raw)
+        self.safe_update_textbox(self.combo_effect_text, "\n".join(combo_lines))
         
     #被動技能給予的狀態
     def apply_skill_buffs_into_effect_dict(self, skillbuff_path, enabled_skill_levels, refine_inputs, get_values, grade):
@@ -8036,8 +8051,9 @@ class ItemSearchApp(QWidget):
             slots=slots,
             enabled_skill_names=enabled_skill_names,
             hide_unrecognized=self.hide_unrecognized_checkbox.isChecked(),
-            hide_physical=self.hide_physical_checkbox.isChecked(),
-            hide_magical=self.hide_magical_checkbox.isChecked(),
+            # 「隱藏物理 / 隱藏魔法」只屬於 UI 顯示，不得進入計算 request。
+            hide_physical=False,
+            hide_magical=False,
             show_source=self.show_combo_source_checkbox.isChecked(),
             sort_mode=self.sort_mode_combo.currentText(),
         )
@@ -8131,16 +8147,20 @@ class ItemSearchApp(QWidget):
         )
         self.last_core_effect_result = core_result
         self._sync_core_precompute_context_to_desktop(core_context)
+        # Core request 的 hide_physical / hide_magical 固定為 False，
+        # 因此這裡拿到的是完整計算資料。
         combined = list(core_result.combined_lines)
         combo_effects_all = list(core_result.combo_lines)
         effect_dict = core_result.legacy_effect_dict
-        #self.total_effect_text.setPlainText("\n".join(combined))
-        #self.combo_effect_text.setPlainText("\n".join(combo_effects_all))
-        self.total_combined_raw = combined  # 儲存未過濾的總表行
-        self.safe_update_textbox(self.total_effect_text, "\n".join(combined))
-        self.safe_update_textbox(self.combo_effect_text, "\n".join(combo_effects_all))
-        # 不論有沒有套裝效果、裝備或技能，一律記錄 effect_dict
+
+        # raw 永遠保留完整內容；checkbox 只控制 textbox 顯示。
+        self.total_combined_raw = combined
+        self.combo_effects_raw = combo_effects_all
+
+        # 不論隱藏選項如何，都記錄完整 effect_dict 給後續計算。
         self.effect_dict_raw = effect_dict
+
+        self.update_effect_visibility_display()
         self.update_stat_bonus_display()
         #運算
 
@@ -11358,8 +11378,12 @@ class ItemSearchApp(QWidget):
         self.hide_unrecognized_checkbox = QCheckBox(tr("checkbox.hide_unrecognized"))
         self.hide_unrecognized_checkbox.setChecked(True)  # 預設勾選
         
+        # 「隱藏辨識內容」會改變 parser 診斷輸出，所以仍然要完整重算。
+        # 同時刷新「目前裝備效果」，避免該頁停在切換前的內容。
         self.hide_unrecognized_checkbox.stateChanged.connect(self.trigger_total_effect_update)
-        #self.hide_unrecognized_checkbox.stateChanged.connect(self.display_item_info)
+        self.hide_unrecognized_checkbox.stateChanged.connect(
+            self.refresh_current_item_effect_preview
+        )
         #不控制裝備屬性原始內容顯示就註解掉下面那行
         self.hide_unrecognized_checkbox.stateChanged.connect(self.toggle_equip_text_visibility)
         right_layout.addWidget(self.hide_unrecognized_checkbox)
@@ -11368,10 +11392,16 @@ class ItemSearchApp(QWidget):
         self.hide_physical_checkbox = QCheckBox(tr("checkbox.hide_physical"))
         self.hide_magical_checkbox = QCheckBox(tr("checkbox.hide_magical"))
         
-        self.hide_physical_checkbox.stateChanged.connect(self.trigger_total_effect_update)
-        self.hide_magical_checkbox.stateChanged.connect(self.trigger_total_effect_update)
-        #self.hide_physical_checkbox.stateChanged.connect(self.display_item_info)
-        #self.hide_magical_checkbox.stateChanged.connect(self.display_item_info)
+        # 純顯示選項：不重算 effect_dict / 傷害。
+        # 整體效果與「目前裝備效果」預覽都同步刷新。
+        self.hide_physical_checkbox.stateChanged.connect(self.update_effect_visibility_display)
+        self.hide_magical_checkbox.stateChanged.connect(self.update_effect_visibility_display)
+        self.hide_physical_checkbox.stateChanged.connect(
+            self.refresh_current_item_effect_preview
+        )
+        self.hide_magical_checkbox.stateChanged.connect(
+            self.refresh_current_item_effect_preview
+        )
         # ✅ 套裝來源顯示勾選框
         self.show_combo_source_checkbox = QCheckBox(tr("checkbox.show_source"))
         self.show_combo_source_checkbox.setChecked(True)  # 預設勾選
@@ -12767,9 +12797,18 @@ class ItemSearchApp(QWidget):
             self.update_divine_pride_button()
 
 
-    def display_item_info(self, refine_override=None, grade_override=None):
+    def display_item_info(
+        self,
+        refine_override=None,
+        grade_override=None,
+        *,
+        refresh_total_effects=True,
+    ):
         '''
-        根據目前選取的物品，顯示其詳細資訊
+        根據目前選取的物品，顯示其詳細資訊。
+
+        refresh_total_effects=False 時只刷新「目前裝備效果」預覽，
+        不重算整套裝備 / 傷害。
         '''
         index = self.result_box.currentIndex()
         if index == -1:
@@ -12975,7 +13014,8 @@ class ItemSearchApp(QWidget):
             # 顯示結果
             self.sim_effect_text.setPlainText("\n".join(filtered_effects))
             
-            self.display_all_effects()#這邊只顯示目前裝備效果 需要單獨處理 不然會影響最終顯示
+            if refresh_total_effects:
+                self.display_all_effects()
             
             
         else:
