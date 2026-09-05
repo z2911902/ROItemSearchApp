@@ -8,7 +8,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.77"
+RO_CORE_VERSION = "v0.21.79"
 
 from dataclasses import dataclass, field
 import ast
@@ -2916,6 +2916,20 @@ def calculate_equipment_effects(
         get_values=request.get_values,
         refine_inputs=request.refine_inputs,
     )
+
+    # EnableSkill 是角色技能樹提供給 GetSkillLevel() 使用的本輪狀態。
+    # 技能樹目前存放在「技能」slot 的 note；裝備 / 卡片會比該 slot 更早解析，
+    # 因此必須在任何裝備效果執行前先建立技能等級表，避免 GetSkillLevel() 讀到 0。
+    # 只預掃「技能」slot，避免把一般裝備內帶條件的 EnableSkill() 提前套用。
+    context.enabled_skill_levels.clear()
+    for slot in request.slots:
+        if slot.part_name != "技能" or not slot.note:
+            continue
+        for raw_skill_id, raw_skill_lv in re.findall(
+            r"\bEnableSkill\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)",
+            slot.note,
+        ):
+            context.enabled_skill_levels[int(raw_skill_id)] = int(raw_skill_lv)
 
     # UseSkill 是「本輪計算」的暫態狀態。Desktop bridge 可能讓這個 dict
     # 直接指向舊版全域 Use_skill_levels，因此每輪都必須先清掉上一輪殘留，
@@ -8537,6 +8551,159 @@ def stage19_apply_skill_level_change(tree_payload, levels, code, target_level):
 
 
 # ---------------------------------------------------------------------------
+# RRF raw -> Stage19 compatibility text
+# ---------------------------------------------------------------------------
+# RRFReader 本身維持在獨立的 rrf_reader.py；Core 只負責把 reader 的 snapshot
+# 轉成既有 Stage19 parser 可直接使用的記憶體文字，以及提供 file/bytes 高階入口。
+# 這裡刻意不依賴 PySide6 / FastAPI / subprocess，也不產生 replay dump txt。
+
+STAGE19_RRF_SESSION_OPCODE_NAMES = {
+    1010: "Aid",
+    1014: "Job",
+    1016: "Level",
+    1019: "JobLevel",
+    1024: "Str",
+    1025: "Agi",
+    1026: "Vit",
+    1027: "Int",
+    1028: "Dex",
+    1029: "Luk",
+}
+
+STAGE19_RRF_IMPORT_PACKET_NAMES = {
+    0x010F: "HEADER_ZC_SKILLINFO_LIST",
+    0x0141: "HEADER_ZC_COUPLESTATUS",
+    0x0983: "HEADER_ZC_MSG_STATE_CHANGE3",
+}
+
+STAGE19_RRF_ITEM_OPCODE_NAMES = {
+    4601: "EquippedItems",
+    4603: "EquippedShadowItems",
+}
+
+
+def _stage19_rrf_hexdump(data):
+    raw = bytes(data or b"")
+    lines = []
+    for offset in range(0, len(raw), 16):
+        chunk = raw[offset:offset + 16]
+        lines.append(f"{offset:04X}  " + " ".join(f"{value:02X}" for value in chunk) + " \n")
+    return "".join(lines)
+
+
+def _stage19_rrf_legacy_chunk(container_name, opcode_name, data, *, raw_marker=True):
+    raw = bytes(data or b"")
+    marker = "Raw hex:\n" if raw_marker else ""
+    return (
+        f"[Chunk {container_name}] Unparsed opcode {opcode_name}, Length={len(raw)}\n"
+        f"{marker}"
+        f"[0x00000000 ({len(raw)})] {{\n"
+        f"{_stage19_rrf_hexdump(raw)}"
+        "}\n\n"
+    )
+
+
+def _stage19_rrf_legacy_packet(packet, forced_name):
+    data = bytes(getattr(packet, "data", b"") or b"")
+    timestamp = getattr(packet, "timestamp", "")
+    header = int(getattr(packet, "header", 0) or 0)
+    length = int(getattr(packet, "length", len(data)) or len(data))
+    return (
+        f"[{timestamp}] packet {forced_name}\n"
+        f"[0x{header:08X} ({length})] {{\n"
+        f"{_stage19_rrf_hexdump(data)}"
+        "}\n\n"
+    )
+
+
+def stage19_build_rrf_import_text(snapshot):
+    """把 ``RRFReader`` snapshot 轉成既有 Stage19 parser 需要的記憶體文字。
+
+    這是原本 ``RagnarokReplayExample.exe -> output.txt`` 的 compatibility layer，
+    但資料全程留在記憶體中，不建立 temp.txt/output.txt。
+    """
+    if snapshot is None:
+        raise ValueError("RRF snapshot 不可為空")
+
+    blocks = []
+    chunks = list(getattr(snapshot, "chunks", ()) or ())
+    packets = list(getattr(snapshot, "packets", ()) or ())
+
+    # ReplayData：Charactername
+    for chunk in chunks:
+        if getattr(chunk, "container_type", None) == 2 and getattr(chunk, "chunk_id", None) == 964:
+            blocks.append(
+                _stage19_rrf_legacy_chunk(
+                    "ReplayData", "Charactername", getattr(chunk, "data", b""), raw_marker=True
+                )
+            )
+
+    # Session：Aid / Job / BaseLv / JobLv / 六圍
+    for chunk in chunks:
+        if getattr(chunk, "container_type", None) != 3:
+            continue
+        name = STAGE19_RRF_SESSION_OPCODE_NAMES.get(getattr(chunk, "chunk_id", None))
+        if name:
+            blocks.append(
+                _stage19_rrf_legacy_chunk(
+                    "Session", name, getattr(chunk, "data", b""), raw_marker=True
+                )
+            )
+
+    # EFST metadata
+    for chunk in chunks:
+        data = bytes(getattr(chunk, "data", b"") or b"")
+        if getattr(chunk, "container_type", None) == 17 and len(data) >= 2:
+            blocks.append(_stage19_rrf_legacy_chunk("Efst", "EfstInfo", data, raw_marker=False))
+
+    # 正面 / 影子裝備
+    for chunk in chunks:
+        if getattr(chunk, "container_type", None) != 8:
+            continue
+        name = STAGE19_RRF_ITEM_OPCODE_NAMES.get(getattr(chunk, "chunk_id", None))
+        if name:
+            blocks.append(
+                _stage19_rrf_legacy_chunk(
+                    "Items", name, getattr(chunk, "data", b""), raw_marker=False
+                )
+            )
+
+    # 技能清單 / 四轉素質更新 / STATE_CHANGE3
+    for packet in packets:
+        name = STAGE19_RRF_IMPORT_PACKET_NAMES.get(getattr(packet, "header", None))
+        if name:
+            blocks.append(_stage19_rrf_legacy_packet(packet, name))
+
+    return "".join(blocks)
+
+
+def stage19_read_rrf_snapshot(rrf_path):
+    """使用獨立 ``rrf_reader.py`` 直接讀取 RRF 檔案。"""
+    try:
+        from rrf_reader import RRFReader
+    except ImportError as exc:
+        raise RuntimeError(
+            "找不到 rrf_reader.py；請將新版 RRF reader 放在 ro_core.py 可 import 的專案路徑。"
+        ) from exc
+    return RRFReader().read(str(rrf_path))
+
+
+def stage19_read_rrf_snapshot_from_bytes(rrf_bytes):
+    """把 Web 收到的 RRF bytes 交給 RRFReader；只建立短暫的輸入 .rrf，不產生 dump txt。"""
+    from pathlib import Path
+    import tempfile
+
+    raw = bytes(rrf_bytes or b"")
+    if not raw:
+        raise ValueError("RRF 內容為空")
+
+    with tempfile.TemporaryDirectory(prefix="ro_core_rrf_") as working:
+        input_path = Path(working) / "input.rrf"
+        input_path.write_bytes(raw)
+        return stage19_read_rrf_snapshot(input_path)
+
+
+# ---------------------------------------------------------------------------
 # RRF replay dump 解析器
 # ---------------------------------------------------------------------------
 
@@ -8834,6 +9001,42 @@ def stage19_build_rrf_desktop_json_from_dump_text(replay_text, data_dir, parsed_
         },
         "warnings": warnings,
     }
+
+
+def stage19_build_rrf_desktop_json_from_snapshot(snapshot, data_dir, parsed_items, job_dict, default_json=None):
+    """RRF snapshot -> Stage19 Desktop/Web 共用 JSON。"""
+    replay_text = stage19_build_rrf_import_text(snapshot)
+    return stage19_build_rrf_desktop_json_from_dump_text(
+        replay_text,
+        data_dir,
+        parsed_items,
+        job_dict,
+        default_json=default_json,
+    )
+
+
+def stage19_build_rrf_desktop_json_from_rrf_file(rrf_path, data_dir, parsed_items, job_dict, default_json=None):
+    """RRF 檔案 -> Stage19 Desktop/Web 共用 JSON；不呼叫外部 EXE。"""
+    snapshot = stage19_read_rrf_snapshot(rrf_path)
+    return stage19_build_rrf_desktop_json_from_snapshot(
+        snapshot,
+        data_dir,
+        parsed_items,
+        job_dict,
+        default_json=default_json,
+    )
+
+
+def stage19_build_rrf_desktop_json_from_rrf_bytes(rrf_bytes, data_dir, parsed_items, job_dict, default_json=None):
+    """RRF bytes -> Stage19 Desktop/Web 共用 JSON；供 Web API 直接使用。"""
+    snapshot = stage19_read_rrf_snapshot_from_bytes(rrf_bytes)
+    return stage19_build_rrf_desktop_json_from_snapshot(
+        snapshot,
+        data_dir,
+        parsed_items,
+        job_dict,
+        default_json=default_json,
+    )
 
 
 # === STAGE 21.25 共用素質無詠核心 ===

@@ -8,137 +8,23 @@ import os
 import json
 import importlib.util
 
-# === PURE PYTHON RRF RAW IMPORT (V4 compatible) ===
-# 與傷害分析器共用 rrf_reader.py，不再呼叫 RagnarokReplayExample.exe，
-# 也不再建立 tmp/temp.txt。
+# === PURE PYTHON RRF RAW IMPORT (Core shared) ===
+# RRFReader 維持獨立；raw -> legacy compatibility text 改由 ro_core 統一維護。
 from rrf_reader import RRFReader, RRFError
-
-# rrf_to_App.py 原本只需要這些 Session 欄位。
-# Replay chunk_id 直接就是 ReplayOpCodes 的數值。
-_RRF_SESSION_OPCODE_NAMES = {
-    1010: "Aid",
-    1014: "Job",
-    1016: "Level",
-    1019: "JobLevel",
-    1024: "Str",
-    1025: "Agi",
-    1026: "Vit",
-    1027: "Int",
-    1028: "Dex",
-    1029: "Luk",
-}
-
-# 這支匯入器實際會用到的 packet。
-_RRF_IMPORT_PACKET_NAMES = {
-    0x010F: "HEADER_ZC_SKILLINFO_LIST",
-    0x0141: "HEADER_ZC_COUPLESTATUS",
-    0x0983: "HEADER_ZC_MSG_STATE_CHANGE3",
-}
-
-# Items container：
-# 4601 = 正面目前裝備、4603 = 影子/服飾裝備。
-# 保持既有 rrf_to_App 的 EquippedItems / EquippedShadowItems 解析方式。
-_RRF_ITEM_OPCODE_NAMES = {
-    4601: "EquippedItems",
-    4603: "EquippedShadowItems",
-}
-
-
-def _rrf_hexdump(data: bytes) -> str:
-    lines = []
-    for off in range(0, len(data), 16):
-        chunk = data[off:off + 16]
-        hx = " ".join(f"{b:02X}" for b in chunk)
-        lines.append(f"{off:04X}  {hx} \n")
-    return "".join(lines)
-
-
-def _rrf_legacy_chunk(container_name: str, opcode_name: str, data: bytes,
-                      raw_marker: bool = True) -> str:
-    """只在記憶體建立舊 parser 需要的最小格式，不寫 TXT。"""
-    marker = "Raw hex:\n" if raw_marker else ""
-    return (
-        f"[Chunk {container_name}] Unparsed opcode {opcode_name}, Length={len(data)}\n"
-        f"{marker}"
-        f"[0x00000000 ({len(data)})] {{\n"
-        f"{_rrf_hexdump(data)}"
-        "}\n\n"
-    )
-
-
-def _rrf_legacy_packet(packet, forced_name: str) -> str:
-    return (
-        f"[{packet.timestamp}] packet {forced_name}\n"
-        f"[0x{packet.header:08X} ({packet.length})] {{\n"
-        f"{_rrf_hexdump(packet.data)}"
-        "}\n\n"
-    )
-
-
-def build_rrf_import_text(snapshot) -> str:
-    """
-    V4 compatibility adapter：
-    raw RRF 已經在 Python 內完成解密，只將「rrf_to_App 現有解析器需要的資料」
-    暫時拼成記憶體文字，完全不落地成 temp.txt。
-
-    這樣角色素質 / 技能 / EFST / 裝備的既有後處理可以原封不動繼續使用。
-    """
-    blocks = []
-
-    # ReplayData：Charactername
-    for chunk in snapshot.chunks:
-        if chunk.container_type == 2 and chunk.chunk_id == 964:
-            blocks.append(
-                _rrf_legacy_chunk("ReplayData", "Charactername", chunk.data, raw_marker=True)
-            )
-
-    # Session：角色職業、等級、六圍等
-    for chunk in snapshot.chunks:
-        if chunk.container_type != 3:
-            continue
-        name = _RRF_SESSION_OPCODE_NAMES.get(chunk.chunk_id)
-        if name:
-            blocks.append(
-                _rrf_legacy_chunk("Session", name, chunk.data, raw_marker=True)
-            )
-
-    # Efst metadata
-    for chunk in snapshot.chunks:
-        if chunk.container_type == 17 and len(chunk.data) >= 2:
-            blocks.append(
-                _rrf_legacy_chunk("Efst", "EfstInfo", chunk.data, raw_marker=False)
-            )
-
-    # Items：正面 / 影子
-    for chunk in snapshot.chunks:
-        if chunk.container_type != 8:
-            continue
-        name = _RRF_ITEM_OPCODE_NAMES.get(chunk.chunk_id)
-        if name:
-            # extract_equip_chunk 原本接受的是沒有 Raw hex: 中介行的格式。
-            blocks.append(
-                _rrf_legacy_chunk("Items", name, chunk.data, raw_marker=False)
-            )
-
-    # Skill list / 四轉素質更新 / STATE_CHANGE3
-    for packet in snapshot.packets:
-        name = _RRF_IMPORT_PACKET_NAMES.get(packet.header)
-        if name:
-            blocks.append(_rrf_legacy_packet(packet, name))
-
-    return "".join(blocks)
+from ro_core import (
+    stage19_build_rrf_import_text as _core_stage19_build_rrf_import_text,
+    stage19_build_rrf_desktop_json_from_dump_text as _core_stage19_build_rrf_desktop_json_from_dump_text,
+)
 
 
 def read_rrf_for_app(rrf_path: str):
-    """直接讀 RRF，回傳 snapshot + 記憶體 compatibility text。"""
+    """直接讀 RRF，回傳 snapshot + Core 建立的記憶體 compatibility text。"""
     snapshot = RRFReader().read(rrf_path)
-    return snapshot, build_rrf_import_text(snapshot)
+    return snapshot, _core_stage19_build_rrf_import_text(snapshot)
+
 
 # === STAGE 19 DESKTOP SHARED RRF CORE ===
-# RAW V4：RRF 輸入已改為 rrf_reader.py，主程式 JSON 介面保持不變。
-from ro_core import (
-    stage19_build_rrf_desktop_json_from_dump_text as _core_stage19_build_rrf_desktop_json_from_dump_text,
-)
+# RRF compatibility adapter 已集中至 ro_core.py，Desktop / Web 共用同一份。
 # ======【設定區】======
 SHOW_OFFSET = False# 顯示 slot 在 group 內的 offset 位置 False True
 SHOW_RAW = False# 顯示 slot 的原始 bytes（每8顆一行）
