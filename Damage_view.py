@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import math
 from dataclasses import dataclass
 from PySide6.QtCore import (
@@ -34,8 +34,10 @@ NO_PLUS_ONE = {
     "總傷害",
     "屬性倍率%",
     "綠光減傷%",
-    "星座塔減傷%",
-    
+    "星座塔減傷%",    
+}
+VALUE_100 = {
+    "特殊物理增傷",
 }
 RAW = {
     "MRES減傷%",
@@ -60,6 +62,8 @@ def apply_round(value: float, factor: float, mode: str, name: str) -> float:
     if name in NO_PLUS_ONE:
         result = value * (factor/100)
     elif name in RAW:
+        result = value * factor
+    elif name in VALUE_100:
         result = value * factor
     else:
         result = value * (100 + factor) /100
@@ -219,6 +223,8 @@ class StepDelegate(QStyledItemDelegate):
             ftxt = f"+ {factor}"
         elif name in (NO_PLUS_ONE):
             ftxt = f"× {round(factor,2)}%"
+        elif name in (VALUE_100):
+            ftxt = f"× {round(factor*100,2)}%"
         elif name in (RAW):
             ftxt = f"× {round(factor*100,2)}%"
         else:
