@@ -244,6 +244,8 @@ class MultiCompareService:
             return {}, "core-unavailable"
 
         results = {}
+
+
         display_meta = payload.get("display", {}) if isinstance(payload.get("display"), dict) else {}
         critical = self._core_compare_number(display_meta.get("critical_hit", 0)) > 0
         decay_hits = int(self._core_compare_number(display_meta.get("decay_hits", 0)))
@@ -347,6 +349,32 @@ class MultiCompareService:
                     average,
                     display=f"{average:,}",
                 )
+
+
+        # 多裝備比對只顯示「已計算完成」的技能時間結果。
+        # 不顯示 raw（技能原始需求）與 modifiers（裝備修正明細）。
+        skill_timing = payload.get("skill_timing", {})
+        if isinstance(skill_timing, dict) and skill_timing.get("available"):
+            def _timing_seconds_entry(value):
+                seconds = self._core_compare_number(value)
+                text = f"{seconds:.3f}".rstrip("0").rstrip(".")
+                if not text:
+                    text = "0"
+                return self._core_compare_entry(
+                    seconds,
+                    display=f"{text} 秒",
+                    number=seconds,
+                )
+
+            for label, key in (
+                ("技能詠唱 / 固詠", "fixed_cast_seconds"),
+                ("技能詠唱 / 變詠", "variable_cast_seconds"),
+                ("技能詠唱 / 共延", "global_post_delay_seconds"),
+                ("技能詠唱 / 冷卻", "cooldown_seconds"),
+            ):
+                if key in skill_timing:
+                    results[label] = _timing_seconds_entry(skill_timing.get(key, 0))
+
 
         breakdown = payload.get("breakdown", {}) if isinstance(payload.get("breakdown"), dict) else {}
         for row in breakdown.get("rows", []) or []:
@@ -696,7 +724,10 @@ class MultiCompareService:
         if isinstance(aspd, dict) and aspd.get("supported") and aspd.get("value") is not None:
             result["角色狀態 / ASPD"] = self._core_compare_entry(aspd.get("value"), digits=3)
             if aspd.get("attacks_per_second") is not None:
-                result["角色狀態 / 每秒攻擊次數"] = self._core_compare_entry(aspd.get("attacks_per_second"), digits=4)
+                result["角色狀態 / 每秒攻擊次數"] = self._core_compare_entry(
+                    aspd.get("attacks_per_second"),
+                    digits=2,
+                )
         no_cast = status.get("no_cast", {}) if isinstance(status, dict) else {}
         if isinstance(no_cast, dict):
             if "score" in no_cast:
