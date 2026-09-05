@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+﻿# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
@@ -223,3 +223,4 @@ __marimo__/
 /frontend
 *.bat
 /backup
+/deploy_backend_nas_github_v7.py
