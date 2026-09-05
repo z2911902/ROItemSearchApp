@@ -8,7 +8,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.79"
+RO_CORE_VERSION = "v0.21.80"
 
 from dataclasses import dataclass, field
 import ast
@@ -721,6 +721,9 @@ def parse_lua_effects_with_variables(
 
                 return node
 
+        if len(expr) > 2048:
+            raise ValueError("expression 過長")
+
         tree = ast.parse(expr, mode="eval")
         tree = IntDivTransformer().visit(tree)
         ast.fix_missing_locations(tree)
@@ -736,9 +739,74 @@ def parse_lua_effects_with_variables(
                 if isinstance(v, (int, float, bool))
             })
 
+        # 字元白名單不足以阻止 Python attribute/subscript 物件鏈。
+        # 這裡再以 AST 白名單限制成純數值/布林運算；Attribute 只允許
+        # math.floor/ceil/trunc/fabs，Call 也只能呼叫這些函式與內部 __idiv。
+        allowed_math_calls = {"floor", "ceil", "trunc", "fabs"}
+        allowed_nodes = (
+            ast.Expression, ast.BoolOp, ast.BinOp, ast.UnaryOp, ast.Compare,
+            ast.And, ast.Or, ast.Not,
+            ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.Pow,
+            ast.USub, ast.UAdd,
+            ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn,
+            ast.Constant, ast.Name, ast.Load, ast.List, ast.Tuple, ast.Call, ast.Attribute,
+        )
+        nodes = list(ast.walk(tree))
+        if len(nodes) > 256:
+            raise ValueError("expression 結構過於複雜")
+
+        for node in nodes:
+            if not isinstance(node, allowed_nodes):
+                raise ValueError(f"expression 含不支援語法: {type(node).__name__}")
+            if isinstance(node, ast.Name):
+                if node.id not in env and node.id not in {"True", "False"}:
+                    raise ValueError(f"expression 含未知名稱: {node.id}")
+            elif isinstance(node, ast.Attribute):
+                if (
+                    not isinstance(node.value, ast.Name)
+                    or node.value.id != "math"
+                    or node.attr not in allowed_math_calls
+                ):
+                    raise ValueError("expression 不允許任意 attribute 存取")
+            elif isinstance(node, ast.Call):
+                if node.keywords:
+                    raise ValueError("expression 不允許 keyword arguments")
+                func = node.func
+                if isinstance(func, ast.Name):
+                    if func.id != "__idiv":
+                        raise ValueError("expression 不允許呼叫此函式")
+                elif isinstance(func, ast.Attribute):
+                    if (
+                        not isinstance(func.value, ast.Name)
+                        or func.value.id != "math"
+                        or func.attr not in allowed_math_calls
+                    ):
+                        raise ValueError("expression 只允許安全 math 函式")
+                else:
+                    raise ValueError("expression 不允許動態函式呼叫")
+            elif isinstance(node, ast.Constant):
+                if not isinstance(node.value, (int, float, bool, type(None))):
+                    raise ValueError("expression 常數型別不允許")
+            elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Pow):
+                # Avoid pathological huge-integer exponent expressions.
+                exponent = None
+                if isinstance(node.right, ast.Constant):
+                    exponent = node.right.value
+                elif isinstance(node.right, ast.Name):
+                    exponent = env.get(node.right.id)
+                elif (
+                    isinstance(node.right, ast.UnaryOp)
+                    and isinstance(node.right.op, (ast.UAdd, ast.USub))
+                    and isinstance(node.right.operand, ast.Constant)
+                ):
+                    sign = -1 if isinstance(node.right.op, ast.USub) else 1
+                    exponent = sign * node.right.operand.value
+                if not isinstance(exponent, (int, float)) or abs(float(exponent)) > 64:
+                    raise ValueError("expression 次方指數必須是絕對值不超過 64 的數值")
+
         return eval(
             compile(tree, "<expr>", "eval"),
-            {"__builtins__": None},
+            {"__builtins__": {}},
             env
         )
 
@@ -5679,7 +5747,10 @@ def _stage17_safe_eval(expression: str, variables: dict[str, _Stage17Any]):
         "ceil": _stage17_math.ceil,
         "trunc": _stage17_math.trunc,
     }
-    tree = _stage17_ast.parse(str(expression), mode="eval")
+    text = str(expression)
+    if len(text) > 4096:
+        raise ValueError("公式過長")
+    tree = _stage17_ast.parse(text, mode="eval")
     allowed_nodes = (
         _stage17_ast.Expression, _stage17_ast.BinOp, _stage17_ast.UnaryOp,
         _stage17_ast.Add, _stage17_ast.Sub, _stage17_ast.Mult, _stage17_ast.Div,
@@ -5687,12 +5758,38 @@ def _stage17_safe_eval(expression: str, variables: dict[str, _Stage17Any]):
         _stage17_ast.USub, _stage17_ast.UAdd, _stage17_ast.Constant,
         _stage17_ast.Name, _stage17_ast.Call, _stage17_ast.Load,
     )
-    for node in _stage17_ast.walk(tree):
+    nodes = list(_stage17_ast.walk(tree))
+    if len(nodes) > 256:
+        raise ValueError("公式結構過於複雜")
+    for node in nodes:
         if not isinstance(node, allowed_nodes):
             raise ValueError(f"公式含不支援語法：{type(node).__name__}")
         if isinstance(node, _stage17_ast.Call):
+            if node.keywords:
+                raise ValueError("公式不允許 keyword arguments")
             if not isinstance(node.func, _stage17_ast.Name) or node.func.id not in allowed_functions:
                 raise ValueError("公式只允許 floor/ceil/trunc 函式")
+        elif isinstance(node, _stage17_ast.Name):
+            if node.id not in allowed_functions and node.id not in variables:
+                raise ValueError(f"公式含未知變數：{node.id}")
+        elif isinstance(node, _stage17_ast.Constant):
+            if not isinstance(node.value, (int, float)):
+                raise ValueError("公式只允許數值常數")
+        elif isinstance(node, _stage17_ast.BinOp) and isinstance(node.op, _stage17_ast.Pow):
+            exponent = None
+            if isinstance(node.right, _stage17_ast.Constant):
+                exponent = node.right.value
+            elif isinstance(node.right, _stage17_ast.Name):
+                exponent = variables.get(node.right.id)
+            elif (
+                isinstance(node.right, _stage17_ast.UnaryOp)
+                and isinstance(node.right.op, (_stage17_ast.UAdd, _stage17_ast.USub))
+                and isinstance(node.right.operand, _stage17_ast.Constant)
+            ):
+                sign = -1 if isinstance(node.right.op, _stage17_ast.USub) else 1
+                exponent = sign * node.right.operand.value
+            if not isinstance(exponent, (int, float)) or abs(float(exponent)) > 64:
+                raise ValueError("公式次方指數必須是絕對值不超過 64 的數值")
     env = {**allowed_functions, **variables}
     return eval(compile(tree, "<stage17-formula>", "eval"), {"__builtins__": {}}, env)
 
