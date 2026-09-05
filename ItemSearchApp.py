@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.7.19-260830"
+Version = "v0.8.0-260904"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -11,9 +11,11 @@ import enchant #載入附魔工具
 import lapine_upgrade #載入 LapineUpgradeBox 附魔工具
 import skill_tree #載入技能樹
 import reform_viewer #載入改造工具
-from rrf_to_App import run_rrf_main#載入rrf轉換
+#from rrf_to_App import run_rrf_main#載入rrf轉換
+from rrf_to_App_raw_v4 import run_rrf_main#載入rrf轉換 (使用rrf_reader轉換)
 from monster_lookup_dialog import MonsterLookupDialog#查詢怪物
-from RRF_compile_damage_view import MainUI#載入RRF傷害計算器
+#from RRF_compile_damage_view import MainUI#載入RRF傷害計算器.
+from RRF_compile_damage_view_raw_v4 import MainUI#載入RRF傷害計算器 (使用rrf_reader轉換)
 from Damage_view import DamageCalculator
 from multi_compare import open_multi_compare_window
 from pathlib import Path

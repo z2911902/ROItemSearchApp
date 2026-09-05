@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import re
 from collections import defaultdict
 from PySide6.QtWidgets import (
@@ -7,10 +7,8 @@ from PySide6.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QHBoxLayout , QCheckBox , QProgressBar
 )
 from PySide6.QtCore import QObject, QThread, Signal
-import shutil
 import time
 from PySide6.QtCore import Qt
-import subprocess
 import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -34,6 +32,9 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton
 font_path = r"C:\Windows\Fonts\msjh.ttc"  # 微軟正黑體
 from PySide6.QtGui import QKeySequence, QAction
 from PySide6.QtWidgets import QMenu
+
+# Pure-Python RRF parser: no RagnarokReplayExample.exe / copy.txt required.
+from rrf_reader import RRFIncrementalReader
 
 font = FontProperties(fname=font_path)
 import traceback
@@ -390,118 +391,77 @@ class DamageHUD(QWidget):
 
 
 class RRFWorker(QObject):
-    finished = Signal(dict)       # 成功解析後回傳 dict 給 UI
-    failed = Signal(str)          # 若失敗，回傳錯誤訊息
-    start_time = Signal(float)   # ★ 新增：把開始時間送回 UI
-    status_msg = Signal(dict)   # ★ worker 要傳訊息給 UI
+    finished = Signal(dict)       # 成功解析後回傳 raw ReplayDelta
+    failed = Signal(str)
+    start_time = Signal(float)
+    status_msg = Signal(dict)
 
-
-    def __init__(self, rrf_path):
+    def __init__(self, rrf_path, reader):
         super().__init__()
         self.rrf_path = rrf_path
+        self.reader = reader
         self.running = True
 
     def stop(self):
         self.running = False
 
-
     def run(self):
         if not self.running:
             return
+
         real_t0 = time.time()
-        self.start_time.emit(real_t0)   # ★ 把開始時間送給 UI
+        self.start_time.emit(real_t0)
         self.status_msg.emit({
-            "status": "編譯開始 ...",
-            "progressbar": 0
+            "status": "直接解析 RRF raw packet...",
+            "progressbar": 5,
         })
 
         try:
-            self.status_msg.emit({
-                "status": "正在複製 rrf ...",
-                "progressbar": 5
-            })
+            t0 = time.perf_counter()
+            delta = self.reader.poll()
+            elapsed = time.perf_counter() - t0
 
-            # ====== 複製 RRF ======
-            output_rrf = os.path.abspath("tmp/copy.rrf")
-            os.makedirs(os.path.dirname(output_rrf), exist_ok=True)
-            shutil.copy(self.rrf_path, output_rrf)
+            if not self.running:
+                return
 
-            exe_path = os.path.abspath("APP/RagnarokReplayExample.exe")
-
-            # 💡 C# 輸出會變成 copy.txt
-            output_txt = os.path.abspath("tmp/copy.txt")
-
-            # ====== 執行（不抓 stdout）=====
-            t0 = time.time()
-            self.status_msg.emit({
-                "status": ".RRF 轉換封包中....",
-                "progressbar": 10
-            })
-            proc = subprocess.run(
-                [exe_path, output_rrf],
-                stdout=subprocess.DEVNULL,   # 不需要 stdout
-                stderr=subprocess.PIPE,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                check=True
+            print(
+                f"[RRF raw] mode={delta.mode}, new_packets={len(delta.packets)}, "
+                f"reason={delta.reason}, 耗時 {elapsed:.3f} 秒"
             )
-            t1 = time.time()
-            elapsed = t1 - t0
-
-            print(f"[RRF → TXT] 處理耗時：{elapsed:.3f} 秒")
-
-            # ====== 回傳（直接給 C# 已寫好的 TXT 路徑）======
             self.finished.emit({
-                "txt_path": output_txt,
-                "elapsed": elapsed
+                "delta": delta,
+                "elapsed": elapsed,
             })
             self.status_msg.emit({
-                "status": "解析完成！",
-                "progressbar": 20
+                "status": "RRF raw 解析完成！",
+                "progressbar": 20,
             })
-            
-
         except Exception as e:
             self.failed.emit(str(e))
 
+
 class RRFBackgroundWorker(QObject):
-    progress = Signal(float)   # 每次轉檔送出耗時（秒）
-    finished = Signal(str)   # 回傳 txt 路徑
+    """舊版相容殼。
+
+    raw 版不再需要背景持續產生 copy.txt；真正更新由既有 auto_timer
+    觸發 RRFWorker.poll()。保留類別只是避免舊 UI 呼叫點出錯。
+    """
+    progress = Signal(float)
+    finished = Signal(str)
+
     def __init__(self, rrf_path):
         super().__init__()
         self.rrf_path = rrf_path
         self.running = True
-        self.block = False  # optxtraw 讀取時禁止寫入
+        self.block = False
 
     def stop(self):
         self.running = False
 
     def run(self):
-        exe_path = os.path.abspath("APP/RagnarokReplayExample.exe")
-        output_rrf = os.path.abspath("tmp/copy.rrf")
-        output_txt = os.path.abspath("tmp/copy.txt")
+        # 不做任何 copy / subprocess；背景 EXE 轉檔已停用。
+        self.running = False
 
-        while self.running:
-            if not self.block:
-                try:
-                    t0 = time.perf_counter()
-                    shutil.copy(self.rrf_path, output_rrf)
-                    subprocess.run(
-                        [exe_path, output_rrf],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.PIPE,
-                        creationflags=subprocess.CREATE_NO_WINDOW,
-                        check=True
-                    )
-                    
-                    self.finished.emit(output_txt)
-                    elapsed = time.perf_counter() - t0
-                    self.progress.emit(elapsed)  # ★ 通知 UI
-                    print(f"[RRF→TXT] 背景處理完成 耗時 {elapsed:.3f} 秒")
-
-                except:
-                    pass
-
-            time.sleep(0.05)  # 避免 CPU 佔滿
 
 def timestamp_to_sec_key(ts):
     # "+00:00:26:564" -> (0, 0, 26)
@@ -1961,23 +1921,52 @@ def parse_moveentry11_blocks(text):
 
 
 
+# ============================================================
+# Actor / monster 名稱清理
+# ============================================================
+# 已由實際 replay / 使用者確認的 DID 顯示名稱。
+MONSTER_NAME_OVERRIDE = {
+    34543: "生命寶石",
+}
+
+_INTERNAL_ACTOR_NAME_RE = re.compile(r"^#?(?:mk|le)_\d+$", re.IGNORECASE)
+
+
+def _decode_actor_name(hex_bytes, start, size):
+    """從 entry packet 的名稱欄位解 cp950，並在 NUL 結束。"""
+    raw = bytes(int(b, 16) for b in hex_bytes[start:size])
+    raw = raw.split(b"\x00", 1)[0]
+    for enc in ("cp950", "big5", "utf-8"):
+        try:
+            return raw.decode(enc).strip()
+        except UnicodeDecodeError:
+            pass
+    return raw.decode("cp950", errors="replace").strip()
+
+
+def sanitize_actor_name(name):
+    """拒絕污染字元及 RO 內部隱藏物件名，避免覆寫正常中文名稱。"""
+    if name is None:
+        return None
+    name = str(name).replace("\x00", "").strip()
+    # 解碼錯誤的 replacement character 代表 offset/編碼不可信。
+    if not name or "\ufffd" in name:
+        return None
+    # 控制字元不應出現在顯示名稱。
+    if any(ord(ch) < 0x20 for ch in name):
+        return None
+    # #mk_10 / #le_4 等是腳本/內部 actor 名，不拿來當怪物顯示名稱。
+    if name.startswith("#") or _INTERNAL_ACTOR_NAME_RE.fullmatch(name):
+        return None
+    return name
+
+
 def decode_moveentry11(hex_bytes, size):
     # 6~7 怪物 DID（小端）
     did = le_int(hex_bytes[5:9])
 
-    # 名字從 91 ~ size-1（不看 0x00 終止，因為沒有）
-    name_hex = hex_bytes[90:size]
-
-    # 轉成 bytes
-    name_bytes = bytes(int(b, 16) for b in name_hex)
-
-    # ★ 強制 cp950 ★
-    try:
-        name = name_bytes.decode("cp950")
-        #print(f"moveentry11 did:{did} 名稱:{name}")
-    except:
-        name = name_bytes.decode("cp950", errors="replace")
-        #print(f"moveentry11 did:{did} 名稱:{name}")
+    # MOVEENTRY11 名稱欄位從 byte 90 開始。
+    name = _decode_actor_name(hex_bytes, 90, size)
 
     return {
         "did": did,
@@ -2021,20 +2010,9 @@ def decode_standentry11(hex_bytes, size):
     # 6~7 怪物 DID（小端）
     did = le_int(hex_bytes[5:9])
 
-    # 名稱：85 ~ size-1
-    name_hex = hex_bytes[84:size]
-
-    # 轉成 bytes
-    name_bytes = bytes(int(b, 16) for b in name_hex)
-
-    # ★ 強制 cp950 解碼 ★
-    try:
-        name = name_bytes.decode("cp950")
-        #print(f"standentry11 did:{did} 名稱:{name}")
-    except:
-        
-        name = name_bytes.decode("cp950", errors="replace")
-        #print(f"standentry11 did:{did} 名稱:{name}")
+    # STANDENTRY11 在 byte 83 可能保留 # 前綴（例如 #mk_10）。
+    # 保留它讓 sanitize_actor_name() 能辨識為內部名稱，而不是誤當顯示名稱。
+    name = _decode_actor_name(hex_bytes, 83, size)
 
     return {
         "did": did,
@@ -2047,19 +2025,9 @@ def decode_newentry11(hex_bytes, size):
     # 6~7 怪物 DID（小端）
     did = le_int(hex_bytes[5:9])
 
-    # 名稱：84 ~ size
-    name_hex = hex_bytes[83:size]
-
-    # 轉成 bytes
-    name_bytes = bytes(int(b, 16) for b in name_hex)
-
-    # ★ 強制 cp950 ★
-    try:
-        name = name_bytes.decode("cp950")
-        #print(f"NEWENTRY11 did:{did} 名稱:{name}")
-    except:
-        name = name_bytes.decode("cp950", errors="replace")
-        #print(f"NEWENTRY11 did:{did} 名稱:{name}")
+    # 這個 client 的 NEWENTRY11 真正名稱從 byte 90 開始。
+    # 舊版從 83 開始會把 FF/flag/class 一起解碼，造成「���中文名」污染。
+    name = _decode_actor_name(hex_bytes, 90, size)
 
     return {
         "did": did,
@@ -2130,13 +2098,14 @@ class MainUI(QWidget):
         self.background_enabled = False
         self.rrf_thread = None
         self.rrf_worker = None
+        self.rrf_reader = None   # RRFIncrementalReader，跨更新保留 packet cursor
         self.mouse_paused = False
         self.current_chart_mode = "bar"   # bar / line
         self.chart_status_text = "尚未載入資料"
         self.hud = DamageHUD()
         self.hud.hide()
         super().__init__()
-        self.setWindowTitle("RRF傷害解析器")
+        self.setWindowTitle("RRF傷害解析器 v1.1")
         self.resize(1100, 900)
         self.transform_end_time = {}#結束變身時間
         self.transform_start_time = {}#變身時間    
@@ -2159,6 +2128,7 @@ class MainUI(QWidget):
         self.vanish_points = []
         self.sid_name_map = {}
         self.did_name_map = {}
+        self.did_name_source = {}
         self.self_sid = 0
         self.current_map_name = ""
          
@@ -2189,6 +2159,12 @@ class MainUI(QWidget):
         self.Character_ability_changes_checkbox = QCheckBox("解析角色能力變動")
         self.Character_ability_changes_checkbox.setFixedWidth(150)
         btn_layout.addWidget(self.Character_ability_changes_checkbox)
+
+        # 傷害歷程：是否顯示一般狀態開始 / 結束事件（預設顯示）
+        self.show_status_history_checkbox = QCheckBox("傷害歷程顯示狀態")
+        self.show_status_history_checkbox.setChecked(False)
+        self.show_status_history_checkbox.setFixedWidth(150)
+        btn_layout.addWidget(self.show_status_history_checkbox)
 
 
 
@@ -2242,6 +2218,9 @@ class MainUI(QWidget):
         self.did_filter.setFixedWidth(210)
         self.did_filter.currentIndexChanged.connect(self.apply_did_filter)
         interval_layout.addWidget(self.did_filter)
+
+        # 勾選狀態改變時只重新套用傷害歷程篩選，不重新解析 RRF。
+        self.show_status_history_checkbox.stateChanged.connect(self.apply_did_filter)
 
 
         layout.addLayout(interval_layout)
@@ -2334,9 +2313,6 @@ class MainUI(QWidget):
         self.toggle_hud_btn = QPushButton("顯示 HUD")
         self.toggle_hud_btn.clicked.connect(self.toggle_hud)
         btn_row.addWidget(self.toggle_hud_btn)
-        self.upload_btn = QPushButton("上傳到 Divine Pride")
-        self.upload_btn.clicked.connect(self.upload_to_divine_pride)
-        #btn_row.addWidget(self.upload_btn)
         
         self.screenshot_btn = QPushButton("截圖此分頁")
         self.screenshot_btn.clicked.connect(self.capture_to_clipboard)
@@ -2496,6 +2472,8 @@ class MainUI(QWidget):
         return (size, h.hexdigest())
 
     def reset_incremental_txt_state(self, clear_data=False):
+        # 函式名稱保留以避免大改 UI；raw 版同時重設 RRF reader。
+        self.rrf_reader = None
         self.txt_last_pos = 0
         self.txt_pending = ""
         self.first_full_parse_done = False
@@ -2510,6 +2488,7 @@ class MainUI(QWidget):
             self.current_drop_filtered_raw = []
             self.sid_name_map = {}
             self.did_name_map = {}
+            self.did_name_source = {}
             self.self_sid = 0
 
 
@@ -2888,9 +2867,13 @@ class MainUI(QWidget):
             self.worker_thread.quit()
             self.worker_thread.wait()
 
-        # ====== 建立新 worker ======
+        # ====== 建立 / 延用 raw incremental reader ======
+        abs_rrf_path = os.path.abspath(rrf_path)
+        if self.rrf_reader is None or self.rrf_reader.path != abs_rrf_path:
+            self.rrf_reader = RRFIncrementalReader(abs_rrf_path)
+
         self.worker_thread = QThread()
-        self.worker = RRFWorker(rrf_path)
+        self.worker = RRFWorker(abs_rrf_path, self.rrf_reader)
         self.worker.moveToThread(self.worker_thread)
         
         # ====== 信號連線 ======
@@ -2916,75 +2899,56 @@ class MainUI(QWidget):
             self.progress_bar.setValue(data["progressbar"])
 
     def on_worker_finished(self, result):
-        # 暫停 RRF→TXT
-        if self.rrf_worker:
-            self.rrf_worker.block = True
-        # 一開始顯示進度條
         self.progress_bar.show()
-        #self.progress_bar.setValue(0)
         QApplication.processEvents()
-        self.status.setText("正在讀取文字檔...")
-        #
-        txt_path = result["txt_path"]
+
+        delta = result["delta"]
         elapsed = result["elapsed"]
 
-        # ====== 這裡放你原本的解析 TXT → parsed_data 的程式 ======
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-
-        # -------------------------------------------------------
-        # 讀取 TXT
-        # -------------------------------------------------------
-        t0_opentxt = time.perf_counter()
-        # ====== 先做內容指紋比對 ======
-        sig = self.calc_txt_signature(txt_path)
-
-        if self.last_txt_path == txt_path and self.last_txt_signature == sig:
-            self.status.setText(f"共解析到 {len(self.parsed_data)} 筆 (TXT 內容未變動，略過解析)")
+        # poll() 已經完成 RRF 的結果級增量判斷：full / delta / none。
+        if delta.mode == "none":
+            self.status.setText(f"共解析到 {len(self.parsed_data)} 筆（RRF 沒有新的完整封包）")
             self.progress_bar.setValue(100)
-            QApplication.processEvents()
-
-            self.update_load_button_text()
             self.is_processing = False
             self._load_lock = False
 
             interval = self.refresh_input.value()
             if interval > 0 and not self.underMouse():
                 self.auto_timer.start(interval * 1000)
-
-            if self.rrf_worker:
-                self.rrf_worker.block = False
-
+            self.update_load_button_text()
             return
 
-        # 只有內容真的變了，才更新快取並往下解析
-        self.last_txt_path = txt_path
-        self.last_txt_signature = sig
-        
-        mode, text = self.read_incremental_text(txt_path)
+        mode = delta.mode
+
+        # 第一階段相容層：raw bytes 已直接由 Python RRF reader 取得，完全不寫 TXT。
+        # 為了先保留既有 decode_* 的行為，暫時只在記憶體中產生舊 parser 需要的
+        # 最小文字 block。下一階段可逐一把 parse_* 改成直接接 RawPacket.data。
+        t0_opentxt = time.perf_counter()
+        text = delta.to_legacy_text(include_metadata=True)
+
         map_name = parse_replaydata_mapname(text)
         if map_name:
             self.current_map_name = map_name
 
         if not text.strip():
-            self.status.setText("沒有新的完整封包")
+            self.status.setText("RRF 有更新，但沒有可供分析的新封包")
             self.progress_bar.setValue(100)
             self.is_processing = False
             self._load_lock = False
-
             interval = self.refresh_input.value()
             if interval > 0 and not self.underMouse():
                 self.auto_timer.start(interval * 1000)
-
-            if self.rrf_worker:
-                self.rrf_worker.block = False
             return
+
         t1_opentxt = time.perf_counter()
-        print(f"====開啟檔案區段====")
-        print(f"[optxtraw] 解析耗時: {(t1_opentxt - t0_opentxt) * 1000:.3f} ms")
-        print(f"====多執行緒區段====")
+        print("====RRF raw → compatibility blocks====")
+        print(f"[raw-adapter] 耗時: {(t1_opentxt - t0_opentxt) * 1000:.3f} ms")
+        print("====多執行緒區段====")
         self.progress_bar.setValue(30)
-        self.status.setText("讀取完成，開始解析封包...")
+        self.status.setText(f"直接解析 raw packet（{mode}，新增 {len(delta.packets)} 包）...")
         QApplication.processEvents()
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
 
         # -------------------------------------------------------
         # ❶ 多執行緒平行解析封包
@@ -3015,13 +2979,14 @@ class MainUI(QWidget):
                 "drop":   exe.submit(parse_itemdrop_blocks, text),
             }
 
-            if mode == "full":
-                futures["sid"] = exe.submit(build_sid_to_name_map, text)
+            # raw snapshot 每次都帶目前 metadata；delta 時也更新 SID/隊友名稱。
+            futures["sid"] = exe.submit(build_sid_to_name_map, text)
 
         # 用來存這次解析後的資料
         if mode == "full":
             self.sid_name_map = {}
             self.did_name_map = {}
+            self.did_name_source = {}
             self.efst_info_map = {}
         elif not hasattr(self, "efst_info_map"):
             self.efst_info_map = {}
@@ -3049,12 +3014,15 @@ class MainUI(QWidget):
                 #standentry_blocks = result
                 for blk in result:
                     info = decode_newentry11(blk["hex"], blk["size"])
-                    self.did_name_map[info["did"]] = info["name"]
+                    self.update_did_name(info["did"], info["name"], "new")
                 #print(f"[new] 已立即完成 decode，寫入 {len(result)} 筆")
                 print(f"new 已處理")
 
             elif name == "sid":
-                self.sid_name_map = result
+                if mode == "full":
+                    self.sid_name_map = result
+                else:
+                    self.sid_name_map.update(result)
 
             elif name == "ground":
                 ground = result
@@ -3071,14 +3039,14 @@ class MainUI(QWidget):
                 
                 for blk in result:
                     info = decode_moveentry11(blk["hex"], blk["size"])
-                    self.did_name_map[info["did"]] = info["name"]
+                    self.update_did_name(info["did"], info["name"], "move")
                 print(f"move 已處理")
                 
             elif name == "stand":
                 #standentry_blocks = result
                 for blk in result:
                     info = decode_standentry11(blk["hex"], blk["size"])
-                    self.did_name_map[info["did"]] = info["name"]
+                    self.update_did_name(info["did"], info["name"], "stand")
                 print(f"stand 已處理")
                 
             elif name == "state3":
@@ -3662,11 +3630,10 @@ class MainUI(QWidget):
             self.start_background_rrf_worker()
             
     def start_background_rrf_worker(self):
-        self.rrf_thread = QThread()
-        self.rrf_worker = RRFBackgroundWorker(self.last_rrf_path)
-        self.rrf_worker.moveToThread(self.rrf_thread)
-        self.rrf_thread.started.connect(self.rrf_worker.run)
-        self.rrf_thread.start()
+        # raw 版不再需要 50ms 背景 copy + EXE 轉 TXT。
+        # 自動更新直接由 auto_timer 觸發 start_worker() -> reader.poll()。
+        self.rrf_thread = None
+        self.rrf_worker = None
 
     # ========================================================
     # 讀取檔案
@@ -4548,6 +4515,31 @@ class MainUI(QWidget):
 
         self.canvas.draw()
 
+    def update_did_name(self, did, raw_name, source):
+        """更新 DID 顯示名稱；避免低品質/內部名稱覆寫正常名稱。"""
+        if not did:
+            return
+
+        override = MONSTER_NAME_OVERRIDE.get(did)
+        if override:
+            self.did_name_map[did] = override
+            self.did_name_source[did] = "override"
+            return
+
+        name = sanitize_actor_name(raw_name)
+        if not name:
+            return
+
+        priority = {"stand": 1, "move": 2, "new": 3, "override": 99}
+        old_source = self.did_name_source.get(did)
+        old_name = sanitize_actor_name(self.did_name_map.get(did))
+        old_priority = priority.get(old_source, 0)
+        new_priority = priority.get(source, 0)
+
+        if old_name is None or new_priority >= old_priority:
+            self.did_name_map[did] = name
+            self.did_name_source[did] = source
+
     def get_monster_name_by_did(self, did, fallback=None):
         if did in self.did_name_map:
             name = self.did_name_map[did]
@@ -4820,6 +4812,14 @@ class MainUI(QWidget):
             if d.get("skill_name") not in STAT_SKILL_NAMES
         ]
 
+        # 只控制傷害歷程中的一般狀態開始 / 結束事件。
+        # 不影響實際傷害、能力變動、死亡/消失、掉落或任何統計資料。
+        if not self.show_status_history_checkbox.isChecked():
+            raw_source = [
+                d for d in raw_source
+                if d.get("status_event") not in ("start", "end")
+            ]
+
         filtered_damage = self.parsed_data
         filtered_raw = raw_source
 
@@ -4999,114 +4999,6 @@ class MainUI(QWidget):
 
                                        
 
-
-    def upload_to_divine_pride(self):
-
-        if not self.last_rrf_path:
-            QMessageBox.warning(self, "錯誤", "請先載入 RRF 檔案後再上傳。")
-            return
-
-        rrf_file_path = self.last_rrf_path
-
-        def run_browser():
-            try:
-                from selenium import webdriver
-                from selenium.webdriver.common.by import By
-                from selenium.webdriver.support.ui import WebDriverWait
-                from selenium.webdriver.support import expected_conditions as EC
-                from selenium.webdriver.chrome.service import Service
-                from webdriver_manager.chrome import ChromeDriverManager
-                import os
-                import pyperclip
-
-                options = webdriver.ChromeOptions()
-                options.add_argument(r'--user-data-dir=C:\RRFUploader\ChromeProfile')  # 保留登入狀態
-                options.add_argument("--window-position=-32000,-32000")  # 開在看不到的位置(偽最小化)
-
-                service = Service(ChromeDriverManager().install())
-                driver = webdriver.Chrome(service=service, options=options)
-
-                driver.get("https://www.divine-pride.net/reports")
-                driver.minimize_window()
-
-                wait = WebDriverWait(driver, 500)
-
-                # --- 檢查登入 ---
-                try:
-                    login_button = driver.find_elements(By.XPATH,
-                        "//a[contains(text(), '登入') or contains(text(), 'Login')]")
-                    if login_button:
-                        print("❌ 尚未登入 Divine Pride，請登入")
-
-                        driver.set_window_position(100, 100)
-                        driver.set_window_size(1200, 800)
-                        driver.maximize_window()
-
-                        QMessageBox.information(
-                            self, "尚未登入",
-                            "請先在 Chrome 視窗中登入 Divine Pride。\n登入後請重新點擊上傳。"
-                        )
-                        return
-                except:
-                    pass
-
-                print("✅ 已登入 Divine Pride")
-
-                # --- 上傳檔案 ---
-                file_input = wait.until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
-                )
-                file_input.send_keys(os.path.abspath(rrf_file_path))
-                print("📂 已選擇檔案")
-
-                # --- 取消 Public 勾選 ---
-                try:
-                    public_checkbox = wait.until(
-                        EC.presence_of_element_located((By.NAME, "isPublic"))
-                    )
-                    if public_checkbox.is_selected():
-                        public_checkbox.click()
-                        print("☑️ Public 已取消")
-                except Exception as e:
-                    print("⚠️ Public checkbox 找不到", e)
-
-                # --- 點擊上載按鈕 ---
-                try:
-                    upload_button = wait.until(
-                        EC.element_to_be_clickable(
-                            (By.XPATH, "//input[@type='submit' and @value='上載']")
-                        )
-                    )
-                    upload_button.click()
-                    print("🚀 已點擊上載")
-                except Exception as e:
-                    print("⚠️ 無法點擊上載", e)
-                    driver.quit()
-                    return
-
-                # --- 等跳轉 ---
-                time.sleep(2)
-                final_url = driver.current_url
-                print("🔗 上傳完成 URL:", final_url)
-
-                if "/Reports/" in final_url:
-                    pyperclip.copy(final_url)
-                #    QMessageBox.information(
-                #        self, "上傳成功",
-                #        f"報告網址已複製到剪貼簿：\n{final_url}"
-                #    )
-                #else:
-                #    QMessageBox.warning(
-                #        self, "上傳可能失敗",
-                #        "無法偵測到有效的報告網址，請手動確認。"
-                #    )
-
-                driver.quit()
-
-            except Exception as e:
-                QMessageBox.critical(self, "上傳錯誤", str(e))
-
-        threading.Thread(target=run_browser, daemon=True).start()
 
 
 

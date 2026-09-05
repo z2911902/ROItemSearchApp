@@ -7,7 +7,135 @@ from PySide6.QtWidgets import QMessageBox
 import os
 import json
 import importlib.util
+
+# === PURE PYTHON RRF RAW IMPORT (V4 compatible) ===
+# 與傷害分析器共用 rrf_reader.py，不再呼叫 RagnarokReplayExample.exe，
+# 也不再建立 tmp/temp.txt。
+from rrf_reader import RRFReader, RRFError
+
+# rrf_to_App.py 原本只需要這些 Session 欄位。
+# Replay chunk_id 直接就是 ReplayOpCodes 的數值。
+_RRF_SESSION_OPCODE_NAMES = {
+    1010: "Aid",
+    1014: "Job",
+    1016: "Level",
+    1019: "JobLevel",
+    1024: "Str",
+    1025: "Agi",
+    1026: "Vit",
+    1027: "Int",
+    1028: "Dex",
+    1029: "Luk",
+}
+
+# 這支匯入器實際會用到的 packet。
+_RRF_IMPORT_PACKET_NAMES = {
+    0x010F: "HEADER_ZC_SKILLINFO_LIST",
+    0x0141: "HEADER_ZC_COUPLESTATUS",
+    0x0983: "HEADER_ZC_MSG_STATE_CHANGE3",
+}
+
+# Items container：
+# 4601 = 正面目前裝備、4603 = 影子/服飾裝備。
+# 保持既有 rrf_to_App 的 EquippedItems / EquippedShadowItems 解析方式。
+_RRF_ITEM_OPCODE_NAMES = {
+    4601: "EquippedItems",
+    4603: "EquippedShadowItems",
+}
+
+
+def _rrf_hexdump(data: bytes) -> str:
+    lines = []
+    for off in range(0, len(data), 16):
+        chunk = data[off:off + 16]
+        hx = " ".join(f"{b:02X}" for b in chunk)
+        lines.append(f"{off:04X}  {hx} \n")
+    return "".join(lines)
+
+
+def _rrf_legacy_chunk(container_name: str, opcode_name: str, data: bytes,
+                      raw_marker: bool = True) -> str:
+    """只在記憶體建立舊 parser 需要的最小格式，不寫 TXT。"""
+    marker = "Raw hex:\n" if raw_marker else ""
+    return (
+        f"[Chunk {container_name}] Unparsed opcode {opcode_name}, Length={len(data)}\n"
+        f"{marker}"
+        f"[0x00000000 ({len(data)})] {{\n"
+        f"{_rrf_hexdump(data)}"
+        "}\n\n"
+    )
+
+
+def _rrf_legacy_packet(packet, forced_name: str) -> str:
+    return (
+        f"[{packet.timestamp}] packet {forced_name}\n"
+        f"[0x{packet.header:08X} ({packet.length})] {{\n"
+        f"{_rrf_hexdump(packet.data)}"
+        "}\n\n"
+    )
+
+
+def build_rrf_import_text(snapshot) -> str:
+    """
+    V4 compatibility adapter：
+    raw RRF 已經在 Python 內完成解密，只將「rrf_to_App 現有解析器需要的資料」
+    暫時拼成記憶體文字，完全不落地成 temp.txt。
+
+    這樣角色素質 / 技能 / EFST / 裝備的既有後處理可以原封不動繼續使用。
+    """
+    blocks = []
+
+    # ReplayData：Charactername
+    for chunk in snapshot.chunks:
+        if chunk.container_type == 2 and chunk.chunk_id == 964:
+            blocks.append(
+                _rrf_legacy_chunk("ReplayData", "Charactername", chunk.data, raw_marker=True)
+            )
+
+    # Session：角色職業、等級、六圍等
+    for chunk in snapshot.chunks:
+        if chunk.container_type != 3:
+            continue
+        name = _RRF_SESSION_OPCODE_NAMES.get(chunk.chunk_id)
+        if name:
+            blocks.append(
+                _rrf_legacy_chunk("Session", name, chunk.data, raw_marker=True)
+            )
+
+    # Efst metadata
+    for chunk in snapshot.chunks:
+        if chunk.container_type == 17 and len(chunk.data) >= 2:
+            blocks.append(
+                _rrf_legacy_chunk("Efst", "EfstInfo", chunk.data, raw_marker=False)
+            )
+
+    # Items：正面 / 影子
+    for chunk in snapshot.chunks:
+        if chunk.container_type != 8:
+            continue
+        name = _RRF_ITEM_OPCODE_NAMES.get(chunk.chunk_id)
+        if name:
+            # extract_equip_chunk 原本接受的是沒有 Raw hex: 中介行的格式。
+            blocks.append(
+                _rrf_legacy_chunk("Items", name, chunk.data, raw_marker=False)
+            )
+
+    # Skill list / 四轉素質更新 / STATE_CHANGE3
+    for packet in snapshot.packets:
+        name = _RRF_IMPORT_PACKET_NAMES.get(packet.header)
+        if name:
+            blocks.append(_rrf_legacy_packet(packet, name))
+
+    return "".join(blocks)
+
+
+def read_rrf_for_app(rrf_path: str):
+    """直接讀 RRF，回傳 snapshot + 記憶體 compatibility text。"""
+    snapshot = RRFReader().read(rrf_path)
+    return snapshot, build_rrf_import_text(snapshot)
+
 # === STAGE 19 DESKTOP SHARED RRF CORE ===
+# RAW V4：RRF 輸入已改為 rrf_reader.py，主程式 JSON 介面保持不變。
 from ro_core import (
     stage19_build_rrf_desktop_json_from_dump_text as _core_stage19_build_rrf_desktop_json_from_dump_text,
 )
@@ -407,7 +535,11 @@ def load_skill_map(filepath=None):
 
 
 def run_replay_and_dump():
-    # 1. 選擇 RRF
+    """
+    選擇 RRF 後直接用 Python rrf_reader 解碼。
+    為了保持既有 API，仍回傳 (rrf_path, replay_text)，
+    但第二個值現在是「記憶體字串」，不是 temp.txt 路徑。
+    """
     root = tk.Tk()
     root.withdraw()
 
@@ -415,28 +547,31 @@ def run_replay_and_dump():
         title="選擇 RRF 檔案",
         filetypes=[("Ragnarok Replay Files", "*.rrf"), ("All Files", "*.*")]
     )
+    try:
+        root.destroy()
+    except Exception:
+        pass
+
     if not rrf_path:
         print("使用者取消選擇。")
         return None, None
 
-    # 2. 指定 temp.txt 輸出位置
-    output_txt = "tmp/temp.txt"
+    try:
+        print(f"[rrf to app] 直接解析 RRF：{rrf_path}")
+        snapshot, replay_text = read_rrf_for_app(rrf_path)
+        print(
+            f"[rrf to app] ✓ raw 解析完成："
+            f"{len(snapshot.packets)} packets / {len(snapshot.chunks)} chunks"
+        )
+        return rrf_path, replay_text
+    except (RRFError, OSError, ValueError) as e:
+        print(f"[rrf to app] RRF 解析失敗：{e}")
+        try:
+            QMessageBox.critical(None, "RRF 解析錯誤", str(e))
+        except Exception:
+            pass
+        return rrf_path, None
 
-    # 3. 執行外部 exe 並將輸出寫入 temp.txt
-    exe_path = "APP/RagnarokReplayExample.exe"  # 如果 exe 不在同資料夾請改成絕對路徑
-
-    cmd = f'"{exe_path}" "{rrf_path}" "{output_txt}"'
-
-    print("執行中：", cmd)
-    subprocess.run(cmd, shell=True)
-
-    # 4. 回傳 temp.txt 路徑
-    if os.path.exists(output_txt):
-        print("解析完成，已產生：", output_txt)
-        return rrf_path, output_txt
-
-    print("錯誤：找不到 temp.txt")
-    return rrf_path, None
 
 #截取技能等級
 import string
@@ -529,9 +664,12 @@ def bytes_to_int_le(b):
 
 import re
 
-def extract_session_stats(filepath):
-    with open(filepath, 'r', encoding='cp950', errors='ignore') as f:
-        content = f.read()
+def extract_session_stats(filepath=None, *, content=None):
+    if content is None:
+        if not filepath:
+            return {}
+        with open(filepath, 'r', encoding='cp950', errors='ignore') as f:
+            content = f.read()
 
     target_fields = [
         "Job", "Level", "JobLevel",
@@ -724,9 +862,10 @@ def extract_hex_bytes_from_block(block):
 
 
 
-def extract_efstinfo_values(filepath,
+def extract_efstinfo_values(filepath=None,
                             efst_ids_path="data/EFSTIDs.lua",
-                            stateiconinfo_path="data/stateiconinfo.lua"):
+                            stateiconinfo_path="data/stateiconinfo.lua",
+                            *, content=None):
     """
     來源1：
       [Chunk ...] Unparsed opcode EfstInfo, Length=...
@@ -857,10 +996,13 @@ def extract_efstinfo_values(filepath,
         name_to_desc[efst_name] = clean_lines
 
     # --------------------------------------------------
-    # 3) 讀 temp.txt
+    # 3) 取得 replay 內容（raw 模式直接使用記憶體字串）
     # --------------------------------------------------
-    with open(filepath, 'r', encoding='cp950', errors='ignore') as f:
-        content = f.read()
+    if content is None:
+        if not filepath:
+            return []
+        with open(filepath, 'r', encoding='cp950', errors='ignore') as f:
+            content = f.read()
 
     results = []
     seen_ids = set()
@@ -945,12 +1087,16 @@ def extract_efstinfo_values(filepath,
 
 
 def extract_equip_chunk(filepath, json_data, get_itemname,
-                        chunk_name="EquippedItems", group_map=None):
+                        chunk_name="EquippedItems", group_map=None, *, content=None):
 
     import re
 
-    with open(filepath, 'r', encoding='UTF-8', errors='ignore') as f:
-        content = f.read()
+    if content is None:
+        if not filepath:
+            print(f"找不到指定chunk！({chunk_name})")
+            return
+        with open(filepath, 'r', encoding='UTF-8', errors='ignore') as f:
+            content = f.read()
 
     # === 只抓 chunk 本體 ===
     pattern = (
@@ -1248,17 +1394,14 @@ def run_rrf_main(iteminfo_dict=None, sequipment_data=None):
     with open("data/default.json", "r", encoding="utf-8") as f:
         json_data = json.load(f)
 
-    # 1. 選 RRF → 執行 exe → 產出 temp.txt
-    rrf_path, txt_path = run_replay_and_dump()
-    if not txt_path:
+    # 1. 選 RRF → Python raw reader → 記憶體 replay_text
+    rrf_path, replay_text = run_replay_and_dump()
+    if not replay_text:
         #input("按 Enter 結束...")
         #exit()
         return None
 
-    # 2. 解析技能資訊 
-    with open(txt_path, "r", encoding="cp950", errors="ignore") as f:
-        replay_text = f.read()
-
+    # 2. 解析技能資訊（直接吃記憶體內容）
     skills = parse_skillinfo_list_from_text(replay_text)
     load_skill_map("data/skillneme.csv") 
     from skill_tree import skill_code_to_name, skill_code_to_id
@@ -1286,7 +1429,7 @@ def run_rrf_main(iteminfo_dict=None, sequipment_data=None):
     print("")
     json_data["技能_note"] = "\n".join(skill_json_list)
     # 3.★ 解析角色 Session 資料
-    session_data = extract_session_stats(txt_path)
+    session_data = extract_session_stats(content=replay_text)
 
     # 角色基本資料
     json_data["BaseLv"] = str(session_data.get("Level", ""))
@@ -1324,9 +1467,10 @@ def run_rrf_main(iteminfo_dict=None, sequipment_data=None):
     
     # 4. 解析 EfstInfo（ID -> 狀態名稱 -> descript）
     efstinfo_list = extract_efstinfo_values(
-        txt_path,
+        None,
         "data/EFSTIDs.lua",
-        "data/stateiconinfo.lua"
+        "data/stateiconinfo.lua",
+        content=replay_text,
     )
     # 把 EfstInfo 的數字 ID 寫入 default.json 的 buff，並用逗號分隔
     json_data["buff"] = ",".join(str(info["id"]) for info in efstinfo_list)
@@ -1343,20 +1487,15 @@ def run_rrf_main(iteminfo_dict=None, sequipment_data=None):
         print("找不到 EfstInfo 封包")
     print("")
 
-    # 5. 用 temp.txt 開始解析
-    extract_equip_chunk(txt_path, json_data, get_itemname,'EquippedItems', GROUP_NAME_MAP)
-    extract_equip_chunk(txt_path, json_data, get_itemname,'EquippedShadowItems', Shadow_GROUP_NAME_MAP)
+    # 5. 直接解析記憶體中的 RRF Items chunks
+    extract_equip_chunk(None, json_data, get_itemname, 'EquippedItems', GROUP_NAME_MAP, content=replay_text)
+    extract_equip_chunk(None, json_data, get_itemname, 'EquippedShadowItems', Shadow_GROUP_NAME_MAP, content=replay_text)
     #投擲物品查詢 找到EquipArrowIndex的開頭序號 到InventoryItems物品內的1D01內的第五組就是代號 要反查出物品名稱再匯入json，但是我懶得寫了
     #extract_equip_chunk(txt_path, json_data, get_itemname,'InventoryItems', NAME_MAP)
 
 
-    # 6. 解析完畢 → 刪除 temp.txt
-    try:
-        if os.path.exists(txt_path):
-            os.remove(txt_path)
-            print(f"已刪除暫存檔：{txt_path}")
-    except Exception as e:
-        print(f"刪除 {txt_path} 時發生錯誤：{e}")
+    # 6. raw 模式沒有 temp.txt，不需要刪除暫存文字檔。
+    #    JSON 輸出與 tmp/rrf_output_path.txt 保持原本流程。
 
     def replace_windows_invalid_chars(name):
         table = str.maketrans({
