@@ -3385,7 +3385,7 @@ class MainUI(QWidget):
                 if 0 < left_damage <= INT_MAX:
                     left = d.copy()
                     left["skill_id"] = NORMAL_ATTACK_LEFT_SKILL_ID
-                    left["skill_name"] = "普通傷害(左手)"
+                    left["skill_name"] = "普通攻擊(左手)"
                     left["damage"] = left_damage
                     left["is_offhand_damage"] = True
                     # 同一 ACT3 最多只算一次角色攻擊次數。
