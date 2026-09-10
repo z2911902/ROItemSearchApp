@@ -105,6 +105,10 @@ STAT_SKILL_NAMES = {"面板能力變動", "素質能力變動"}
 FILTER_ALL = "全部"
 FILTER_ALL_WITH_STAT = "全部(包含能力變動)"
 
+# 普攻副手傷害使用的內部虛擬技能 ID。
+# 必須和主手普攻(skill_id=0)分開，否則技能統計會把左右手重新合併。
+NORMAL_ATTACK_LEFT_SKILL_ID = -1
+
 skill_name_map = {}
 item_name_map = {}
 # === 手動對應錯誤或缺失的技能 ID ===
@@ -1036,8 +1040,9 @@ def decode_act3(hex_bytes):
     0x02E1 為 33 bytes：div=[26:28], type=[28], damage2=[29:33]
     0x08C8 為 34 bytes：is_sp_damage=[26], div=[27:29], type=[29], damage2=[30:34]
 
-    為了維持舊版統計口徑，damage 暫時仍只使用主 damage；damage2 另外保留，
-    不直接加進 damage。
+    damage 為原本的普通攻擊傷害；damage2 為副手（左手）傷害。
+    decode 階段保留兩個欄位，後續整理傷害資料時會把 damage2 拆成
+    獨立的「普通傷害(左手)」事件。
     """
     parsed = {}
 
@@ -2137,7 +2142,7 @@ class MainUI(QWidget):
         self.hud = DamageHUD()
         self.hud.hide()
         super().__init__()
-        self.setWindowTitle("RRF傷害解析器 v1.1")
+        self.setWindowTitle("RRF傷害解析器 v1.2")
         self.resize(1100, 900)
         self.transform_end_time = {}#結束變身時間
         self.transform_start_time = {}#變身時間    
@@ -3362,13 +3367,31 @@ class MainUI(QWidget):
                 continue
 
             d = p["decoded"].copy()
-            dmg = d["damage"]
-
-            if dmg <= 0 or dmg > INT_MAX:
-                continue
-
             d["timestamp"] = p["timestamp"]
-            new_parsed_data.append(d)
+
+            # 主傷害（技能傷害 / 普攻主手）
+            dmg = d.get("damage", 0)
+            main_damage_valid = 0 < dmg <= INT_MAX
+            if main_damage_valid:
+                d["is_offhand_damage"] = False
+                d["counts_as_attack"] = True
+                new_parsed_data.append(d)
+
+            # ACT3 的 damage2 是副手（左手）傷害。
+            # 拆成獨立事件，讓傷害歷程、總傷害、DPS、技能統計都會納入，
+            # 同時使用獨立虛擬 skill_id，避免和主手普攻(skill_id=0)被合併。
+            if p["type"] == "ACT3":
+                left_damage = d.get("damage2", 0)
+                if 0 < left_damage <= INT_MAX:
+                    left = d.copy()
+                    left["skill_id"] = NORMAL_ATTACK_LEFT_SKILL_ID
+                    left["skill_name"] = "普通傷害(左手)"
+                    left["damage"] = left_damage
+                    left["is_offhand_damage"] = True
+                    # 同一 ACT3 最多只算一次角色攻擊次數。
+                    # 若主手為 0/無效，則由左手這筆代表該次攻擊。
+                    left["counts_as_attack"] = not main_damage_valid
+                    new_parsed_data.append(left)
 
         new_raw_data = new_parsed_data + stat_events + status_events + vanish_events
         
@@ -4048,8 +4071,10 @@ class MainUI(QWidget):
                 merged[sid][skill]["count"] += 1
                 merged[sid][skill]["skill_name"] = d["skill_name"]
                 sid_total[sid] += dmg
-                # ★ 這裡把「攻擊次數」（技能次數）加總起來
-                sid_attack_count[sid] += 1
+                # 同一個 ACT3 左右手最多只計一次角色攻擊次數；
+                # 主手為 0/無效時，會由左手那筆補算一次。
+                if d.get("counts_as_attack", True):
+                    sid_attack_count[sid] += 1
 
             # 把結果存到物件上，給後面樹狀圖用
             self.sid_attack_count = sid_attack_count
@@ -4096,8 +4121,13 @@ class MainUI(QWidget):
                     total_skill = stat["total"]
                     avg = total_skill / cnt if cnt > 0 else 0
 
+                    skill_label = (
+                        skill_name
+                        if skill_id == NORMAL_ATTACK_LEFT_SKILL_ID
+                        else f"{skill_name} (ID {skill_id})"
+                    )
                     child = QTreeWidgetItem([
-                        f"{skill_name} (ID {skill_id}) - 次數 {cnt}",
+                        f"{skill_label} - 次數 {cnt}",
                         f"{avg:,.0f}",
                         f"{total_skill:,.0f}",
                         "0"      # ★ 技能 DPS 也固定 0
@@ -4165,8 +4195,10 @@ class MainUI(QWidget):
             merged[sid][skill]["skill_name"] = d["skill_name"]
 
             sid_total[sid] += dmg
-            # ★ 每進來一筆，就是一次攻擊（對應你樹上「次數」那個欄位）
-            sid_attack_count[sid] += 1
+            # 同一個 ACT3 左右手最多只計一次角色攻擊次數；
+            # 主手為 0/無效時，會由左手那筆補算一次。
+            if d.get("counts_as_attack", True):
+                sid_attack_count[sid] += 1
             
             if sec == T:
                 merged[sid][skill]["T_damage"] += dmg
@@ -4225,8 +4257,13 @@ class MainUI(QWidget):
                 T_cnt = stat["T_count"]
                 T_dmg = stat["T_damage"]
 
+                skill_label = (
+                    skill_name
+                    if skill_id == NORMAL_ATTACK_LEFT_SKILL_ID
+                    else f"{skill_name} (ID {skill_id})"
+                )
                 child = QTreeWidgetItem([
-                    f"{skill_name} (ID {skill_id}) - 次數 {cnt} (秒{T_cnt})",
+                    f"{skill_label} - 次數 {cnt} (秒{T_cnt})",
                     f"{(total/cnt):,.0f}" if cnt > 0 else "0",
                     f"{total:,.0f}",
                     f"{T_dmg:,.0f}"         # ★ 這個技能在 T 秒的 DPS
