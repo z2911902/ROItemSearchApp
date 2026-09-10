@@ -1,4 +1,4 @@
-"""Pure-Python Ragnarok Online RRF v5 reader.
+﻿"""Pure-Python Ragnarok Online RRF v5 reader.
 
 This module replaces the old RagnarokReplayExample.exe -> TXT stage.
 It parses the replay directly and exposes decrypted PacketStream packets as bytes.
@@ -58,12 +58,20 @@ PACKET_NAMES = {
     0x0141: "HEADER_ZC_COUPLESTATUS",
     0x0196: "HEADER_ZC_MSG_STATE_CHANGE",
     0x01DE: "HEADER_ZC_NOTIFY_SKILL2",
+    # Normal-attack packet family used by the analyzer.
+    # 0x02E1 is the 33-byte layout; 0x08C8 is the newer 34-byte layout.
+    # Both are exposed with the legacy name expected by parse_act3_blocks().
     0x02E1: "HEADER_ZC_NOTIFY_ACT3",
+    0x08C8: "HEADER_ZC_NOTIFY_ACT3",
     0x043F: "HEADER_ZC_MSG_STATE_CHANGE2",
     0x0915: "HEADER_ZC_NOTIFY_MOVEENTRY11",
     0x0983: "HEADER_ZC_MSG_STATE_CHANGE3",
-    0x09FD: "HEADER_ZC_NOTIFY_NEWENTRY11",
-    0x09FE: "HEADER_ZC_NOTIFY_STANDENTRY11",
+    # 2014-10-22bRagexe actor-entry family.
+    # Keep these names aligned with the original EXE / rAthena definitions:
+    #   09FD = MOVEENTRY11, 09FE = NEWENTRY11, 09FF = STANDENTRY11.
+    0x09FD: "HEADER_ZC_NOTIFY_MOVEENTRY11",
+    0x09FE: "HEADER_ZC_NOTIFY_NEWENTRY11",
+    0x09FF: "HEADER_ZC_NOTIFY_STANDENTRY11",
     0x0ADD: "HEADER_物品掉落",
 }
 

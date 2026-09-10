@@ -1026,22 +1026,54 @@ def split_groupinfo_members(hex_bytes):
     return members
     
 def decode_act3(hex_bytes):
-    #print(hex_bytes)
+    """解碼普通攻擊封包（支援 0x02E1 / 0x08C8）。
+
+    兩種 layout 的共同欄位：
+      [2:6]   source GID
+      [6:10]  target GID
+      [22:26] damage
+
+    0x02E1 為 33 bytes：div=[26:28], type=[28], damage2=[29:33]
+    0x08C8 為 34 bytes：is_sp_damage=[26], div=[27:29], type=[29], damage2=[30:34]
+
+    為了維持舊版統計口徑，damage 暫時仍只使用主 damage；damage2 另外保留，
+    不直接加進 damage。
+    """
     parsed = {}
 
-    parsed["skill_id"] = 0              # 普通攻擊 → skill_id = 0
+    parsed["skill_id"] = 0
     parsed["skill_name"] = "普通攻擊"
 
-    parsed["sid"] = le_int(hex_bytes[2:6])
-    parsed["did"] = le_int(hex_bytes[6:9])
+    parsed["sid"] = le_int(hex_bytes[2:6]) if len(hex_bytes) >= 6 else 0
+    parsed["did"] = le_int(hex_bytes[6:10]) if len(hex_bytes) >= 10 else 0
+    parsed["damage"] = le_int(hex_bytes[22:26]) if len(hex_bytes) >= 26 else 0
 
-    parsed["damage"] = le_int(hex_bytes[22:26])
-
-    parsed["level"] = 1                # 統一設成 1
-    parsed["hit_count"] = 1            # 普通攻擊 = 1 hit
+    parsed["level"] = 1
     parsed["skill_delay"] = 0
     parsed["global_delay"] = 0
-    #print(f"sid:{le_int(hex_bytes[2:6])} did:{le_int(hex_bytes[6:9])}")
+
+    if len(hex_bytes) >= 34:
+        # 0x08C8 / 34-byte layout
+        parsed["is_sp_damage"] = int(hex_bytes[26], 16)
+        parsed["hit_count"] = le_int(hex_bytes[27:29])
+        parsed["attack_type"] = int(hex_bytes[29], 16)
+        parsed["damage2"] = le_int(hex_bytes[30:34])
+    elif len(hex_bytes) >= 33:
+        # 0x02E1 / 33-byte layout
+        parsed["is_sp_damage"] = 0
+        parsed["hit_count"] = le_int(hex_bytes[26:28])
+        parsed["attack_type"] = int(hex_bytes[28], 16)
+        parsed["damage2"] = le_int(hex_bytes[29:33])
+    else:
+        parsed["is_sp_damage"] = 0
+        parsed["hit_count"] = 1
+        parsed["attack_type"] = 0
+        parsed["damage2"] = 0
+
+    # 某些異常/舊資料可能給 0，維持舊版至少算 1 hit 的行為。
+    if parsed["hit_count"] <= 0:
+        parsed["hit_count"] = 1
+
     return parsed
 
 def decode_group_member(member_hex):
@@ -2007,12 +2039,12 @@ def parse_standentry11_blocks(text):
     return results
 
 def decode_standentry11(hex_bytes, size):
-    # 6~7 怪物 DID（小端）
+    # GID/DID: byte 5~8 (4 bytes, little-endian)
     did = le_int(hex_bytes[5:9])
 
-    # STANDENTRY11 在 byte 83 可能保留 # 前綴（例如 #mk_10）。
-    # 保留它讓 sanitize_actor_name() 能辨識為內部名稱，而不是誤當顯示名稱。
-    name = _decode_actor_name(hex_bytes, 83, size)
+    # 0x09FF / STANDENTRY11: match the original EXE-based parser.
+    # The actor name starts at byte 84.
+    name = _decode_actor_name(hex_bytes, 84, size)
 
     return {
         "did": did,
@@ -2022,12 +2054,12 @@ def decode_standentry11(hex_bytes, size):
 # 解析 HEADER_ZC_NOTIFY_NEWENTRY11
 # ============================================================
 def decode_newentry11(hex_bytes, size):
-    # 6~7 怪物 DID（小端）
+    # GID/DID: byte 5~8 (4 bytes, little-endian)
     did = le_int(hex_bytes[5:9])
 
-    # 這個 client 的 NEWENTRY11 真正名稱從 byte 90 開始。
-    # 舊版從 83 開始會把 FF/flag/class 一起解碼，造成「���中文名」污染。
-    name = _decode_actor_name(hex_bytes, 90, size)
+    # 0x09FE / NEWENTRY11: match the original EXE-based parser.
+    # The actor name starts at byte 83.
+    name = _decode_actor_name(hex_bytes, 83, size)
 
     return {
         "did": did,
@@ -3293,10 +3325,11 @@ class MainUI(QWidget):
         self.sid_attack_count = defaultdict(int)
 
         for pkt in all_packets:
-            if pkt["type"] != "Skill2" and pkt["type"] != "GroundSkill" and pkt["type"] != "Act3":
+            # parse_* 實際使用的 type 是全大寫：GROUND / SKILL2 / ACT3。
+            if pkt["type"] not in ("GROUND", "SKILL2", "ACT3"):
                 continue
 
-            dec = pkt.get("decode")
+            dec = pkt.get("decoded")
             if not dec:
                 continue
 
