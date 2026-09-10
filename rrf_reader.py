@@ -498,6 +498,31 @@ def _metadata_legacy_blocks(snapshot: ReplaySnapshot) -> List[str]:
         if b"\xFB\x00" in chunk.data:
             blocks.append(_chunk_legacy_block("GroupAndFriends", "GroupInfo", chunk.data))
 
+    # Initial actor entries: the original RagnarokReplay EXE also exposes actor
+    # state that already existed when recording started.  In this client these
+    # records live in container 15 as replay-opcode chunks rather than in the
+    # chronological PacketStream.  ReplayOpCodes.cs defines 214=MoveEntry11 and
+    # 217=StandEntry11.  Without synthesizing these packet blocks, monsters that
+    # were already on-screen at t=0 never enter did_name_map and appear as
+    # "未知目標" even though later damage packets contain their DID.
+    initial_actor_chunk_ids = {214, 217}
+    actor_headers = {0x0915, 0x09FD, 0x09FE, 0x09FF}
+    for chunk in snapshot.chunks_for(15):
+        if chunk.chunk_id not in initial_actor_chunk_ids or len(chunk.data) < 2:
+            continue
+        header = struct.unpack_from("<H", chunk.data, 0)[0]
+        if header not in actor_headers:
+            continue
+        packet = RawPacket(
+            record_id=-1,
+            time_ms=0,
+            data=chunk.data,
+            header=header,
+            index=-1,
+            stream_offset=-1,
+        )
+        blocks.append(_packet_legacy_block(packet))
+
     for chunk in snapshot.chunks_for(17):
         if len(chunk.data) >= 2:
             blocks.append(_chunk_legacy_block("Efst", "EfstInfo", chunk.data))
