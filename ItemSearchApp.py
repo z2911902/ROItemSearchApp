@@ -13030,11 +13030,12 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     if len(sys.argv) > 1 and sys.argv[1] == "rrf":
-        from RRF_compile_damage_view import MainUI
+        from RRF_compile_damage_view_raw_v4 import MainUI
 
         window = MainUI()
         window.show()
         sys.exit(app.exec())
+
 
     # 保留參考，避免被 Python 回收
     loading = LoadingDialog()
