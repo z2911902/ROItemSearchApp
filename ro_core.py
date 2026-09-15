@@ -3989,9 +3989,9 @@ def build_production_core_runtime(
         raise FileNotFoundError(f"找不到 data 目錄：{data_path}")
 
     iteminfo_path = data_path / "iteminfo_new.lua"
-    user_iteminfo_path = data_path / "User_iteminfo_new.lua"
+    user_iteminfo_path = data_path / "USER_iteminfo_new.lua"
     equipment_path = data_path / "EquipmentProperties.lua"
-    user_equipment_path = data_path / "User_EquipmentProperties.lua"
+    user_equipment_path = data_path / "USER_EquipmentProperties.lua"
     kro_iteminfo_path = data_path / "KRO_itemInfo_true.lua"
     kro_equipment_path = data_path / "KRO_equipmentproperties.lua"
     skill_entries_path = data_path / "all_skill_entries.py"
