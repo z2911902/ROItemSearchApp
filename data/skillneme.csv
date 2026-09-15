@@ -493,7 +493,7 @@
 2001,RK_ENCHANTBLADE,魔力劍,,,,,,,,0,0,,,,,,,,,,,,,,,
 2002,RK_SONICWAVE,音速衝擊波,physical,1,,,,10,(550+Sklv*200)*BaseLv/100,0,-3,0.5,,,,,,,,,,,,,,
 2003,RK_DEATHBOUND,死亡反彈,physical,0,,,,,,0,0,-1,,,,,,,,,,,,,,
-2004,RK_HUNDREDSPEAR,百矛穿刺,physical,1,,,,10,(600+Sklv*200)*BaseLv/100+GSklv(8218)*50,0,-5,0,,,,,5210,(700+Sklv*350)*BaseLv/100+GSklv(8218)*50,,,,,,,,
+2004,RK_HUNDREDSPEAR,百矛穿刺,physical,1,0,0,,10,(600+Sklv*200)*BaseLv/100+GSklv(397)*50,0,-5,0,,,,,5210,(700+Sklv*350)*BaseLv/100+GSklv(397)*50,,,,0,0,,,
 2005,RK_WINDCUTTER,風壓飛刃,,,,,,,,0,0,,,,,,,,,,,,,,,
 2006,RK_IGNITIONBREAK,致命爆裂,physical,0,0,0,,5,Sklv*450*BaseLv/100,0,1,0.5,,0,,,,,,,,0,0,,,
 2007,RK_DRAGONTRAINING,龍駕馭,,,,,,,,0,0,,,,,,,,,,,,,,,
