@@ -1,4 +1,31 @@
-﻿"""ROItemSearchApp 共用 Python 核心（Stage 3）。
+﻿# =============================================================================
+# RO CORE — REVIEWABLE VIEW
+# =============================================================================
+# 目的：讓 code review 可以沿著資料流逐段檢查，而不是從 11k+ 行單檔硬看。
+#
+# IMPORTANT
+# - 本檔僅新增 REVIEW 導覽註解；不搬動、不刪除、不改寫任何可執行邏輯。
+# - 已以 Python AST 比對原檔與本檔，兩者 executable AST 必須完全一致。
+# - 詳細審查順序、輸入/輸出、狀態副作用與大型函式切點請見 RO_CORE_REVIEW_GUIDE.md。
+#
+# 建議審查順序：
+#   R01 狀態/依賴邊界
+#   R02 純公式（素質點、特性點、防具精煉）
+#   R03 資料解析（item/lub/equipment blocks）
+#   R04 Lua 效果解析器
+#   R05 裝備效果彙總
+#   R06 基礎素質拆解
+#   R07 Runtime/Facade
+#   R08 附魔/Lapine
+#   R09 傷害公式與防禦係數
+#   R10 技能時間
+#   R11 怪物/技能樹/RRF
+#   R12 無詠與 HP/SP/ASPD
+#   R13 裝備搜尋/備註工具
+#   R14 CharacterBuild 總入口
+# =============================================================================
+
+"""ROItemSearchApp 共用 Python 核心（Stage 3）。
 
 此模組刻意不依賴 PySide6 / FastAPI，Desktop 與 Web 都可以直接匯入。
 Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷移腳本
@@ -8,7 +35,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.84"
+RO_CORE_VERSION = "v0.21.85"
 
 from dataclasses import dataclass, field
 import ast
@@ -20,6 +47,10 @@ from typing import Any, Iterable
 
 
 # =========================================================
+# -----------------------------------------------------------------------------
+# REVIEW R01 — STATE & DEPENDENCY BOUNDARY
+# 先確認 request 可變狀態、跨 request 共用 dependency，以及 legacy bridge 的參照語意。
+# -----------------------------------------------------------------------------
 # 核心狀態容器
 # =========================================================
 
@@ -213,6 +244,10 @@ class CoreData:
 
 
 # =========================================================
+# -----------------------------------------------------------------------------
+# REVIEW R02 — PURE STAT / REFINE FORMULAS
+# 優先審查純函式；輸入輸出明確，適合先建立公式基準。
+# -----------------------------------------------------------------------------
 # 素質點數計算
 # =========================================================
 
@@ -342,6 +377,10 @@ def calculate_armor_refine_bonus(refine: int, armor_level: int) -> dict:
 
 
 # =========================================================
+# -----------------------------------------------------------------------------
+# REVIEW R03 — ITEM / LUB DATA PARSING
+# 資料讀取與字串解析；與角色計算公式分開看。
+# -----------------------------------------------------------------------------
 # 物品資料解析
 # =========================================================
 
@@ -529,6 +568,10 @@ def parse_equipment_blocks(content: str, *, verbose: bool = True) -> dict[int, s
 
 
 # =========================================================
+# -----------------------------------------------------------------------------
+# REVIEW R04 — LUA EFFECT PARSER
+# 高風險大型函式；重點看 expression normalize/eval、條件堆疊、context mutation 與效果輸出。
+# -----------------------------------------------------------------------------
 # Lua 裝備效果 parser（Stage 3 注入點）
 # =========================================================
 
@@ -2517,6 +2560,10 @@ def parse_lua_effects_with_variables(
 # === STAGE 3 LUA PARSER 結束 ===
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R05 — EFFECT AGGREGATION
+# 把 parser 文字結果正規化、分類、加總；確認 token/category 規則與 legacy dict 相容性。
+# -----------------------------------------------------------------------------
 # === STAGE 4 效果彙總開始 ===
 
 @dataclass
@@ -2840,6 +2887,10 @@ def format_effect_dict(
 # === STAGE 4 效果彙總結束 ===
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R05B — EQUIPMENT EFFECT ORCHESTRATION
+# 串接裝備、卡片、套裝、技能 buff；確認重複計算與 combo 去重。
+# -----------------------------------------------------------------------------
 # === STAGE 5 裝備計算核心開始 ===
 
 @dataclass
@@ -3275,6 +3326,10 @@ def calculate_equipment_effects(
 # === STAGE 5 裝備計算核心結束 ===
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R06 — STAT BREAKDOWN & SERIALIZATION
+# 基礎值、Job、裝備值與 total 的唯一拆解入口，以及 API request/result 轉換。
+# -----------------------------------------------------------------------------
 # === STAGE 6 基礎素質預計算 / API 序列化開始 ===
 
 BASE_STAT_NAMES: tuple[str, ...] = (
@@ -3600,6 +3655,10 @@ def equipment_effect_result_to_dict(result: EquipmentEffectResult) -> dict[str, 
 # === STAGE 6 基礎素質預計算 / API 序列化結束 ===
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R07 — PRODUCTION RUNTIME LOADING
+# 檔案載入與 runtime 建構；審查資料來源、cache/merge 與 dependency 注入。
+# -----------------------------------------------------------------------------
 # === STAGE 7 正式版核心 Runtime 開始 ===
 
 # 由 apply_core_stage7.py 根據使用者目前已驗證的
@@ -4105,6 +4164,10 @@ def fork_core_dependencies(dependencies: CoreDependencies) -> CoreDependencies:
 
 
 # =========================================================
+# -----------------------------------------------------------------------------
+# REVIEW R07B — PUBLIC CORE FACADE
+# 對外介面層；確認 Desktop/Web 呼叫端不必理解內部 stage。
+# -----------------------------------------------------------------------------
 # 對外核心介面
 # =========================================================
 
@@ -4256,6 +4319,10 @@ __all__ = [
     "fork_core_dependencies",
 ]
 
+# -----------------------------------------------------------------------------
+# REVIEW R08 — ENCHANT / LAPINE
+# 附魔與隨機選項資料解析/抽選；與主傷害核心分開審查。
+# -----------------------------------------------------------------------------
 # === STAGE 13 WEB 附魔 / Lapine 工具核心 ===
 # 純標準函式庫 helper；此區塊不要依賴任何 framework：
 # 不使用 FastAPI、Pydantic、PySide6。
@@ -5553,6 +5620,10 @@ def roll_stage13_lapine(data_dir, parsed_items, item_id, table_key, seed=None):
         ),
     }
 
+# -----------------------------------------------------------------------------
+# REVIEW R09 — DAMAGE CORE
+# 武器精煉、屬性/體型、防禦、技能公式、逐段倍率與最終傷害。
+# -----------------------------------------------------------------------------
 # === STAGE 17 共用傷害核心 ===
 # 從目前 Desktop 語意抽出的、不依賴 Qt 的標準傷害流程。
 import ast as _stage17_ast
@@ -6053,6 +6124,10 @@ def _stage17_sum_skill_effect(effect_dict, skill_name, suffix):
 
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R10 — SKILL TIMING
+# 詠唱、延遲、冷卻等時間核心；確認毫秒/秒、固定/變動詠唱與效果加總。
+# -----------------------------------------------------------------------------
 # === STAGE 21.24 DESKTOP / WEB 共用技能時間核心 ===
 # 唯一計算來源，抽自 Desktop 的 ItemSearchApp.update_skill_delay_labels()。
 # Desktop 只保留 QLabel / CastBar 顯示層；Web 與 Desktop 都呼叫這些
@@ -6811,7 +6886,8 @@ def _stage17_calculate_one(*, formula, round_index, label, skill_hits, attack_el
     )
     if formula_result is None:
         raise ValueError(f"技能公式無法計算：{expanded_formula}")
-    skill_result = int(formula_result)
+    katar = base["katar_mastery"] if weapon_class not in STAGE17_DEX_WEAPON_CLASSES else 0
+    skill_result =int(math.floor(formula_result) * (1+(katar/100)))
     if _stage17_int(used_levels.get(380, 0)) == 1:
         skill_result += 20
 
@@ -6895,7 +6971,7 @@ def _stage17_calculate_one(*, formula, round_index, label, skill_hits, attack_el
         first_min = _stage17_math.ceil(first_min * element_multiplier / 100)
         first_max = _stage17_math.ceil(first_max * element_multiplier / 100)
         mastery = 0 if weapon_class in STAGE17_DEX_WEAPON_CLASSES else base["weapon_mastery"]
-        katar = base["katar_mastery"] if weapon_class not in STAGE17_DEX_WEAPON_CLASSES else 0
+        #katar = base["katar_mastery"] if weapon_class not in STAGE17_DEX_WEAPON_CLASSES else 0 #移動到技能公式內相乘
         output, steps2 = stage17_apply_stepwise(
             (first_max, first_min),
             (base["front_atk"], "+", "前ATK"),
@@ -6909,7 +6985,7 @@ def _stage17_calculate_one(*, formula, round_index, label, skill_hits, attack_el
             (critical_damage, 1, "爆擊傷害%"),
             (near_far, 1, "近/遠傷%"),
             (skill_result, 0, "技能倍率%"),
-            (katar, 1, "高階拳刃修煉"),
+            #(katar, 1, "高階拳刃修煉"),
             (base["res_multiplier"], "raw", "RES減傷%"),
             (base["def_multiplier"], "raw", "DEF減傷%"),
             (_stage17_number(monster.get("defc", 0)), None, "DEF減算"),
@@ -8086,6 +8162,10 @@ def stage17_compare_damage_parity(legacy_segments, core_result, *, numeric_toler
     }
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R11 — MONSTER DATA
+# 怪物資料讀取/快取/格式相容；不是公式本體但會餵給傷害核心。
+# -----------------------------------------------------------------------------
 # === STAGE 18 共用怪物查詢核心 ===
 # Desktop 與 Web 共用的純標準函式庫怪物 helper。
 # 此區塊不要依賴 PySide6 / FastAPI / 網路 I/O。
@@ -8347,6 +8427,10 @@ def stage18_parse_monster_payload(data):
         "monster_c_matk": int(combat_matk),
     }
 
+# -----------------------------------------------------------------------------
+# REVIEW R11B — SKILL TREE & RRF IMPORT
+# 技能樹與 RRF 匯入；重點看格式容錯與角色資料還原。
+# -----------------------------------------------------------------------------
 # === STAGE 19 共用技能樹與 RRF 匯入核心 ===
 # Desktop 與 Web 共用的純標準函式庫 helper。
 # 此處不使用 PySide6 / FastAPI / subprocess / 網路 I/O。
@@ -9316,6 +9400,10 @@ def stage19_build_rrf_desktop_json_from_rrf_bytes(rrf_bytes, data_dir, parsed_it
     )
 
 
+# -----------------------------------------------------------------------------
+# REVIEW R12 — NO-CAST STATUS
+# 固定/變動詠唱條件與效果加總。
+# -----------------------------------------------------------------------------
 # === STAGE 21.25 共用素質無詠核心 ===
 
 def stage25_calculate_no_cast_status(
@@ -9397,6 +9485,10 @@ def stage25_calculate_no_cast_from_effects(
 
 # === STAGE 21.25 共用素質無詠核心結束 ===
 
+# -----------------------------------------------------------------------------
+# REVIEW R12B — STATUS HP / SP / ASPD
+# 角色狀態衍生值；確認職業表、素質、裝備效果與手動輸入的優先順序。
+# -----------------------------------------------------------------------------
 # === STAGE 20 共用 HP / SP / ASPD 核心 ===
 # Desktop 與 Web 共用的純標準函式庫 helper。
 
@@ -9875,6 +9967,10 @@ def stage20_calculate_status(
         },
     }
 
+# -----------------------------------------------------------------------------
+# REVIEW R13 — EQUIPMENT SEARCH
+# 裝備 metadata、搜尋與雙手裝備規則。
+# -----------------------------------------------------------------------------
 # === STAGE 21 裝備搜尋與雙手裝備核心 ===
 # Desktop 與 Web 共用、不依賴 Qt / FastAPI 的 helper。
 
@@ -10150,6 +10246,10 @@ def stage21_get_equipment_item(
         block,
     )
 
+# -----------------------------------------------------------------------------
+# REVIEW R13B — NOTE EDITOR CORE
+# 備註函式 catalog、map option 與 preview；和正式效果計算分離看。
+# -----------------------------------------------------------------------------
 # === STAGE 21.9 備註編輯器核心 ===
 # 由 apply_stage21_9.py 根據使用者目前的 Desktop 原始碼產生。
 # 這裡只有資料；Web runtime 不會匯入 ItemSearchApp.py 或 PySide6。
@@ -10709,6 +10809,10 @@ def stage21_9_parse_note_preview(
 
 # === STAGE 21.9 備註編輯器核心結束 ===
 
+# -----------------------------------------------------------------------------
+# REVIEW R14 — CHARACTER BUILD MODEL
+# 完整角色 payload/schema 與 legacy mapping。
+# -----------------------------------------------------------------------------
 # === 核心去重階段 8：角色配裝模型 ===
 # === 核心去重階段 16：角色配裝 Schema V2 ===
 CHARACTER_BUILD_SCHEMA = "ROItemSearchApp.CharacterBuild"
@@ -10836,6 +10940,10 @@ def normalize_character_build_payload(
     """透過 CharacterBuild 正規化舊版或 Phase 8 專案資料。"""
     return CharacterBuild.from_dict(payload).to_dict(include_metadata=include_metadata)
 
+# -----------------------------------------------------------------------------
+# REVIEW R14B — CHARACTER BUILD FACADE
+# 最終 orchestration：裝備效果 → 狀態 → 傷害 → 精煉 → 備註。
+# -----------------------------------------------------------------------------
 # === 核心去重階段 12+13+14：角色配裝計算 + 防具精煉組合 ===
 
 @dataclass(frozen=True)

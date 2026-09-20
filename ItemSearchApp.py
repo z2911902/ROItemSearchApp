@@ -1,10 +1,11 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.7-260911"
+Version = "v0.8.10-260920"
 Server_area = "TwRO"
 
 import sys, builtins, time
 import os
 import json
+import hashlib
 from PySide6.QtCore import QThread, Signal, Qt, QMetaObject, QTimer
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPlainTextEdit, QLabel
 import enchant #載入附魔工具
@@ -21,7 +22,7 @@ from multi_compare import open_multi_compare_window
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import datetime, timezone
-
+import re
 import requests
 
 #介面縮放倍率設定 0.5~3倍
@@ -182,6 +183,126 @@ class InitWorker(QThread):
             print(f"初始化發生錯誤：{e}")
         finally:
             builtins.print = original_print
+
+
+class GoogleTranslateWorker(QThread):
+    """背景呼叫 Google Translate 免金鑰網頁端點，避免翻譯時卡住 Qt UI。"""
+
+    translated_signal = Signal(int, str, str)  # item_id, cache_key, translated_ro_text
+    error_signal = Signal(int, str)            # item_id, error_message
+    status_signal = Signal(int, str)            # item_id, status key
+    progress_signal = Signal(int, int, int)      # item_id, current, total
+    _RO_COLOR_RE = re.compile(r"\^[0-9A-Fa-f]{6}")
+
+    def __init__(self, item_id: int, description_lines: list[str], cache_key: str, parent=None):
+        super().__init__(parent)
+        self.item_id = int(item_id)
+        self.description_lines = [str(line) for line in (description_lines or [])]
+        self.cache_key = str(cache_key)
+
+    @staticmethod
+    def _translate_chunk(text: str) -> str:
+        response = requests.get(
+            "https://translate.googleapis.com/translate_a/single",
+            params={
+                "client": "gtx",
+                "sl": "ko",
+                "tl": "zh-TW",
+                "dt": "t",
+                "q": text,
+            },
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 Chrome/140 Safari/537.36"
+                )
+            },
+            timeout=(5, 15),
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+        if not isinstance(payload, list) or not payload or not isinstance(payload[0], list):
+            raise RuntimeError("Google 翻譯回傳格式異常")
+
+        translated_parts = []
+        for segment in payload[0]:
+            if isinstance(segment, list) and segment and segment[0] is not None:
+                translated_parts.append(str(segment[0]))
+
+        translated = "".join(translated_parts).strip()
+        if not translated:
+            raise RuntimeError("Google 翻譯沒有回傳文字")
+        return translated
+
+    @classmethod
+    def _translate_ro_line(cls, line: str) -> str:
+        """翻譯單行，但完整保留 RO 的 ^RRGGBB 色碼位置。"""
+        if line == "":
+            return ""
+
+        parts = cls._RO_COLOR_RE.split(line)
+        color_codes = cls._RO_COLOR_RE.findall(line)
+        translated_parts: list[str] = []
+
+        # 色碼本身完全不送 Google；只翻譯色碼之間的可見文字。
+        # 因此 ^RRGGBB 的數值與相對位置不會被翻譯服務改掉。
+        for part in parts:
+            if not part or not part.strip():
+                translated_parts.append(part)
+                continue
+
+            # Google 回傳常會 trim 頭尾空白；自行拆出並補回，盡量維持原始排版。
+            leading = part[:len(part) - len(part.lstrip())]
+            trailing = part[len(part.rstrip()):]
+            core_start = len(leading)
+            core_end = len(part) - len(trailing) if trailing else len(part)
+            core = part[core_start:core_end]
+
+            if re.search(r"[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]", core):
+                translated_core = cls._translate_chunk(core)
+                translated_parts.append(leading + translated_core + trailing)
+            else:
+                translated_parts.append(part)
+
+        out = translated_parts[0] if translated_parts else ""
+        for index, color_code in enumerate(color_codes):
+            following = translated_parts[index + 1] if index + 1 < len(translated_parts) else ""
+            out += color_code + following
+        return out
+
+    def run(self):
+        try:
+            # 只把真正含韓文的行計入進度；空白行與純符號/英文行仍原封不動保留。
+            korean_re = re.compile(r"[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]")
+            translatable_indexes = [
+                index
+                for index, line in enumerate(self.description_lines)
+                if korean_re.search(self._RO_COLOR_RE.sub("", line))
+            ]
+            total = len(translatable_indexes)
+            if total <= 0:
+                raise RuntimeError("沒有可翻譯的韓文文字")
+
+            self.status_signal.emit(self.item_id, "connecting")
+            translated_lines: list[str] = []
+            current = 0
+
+            # 逐行處理，空白行也原封不動保留；避免 Google 自行合併/重排換行。
+            for line in self.description_lines:
+                is_translatable = bool(korean_re.search(self._RO_COLOR_RE.sub("", line)))
+                translated_lines.append(self._translate_ro_line(line))
+                if is_translatable:
+                    current += 1
+                    self.progress_signal.emit(self.item_id, current, total)
+
+            translated = "\n".join(translated_lines)
+            if not translated.strip():
+                raise RuntimeError("沒有可翻譯的文字")
+            self.status_signal.emit(self.item_id, "saving")
+            self.translated_signal.emit(self.item_id, self.cache_key, translated)
+        except Exception as exc:
+            self.error_signal.emit(self.item_id, str(exc))
 
 
 from PySide6.QtWidgets import QProgressDialog, QMessageBox, QDialog
@@ -5359,7 +5480,7 @@ class ItemSearchApp(QWidget):
         globals()["SMATK"] = sum(val for val, _ in effect_dict.get(("S.MATK", ""), []))
         #print(f"S.MATK{SMATK}")
         #公式用
-        
+        #260920高階拳刃修煉需跟公式相乘去掉小數點。
         SKILL_ASC_KATAR = (enabled_skill_levels.get(376,0) * 2) + 10 if weapon_class == 16 else 0#高階拳刃修煉
         #print(f"高階拳刃修煉 {SKILL_ASC_KATAR}")
 
@@ -10064,6 +10185,20 @@ class ItemSearchApp(QWidget):
         self.multi_compare_window = None
         self.load_config()#讀取偏好設定
 
+        # KRO / 韓文物品說明翻譯狀態。翻譯只在使用者按按鈕後執行。
+        self._translate_worker = None
+        self._translation_in_progress_item_id = None
+        self._translation_busy_text = ""
+        self._translation_error_by_item = {}
+        self._translation_complete_item_id = None
+        self._translation_complete_timer = QTimer(self)
+        self._translation_complete_timer.setSingleShot(True)
+        self._translation_complete_timer.setInterval(1200)
+        self._translation_complete_timer.timeout.connect(self._clear_translation_complete_state)
+        self._translated_item_id = None
+        self._last_displayed_item_id = None
+        self._description_translation_cache = self._load_description_translation_cache()
+
         
         # UI 元件初始化
 
@@ -10103,6 +10238,29 @@ class ItemSearchApp(QWidget):
         )
         self.result_box.currentIndexChanged.connect(
             self.update_divine_pride_button
+        )
+
+        self.translate_desc_button = QPushButton(
+            tr("button.translate_description", "翻譯說明")
+        )
+        # 固定成約 6 個中文字的寬度，不跟較長的 Divine Pride 按鈕一起撐大。
+        _translate_button_width = (
+            self.translate_desc_button.fontMetrics().horizontalAdvance("翻譯按鈕寬度") + 16
+        )
+        self.translate_desc_button.setFixedWidth(_translate_button_width)
+        self.translate_desc_button.setMinimumHeight(28)
+        self.translate_desc_button.setEnabled(False)
+        self.translate_desc_button.setToolTip(
+            tr(
+                "tooltip.translate_description",
+                "將目前物品的韓文說明翻譯為繁體中文（免 API Key）。",
+            )
+        )
+        self.translate_desc_button.clicked.connect(
+            self.toggle_translate_selected_description
+        )
+        self.result_box.currentIndexChanged.connect(
+            self.update_translate_description_button
         )
 
         self.name_field = QLineEdit()
@@ -11111,7 +11269,9 @@ class ItemSearchApp(QWidget):
         result_selector_layout = QHBoxLayout(result_selector_widget)
         result_selector_layout.setContentsMargins(0, 0, 0, 0)
         result_selector_layout.setSpacing(6)
-        middle_layout.addWidget(self.divine_pride_button)
+        result_selector_layout.addWidget(self.divine_pride_button)
+        result_selector_layout.addWidget(self.translate_desc_button)
+        middle_layout.addWidget(result_selector_widget)
         #add_labeled_row(middle_layout, "中文名稱", self.name_field)
         #add_labeled_row(middle_layout, "韓文名稱", self.kr_name_field)
         #add_labeled_row(middle_layout, "鑲嵌孔數", self.slot_field)
@@ -12571,6 +12731,351 @@ class ItemSearchApp(QWidget):
         self.trigger_total_effect_update()
 
 
+    def _description_translation_cache_path(self) -> str:
+        data_dir = os.path.join(get_app_base_dir(), "data")
+        os.makedirs(data_dir, exist_ok=True)
+        return os.path.join(data_dir, "kro_description_translation_cache.json")
+
+    def _load_description_translation_cache(self) -> dict:
+        try:
+            with open(self._description_translation_cache_path(), "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def _save_description_translation_cache(self):
+        path = self._description_translation_cache_path()
+        tmp_path = path + ".tmp"
+        try:
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    self._description_translation_cache,
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            os.replace(tmp_path, path)
+        except OSError as exc:
+            print(f"⚠️ 翻譯快取儲存失敗：{exc}")
+            try:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+            except OSError:
+                pass
+
+    @staticmethod
+    def _description_text_for_translation(item: dict) -> str:
+        lines = item.get("description", []) if isinstance(item, dict) else []
+        text = "\n".join(str(line) for line in lines)
+        # 只用於判斷是否有可翻譯的韓文；顯示用資料仍保留原始 ^RRGGBB 色碼與換行。
+        text = re.sub(r"\^[0-9A-Fa-f]{6}", "", text)
+        return text.strip()
+
+    @staticmethod
+    def _description_translation_key(item: dict) -> str:
+        lines = item.get("description", []) if isinstance(item, dict) else []
+        raw_text = "\n".join(str(line) for line in lines)
+        # v2：快取內容包含原始色碼與逐行結構，避免讀到舊版純文字快取。
+        payload = ("ko>zh-TW:ro-desc-v2\n" + raw_text).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
+
+    @staticmethod
+    def _set_translated_description_html(widget: QTextEdit, translated_ro_text: str):
+        # split('\n') 會保留中間與尾端空白行；再沿用原本 RO 色碼 HTML 轉換器。
+        widget.setHtml(convert_description_to_html(str(translated_ro_text).split("\n")))
+
+    def _set_translate_button_state(self, state: str, text: str, *, enabled: bool):
+        """統一設定翻譯按鈕的文字、可用狀態與視覺強度。"""
+        if not hasattr(self, "translate_desc_button"):
+            return
+
+        button = self.translate_desc_button
+        button.setText(text)
+        button.setEnabled(bool(enabled))
+
+        # 翻譯中的 disabled 按鈕若沿用系統樣式通常會變成很淡的灰字。
+        # busy 狀態改用目前系統 Highlight / HighlightedText，深淺色主題都能保持醒目。
+        if state == "busy":
+            button.setStyleSheet(
+                "QPushButton {"
+                "  background-color: palette(highlight);"
+                "  color: palette(highlighted-text);"
+                "  border: 2px solid palette(highlight);"
+                "  border-radius: 4px;"
+                "  font-weight: 700;"
+                "  padding: 2px 5px;"
+                "}"
+                "QPushButton:disabled {"
+                "  background-color: palette(highlight);"
+                "  color: palette(highlighted-text);"
+                "  border: 2px solid palette(highlight);"
+                "  font-weight: 700;"
+                "}"
+            )
+        elif state == "done":
+            button.setStyleSheet(
+                "QPushButton { font-weight: 700; border-width: 2px; }"
+            )
+        elif state == "error":
+            button.setStyleSheet(
+                "QPushButton { font-weight: 700; border-width: 2px; }"
+            )
+        elif state == "cached":
+            button.setStyleSheet("QPushButton { font-weight: 600; }")
+        else:
+            button.setStyleSheet("")
+
+    def _clear_translation_complete_state(self):
+        self._translation_complete_item_id = None
+        self.update_translate_description_button()
+
+    def _on_description_translation_status(self, item_id: int, status: str):
+        if self._translation_in_progress_item_id != int(item_id):
+            return
+
+        status_text = {
+            "connecting": tr("button.translation_connecting", "連線中..."),
+            "saving": tr("button.translation_saving", "儲存中..."),
+        }.get(str(status), tr("button.translating_description", "翻譯中..."))
+        self._translation_busy_text = status_text
+        self.update_translate_description_button()
+
+    def _on_description_translation_progress(self, item_id: int, current: int, total: int):
+        if self._translation_in_progress_item_id != int(item_id):
+            return
+        current = max(0, int(current))
+        total = max(1, int(total))
+        self._translation_busy_text = f"翻譯 {current}/{total}"
+        self.update_translate_description_button()
+
+    def update_translate_description_button(self, *_):
+        if not hasattr(self, "translate_desc_button"):
+            return
+
+        item_id = self.result_box.currentData()
+        try:
+            item_id = int(item_id)
+        except (TypeError, ValueError):
+            item_id = 0
+
+        item = getattr(self, "filtered_items", {}).get(item_id, {})
+        source_text = self._description_text_for_translation(item)
+        has_korean = bool(re.search(r"[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]", source_text))
+        showing_translation = getattr(self, "_translated_item_id", None) == item_id
+
+        # 1) 執行中的工作優先顯示，目前會依階段變成：連線中 / 翻譯 n/N / 儲存中。
+        if self._translation_in_progress_item_id is not None:
+            busy_text = self._translation_busy_text or tr(
+                "button.translating_description", "翻譯中..."
+            )
+            self._set_translate_button_state("busy", busy_text, enabled=False)
+            self.translate_desc_button.setToolTip(
+                tr("tooltip.translation_in_progress", "正在翻譯目前物品說明，請稍候。")
+            )
+            return
+
+        # 2) 剛完成時短暫顯示完成狀態，之後自動切回可操作的「顯示原文」。
+        if self._translation_complete_item_id == item_id:
+            self._set_translate_button_state(
+                "done",
+                tr("button.translation_complete", "翻譯完成"),
+                enabled=True,
+            )
+            self.translate_desc_button.setToolTip(
+                tr("tooltip.translation_complete", "翻譯完成；按下可切回韓文原文。")
+            )
+            return
+
+        # 3) 已顯示翻譯時，按鈕改成切回原文。
+        if showing_translation:
+            self._set_translate_button_state(
+                "normal",
+                tr("button.show_original_description", "顯示原文"),
+                enabled=True,
+            )
+            self.translate_desc_button.setToolTip(
+                tr("tooltip.show_original_description", "切回目前物品的韓文原始說明。")
+            )
+            return
+
+        # 4) 無選取 / 沒有可翻文字。
+        if not item_id or not source_text:
+            self._set_translate_button_state(
+                "normal", tr("button.translate_description", "翻譯說明"), enabled=False
+            )
+            self.translate_desc_button.setToolTip(
+                tr("tooltip.translate_description_empty", "目前沒有可翻譯的物品說明。")
+            )
+            return
+
+        if not has_korean:
+            self._set_translate_button_state(
+                "normal", tr("button.translation_not_needed", "無需翻譯"), enabled=False
+            )
+            self.translate_desc_button.setToolTip(
+                tr("tooltip.translate_description_no_korean", "目前物品說明沒有偵測到韓文。")
+            )
+            return
+
+        # 5) 失敗狀態保留在按鈕上；按一次即可重試。
+        error_message = self._translation_error_by_item.get(item_id)
+        if error_message:
+            self._set_translate_button_state(
+                "error", tr("button.translation_failed", "翻譯失敗"), enabled=True
+            )
+            self.translate_desc_button.setToolTip(
+                tr(
+                    "tooltip.translation_failed_retry",
+                    "上次翻譯失敗，按下可重試。\n{error}",
+                    error=error_message,
+                )
+            )
+            return
+
+        # 6) 有本機快取時不需要再連 Google，明確顯示「已有翻譯」。
+        cache_key = self._description_translation_key(item)
+        cached = self._description_translation_cache.get(cache_key)
+        if isinstance(cached, str) and cached.strip():
+            self._set_translate_button_state(
+                "cached", tr("button.translation_cached", "已有翻譯"), enabled=True
+            )
+            self.translate_desc_button.setToolTip(
+                tr("tooltip.translation_cached", "已有本機翻譯快取，按下可立即顯示。")
+            )
+            return
+
+        self._set_translate_button_state(
+            "normal", tr("button.translate_description", "翻譯說明"), enabled=True
+        )
+        self.translate_desc_button.setToolTip(
+            tr(
+                "tooltip.translate_description",
+                "將目前物品的韓文說明翻譯為繁體中文（免 API Key）。",
+            )
+        )
+
+    def toggle_translate_selected_description(self):
+        item_id = self.result_box.currentData()
+        try:
+            item_id = int(item_id)
+        except (TypeError, ValueError):
+            return
+
+        item = getattr(self, "filtered_items", {}).get(item_id)
+        if not item:
+            return
+
+        # 已在顯示翻譯時，再按一次就回到原始 KRO 說明。
+        if getattr(self, "_translated_item_id", None) == item_id:
+            self._translated_item_id = None
+            self._translation_complete_item_id = None
+            self._translation_complete_timer.stop()
+            self.desc_text.setHtml(convert_description_to_html(item.get("description", [])))
+            self.update_translate_description_button()
+            return
+
+        source_text = self._description_text_for_translation(item)
+        if not source_text:
+            return
+
+        if not re.search(r"[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]", source_text):
+            QMessageBox.information(
+                self,
+                tr("message.title.notice", "提示"),
+                tr("message.no_korean_description", "目前物品說明沒有偵測到韓文。"),
+            )
+            return
+
+        cache_key = self._description_translation_key(item)
+        # 再次按下即代表使用者要重試；先清除上一筆失敗狀態。
+        self._translation_error_by_item.pop(item_id, None)
+        cached = self._description_translation_cache.get(cache_key)
+        if isinstance(cached, str) and cached.strip():
+            self._translated_item_id = item_id
+            self._set_translated_description_html(self.desc_text, cached)
+            self.update_translate_description_button()
+            return
+
+        # 同時間只允許一個翻譯工作，避免連點造成重複請求。
+        if self._translate_worker is not None and self._translate_worker.isRunning():
+            return
+
+        description_lines = [str(line) for line in item.get("description", [])]
+        worker = GoogleTranslateWorker(item_id, description_lines, cache_key, self)
+        worker.translated_signal.connect(self._on_description_translated)
+        worker.error_signal.connect(self._on_description_translation_error)
+        worker.status_signal.connect(self._on_description_translation_status)
+        worker.progress_signal.connect(self._on_description_translation_progress)
+        worker.finished.connect(self._on_description_translation_finished)
+        self._translate_worker = worker
+        self._translation_in_progress_item_id = item_id
+        self._translation_busy_text = tr("button.translation_preparing", "準備中...")
+        self._translation_complete_item_id = None
+        self._translation_complete_timer.stop()
+        # 先更新狀態再啟動，按下去會立即看到醒目的「準備中...」。
+        self.update_translate_description_button()
+        worker.start()
+
+    def _on_description_translated(self, item_id: int, cache_key: str, translated: str):
+        self._translation_error_by_item.pop(int(item_id), None)
+        self._description_translation_cache[cache_key] = translated
+        self._save_description_translation_cache()
+
+        current_item_id = self.result_box.currentData()
+        try:
+            current_item_id = int(current_item_id)
+        except (TypeError, ValueError):
+            current_item_id = 0
+
+        # 使用者翻譯途中若已切到別件，只存快取，不覆蓋目前畫面。
+        if current_item_id == int(item_id):
+            self._translated_item_id = int(item_id)
+            self._set_translated_description_html(self.desc_text, translated)
+
+    def _on_description_translation_error(self, item_id: int, message: str):
+        self._translation_error_by_item[int(item_id)] = str(message)
+        current_item_id = self.result_box.currentData()
+        try:
+            current_item_id = int(current_item_id)
+        except (TypeError, ValueError):
+            current_item_id = 0
+
+        if current_item_id == int(item_id):
+            QMessageBox.warning(
+                self,
+                tr("message.title.notice", "提示"),
+                tr(
+                    "message.translate_description_failed",
+                    "Google 翻譯失敗，已保留原始說明。\n{error}",
+                    error=message,
+                ),
+            )
+
+    def _on_description_translation_finished(self):
+        worker = self._translate_worker
+        finished_item_id = self._translation_in_progress_item_id
+        self._translate_worker = None
+        self._translation_in_progress_item_id = None
+        self._translation_busy_text = ""
+        if worker is not None:
+            worker.deleteLater()
+
+        # 成功時先保留約 1.2 秒「翻譯完成」，讓狀態真的看得到；
+        # 失敗則由 update_translate_description_button() 顯示「翻譯失敗」。
+        if (
+            finished_item_id is not None
+            and finished_item_id == getattr(self, "_translated_item_id", None)
+            and finished_item_id not in self._translation_error_by_item
+        ):
+            self._translation_complete_item_id = int(finished_item_id)
+            self._translation_complete_timer.start()
+        else:
+            self._translation_complete_item_id = None
+
+        self.update_translate_description_button()
+
+
     def update_divine_pride_button(self, *_):
         """依目前下拉選項更新 Divine Pride 按鈕狀態。"""
         if not hasattr(self, "divine_pride_button"):
@@ -12793,8 +13298,10 @@ class ItemSearchApp(QWidget):
             self.display_item_info()
             self.update_total_effect_display()
             self.update_divine_pride_button()
+            self.update_translate_description_button()
         else:
             self.update_divine_pride_button()
+            self.update_translate_description_button()
 
 
     def display_item_info(
@@ -12821,8 +13328,27 @@ class ItemSearchApp(QWidget):
         self.kr_name_field.setText(item['kr_name'])
         self.slot_field.setText(str(item['slot']))
 
-        html = convert_description_to_html(item['description'])
-        self.desc_text.setHtml(html)
+        # 換物品時回到原文；同一物品因精煉/階級刷新時則保留目前翻譯檢視。
+        if getattr(self, "_last_displayed_item_id", None) != item_id:
+            self._translated_item_id = None
+        self._last_displayed_item_id = item_id
+
+        source_text = self._description_text_for_translation(item)
+        cache_key = self._description_translation_key(item) if source_text else ""
+        cached_translation = self._description_translation_cache.get(cache_key) if cache_key else None
+        if (
+            getattr(self, "_translated_item_id", None) == item_id
+            and isinstance(cached_translation, str)
+            and cached_translation.strip()
+        ):
+            self._set_translated_description_html(self.desc_text, cached_translation)
+        else:
+            html = convert_description_to_html(item['description'])
+            self.desc_text.setHtml(html)
+            if getattr(self, "_translated_item_id", None) == item_id:
+                self._translated_item_id = None
+
+        self.update_translate_description_button()
         # 顯示裝備原始資料區塊（若有）
         if item_id in self.equipment_data:
             block_text = self.equipment_data[item_id]
