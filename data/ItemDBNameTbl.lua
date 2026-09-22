@@ -5295,7 +5295,17 @@ ItemDBNameTbl = {
   S_ABC_AF_Pendant = 24984,
   S_ABC_FA_Armor = 24985,
   S_ABC_FA_Shoes = 24986,
-  Pocket_Watch = 7513
+  Pocket_Watch = 7513,
+  S_NW_MS_Earring = 1270138,
+  S_NW_MS_Pendant = 1270139,
+  S_NW_NF_Armor = 1270140,
+  S_NW_NF_Shoes = 1270141,
+  Time_Gap_BO_Blade = 500107,
+  Lighting_M_Robe_TW = 480944,
+  Energy_Xtal_DFM_TW = 1003222,
+  Devil_F_Manteau_UPD = 480945,
+  Kyel_hyre_Ulti_TW = 480341,
+  Kyel_hyre_Ulti_LT = 480939
 }
 
 function ItemDB_To_ItemID(in_ItemDB)
