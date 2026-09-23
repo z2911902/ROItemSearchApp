@@ -5,10 +5,12 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QTabWidget,
     QTableWidget, QTableWidgetItem, QFileDialog, QLabel,
     QTreeWidget, QTreeWidgetItem, QHBoxLayout, QCheckBox, QProgressBar,
-    QTableView, QSplitter, QAbstractItemView
+    QTableView, QSplitter, QAbstractItemView, QScrollBar
 )
 from PySide6.QtCore import QObject, QThread, Signal, QAbstractTableModel, QModelIndex
 import time
+import math
+import colorsys
 from PySide6.QtCore import Qt
 import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -28,7 +30,8 @@ from PySide6.QtWidgets import QMessageBox
 import threading
 from PySide6.QtWidgets import QHeaderView
 from collections import defaultdict
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MultipleLocator
+from matplotlib.widgets import SpanSelector
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton
 font_path = r"C:\Windows\Fonts\msjh.ttc"  # 微軟正黑體
 from PySide6.QtGui import QKeySequence, QAction
@@ -207,6 +210,7 @@ class LeftButtonPan:
         self.canvas = canvas
         self.toolbar = toolbar
         self.is_panning = False
+        self.enabled = True
 
         # 綁定 canvas 事件
         canvas.mpl_connect("button_press_event", self.on_press)
@@ -214,17 +218,24 @@ class LeftButtonPan:
         canvas.mpl_connect("button_release_event", self.on_release)
 
     def on_press(self, event):
+        if not self.enabled:
+            return
         if event.button == 1 and event.inaxes:
             self.is_panning = True
             # Matplotlib 3.8 新名稱：press_pan
             self.toolbar.press_pan(event)
 
     def on_move(self, event):
+        if not self.enabled:
+            return
         if self.is_panning:
             # Matplotlib 3.8 新名稱：drag_pan
             self.toolbar.drag_pan(event)
 
     def on_release(self, event):
+        if not self.enabled:
+            self.is_panning = False
+            return
         if event.button == 1 and self.is_panning:
             # Matplotlib 3.8 新名稱：release_pan
             self.toolbar.release_pan(event)
@@ -2683,12 +2694,15 @@ class MainUI(QWidget):
         self.rrf_worker = None
         self.rrf_reader = None   # RRFIncrementalReader，跨更新保留 packet cursor
         self.mouse_paused = False
-        self.current_chart_mode = "bar"   # bar / line
+        self.current_chart_mode = "bar"   # bar / line / stairs
         self.chart_status_text = "尚未載入資料"
+        # v1.4：時間區間圈選。使用 replay 絕對秒數，避免切換圖表後座標基準改變。
+        self.damage_time_range = None        # None 或 (start_sec, end_sec)
+        self._span_selector = None
         self.hud = DamageHUD()
         self.hud.hide()
         super().__init__()
-        self.setWindowTitle("RRF傷害解析器 v1.3")
+        self.setWindowTitle("RRF傷害解析器 v1.8")
         self.resize(1100, 900)
         self.transform_end_time = {}#結束變身時間
         self.transform_start_time = {}#變身時間    
@@ -2776,7 +2790,7 @@ class MainUI(QWidget):
         interval_layout.addWidget(self.refresh_input)
 
         # 「使用最新 RRF」屬於主操作流程，放回主畫面，不收進選項設定。
-        self.auto_latest_checkbox = QCheckBox("自動使用資料夾內最新 RRF")
+        self.auto_latest_checkbox = QCheckBox("最新RRF")
         # 右上角選項預設關閉；使用者需要時再手動勾選。
         self.auto_latest_checkbox.setChecked(False)
         interval_layout.addWidget(self.auto_latest_checkbox)
@@ -2843,14 +2857,28 @@ class MainUI(QWidget):
         # ======= 圖表切換按鈕 =======
         btn_box = QHBoxLayout()
 
-        self.btn_bar = QPushButton("顯示總傷害長條圖")
+        self.btn_bar = QPushButton("顯示區間總傷害")
         self.btn_line = QPushButton("顯示每秒折線趨勢圖")
+        self.btn_stairs = QPushButton("顯示每秒階梯圖")
+        self.btn_select_range = QPushButton("圈選秒數")
+        self.btn_select_range.setCheckable(True)
+        self.btn_clear_range = QPushButton("清除圈選")
+        self.damage_range_label = QLabel("傷害範圍：全部")
 
-        self.btn_bar.clicked.connect(self.on_bar_clicked)       # 原本的畫面
-        self.btn_line.clicked.connect(self.on_line_clicked)        # 新增的折線圖
+        self.btn_bar.clicked.connect(self.on_bar_clicked)
+        self.btn_line.clicked.connect(self.on_line_clicked)
+        self.btn_stairs.clicked.connect(self.on_stairs_clicked)
+        self.btn_select_range.toggled.connect(self.on_time_select_toggled)
+        self.btn_clear_range.clicked.connect(self.clear_damage_time_range)
+        self._update_chart_resolution_labels()
 
         btn_box.addWidget(self.btn_bar)
         btn_box.addWidget(self.btn_line)
+        btn_box.addWidget(self.btn_stairs)
+        btn_box.addWidget(self.btn_select_range)
+        btn_box.addWidget(self.btn_clear_range)
+        btn_box.addWidget(self.damage_range_label)
+        btn_box.addStretch(1)
 
         vbox.addLayout(btn_box)
         # ===========================
@@ -2859,15 +2887,31 @@ class MainUI(QWidget):
         self.fig = Figure(figsize=(5, 2))
         self.canvas = FigureCanvas(self.fig)
         self.canvas.mpl_connect("scroll_event", self.on_scroll)
-        vbox.addWidget(self.canvas)
+        # v1.6：圖表寬度改變時重新計算時間刻度密度。
+        # 能放得下時優先每 1 秒一個刻度，避免固定稀疏刻度浪費可用寬度。
+        self.canvas.mpl_connect("resize_event", self.on_chart_resize)
 
-        
-        # ⭐ 加入拖曳/縮放工具列（NavigationToolbar）
+        # v1.5：總傷害圖不再把所有角色硬塞進同一張圖。
+        # 固定顯示少量列，透過右側捲軸只替換目前可見的人員。
+        chart_box = QHBoxLayout()
+        chart_box.setContentsMargins(0, 0, 0, 0)
+        chart_box.setSpacing(2)
+        chart_box.addWidget(self.canvas, 1)
+
+        self.bar_visible_rows = 10
+        self._bar_sorted_sids = []
+        self.bar_scrollbar = QScrollBar(Qt.Vertical)
+        self.bar_scrollbar.setSingleStep(1)
+        self.bar_scrollbar.setPageStep(self.bar_visible_rows)
+        self.bar_scrollbar.valueChanged.connect(self.on_bar_scroll_changed)
+        self.bar_scrollbar.hide()
+        chart_box.addWidget(self.bar_scrollbar)
+        vbox.addLayout(chart_box)
+
+        # NavigationToolbar 只保留給既有拖曳邏輯內部使用，不放到 UI。
+        # 左下角 Home/Back/Zoom/Save 工具列因此完全隱藏。
         self.toolbar = MyNavigationToolbar(self.canvas, self)
         self.left_pan = LeftButtonPan(self.canvas, self.toolbar)
-
-        vbox.addWidget(self.toolbar)
-        # ⭐ 預設隱藏（因為預設是長條圖）
         self.toolbar.hide()
 
         self.draw_empty_chart()
@@ -3523,49 +3567,185 @@ class MainUI(QWidget):
                 self.refresh_packet_decode_tree()
 
     def on_scroll(self, event):
+        """時間圖只縮放 X 軸。
+
+        舊版同時縮放 X/Y，柱寬與線條視覺比例會一起被拉伸，看起來像資料失真。
+        v1.5 的折線/階梯圖只改變時間視窗，Y 軸維持同一傷害尺度。
+        總傷害橫條圖則不做滾輪縮放。
+        """
+        if self.current_chart_mode == "bar":
+            # 總傷害圖：滾輪只用來上下瀏覽角色，不做座標縮放。
+            sb = getattr(self, "bar_scrollbar", None)
+            if sb is not None and sb.isVisible():
+                step = 3
+                if event.button == 'up':
+                    sb.setValue(max(sb.minimum(), sb.value() - step))
+                elif event.button == 'down':
+                    sb.setValue(min(sb.maximum(), sb.value() + step))
+            return
+
         ax = event.inaxes
         if ax is None:
             return
 
-        # 縮放比例
         base_scale = 1.2
-        if event.button == 'up':      # 放大
+        if event.button == 'up':
             scale_factor = 1 / base_scale
-        elif event.button == 'down':  # 縮小
+        elif event.button == 'down':
             scale_factor = base_scale
         else:
             return
 
-        # 滑鼠所在點
         xdata = event.xdata
-        ydata = event.ydata
-        if xdata is None or ydata is None:
+        if xdata is None:
             return
 
-        # 目前範圍
         cur_xlim = ax.get_xlim()
-        cur_ylim = ax.get_ylim()
+        width = cur_xlim[1] - cur_xlim[0]
+        if width <= 0:
+            return
 
-        # 滑鼠位置佔目前視窗的比例
-        x_left_ratio  = (xdata - cur_xlim[0]) / (cur_xlim[1] - cur_xlim[0])
-        y_bottom_ratio = (ydata - cur_ylim[0]) / (cur_ylim[1] - cur_ylim[0])
-
-        # 新範圍大小
-        new_width  = (cur_xlim[1] - cur_xlim[0]) * scale_factor
-        new_height = (cur_ylim[1] - cur_ylim[0]) * scale_factor
-
-        # 依滑鼠比例重新計算新視窗位置 → 不會跳掉！
+        x_left_ratio = (xdata - cur_xlim[0]) / width
+        new_width = width * scale_factor
         new_xmin = xdata - new_width * x_left_ratio
         new_xmax = xdata + new_width * (1 - x_left_ratio)
 
-        new_ymin = ydata - new_height * y_bottom_ratio
-        new_ymax = ydata + new_height * (1 - y_bottom_ratio)
-
-        # 設定新範圍
         ax.set_xlim(new_xmin, new_xmax)
-        ax.set_ylim(new_ymin, new_ymax)
-
+        # v1.6：縮放後依目前可見秒數與實際繪圖寬度重新安排刻度。
+        self._apply_adaptive_time_ticks(ax)
         self.canvas.draw_idle()
+
+    def on_chart_resize(self, event=None):
+        """時間圖尺寸改變時，自動增加/減少 X 軸秒刻度。"""
+        if self.current_chart_mode not in ("line", "stairs"):
+            return
+        axes = getattr(self.fig, "axes", None) or []
+        if not axes:
+            return
+        for ax in axes:
+            self._apply_adaptive_time_ticks(ax)
+        self.canvas.draw_idle()
+
+    def on_bar_scroll_changed(self, value):
+        """總傷害圖捲動時只替換目前可見的角色，不重算傷害資料。"""
+        if self.current_chart_mode != "bar":
+            return
+        rows = getattr(self, "_bar_sorted_sids", None)
+        if not rows:
+            return
+        self.draw_damage_chart(rows)
+
+    def timestamp_to_float_seconds(self, ts):
+        """+HH:MM:SS:mmm -> replay 絕對秒數(float)。"""
+        try:
+            h, m, s, ms = map(int, str(ts)[1:].split(":"))
+            return h * 3600 + m * 60 + s + ms / 1000.0
+        except (TypeError, ValueError, AttributeError):
+            return None
+
+    def format_replay_second(self, value, with_ms=False):
+        """將 replay 秒數顯示成 s / m:ss / h:mm:ss，必要時帶毫秒。"""
+        if value is None or not math.isfinite(value) or value < 0:
+            return "--"
+        total_ms = int(round(value * 1000.0))
+        total_sec, ms = divmod(total_ms, 1000)
+        h = total_sec // 3600
+        m = (total_sec % 3600) // 60
+        s = total_sec % 60
+        if h:
+            base = f"{h}:{m:02d}:{s:02d}"
+        elif m:
+            base = f"{m}:{s:02d}"
+        else:
+            base = f"{s}"
+        if with_ms:
+            return f"{base}.{ms:03d}"
+        return base
+
+    def update_damage_range_label(self):
+        # 圈選範圍同時決定折線/階梯圖的真實統計粒度與按鈕文字。
+        self._update_chart_resolution_labels()
+        if not hasattr(self, "damage_range_label"):
+            return
+        if self.damage_time_range is None:
+            self.damage_range_label.setText("傷害範圍：全部")
+            return
+        start, end = self.damage_time_range
+        self.damage_range_label.setText(
+            f"傷害範圍：{self.format_replay_second(start, True)} ～ "
+            f"{self.format_replay_second(end, True)}"
+        )
+
+    def on_time_select_toggled(self, checked):
+        """啟用左鍵拖曳圈選。總傷害圖沒有時間 X 軸，會自動切到階梯圖。"""
+        if checked and self.current_chart_mode == "bar":
+            self.current_chart_mode = "stairs"
+
+        if hasattr(self, "left_pan"):
+            self.left_pan.enabled = not checked
+            self.left_pan.is_panning = False
+
+        self.refresh_chart()
+
+    def setup_damage_span_selector(self, ax):
+        """在時間圖建立 SpanSelector；每次重畫都重綁目前 axes。"""
+        old = getattr(self, "_span_selector", None)
+        if old is not None:
+            try:
+                old.disconnect_events()
+            except Exception:
+                pass
+        self._span_selector = None
+
+        if not getattr(self, "btn_select_range", None):
+            return
+        if not self.btn_select_range.isChecked():
+            return
+        if self.current_chart_mode not in ("line", "stairs"):
+            return
+
+        self._span_selector = SpanSelector(
+            ax,
+            self.on_damage_span_selected,
+            "horizontal",
+            useblit=True,
+            props={"alpha": 0.28, "facecolor": "#66AAFF"},
+            minspan=0.02,
+            interactive=False,
+            drag_from_anywhere=False,
+        )
+
+    def on_damage_span_selected(self, xmin, xmax):
+        if xmin is None or xmax is None:
+            return
+        start, end = sorted((float(xmin), float(xmax)))
+        if not math.isfinite(start) or not math.isfinite(end) or end - start < 0.02:
+            return
+
+        self.damage_time_range = (start, end)
+        self.update_damage_range_label()
+
+        # v1.8：不要在 Matplotlib SpanSelector 的 onrelease callback 裡同步
+        # clear/rebuild figure。SpanSelector 在 callback 返回後仍會做自己的
+        # release/blit 清理，可能把剛畫好的新圖蓋回舊畫面，造成「還要再點一下
+        # 才重繪」的現象。改成丟回 Qt event loop，等本次 mouse release 完整
+        # 結束後再重算篩選並重畫。
+        if not getattr(self, "_damage_range_refresh_pending", False):
+            self._damage_range_refresh_pending = True
+            QTimer.singleShot(0, self._apply_damage_range_after_span_release)
+
+    def _apply_damage_range_after_span_release(self):
+        self._damage_range_refresh_pending = False
+        self.apply_did_filter()
+        # apply_did_filter -> refresh_chart 已經會重建目前圖表；再排一次 draw_idle
+        # 確保 Qt backend 在這個 event-loop cycle 立即呈現最新 canvas。
+        QTimer.singleShot(0, self.canvas.draw_idle)
+
+    def clear_damage_time_range(self):
+        self.damage_time_range = None
+        self.update_damage_range_label()
+        if hasattr(self, "current_filtered_data"):
+            self.apply_did_filter()
 
     def on_transform_item_double_clicked(self, item, column):
         """點擊變身次數彈出視窗"""
@@ -5214,6 +5394,10 @@ class MainUI(QWidget):
 
         
     def draw_empty_chart(self):
+        if hasattr(self, "bar_scrollbar"):
+            self.bar_scrollbar.hide()
+        if hasattr(self, "toolbar"):
+            self.toolbar.hide()
         # 透明背景
         self.fig.patch.set_alpha(0)
         self.canvas.setStyleSheet("background-color: transparent;")
@@ -5247,246 +5431,379 @@ class MainUI(QWidget):
         self.canvas.draw()
 
     def draw_damage_chart(self, sorted_sids):
+        """總傷害橫條圖：固定顯示 10 人，其他用捲軸瀏覽。"""
+        self._bar_sorted_sids = list(sorted_sids or [])
+
+        if self._bar_sorted_sids:
+            max_total = self._bar_sorted_sids[0][1]
+            threshold = max_total * 0.01
+            filtered = [
+                (sid, total) for sid, total in self._bar_sorted_sids
+                if total >= threshold
+            ]
+        else:
+            filtered = []
+
+        visible_rows = max(1, int(getattr(self, "bar_visible_rows", 10)))
+        max_start = max(0, len(filtered) - visible_rows)
+        sb = getattr(self, "bar_scrollbar", None)
+        if sb is not None:
+            sb.blockSignals(True)
+            sb.setRange(0, max_start)
+            sb.setPageStep(visible_rows)
+            sb.setSingleStep(1)
+            if sb.value() > max_start:
+                sb.setValue(max_start)
+            start_index = sb.value()
+            sb.setVisible(max_start > 0 and self.current_chart_mode == "bar")
+            sb.blockSignals(False)
+        else:
+            start_index = 0
+
+        visible = filtered[start_index:start_index + visible_rows]
+        if not visible:
+            old_status = self.chart_status_text
+            self.chart_status_text = "沒有符合條件的傷害"
+            self.draw_empty_chart()
+            self.chart_status_text = old_status
+            return
+
         self.fig.clear()
         ax = self.fig.add_subplot(111)
-
-        # 透明背景融入黑色 UI
         self.fig.patch.set_alpha(0)
         ax.set_facecolor("none")
         self.canvas.setStyleSheet("background-color: transparent;")
 
-        # --- ★ 過濾掉總傷害 < 第一名 1% 的 SID ---
-        if sorted_sids:
-            max_total = sorted_sids[0][1]          # 第一名的總傷害
-            threshold = max_total * 0.01           # 1%
-
-            filtered = [
-                (sid, total) for sid, total in sorted_sids
-                if total >= threshold
-            ]
-        else:
-            filtered = sorted_sids
-
-        # 使用過濾後的列表
         names = []
-        for sid, _ in filtered:
-
-            # 1. 先找角色名稱 (玩家名稱)
+        for sid, _ in visible:
             if sid in self.sid_name_map:
                 names.append(self.sid_name_map[sid])
-                continue
-
-            # 2. 再找 DID 名稱 (魔物名稱)
-            if sid in self.did_name_map:
+            elif sid in self.did_name_map:
                 names.append(self.did_name_map[sid])
-                continue
+            else:
+                names.append(str(sid))
+        values = [total for _, total in visible]
 
-            # 3. 樹狀清單 fallback：如果你有在樹狀中使用特殊格式，可在這裡補
-            #    目前先用 SID 當作字串
-            names.append(str(sid))        
-        values = [total for _, total in filtered]
-
-
-        # 深色 UI 色系
-        bars = ax.barh(range(len(names)), values, color="#4C9AFF", height=0.55)
+        y = list(range(len(names)))
+        bar_colors = [self._sid_chart_color(sid) for sid, _ in visible]
+        bars = ax.barh(y, values, height=0.62, color=bar_colors)
         ax.invert_yaxis()
+        ax.set_yticks(y)
+        ax.set_yticklabels(names, fontproperties=font, color="#FFFFFF", fontsize=9)
 
-        # 刻度
-        ax.set_yticks(range(len(names)))
-        ax.set_yticklabels(names, fontproperties=font, color="#FFFFFF")
         title_name = self.get_active_filter_title()
-        #ax.set_title("總傷害", fontproperties=font, color="#FFFFFF")
+        if len(filtered) > visible_rows:
+            range_text = f"（{start_index + 1}-{start_index + len(visible)} / {len(filtered)}）"
+        else:
+            range_text = ""
         ax.set_title(
-            f"{title_name} 的個別總傷害",
+            f"{title_name} 的個別總傷害 {range_text}",
             fontproperties=font,
             color="#FFFFFF"
         )
         ax.set_xlabel("總傷害", fontproperties=font, color="#DDDDDD")
-
         ax.tick_params(colors="#AAAAAA")
-
-        # 移除邊框
         for spine in ax.spines.values():
             spine.set_visible(False)
 
-        # 顯示數字
+        max_value = max(values) if values else 1
+        ax.set_xlim(0, max_value * 1.18 if max_value > 0 else 1)
         for bar, val in zip(bars, values):
             ax.text(
-                val + max(values) * 0.01,
+                val + max_value * 0.01,
                 bar.get_y() + bar.get_height() / 2,
                 f"{val:,}",
                 va='center',
-                fontsize=10,
+                fontsize=9,
                 fontproperties=font,
                 color="#FFFFFF"
             )
 
-        self.canvas.draw()
+        self.fig.subplots_adjust(left=0.22, right=0.97, top=0.84, bottom=0.20)
+        self.canvas.draw_idle()
+
+    def _prepare_timed_damage_rows(self, data=None):
+        data = self.current_filtered_data if data is None else data
+        rows = []
+        for d in data:
+            t = self.timestamp_to_float_seconds(d.get("timestamp"))
+            if t is None:
+                continue
+            rows.append((t, d))
+        return rows
+
+    def _damage_time_bin_size(self):
+        """目前時間圖真正的統計粒度。
+
+        有圈選且範圍 <= 3 秒時改成 0.1 秒一格；其餘維持 1 秒。
+        這不是只改 X 軸標籤，而是實際重新分桶統計傷害。
+        """
+        if self.damage_time_range is not None:
+            start, end = self.damage_time_range
+            if math.isfinite(start) and math.isfinite(end) and 0 < (end - start) <= 3.000001:
+                return 0.1
+        return 1.0
+
+    def _damage_time_resolution_text(self):
+        return "每0.1秒" if self._damage_time_bin_size() < 1.0 else "每秒"
+
+    def _update_chart_resolution_labels(self):
+        """圈選短區間時，按鈕文字同步反映真實統計粒度。"""
+        if hasattr(self, "btn_line"):
+            self.btn_line.setText(f"顯示{self._damage_time_resolution_text()}折線趨勢圖")
+        if hasattr(self, "btn_stairs"):
+            self.btn_stairs.setText(f"顯示{self._damage_time_resolution_text()}階梯圖")
+
+    def _sid_chart_color(self, sid):
+        """由 SID 決定固定線色，不受排序、圈選或目前可見玩家數影響。"""
+        digest = hashlib.md5(str(sid).encode("utf-8", errors="replace")).digest()
+        hue = int.from_bytes(digest[:4], "big") / 0xFFFFFFFF
+        # 暗色背景上維持足夠亮度；色相完全由 SID 決定，因此重畫不換色。
+        saturation = 0.58 + (digest[4] / 255.0) * 0.18
+        value = 0.82 + (digest[5] / 255.0) * 0.14
+        return colorsys.hsv_to_rgb(hue, saturation, value)
+
+    def _time_bucket_bounds(self, timed_rows, bin_size):
+        """回傳對齊 replay 絕對時間的 bucket index 範圍。"""
+        if self.damage_time_range is not None:
+            start, end = self.damage_time_range
+        else:
+            start = min(t for t, _ in timed_rows)
+            end = max(t for t, _ in timed_rows)
+
+        first_idx = math.floor((start + 1e-9) / bin_size)
+        last_idx = math.floor((end + 1e-9) / bin_size)
+        if last_idx < first_idx:
+            last_idx = first_idx
+        return first_idx, last_idx
+
+    def _format_time_tick(self, value, step):
+        """小於 1 秒的主要刻度顯示到 0.1 秒，例如 3.1、1:03.2。"""
+        if step >= 1:
+            return self.format_replay_second(value, False)
+        if value is None or not math.isfinite(value) or value < 0:
+            return "--"
+        # 目前最細統計為 0.1 秒；先四捨五入可避免 3.199999 顯示異常。
+        tenth = int(round(value * 10.0))
+        total_sec, dec = divmod(tenth, 10)
+        h = total_sec // 3600
+        m = (total_sec % 3600) // 60
+        s = total_sec % 60
+        if h:
+            return f"{h}:{m:02d}:{s:02d}.{dec}"
+        if m:
+            return f"{m}:{s:02d}.{dec}"
+        return f"{s}.{dec}"
+
+    def _choose_time_tick_step(self, ax):
+        """依目前可見時間跨度與 axes 實際像素寬度選主要刻度。
+
+        短圈選（<= 3 秒）允許 0.1 / 0.2 / 0.5 秒刻度；寬度足夠時
+        優先顯示 3.1、3.2、3.3...。長區間則仍以 1 秒為最細刻度。
+        """
+        try:
+            xmin, xmax = ax.get_xlim()
+            span = abs(float(xmax) - float(xmin))
+        except Exception:
+            return self._damage_time_bin_size()
+
+        if not math.isfinite(span) or span <= 0:
+            return self._damage_time_bin_size()
+
+        try:
+            canvas_px = max(240.0, float(self.canvas.width()))
+        except Exception:
+            canvas_px = max(240.0, self.fig.get_figwidth() * self.fig.dpi)
+
+        try:
+            axes_px = max(180.0, canvas_px * float(ax.get_position().width))
+        except Exception:
+            axes_px = canvas_px * 0.75
+
+        fine_mode = self._damage_time_bin_size() < 1.0
+        # 小數秒標籤較短時盡量多排；仍會依實際寬度自動退到 0.2/0.5 秒。
+        label_px = 38.0 if fine_mode else 62.0
+        max_labels = max(2, int(axes_px // label_px))
+        raw_step = span / max_labels
+
+        if fine_mode:
+            candidates = (
+                0.1, 0.2, 0.5, 1, 2, 5, 10, 15, 20, 30,
+                60, 120, 300, 600, 900, 1800, 3600
+            )
+        else:
+            candidates = (
+                1, 2, 5, 10, 15, 20, 30,
+                60, 120, 300, 600, 900, 1800, 3600, 7200, 14400
+            )
+
+        for step in candidates:
+            if step >= raw_step - 1e-12:
+                return step
+        return max(1, int(math.ceil(raw_step / 3600.0)) * 3600)
+
+    def _apply_adaptive_time_ticks(self, ax):
+        """依寬度套用主要時間刻度；短圈選可細到 0.1 秒。"""
+        if ax is None:
+            return
+        step = self._choose_time_tick_step(ax)
+        ax.xaxis.set_major_locator(MultipleLocator(step))
+        ax.xaxis.set_major_formatter(
+            FuncFormatter(lambda x, pos, s=step: self._format_time_tick(x, s))
+        )
+
+    def _configure_time_axis(self, ax):
+        self._apply_adaptive_time_ticks(ax)
+
+        # set_xlim（圈選/滾輪縮放）之後也會重新選刻度間距。
+        def _xlim_changed(changed_ax):
+            self._apply_adaptive_time_ticks(changed_ax)
+
+        ax.callbacks.connect("xlim_changed", _xlim_changed)
+
+        def format_coord(x, y):
+            return (
+                f"時間：{self.format_replay_second(x, True)}    "
+                f"傷害：{int(round(y)):,}"
+            )
+
+        ax.format_coord = format_coord
 
     def draw_line_chart(self):
         data = self.current_filtered_data
         if not data:
+            self.draw_empty_chart()
             return
 
         from collections import defaultdict
 
         self.fig.clear()
         ax = self.fig.add_subplot(111)
-
-        # 透明背景
         self.fig.patch.set_alpha(0)
         ax.set_facecolor("none")
         self.canvas.setStyleSheet("background-color: transparent;")
 
-        # timeline[sid][second] = damage
-        timeline = defaultdict(lambda: defaultdict(int))
-
-        # 先解析全部有效時間，並以最早一筆作為折線圖起點。
-        # 不再把 600 秒（10 分鐘）之後的資料直接丟棄。
-        timed_rows = []
-        for d in data:
-            try:
-                ts = d["timestamp"]   # 例如 "+00:04:36:783"
-                h, m, s, ms = map(int, ts[1:].split(":"))
-                t = h * 3600 + m * 60 + s + ms / 1000.0
-            except (KeyError, TypeError, ValueError):
-                continue
-
-            timed_rows.append((t, d))
-
+        timed_rows = self._prepare_timed_damage_rows(data)
         if not timed_rows:
+            self.draw_empty_chart()
             return
 
-        t0 = min(t for t, _ in timed_rows)
+        bin_size = self._damage_time_bin_size()
+        first_idx, last_idx = self._time_bucket_bounds(timed_rows, bin_size)
 
-        # ---- 計算完整紀錄的每秒傷害 ----
+        # 依 replay 絕對時間分桶；短圈選時是真正每 0.1 秒統計，不只是改刻度。
+        timeline = defaultdict(lambda: defaultdict(int))
         for t, d in timed_rows:
-            sec = int(t - t0)
-            if sec < 0:
-                continue
+            bucket_idx = math.floor((t + 1e-9) / bin_size)
+            timeline[d["sid"]][bucket_idx] += int(d.get("damage", 0) or 0)
 
-            timeline[d["sid"]][sec] += d["damage"]
-
-
-        # ---- 1% 過濾 ----
-        sid_total = { sid: sum(sec_data.values()) for sid, sec_data in timeline.items() }
-
+        sid_total = {sid: sum(bucket_data.values()) for sid, bucket_data in timeline.items()}
         if sid_total:
             max_total = max(sid_total.values())
             threshold = max_total * 0.01
-            allowed_sid = { sid for sid, total in sid_total.items() if total >= threshold }
+            allowed_sid = {sid for sid, total in sid_total.items() if total >= threshold}
         else:
             allowed_sid = set()
 
+        bucket_indices = list(range(first_idx, last_idx + 1))
+        seconds = [round(idx * bin_size, 10) for idx in bucket_indices]
 
-        # ---- 找出完整時間範圍 ----
-        max_sec = 0
-        for sid in timeline:
-            if timeline[sid]:
-                max_sec = max(max_sec, max(timeline[sid].keys()))
-
-        # ---- 畫線（含 1% 過濾）----
-        for sid, sec_data in timeline.items():
-
+        for sid, bucket_data in timeline.items():
             if sid not in allowed_sid:
                 continue
-
-            seconds = list(range(max_sec + 1))
-            # 缺少傷害的秒數直接顯示為 0，不必先把大量 0 寫回 timeline。
-            values = [sec_data.get(sec, 0) for sec in seconds]
-
-            # SID 名稱
+            values = [bucket_data.get(idx, 0) for idx in bucket_indices]
             if sid in self.sid_name_map:
                 label = self.sid_name_map[sid]
             elif sid in self.did_name_map:
                 label = self.did_name_map[sid]
             else:
                 label = f"{sid}"
+            ax.plot(
+                seconds, values, label=label,
+                color=self._sid_chart_color(sid),
+            )
 
-            ax.plot(seconds, values, label=label)
+        handles, labels = ax.get_legend_handles_labels()
+        if handles:
+            leg = ax.legend(
+                loc="center left",
+                bbox_to_anchor=(-0.28, 0.5),
+                frameon=True,
+            )
+            leg.set_draggable(True)
 
-
-        # ---- 💄 還原你舊折線圖的 UI 外觀設定 ----
-        leg = ax.legend(
-            loc="center left",       # 固定在左側
-            bbox_to_anchor=(-0.28, 0.5),  # (x, y) 偏移位置
-            frameon=True,
-        )
-        leg.set_draggable(True)
         title_name = self.get_active_filter_title()
-
+        resolution_text = self._damage_time_resolution_text()
         ax.set_title(
-            f"{title_name} 的每秒傷害趨勢",
+            f"{title_name} 的{resolution_text}傷害趨勢",
             fontproperties=font,
             color="#FFFFFF"
         )
-        ax.set_xlabel("時間 (+HH:MM:SS)", fontproperties=font, color="#DDDDDD")
-
+        ax.set_xlabel("Replay 時間", fontproperties=font, color="#DDDDDD")
         ax.tick_params(colors="#AAAAAA")
-
         for spine in ax.spines.values():
             spine.set_visible(False)
 
-        # ---- 💡 X 軸用「實際時間戳」來顯示 ----
-        # x 是「從第一筆傷害開始的第幾秒」，要換成：t_real = t0 + x
-        def format_time(x):
-            if t0 is None:
-                return ""
-
-            total = int(t0 + x)
-            if total < 0:
-                return ""
-
-            h = total // 3600
-            m = (total % 3600) // 60
-            s = total % 60
-
-            # ---- 規則：自動縮短 ----
-            if h == 0 and m == 0:
-                return f"{s}"                    # 只顯示秒
-            elif h == 0:
-                return f"{m}:{s:02d}"            # mm:ss
-            else:
-                return f"{h}:{m:02d}:{s:02d}"    # h:mm:ss（不補 h 前導 0）
-
-
-        # X 軸刻度文字
-        ax.xaxis.set_major_formatter(
-            FuncFormatter(lambda x, pos: format_time(x))
-        )
-
-        # ---- 💡 滑鼠 XY 顯示格式也改成時間戳 ----
-        def format_coord(x, y):
-            dmg = int(round(y))
-            dmg_str = f"{dmg:,}"
-
-            if t0 is None:
-                return f"時間：N/A    傷害：{dmg_str}"
-
-            total = int(t0 + round(x))
-            if total < 0:
-                return f"時間：N/A    傷害：{dmg_str}"
-
-            h = total // 3600
-            m = (total % 3600) // 60
-            s = total % 60
-
-            # ---- 套用相同顯示規則 ----
-            if h == 0 and m == 0:
-                ts_str = f"{s}"
-            elif h == 0:
-                ts_str = f"{m}:{s:02d}"
-            else:
-                ts_str = f"{h}:{m:02d}:{s:02d}"
-
-            return f"時間：{ts_str}    傷害：{dmg_str}"
-
-
-        ax.format_coord = format_coord
-
-        # ---- 左邊空間補齊 ----
+        self._configure_time_axis(ax)
+        if self.damage_time_range is not None:
+            start, end = self.damage_time_range
+            if end > start:
+                ax.set_xlim(start, end)
         self.fig.subplots_adjust(left=0.20)
+        self.setup_damage_span_selector(ax)
+        self.canvas.draw()
 
+    def draw_stairs_chart(self):
+        """總傷害階梯圖；短圈選時自動改成每 0.1 秒一格。"""
+        data = self.current_filtered_data
+        if not data:
+            self.draw_empty_chart()
+            return
+
+        timed_rows = self._prepare_timed_damage_rows(data)
+        if not timed_rows:
+            self.draw_empty_chart()
+            return
+
+        bin_size = self._damage_time_bin_size()
+        first_idx, last_idx = self._time_bucket_bounds(timed_rows, bin_size)
+
+        per_bucket = defaultdict(int)
+        for t, d in timed_rows:
+            bucket_idx = math.floor((t + 1e-9) / bin_size)
+            per_bucket[bucket_idx] += int(d.get("damage", 0) or 0)
+
+        bucket_indices = list(range(first_idx, last_idx + 1))
+        values = [per_bucket.get(idx, 0) for idx in bucket_indices]
+        edges = [round(idx * bin_size, 10) for idx in range(first_idx, last_idx + 2)]
+
+        self.fig.clear()
+        ax = self.fig.add_subplot(111)
+        self.fig.patch.set_alpha(0)
+        ax.set_facecolor("none")
+        self.canvas.setStyleSheet("background-color: transparent;")
+
+        ax.stairs(values, edges, fill=True, alpha=0.28, linewidth=1.2)
+
+        title_name = self.get_active_filter_title()
+        resolution_text = self._damage_time_resolution_text()
+        ax.set_title(
+            f"{title_name} 的{resolution_text}總傷害階梯",
+            fontproperties=font,
+            color="#FFFFFF"
+        )
+        ax.set_xlabel("Replay 時間", fontproperties=font, color="#DDDDDD")
+        ax.set_ylabel(f"{resolution_text}傷害", fontproperties=font, color="#DDDDDD")
+        ax.tick_params(colors="#AAAAAA")
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        self._configure_time_axis(ax)
+        if self.damage_time_range is not None:
+            start, end = self.damage_time_range
+            if end > start:
+                ax.set_xlim(start, end)
+        self.setup_damage_span_selector(ax)
         self.canvas.draw()
 
     def update_actor_entry_names(self, info, source):
@@ -5916,8 +6233,21 @@ class MainUI(QWidget):
                 or d.get("sid") == sid_value
             ]
 
+        # v1.4：最後疊加圖上圈選的 replay 時間區間。
+        # 這裡從 parsed_data/raw_data 的基礎篩選結果重新計算，所以清除圈選即可完整恢復。
+        if self.damage_time_range is not None:
+            range_start, range_end = self.damage_time_range
+
+            def in_selected_range(row):
+                t = self.timestamp_to_float_seconds(row.get("timestamp"))
+                return t is not None and range_start <= t <= range_end
+
+            filtered_damage = [d for d in filtered_damage if in_selected_range(d)]
+            filtered_raw = [d for d in filtered_raw if in_selected_range(d)]
+
         self.current_filtered_data = list(filtered_damage)
         self.current_filtered_raw = list(filtered_raw)
+        self.update_damage_range_label()
 
         self.update_raw_table()
         self.update_drop_table()
@@ -5947,10 +6277,17 @@ class MainUI(QWidget):
 
     def on_bar_clicked(self):
         self.current_chart_mode = "bar"
+        # 橫條總傷害圖沒有時間軸，離開圈選互動；已選的時間範圍仍保留並套用統計。
+        if hasattr(self, "btn_select_range") and self.btn_select_range.isChecked():
+            self.btn_select_range.setChecked(False)
         self.refresh_chart()
 
     def on_line_clicked(self):
         self.current_chart_mode = "line"
+        self.refresh_chart()
+
+    def on_stairs_clicked(self):
+        self.current_chart_mode = "stairs"
         self.refresh_chart()
 
 
@@ -5961,6 +6298,12 @@ class MainUI(QWidget):
 
         data = self.current_filtered_data
         if not data:
+            old_status = self.chart_status_text
+            self.chart_status_text = (
+                "所選時間範圍沒有傷害" if self.damage_time_range is not None else "沒有符合條件的傷害"
+            )
+            self.draw_empty_chart()
+            self.chart_status_text = old_status
             return
 
         from collections import defaultdict
@@ -5995,10 +6338,21 @@ class MainUI(QWidget):
         # 如果是折線圖模式
         # ==========================
         if self.current_chart_mode == "line":
-            self.toolbar.show()
+            self.toolbar.hide()
+            if hasattr(self, "bar_scrollbar"):
+                self.bar_scrollbar.hide()
             self.draw_line_chart()
             return
 
+        # ==========================
+        # 每秒傷害階梯圖：用真實時間邊界，不使用 Rectangle bar
+        # ==========================
+        if self.current_chart_mode == "stairs":
+            self.toolbar.hide()
+            if hasattr(self, "bar_scrollbar"):
+                self.bar_scrollbar.hide()
+            self.draw_stairs_chart()
+            return
 
 
 
