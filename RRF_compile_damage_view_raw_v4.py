@@ -4,9 +4,10 @@ from collections import defaultdict
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QTabWidget,
     QTableWidget, QTableWidgetItem, QFileDialog, QLabel,
-    QTreeWidget, QTreeWidgetItem, QHBoxLayout , QCheckBox , QProgressBar
+    QTreeWidget, QTreeWidgetItem, QHBoxLayout, QCheckBox, QProgressBar,
+    QTableView, QSplitter, QAbstractItemView
 )
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, QAbstractTableModel, QModelIndex
 import time
 from PySide6.QtCore import Qt
 import os
@@ -506,6 +507,78 @@ def le_int(bs):
     if not bs:
         return 0
     return int("".join(reversed(bs)), 16)
+
+
+def le_sint(bs):
+    """Little-endian signed integer. Empty input returns 0."""
+    if not bs:
+        return 0
+    raw = bytes(int(x, 16) for x in bs)
+    return int.from_bytes(raw, byteorder="little", signed=True)
+
+
+def _u8(h, off, default=0):
+    return int(h[off], 16) if len(h) > off else default
+
+
+def _u16(h, off, default=0):
+    return le_int(h[off:off + 2]) if len(h) >= off + 2 else default
+
+
+def _i16(h, off, default=0):
+    return le_sint(h[off:off + 2]) if len(h) >= off + 2 else default
+
+
+def _u32(h, off, default=0):
+    return le_int(h[off:off + 4]) if len(h) >= off + 4 else default
+
+
+def _i32(h, off, default=0):
+    return le_sint(h[off:off + 4]) if len(h) >= off + 4 else default
+
+
+def _packet_meta(hex_bytes):
+    packet_id = _u16(hex_bytes, 0)
+    return {
+        "packet_id": packet_id,
+        "packet_id_hex": f"0x{packet_id:04X}",
+        "packet_size": len(hex_bytes),
+        "raw_hex": " ".join(hex_bytes),
+    }
+
+
+def _decode_pos_dir(data):
+    """Decode Ragnarok 3-byte packed position/direction."""
+    if len(data) < 3:
+        return {"x": 0, "y": 0, "dir": 0, "raw": " ".join(data)}
+    p0, p1, p2 = (int(x, 16) for x in data[:3])
+    x = (p0 << 2) | (p1 >> 6)
+    y = ((p1 & 0x3F) << 4) | (p2 >> 4)
+    direction = p2 & 0x0F
+    return {"x": x, "y": y, "dir": direction, "raw": " ".join(data[:3])}
+
+
+def _decode_move_data(data):
+    """Decode Ragnarok 6-byte packed from/to movement coordinates."""
+    if len(data) < 6:
+        return {
+            "from_x": 0, "from_y": 0, "to_x": 0, "to_y": 0,
+            "sub_x": 0, "sub_y": 0, "raw": " ".join(data),
+        }
+    p = [int(x, 16) for x in data[:6]]
+    from_x = (p[0] << 2) | (p[1] >> 6)
+    from_y = ((p[1] & 0x3F) << 4) | (p[2] >> 4)
+    to_x = ((p[2] & 0x0F) << 6) | (p[3] >> 2)
+    to_y = ((p[3] & 0x03) << 8) | p[4]
+    return {
+        "from_x": from_x,
+        "from_y": from_y,
+        "to_x": to_x,
+        "to_y": to_y,
+        "sub_x": (p[5] >> 4) & 0x0F,
+        "sub_y": p[5] & 0x0F,
+        "raw": " ".join(data[:6]),
+    }
 
 
 # ============================================================
@@ -1029,56 +1102,65 @@ def split_groupinfo_members(hex_bytes):
 
     return members
     
+
 def decode_act3(hex_bytes):
-    """解碼普通攻擊封包（支援 0x02E1 / 0x08C8）。
+    """完整解碼普通攻擊封包 0x02E1 / 0x08C8。"""
+    parsed = _packet_meta(hex_bytes)
+    parsed.update({
+        "skill_id": 0,
+        "skill_name": "普通攻擊",
+        "sid": _u32(hex_bytes, 2),
+        "source_aid": _u32(hex_bytes, 2),
+        "did": _u32(hex_bytes, 6),
+        "target_did": _u32(hex_bytes, 6),
+        "start_time": _u32(hex_bytes, 10),
+        "attack_mt": _i32(hex_bytes, 14),
+        "attacked_mt": _i32(hex_bytes, 18),
+        "damage": _i32(hex_bytes, 22),
+        "level": 1,
+    })
+    # 舊 UI 欄位名稱維持相容，但改為完整 4-byte 值。
+    parsed["skill_delay"] = parsed["attack_mt"]
+    parsed["global_delay"] = parsed["attacked_mt"]
 
-    兩種 layout 的共同欄位：
-      [2:6]   source GID
-      [6:10]  target GID
-      [22:26] damage
-
-    0x02E1 為 33 bytes：div=[26:28], type=[28], damage2=[29:33]
-    0x08C8 為 34 bytes：is_sp_damage=[26], div=[27:29], type=[29], damage2=[30:34]
-
-    damage 為原本的普通攻擊傷害；damage2 為副手（左手）傷害。
-    decode 階段保留兩個欄位，後續整理傷害資料時會把 damage2 拆成
-    獨立的「普通傷害(左手)」事件。
-    """
-    parsed = {}
-
-    parsed["skill_id"] = 0
-    parsed["skill_name"] = "普通攻擊"
-
-    parsed["sid"] = le_int(hex_bytes[2:6]) if len(hex_bytes) >= 6 else 0
-    parsed["did"] = le_int(hex_bytes[6:10]) if len(hex_bytes) >= 10 else 0
-    parsed["damage"] = le_int(hex_bytes[22:26]) if len(hex_bytes) >= 26 else 0
-
-    parsed["level"] = 1
-    parsed["skill_delay"] = 0
-    parsed["global_delay"] = 0
-
-    if len(hex_bytes) >= 34:
-        # 0x08C8 / 34-byte layout
-        parsed["is_sp_damage"] = int(hex_bytes[26], 16)
-        parsed["hit_count"] = le_int(hex_bytes[27:29])
-        parsed["attack_type"] = int(hex_bytes[29], 16)
-        parsed["damage2"] = le_int(hex_bytes[30:34])
-    elif len(hex_bytes) >= 33:
-        # 0x02E1 / 33-byte layout
-        parsed["is_sp_damage"] = 0
-        parsed["hit_count"] = le_int(hex_bytes[26:28])
-        parsed["attack_type"] = int(hex_bytes[28], 16)
-        parsed["damage2"] = le_int(hex_bytes[29:33])
+    if len(hex_bytes) >= 34:  # 0x08C8
+        parsed.update({
+            "layout": "0x08C8",
+            "is_sp_damage": _u8(hex_bytes, 26),
+            "hit_count": _i16(hex_bytes, 27),
+            "attack_type": _u8(hex_bytes, 29),
+            "action": _u8(hex_bytes, 29),
+            "damage2": _i32(hex_bytes, 30),
+            "left_damage": _i32(hex_bytes, 30),
+        })
+        consumed = 34
+    elif len(hex_bytes) >= 33:  # 0x02E1
+        parsed.update({
+            "layout": "0x02E1",
+            "is_sp_damage": 0,
+            "hit_count": _i16(hex_bytes, 26),
+            "attack_type": _u8(hex_bytes, 28),
+            "action": _u8(hex_bytes, 28),
+            "damage2": _i32(hex_bytes, 29),
+            "left_damage": _i32(hex_bytes, 29),
+        })
+        consumed = 33
     else:
-        parsed["is_sp_damage"] = 0
-        parsed["hit_count"] = 1
-        parsed["attack_type"] = 0
-        parsed["damage2"] = 0
+        parsed.update({
+            "layout": "truncated",
+            "is_sp_damage": 0,
+            "hit_count": 1,
+            "attack_type": 0,
+            "action": 0,
+            "damage2": 0,
+            "left_damage": 0,
+        })
+        consumed = len(hex_bytes)
 
-    # 某些異常/舊資料可能給 0，維持舊版至少算 1 hit 的行為。
     if parsed["hit_count"] <= 0:
         parsed["hit_count"] = 1
-
+    if len(hex_bytes) > consumed:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[consumed:])
     return parsed
 
 def decode_group_member(member_hex):
@@ -1156,10 +1238,22 @@ def build_sid_to_name_map(text):
 # ============================================================
 # 解碼 GROUND SKILL 的 SID
 # ============================================================
+
 def decode_groundskill(hex_bytes):
-    return {
-        "sid": le_int(hex_bytes[4:8])    # 5~8 位
-    }
+    """完整解碼 ZC_NOTIFY_GROUNDSKILL (0x0117, 18 bytes)."""
+    parsed = _packet_meta(hex_bytes)
+    parsed.update({
+        "skill_id": _u16(hex_bytes, 2),
+        "sid": _u32(hex_bytes, 4),       # AID / source id
+        "aid": _u32(hex_bytes, 4),
+        "level": _i16(hex_bytes, 8),
+        "x": _i16(hex_bytes, 10),
+        "y": _i16(hex_bytes, 12),
+        "start_time": _u32(hex_bytes, 14),
+    })
+    if len(hex_bytes) > 18:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[18:])
+    return parsed
 
 # ============================================================
 # 解析變身封包：HEADER_ZC_MSG_STATE_CHANGE3 / HEADER_ZC_MSG_STATE_CHANGE
@@ -1236,36 +1330,61 @@ def parse_statechange3_blocks(text: str):
 # ============================================================
 # 解碼變身 STATE_CHANGE3 / STATE_CHANGE（既有功能）
 # ============================================================
+
 def decode_statechange3(hex_bytes):
-    parsed = {}
+    """完整解碼 0x0983 STATE_CHANGE3；亦相容 0x0196 STATE_CHANGE 結束包。"""
+    parsed = _packet_meta(hex_bytes)
+    parsed.update({
+        "type": _u16(hex_bytes, 2),
+        "status_id": _u16(hex_bytes, 2),
+        "sid": _u32(hex_bytes, 4),
+        "aid": _u32(hex_bytes, 4),
+        "state": _u8(hex_bytes, 8),
+        "total_ms": 0,
+        "left_ms": 0,
+        "val1": 0,
+        "val2": 0,
+        "val3": 0,
+    })
 
-    # sid (5~8)
-    parsed["sid"] = le_int(hex_bytes[4:8]) if len(hex_bytes) >= 8 else 0
+    if len(hex_bytes) >= 29:  # 0x0983
+        parsed.update({
+            "total_ms": _u32(hex_bytes, 9),
+            "left_ms": _u32(hex_bytes, 13),
+            "val1": _i32(hex_bytes, 17),
+            "val2": _i32(hex_bytes, 21),
+            "val3": _i32(hex_bytes, 25),
+        })
+        consumed = 29
+    elif len(hex_bytes) >= 25:  # 0x043F style fallback
+        parsed.update({
+            "left_ms": _u32(hex_bytes, 9),
+            "val1": _i32(hex_bytes, 13),
+            "val2": _i32(hex_bytes, 17),
+            "val3": _i32(hex_bytes, 21),
+        })
+        consumed = 25
+    else:  # 0x0196: id + AID + state
+        consumed = min(len(hex_bytes), 9)
 
-    # type (3~4)
-    parsed["type"] = le_int(hex_bytes[2:4]) if len(hex_bytes) >= 4 else 0
-
-    # monsterskin（STATE_CHANGE 沒有 → 為 0）
-    parsed["monsterskin"] = le_int(hex_bytes[17:19]) if len(hex_bytes) >= 19 else 0
-
-    # 既有變身封包仍依 type / monsterskin 判斷
+    parsed["monsterskin"] = parsed["val1"] if parsed["val1"] > 0 else 0
     if parsed["type"] == 665:
-        if parsed["monsterskin"] > 0:
-            parsed["transform_event"] = "start"
-        else:
-            parsed["transform_event"] = "end"
+        parsed["transform_event"] = "start" if parsed["monsterskin"] > 0 else "end"
     else:
         parsed["transform_event"] = None
 
-    parsed["skill_id"]      = 0
-    parsed["skill_name"]    = "外觀變更"
-    parsed["did"]           = 0
-    parsed["damage"]        = 0
-    parsed["level"]         = 0
-    parsed["hit_count"]     = 0
-    parsed["skill_delay"]   = 0
-    parsed["global_delay"]  = 0
-
+    parsed.update({
+        "skill_id": 0,
+        "skill_name": "外觀變更",
+        "did": 0,
+        "damage": 0,
+        "level": 0,
+        "hit_count": 0,
+        "skill_delay": 0,
+        "global_delay": 0,
+    })
+    if len(hex_bytes) > consumed:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[consumed:])
     return parsed
 
 
@@ -1351,22 +1470,76 @@ def parse_status_change_blocks(text: str):
 
 
 
+
 def decode_status_change(hex_bytes, packet_kind):
-    """解碼一般狀態開始/結束封包。事件方向只依封包名稱判定。"""
-    status_id = le_int(hex_bytes[2:4]) if len(hex_bytes) >= 4 else 0
-    did = le_int(hex_bytes[4:8]) if len(hex_bytes) >= 7 else 0
+    """完整解碼一般狀態開始/結束封包。"""
+    parsed = _packet_meta(hex_bytes)
+    parsed.update({
+        "status_id": _u16(hex_bytes, 2),
+        "did": _u32(hex_bytes, 4),
+        "aid": _u32(hex_bytes, 4),
+        "state": _u8(hex_bytes, 8),
+        "total_ms": 0,
+        "left_ms": 0,
+        "val1": 0,
+        "val2": 0,
+        "val3": 0,
+    })
+
+    # 0x0983: index.W AID.L state.B total.L left.L val1.L val2.L val3.L
+    if len(hex_bytes) >= 29:
+        parsed.update({
+            "total_ms": _u32(hex_bytes, 9),
+            "left_ms": _u32(hex_bytes, 13),
+            "val1": _i32(hex_bytes, 17),
+            "val2": _i32(hex_bytes, 21),
+            "val3": _i32(hex_bytes, 25),
+        })
+        consumed = 29
+    # 0x043F: index.W AID.L state.B left.L val1.L val2.L val3.L
+    elif len(hex_bytes) >= 25:
+        parsed.update({
+            "left_ms": _u32(hex_bytes, 9),
+            "val1": _i32(hex_bytes, 13),
+            "val2": _i32(hex_bytes, 17),
+            "val3": _i32(hex_bytes, 21),
+        })
+        consumed = 25
+    else:
+        consumed = min(len(hex_bytes), 9)
+
     is_start = packet_kind == "START"
+    parsed["status_event"] = "start" if is_start else "end"
+    parsed["status_event_name"] = "狀態開始" if is_start else "狀態結束"
+    if len(hex_bytes) > consumed:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[consumed:])
+    return parsed
 
 
-    return {
-        "status_id": status_id,
-        "did": did,
-        "status_event": "start" if is_start else "end",
-        "status_event_name": "狀態開始" if is_start else "狀態結束",
-    }
 
+
+def decode_vanish(hex_bytes):
+    """完整解碼 ZC_NOTIFY_VANISH: packet id + GID + type."""
+    parsed = _packet_meta(hex_bytes)
+    mode = _u8(hex_bytes, 6)
+    parsed.update({
+        "did": _u32(hex_bytes, 2),
+        "gid": _u32(hex_bytes, 2),
+        "mode": mode,
+        "mode_name": {
+            0: "out_of_sight",
+            1: "died",
+            2: "logged_out",
+            3: "teleport",
+            4: "trickdead",
+        }.get(mode, f"unknown_{mode}"),
+    })
+    if len(hex_bytes) > 7:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[7:])
+    return parsed
 
 def parse_vanish_blocks(text: str):
+    """解析所有 ZC_NOTIFY_VANISH；不再只保留死亡(mode=1)。"""
     lines = text.splitlines()
     results = []
     i = 0
@@ -1378,14 +1551,14 @@ def parse_vanish_blocks(text: str):
             i += 1
             continue
 
-        packet_pos = i   # ★ 記住這筆封包在文字中的位置
+        packet_pos = i
         timestamp = line.split("]")[0][1:]
-
         i += 1
         if i >= n:
             break
         m = SIZE_RE.search(lines[i])
         if not m:
+            i += 1
             continue
         size = int(m.group(1))
 
@@ -1395,7 +1568,6 @@ def parse_vanish_blocks(text: str):
             line2 = lines[i].strip()
             if line2.startswith("}"):
                 break
-
             maddr = re.match(r'^\s*[0-9A-Fa-f]{4}\s+(.*)$', line2)
             if maddr:
                 for token in maddr.group(1).split():
@@ -1409,20 +1581,19 @@ def parse_vanish_blocks(text: str):
                 break
             i += 1
 
-        if len(hex_bytes) >= 7:
-            did = int(hex_bytes[2], 16) | (int(hex_bytes[3], 16) << 8)
-            mode = int(hex_bytes[6], 16)
-
-            if mode == 1:
-                results.append({
-                    "timestamp": timestamp,
-                    "did": did,
-                    "mode": mode,
-                    "packet_pos": packet_pos,   # ★ 新增
-                })
-
+        packet = hex_bytes[:size]
+        if len(packet) >= 7:
+            dec = decode_vanish(packet)
+            results.append({
+                "timestamp": timestamp,
+                "size": size,
+                "hex": packet,
+                "did": dec["did"],
+                "mode": dec["mode"],
+                "mode_name": dec["mode_name"],
+                "packet_pos": packet_pos,
+            })
         i += 1
-
     return results
 
 def parse_itemdrop_blocks(text: str):
@@ -1485,13 +1656,26 @@ def parse_itemdrop_blocks(text: str):
     print(f"[itemdrop] 解析到 {len(results)} 筆，耗時: {(time.perf_counter() - t0) * 1000:.3f} ms")
     return results
 
+
 def decode_itemdrop(hex_bytes):
-    return {
-        "item_id": le_int(hex_bytes[6:9]),      # 94 03 00 -> 916
-        "x": le_int(hex_bytes[13:15]),          # E1 00 -> 225
-        "y": le_int(hex_bytes[15:17]),          # 5E 01 -> 350
-        "amount": le_int(hex_bytes[19:21]),     # 01 00 -> 1
-    }
+    """完整解碼 0x0ADD ZC_ITEM_FALL_ENTRY4（目前 HEADER_物品掉落）。"""
+    parsed = _packet_meta(hex_bytes)
+    parsed.update({
+        "item_aid": _u32(hex_bytes, 2),
+        "item_id": _u32(hex_bytes, 6),
+        "item_type": _u16(hex_bytes, 10),
+        "is_identified": _u8(hex_bytes, 12),
+        "x": _i16(hex_bytes, 13),
+        "y": _i16(hex_bytes, 15),
+        "sub_x": _u8(hex_bytes, 17),
+        "sub_y": _u8(hex_bytes, 18),
+        "amount": _i16(hex_bytes, 19),
+        "show_drop_effect": _u8(hex_bytes, 21),
+        "drop_effect_mode": _i16(hex_bytes, 22),
+    })
+    if len(hex_bytes) > 24:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[24:])
+    return parsed
 
 
 
@@ -1576,34 +1760,31 @@ def parse_couplestatus_blocks(text: str, checkbox):
     return results
 
 
+
 def decode_couplestatus(hex_bytes, show_unknown=SHOW_UNKNOWN_COUPLESTATUS):
-    """
-    0x0141 ZC_COUPLESTATUS:
-      [0..1]   packet id (0141)
-      [2..5]   status id   (L)
-      [6..9]   base status (L)
-      [10..13] plus status (L)
-    """
-    stat_id = le_int(hex_bytes[2:4]) if len(hex_bytes) >= 6 else 0
-    base    = le_int(hex_bytes[6:7]) if len(hex_bytes) >= 10 else 0
-    plus    = le_int(hex_bytes[10:12]) if len(hex_bytes) >= 14 else 0
-
+    """完整解碼 0x0141 ZC_COUPLESTATUS。"""
+    parsed = _packet_meta(hex_bytes)
+    stat_id = _u32(hex_bytes, 2)
+    base = _i32(hex_bytes, 6)
+    plus = _i32(hex_bytes, 10)
     stat_name = COUPLESTATUS_STAT_MAP.get(stat_id)
-
-    # 沒對應：看開關決定要不要隱藏
     if stat_name is None:
         if not show_unknown:
             return None
-        stat_name = f"0x{stat_id:08X}"  # 顯示未知ID（可自行換格式）
-
-    total = base + plus
-    return {
+        stat_name = f"0x{stat_id:08X}"
+    parsed.update({
         "stat_id": stat_id,
+        "status_type": stat_id,
         "stat_name": stat_name,
         "base": base,
+        "default_status": base,
         "plus": plus,
-        "total": total,
-    }
+        "plus_status": plus,
+        "total": base + plus,
+    })
+    if len(hex_bytes) > 14:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[14:])
+    return parsed
 
 def check_button_state(ui):
     return ui.Character_ability_changes_checkbox.isChecked()
@@ -1685,25 +1866,29 @@ def parse_par_change_blocks(text: str, checkbox ):
 
 
 
+
 def decode_par_change(hex_bytes, show_unknown=None):
-    """
-    0x00B0 ZC_PAR_CHANGE: <var id>.W <value>.L
-    """
+    """完整解碼 0x00B0 ZC_PAR_CHANGE: varID.W + count.L。"""
     if show_unknown is None:
         show_unknown = SHOW_UNKNOWN_PAR_CHANGE
-
-    stat_id = le_int(hex_bytes[2:4]) if len(hex_bytes) >= 4 else 0
-    value   = le_int(hex_bytes[4:8]) if len(hex_bytes) >= 8 else 0  # 4 bytes (L)
-
+    parsed = _packet_meta(hex_bytes)
+    stat_id = _u16(hex_bytes, 2)
+    value = _i32(hex_bytes, 4)
     stat_name = PAR_CHANGE_STAT_MAP.get(stat_id)
-
-    # 沒對應：看開關要不要隱藏
     if stat_name is None:
         if not show_unknown:
             return None
         stat_name = f"0x{stat_id:04X}"
-
-    return {"stat_id": stat_id, "stat_name": stat_name, "value": value}
+    parsed.update({
+        "stat_id": stat_id,
+        "var_id": stat_id,
+        "stat_name": stat_name,
+        "value": value,
+        "count": value,
+    })
+    if len(hex_bytes) > 8:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[8:])
+    return parsed
 
 
 
@@ -1784,40 +1969,33 @@ def parse_skill2_blocks(text: str):
 # ============================================================
 # 解碼 SKILL2 欄位
 # ============================================================
+
 def decode_skill2(hex_bytes):
-
-    parsed = {}
-
-    parsed["skill_id"] = le_int(hex_bytes[2:4])  # ★ 真正的技能 ID（不能改）
-    sid = parsed["skill_id"]
-
-    # ★ 顯示用途的 ID：只用于查中文名！！！其他不影響
-    display_id = skill_display_map.get(sid, sid)
-
-    # ★ 技能名稱（使用 display_id 查）
-    parsed["skill_name"] = skill_name_map.get(display_id, f"ID {display_id}")
-
-    parsed["sid"]          = le_int(hex_bytes[4:8])
-    # DID 編碼：如果 hex_bytes[8] == '00' → 抓 2 bytes，否則抓 4 bytes
-    if len(hex_bytes) >= 12:
-        if hex_bytes[8] == '00':
-            parsed["did"] = le_int(hex_bytes[8:10])   # 2 bytes
-        else:
-            parsed["did"] = le_int(hex_bytes[8:12])   # 4 bytes
-    else:
-        parsed["did"] = 0   # 保護，不會崩潰
-    parsed["skill_delay"]  = int(hex_bytes[16], 16) if len(hex_bytes) > 16 else 0
-    # global_delay
-    gd_bytes = hex_bytes[20:22]
-
-    if gd_bytes == ['FF', 'FF']:
-        parsed["global_delay"] = -1
-    else:
-        parsed["global_delay"] = le_int(gd_bytes)
-    parsed["damage"]       = le_int(hex_bytes[24:28])  # 25~28（4 bytes）
-    parsed["level"]        = int(hex_bytes[28], 16) if len(hex_bytes) > 28 else 0
-    parsed["hit_count"]    = int(hex_bytes[30], 16) if len(hex_bytes) > 30 else 0
-
+    """完整解碼 33-byte ZC_NOTIFY_SKILL2 / ZC_NOTIFY_SKILL layout。"""
+    parsed = _packet_meta(hex_bytes)
+    skill_id = _u16(hex_bytes, 2)
+    display_id = skill_display_map.get(skill_id, skill_id)
+    parsed.update({
+        "skill_id": skill_id,
+        "skill_name": skill_name_map.get(display_id, f"ID {display_id}"),
+        "sid": _u32(hex_bytes, 4),
+        "source_aid": _u32(hex_bytes, 4),
+        "did": _u32(hex_bytes, 8),
+        "target_did": _u32(hex_bytes, 8),
+        "start_time": _u32(hex_bytes, 12),
+        "attack_mt": _i32(hex_bytes, 16),
+        "attacked_mt": _i32(hex_bytes, 20),
+        "damage": _i32(hex_bytes, 24),
+        "level": _i16(hex_bytes, 28),
+        "hit_count": _i16(hex_bytes, 30),
+        "action": _u8(hex_bytes, 32),
+        "attack_type": _u8(hex_bytes, 32),
+    })
+    # 舊欄位名稱保留，但不再只取低 1/2 byte。
+    parsed["skill_delay"] = parsed["attack_mt"]
+    parsed["global_delay"] = parsed["attacked_mt"]
+    if len(hex_bytes) > 33:
+        parsed["unparsed_tail_hex"] = " ".join(hex_bytes[33:])
     return parsed
 
 
@@ -1981,8 +2159,13 @@ def _decode_actor_name(hex_bytes, start, size):
     return raw.decode("cp950", errors="replace").strip()
 
 
-def sanitize_actor_name(name):
-    """拒絕污染字元及 RO 內部隱藏物件名，避免覆寫正常中文名稱。"""
+def sanitize_actor_name(name, allow_internal=False):
+    """清理 actor 名稱。
+
+    一般 entry 仍排除 #mk_1 / #le_4 這類內部名稱，避免污染正常中文名稱；
+    但 0x09FE 是 DID 名稱回查的重要來源，必要時允許保留內部名稱，
+    這樣即使 replay 只提供 #mk_1，也能讓 09FE.AID 正確關聯傷害封包.DID。
+    """
     if name is None:
         return None
     name = str(name).replace("\x00", "").strip()
@@ -1992,23 +2175,117 @@ def sanitize_actor_name(name):
     # 控制字元不應出現在顯示名稱。
     if any(ord(ch) < 0x20 for ch in name):
         return None
-    # #mk_10 / #le_4 等是腳本/內部 actor 名，不拿來當怪物顯示名稱。
-    if name.startswith("#") or _INTERNAL_ACTOR_NAME_RE.fullmatch(name):
-        return None
+    if not allow_internal:
+        # #mk_10 / #le_4 等是腳本/內部 actor 名；一般來源仍不採用。
+        if name.startswith("#") or _INTERNAL_ACTOR_NAME_RE.fullmatch(name):
+            return None
     return name
 
 
+
+def _decode_actor_entry11(hex_bytes, size, kind):
+    """完整解碼目前程式使用的 2018+ actor entry layout。"""
+    parsed = _packet_meta(hex_bytes)
+    parsed["declared_size"] = size
+    parsed.update({
+        "object_type": _u8(hex_bytes, 4),
+        "aid": _u32(hex_bytes, 5),
+        "did": _u32(hex_bytes, 5),   # 舊程式把 AID 當作怪物識別 ID，保留相容名稱
+        "gid": _u32(hex_bytes, 9),
+        "speed": _i16(hex_bytes, 13),
+        "body_state": _i16(hex_bytes, 15),
+        "health_state": _i16(hex_bytes, 17),
+        "effect_state": _i32(hex_bytes, 19),
+        "job": _i16(hex_bytes, 23),
+        "head": _u16(hex_bytes, 25),
+        "weapon": _u32(hex_bytes, 27),
+        "shield": _u32(hex_bytes, 31),
+        "accessory": _u16(hex_bytes, 35),
+    })
+
+    if kind == "move":
+        parsed.update({
+            "move_start_time": _u32(hex_bytes, 37),
+            "accessory2": _u16(hex_bytes, 41),
+            "accessory3": _u16(hex_bytes, 43),
+            "head_palette": _i16(hex_bytes, 45),
+            "body_palette": _i16(hex_bytes, 47),
+            "head_dir": _i16(hex_bytes, 49),
+            "robe": _u16(hex_bytes, 51),
+            "guild_id": _u32(hex_bytes, 53),
+            "guild_emblem_ver": _i16(hex_bytes, 57),
+            "honor": _i16(hex_bytes, 59),
+            "virtue": _i32(hex_bytes, 61),
+            "is_pk_mode": _u8(hex_bytes, 65),
+            "sex": _u8(hex_bytes, 66),
+        })
+        movement = _decode_move_data(hex_bytes[67:73])
+        parsed["move_data"] = movement
+        parsed.update({
+            "from_x": movement["from_x"], "from_y": movement["from_y"],
+            "to_x": movement["to_x"], "to_y": movement["to_y"],
+            "move_sub_x": movement["sub_x"], "move_sub_y": movement["sub_y"],
+            "x_size": _u8(hex_bytes, 73),
+            "y_size": _u8(hex_bytes, 74),
+            "level": _i16(hex_bytes, 75),
+            "font": _i16(hex_bytes, 77),
+            "max_hp": _i32(hex_bytes, 79),
+            "hp": _i32(hex_bytes, 83),
+            "is_boss": _u8(hex_bytes, 87),
+            "body": _u16(hex_bytes, 88),
+        })
+        name_start = 90
+    else:
+        parsed.update({
+            "accessory2": _u16(hex_bytes, 37),
+            "accessory3": _u16(hex_bytes, 39),
+            "head_palette": _i16(hex_bytes, 41),
+            "body_palette": _i16(hex_bytes, 43),
+            "head_dir": _i16(hex_bytes, 45),
+            "robe": _u16(hex_bytes, 47),
+            "guild_id": _u32(hex_bytes, 49),
+            "guild_emblem_ver": _i16(hex_bytes, 53),
+            "honor": _i16(hex_bytes, 55),
+            "virtue": _i32(hex_bytes, 57),
+            "is_pk_mode": _u8(hex_bytes, 61),
+            "sex": _u8(hex_bytes, 62),
+        })
+        pos = _decode_pos_dir(hex_bytes[63:66])
+        parsed["pos_dir"] = pos
+        parsed.update({
+            "x": pos["x"], "y": pos["y"], "dir": pos["dir"],
+            "x_size": _u8(hex_bytes, 66),
+            "y_size": _u8(hex_bytes, 67),
+        })
+        if kind == "stand":
+            parsed["state"] = _u8(hex_bytes, 68)
+            parsed.update({
+                "level": _i16(hex_bytes, 69),
+                "font": _i16(hex_bytes, 71),
+                "max_hp": _i32(hex_bytes, 73),
+                "hp": _i32(hex_bytes, 77),
+                "is_boss": _u8(hex_bytes, 81),
+                "body": _u16(hex_bytes, 82),
+            })
+            name_start = 84
+        else:  # new/spawn
+            parsed.update({
+                "level": _i16(hex_bytes, 68),
+                "font": _i16(hex_bytes, 70),
+                "max_hp": _i32(hex_bytes, 72),
+                "hp": _i32(hex_bytes, 76),
+                "is_boss": _u8(hex_bytes, 80),
+                "body": _u16(hex_bytes, 81),
+            })
+            name_start = 83
+
+    parsed["name"] = _decode_actor_name(hex_bytes, name_start, size)
+    parsed["name_raw_hex"] = " ".join(hex_bytes[name_start:size])
+    return parsed
+
+
 def decode_moveentry11(hex_bytes, size):
-    # 6~7 怪物 DID（小端）
-    did = le_int(hex_bytes[5:9])
-
-    # MOVEENTRY11 名稱欄位從 byte 90 開始。
-    name = _decode_actor_name(hex_bytes, 90, size)
-
-    return {
-        "did": did,
-        "name": name
-    }
+    return _decode_actor_entry11(hex_bytes, size, "move")
 # ============================================================
 # 解析 HEADER_ZC_NOTIFY_STANDENTRY11
 # ============================================================
@@ -2043,65 +2320,334 @@ def parse_standentry11_blocks(text):
     print(f"[stand entry] 解析耗時: {(t1_stand - t0_stand) * 1000:.3f} ms")
     return results
 
+
 def decode_standentry11(hex_bytes, size):
-    # GID/DID: byte 5~8 (4 bytes, little-endian)
-    did = le_int(hex_bytes[5:9])
-
-    # 0x09FF / STANDENTRY11: match the original EXE-based parser.
-    # The actor name starts at byte 84.
-    name = _decode_actor_name(hex_bytes, 84, size)
-
-    return {
-        "did": did,
-        "name": name
-    }
+    return _decode_actor_entry11(hex_bytes, size, "stand")
 # ============================================================
 # 解析 HEADER_ZC_NOTIFY_NEWENTRY11
 # ============================================================
+
 def decode_newentry11(hex_bytes, size):
-    # GID/DID: byte 5~8 (4 bytes, little-endian)
-    did = le_int(hex_bytes[5:9])
-
-    # 0x09FE / NEWENTRY11: match the original EXE-based parser.
-    # The actor name starts at byte 83.
-    name = _decode_actor_name(hex_bytes, 83, size)
-
-    return {
-        "did": did,
-        "name": name
-    }
+    return _decode_actor_entry11(hex_bytes, size, "new")
     
 def parse_newentry11_blocks(text):
+    """解析 NEWENTRY11 / 0x09FE。
+
+    舊版只依 packet 標題 HEADER_ZC_NOTIFY_NEWENTRY11 判斷；RRF reader 若使用
+    不同標題或未知名稱，同一個 0x09FE 封包就會漏掉。這裡改成直接檢查
+    packet 內容前 2 bytes（little-endian opcode），只要是 FE 09 就視為 NEWENTRY11。
+    """
     t0_new = time.perf_counter()
-    pattern = re.compile(
-        r'\[(\+\d{2}:\d{2}:\d{2}:\d{3})\]\s+packet\s+(HEADER_ZC_NOTIFY_NEWENTRY11)\s*'
-        r'\[\s*0x[0-9A-Fa-f]+\s+\((\d+)\)\]\s*'
-        r'\{\s*\n([\s\S]*?)^\}\s*$',
-        re.MULTILINE
-    )
-
+    lines = text.splitlines()
     results = []
+    packet_re = re.compile(r'^\[(\+\d{2}:\d{2}:\d{2}:\d{3})\]\s+packet\s+(\S+)\s*$')
 
-    for t, packet_name, size, block in pattern.findall(text):
-        # 只抓地址行後面的 HEX，不抓 ASCII
+    i = 0
+    while i < len(lines):
+        m = packet_re.match(lines[i].strip())
+        if not m:
+            i += 1
+            continue
+
+        timestamp, packet_name = m.groups()
+        if i + 1 >= len(lines):
+            break
+
+        sm = SIZE_RE.search(lines[i + 1])
+        if not sm:
+            i += 1
+            continue
+
+        size = int(sm.group(1))
+        j = i + 2
         hex_bytes = []
-        for line in block.splitlines():
-            m = re.match(r'^\s*[0-9A-Fa-f]{4}\s+(.*)$', line)
-            if m:
-                for token in m.group(1).split():
-                    if re.fullmatch(r'[0-9A-Fa-f]{2}', token):
-                        hex_bytes.append(token)
-                    else:
-                        break  # 遇到 ASCII → 本行停止
+        while j < len(lines):
+            row = lines[j].strip()
+            if row.startswith("}"):
+                break
 
-        results.append({
-            "timestamp": t,
-            "size": int(size),
-            "hex": hex_bytes[:int(size)]
-        })
+            ma = re.match(r'^\s*[0-9A-Fa-f]{4,}\s+(.*)$', lines[j])
+            if ma:
+                for tok in ma.group(1).split():
+                    if re.fullmatch(r'[0-9A-Fa-f]{2}', tok):
+                        hex_bytes.append(tok.upper())
+                        if len(hex_bytes) >= size:
+                            break
+                    else:
+                        break
+            if len(hex_bytes) >= size:
+                break
+            j += 1
+
+        packet = hex_bytes[:size]
+        if len(packet) >= 2 and _u16(packet, 0) == 0x09FE:
+            results.append({
+                "timestamp": timestamp,
+                "size": size,
+                "hex": packet,
+                "packet_name": packet_name,
+                "opcode": 0x09FE,
+                "opcode_hex": "0x09FE",
+            })
+
+        i = max(i + 1, j)
+
     t1_new = time.perf_counter()
-    print(f"[new entry] 解析耗時: {(t1_new - t0_new) * 1000:.3f} ms")
+    print(f"[new entry / 0x09FE] 解析到 {len(results)} 筆，耗時: {(t1_new - t0_new) * 1000:.3f} ms")
     return results
+
+
+
+KNOWN_PACKET_NAMES = {
+    "HEADER_ZC_NOTIFY_GROUNDSKILL",
+    "HEADER_ZC_NOTIFY_SKILL2",
+    "HEADER_ZC_NOTIFY_ACT3",
+    "HEADER_ZC_MSG_STATE_CHANGE3",
+    "HEADER_ZC_MSG_STATE_CHANGE2",
+    "HEADER_ZC_MSG_STATE_CHANGE",
+    "HEADER_ZC_COUPLESTATUS",
+    "HEADER_ZC_PAR_CHANGE",
+    "HEADER_ZC_NOTIFY_VANISH",
+    "HEADER_物品掉落",
+    "HEADER_ZC_NOTIFY_MOVEENTRY11",
+    "HEADER_ZC_NOTIFY_STANDENTRY11",
+    "HEADER_ZC_NOTIFY_NEWENTRY11",
+}
+
+
+def decode_known_packet_full(packet_name, hex_bytes, size=None):
+    """依目前程式已辨識的封包標題 / opcode，回傳所有已知欄位。"""
+    size = len(hex_bytes) if size is None else size
+    opcode = _u16(hex_bytes, 0) if len(hex_bytes) >= 2 else 0
+
+    # 0x09FE = modern spawn_unit / NEWENTRY11。
+    # 直接依 opcode 解碼，避免 RRF 的 packet 標題不同時漏掉。
+    if opcode == 0x09FE:
+        parsed = decode_newentry11(hex_bytes, size)
+        parsed["opcode_name"] = "ZC_NOTIFY_NEWENTRY / spawn_unit"
+        return parsed
+
+    if packet_name == "HEADER_ZC_NOTIFY_GROUNDSKILL":
+        return decode_groundskill(hex_bytes)
+    if packet_name == "HEADER_ZC_NOTIFY_SKILL2":
+        return decode_skill2(hex_bytes)
+    if packet_name == "HEADER_ZC_NOTIFY_ACT3":
+        return decode_act3(hex_bytes)
+    if packet_name == "HEADER_ZC_MSG_STATE_CHANGE3":
+        return decode_statechange3(hex_bytes)
+    if packet_name == "HEADER_ZC_MSG_STATE_CHANGE2":
+        return decode_status_change(hex_bytes, "START")
+    if packet_name == "HEADER_ZC_MSG_STATE_CHANGE":
+        return decode_status_change(hex_bytes, "END")
+    if packet_name == "HEADER_ZC_COUPLESTATUS":
+        return decode_couplestatus(hex_bytes, show_unknown=True)
+    if packet_name == "HEADER_ZC_PAR_CHANGE":
+        return decode_par_change(hex_bytes, show_unknown=True)
+    if packet_name == "HEADER_ZC_NOTIFY_VANISH":
+        return decode_vanish(hex_bytes)
+    if packet_name == "HEADER_物品掉落":
+        return decode_itemdrop(hex_bytes)
+    if packet_name == "HEADER_ZC_NOTIFY_MOVEENTRY11":
+        return decode_moveentry11(hex_bytes, size)
+    if packet_name == "HEADER_ZC_NOTIFY_STANDENTRY11":
+        return decode_standentry11(hex_bytes, size)
+    if packet_name == "HEADER_ZC_NOTIFY_NEWENTRY11":
+        return decode_newentry11(hex_bytes, size)
+    return _packet_meta(hex_bytes)
+
+
+def parse_all_known_packets_complete(text):
+    """掃描目前程式已支援的 packet 標題，完整保留並解碼其欄位。"""
+    t0 = time.perf_counter()
+    lines = text.splitlines()
+    results = []
+    packet_re = re.compile(r'^\[(\+\d{2}:\d{2}:\d{2}:\d{3})\]\s+packet\s+(\S+)\s*$')
+    i = 0
+    while i < len(lines):
+        m = packet_re.match(lines[i].strip())
+        if not m:
+            i += 1
+            continue
+        timestamp, packet_name = m.groups()
+        if i + 1 >= len(lines):
+            break
+        sm = SIZE_RE.search(lines[i + 1])
+        if not sm:
+            i += 1
+            continue
+        size = int(sm.group(1))
+        j = i + 2
+        hex_bytes = []
+        while j < len(lines):
+            row = lines[j].strip()
+            if row.startswith("}"):
+                break
+            ma = re.match(r'^\s*[0-9A-Fa-f]{4,}\s+(.*)$', lines[j])
+            if ma:
+                for tok in ma.group(1).split():
+                    if re.fullmatch(r'[0-9A-Fa-f]{2}', tok):
+                        hex_bytes.append(tok.upper())
+                        if len(hex_bytes) >= size:
+                            break
+                    else:
+                        break
+            if len(hex_bytes) >= size:
+                break
+            j += 1
+        packet = hex_bytes[:size]
+        opcode = _u16(packet, 0) if len(packet) >= 2 else 0
+
+        # 平常依標題辨識；0x09FE 額外直接依 opcode 辨識，避免標題名稱不同而漏掉。
+        is_09fe = opcode == 0x09FE
+        if packet_name not in KNOWN_PACKET_NAMES and not is_09fe:
+            i = max(i + 1, j)
+            continue
+
+        decoded = decode_known_packet_full(packet_name, packet, size)
+        display_packet_name = "HEADER_ZC_NOTIFY_NEWENTRY11 (0x09FE)" if is_09fe else packet_name
+
+        # VANISH 各 mode 都保留在完整解析資料中；真正是否顯示由 UI 勾選控制。
+        results.append({
+            "timestamp": timestamp,
+            "packet_name": display_packet_name,
+            "source_packet_name": packet_name,
+            "opcode": opcode,
+            "opcode_hex": f"0x{opcode:04X}" if opcode else "",
+            "declared_size": size,
+            "captured_size": len(packet),
+            "complete": len(packet) == size,
+            "hex": packet,
+            "decoded": decoded,
+        })
+        i = max(i + 1, j)
+    print(f"[完整封包解析] {len(results)} 包，耗時: {(time.perf_counter()-t0)*1000:.3f} ms")
+    return results
+
+
+class PacketDecodeTableModel(QAbstractTableModel):
+    """封包列表虛擬 Model：不建立每列 Widget/Item，只在 View 要畫面資料時回傳內容。"""
+    HEADERS = ["時間", "封包", "長度 / 狀態", "Raw HEX"]
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._records = []
+        self._indices = []
+
+    def set_records(self, records, visible_indices=None):
+        self.beginResetModel()
+        self._records = records or []
+        if visible_indices is None:
+            self._indices = list(range(len(self._records)))
+        else:
+            self._indices = list(visible_indices)
+        self.endResetModel()
+
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self._indices)
+
+    def columnCount(self, parent=QModelIndex()):
+        return 4
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            if 0 <= section < len(self.HEADERS):
+                return self.HEADERS[section]
+        return None
+
+    def record_at(self, row):
+        if 0 <= row < len(self._indices):
+            idx = self._indices[row]
+            if 0 <= idx < len(self._records):
+                return self._records[idx]
+        return None
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid() or role not in (Qt.DisplayRole, Qt.ToolTipRole):
+            return None
+        rec = self.record_at(index.row())
+        if not rec:
+            return None
+        col = index.column()
+        if col == 0:
+            value = rec.get("timestamp", "")
+        elif col == 1:
+            value = rec.get("packet_name", "")
+        elif col == 2:
+            status = "完整" if rec.get("complete") else "截斷"
+            value = f'{rec.get("captured_size", 0)}/{rec.get("declared_size", 0)} bytes {status}'
+        else:
+            value = " ".join(rec.get("hex", []))
+        return str(value)
+
+
+class PacketDecodeFieldsModel(QAbstractTableModel):
+    """單一封包完整解析欄位的虛擬 Model。選包時只替換目前內容。"""
+    HEADERS = ["欄位", "值"]
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._rows = []
+
+    @staticmethod
+    def _flatten(value, prefix=""):
+        rows = []
+        if isinstance(value, dict):
+            for key, subvalue in value.items():
+                if key == "raw_hex":
+                    continue
+                path = f"{prefix}.{key}" if prefix else str(key)
+                rows.extend(PacketDecodeFieldsModel._flatten(subvalue, path))
+        elif isinstance(value, (list, tuple)):
+            # byte/短陣列直接一列顯示，避免為大量 bytes 製造大量列。
+            if len(value) <= 32 and all(not isinstance(v, (dict, list, tuple)) for v in value):
+                rows.append((prefix, str(value)))
+            else:
+                for i, subvalue in enumerate(value):
+                    path = f"{prefix}[{i}]"
+                    rows.extend(PacketDecodeFieldsModel._flatten(subvalue, path))
+        else:
+            rows.append((prefix, "" if value is None else str(value)))
+        return rows
+
+    def set_record(self, rec):
+        rows = []
+        if rec:
+            rows.extend([
+                ("timestamp", rec.get("timestamp", "")),
+                ("packet_name", rec.get("packet_name", "")),
+                ("source_packet_name", rec.get("source_packet_name", "")),
+                ("opcode_hex", rec.get("opcode_hex", "")),
+                ("declared_size", rec.get("declared_size", 0)),
+                ("captured_size", rec.get("captured_size", 0)),
+                ("complete", rec.get("complete", False)),
+            ])
+            rows.extend(self._flatten(rec.get("decoded") or {}))
+        self.beginResetModel()
+        self._rows = rows
+        self.endResetModel()
+
+    def clear(self):
+        self.set_record(None)
+
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self._rows)
+
+    def columnCount(self, parent=QModelIndex()):
+        return 2
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            if 0 <= section < len(self.HEADERS):
+                return self.HEADERS[section]
+        return None
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid() or role not in (Qt.DisplayRole, Qt.ToolTipRole):
+            return None
+        if not (0 <= index.row() < len(self._rows)):
+            return None
+        field, value = self._rows[index.row()]
+        return str(field if index.column() == 0 else value)
 
 def normalize_item_name(s):
     return str(s).strip().lower()
@@ -2142,7 +2688,7 @@ class MainUI(QWidget):
         self.hud = DamageHUD()
         self.hud.hide()
         super().__init__()
-        self.setWindowTitle("RRF傷害解析器 v1.2")
+        self.setWindowTitle("RRF傷害解析器 v1.3")
         self.resize(1100, 900)
         self.transform_end_time = {}#結束變身時間
         self.transform_start_time = {}#變身時間    
@@ -2168,6 +2714,10 @@ class MainUI(QWidget):
         self.did_name_source = {}
         self.self_sid = 0
         self.current_map_name = ""
+
+        # v1.3：封包完整解析改用 QTableView + Model 虛擬表格，不建立大量 Tree Item。
+        self._packet_decode_reload_pending = False
+        self._packet_decode_reload_in_progress = False
          
         # 內容指紋快取
         self.last_txt_signature = None
@@ -2193,17 +2743,13 @@ class MainUI(QWidget):
         self.stop_btn.setFixedWidth(200)
         self.stop_btn.clicked.connect(self.stop_update)
         btn_layout.addWidget(self.stop_btn)
-        self.Character_ability_changes_checkbox = QCheckBox("解析角色能力變動")
-        self.Character_ability_changes_checkbox.setFixedWidth(150)
-        btn_layout.addWidget(self.Character_ability_changes_checkbox)
+        # 所有 QCheckBox 選項集中到彈出視窗，主畫面只保留一個設定按鈕。
+        self.options_btn = QPushButton("選項設定")
+        self.options_btn.setFixedWidth(100)
+        self.options_btn.clicked.connect(self.show_options_dialog)
+        btn_layout.addWidget(self.options_btn)
 
-        # 傷害歷程：是否顯示一般狀態開始 / 結束事件（預設顯示）
-        self.show_status_history_checkbox = QCheckBox("傷害歷程顯示狀態")
-        self.show_status_history_checkbox.setChecked(False)
-        self.show_status_history_checkbox.setFixedWidth(150)
-        btn_layout.addWidget(self.show_status_history_checkbox)
-
-
+        self._create_options_dialog()
 
         # 將按鈕布局加到主要布局中
         layout.addLayout(btn_layout)
@@ -2228,9 +2774,13 @@ class MainUI(QWidget):
         self.refresh_input.setFixedWidth(80)      # ★固定寬度
         self.refresh_input.setAlignment(Qt.AlignRight)   # ★讓數字靠右
         interval_layout.addWidget(self.refresh_input)
-        # 自動使用資料夾內最新 RRF 勾選
-        self.auto_latest_checkbox = QCheckBox("最新 RRF")
+
+        # 「使用最新 RRF」屬於主操作流程，放回主畫面，不收進選項設定。
+        self.auto_latest_checkbox = QCheckBox("自動使用資料夾內最新 RRF")
+        # 右上角選項預設關閉；使用者需要時再手動勾選。
+        self.auto_latest_checkbox.setChecked(False)
         interval_layout.addWidget(self.auto_latest_checkbox)
+
         # 攻方 SID 篩選
         interval_layout.addWidget(QLabel("篩選攻方："))
         self.sid_filter = QComboBox()
@@ -2256,8 +2806,14 @@ class MainUI(QWidget):
         self.did_filter.currentIndexChanged.connect(self.apply_did_filter)
         interval_layout.addWidget(self.did_filter)
 
-        # 勾選狀態改變時只重新套用傷害歷程篩選，不重新解析 RRF。
-        self.show_status_history_checkbox.stateChanged.connect(self.apply_did_filter)
+        # 狀態勾選只改變「顯示」，不重新解析 RRF，也不影響死亡/掉落內部統計資料。
+        self.show_status_history_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.show_state_change_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.vanish_out_of_sight_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.vanish_death_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.vanish_logout_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.vanish_teleport_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.show_packet_decode_checkbox.stateChanged.connect(self.toggle_packet_decode_tab)
 
 
         layout.addLayout(interval_layout)
@@ -2399,7 +2955,57 @@ class MainUI(QWidget):
         self.tree_monster_drop.setAlternatingRowColors(True)
 
         self.tabs.addTab(self.tree_monster_drop, "死亡/掉落統計")
-        
+
+        # Tab5：完整封包解析（v1.3 虛擬 UI）
+        # 上半部只顯示封包列；下半部只顯示目前選取封包的完整欄位。
+        # 兩邊都使用 QTableView + QAbstractTableModel，不建立大量 QTreeWidgetItem。
+        self.packet_decode_panel = QWidget()
+        packet_decode_layout = QVBoxLayout(self.packet_decode_panel)
+        packet_decode_layout.setContentsMargins(4, 4, 4, 4)
+
+        self.packet_decode_status_label = QLabel("")
+        packet_decode_layout.addWidget(self.packet_decode_status_label)
+
+        self.packet_decode_splitter = QSplitter(Qt.Vertical)
+        packet_decode_layout.addWidget(self.packet_decode_splitter)
+
+        self.packet_decode_table = QTableView()
+        self.packet_decode_model = PacketDecodeTableModel(self.packet_decode_table)
+        self.packet_decode_table.setModel(self.packet_decode_model)
+        self.packet_decode_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.packet_decode_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.packet_decode_table.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.packet_decode_table.setAlternatingRowColors(True)
+        self.packet_decode_table.setSortingEnabled(False)
+        self.packet_decode_table.verticalHeader().setVisible(False)
+        self.packet_decode_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.packet_decode_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.packet_decode_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.packet_decode_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
+        self.packet_decode_splitter.addWidget(self.packet_decode_table)
+
+        self.packet_decode_fields_table = QTableView()
+        self.packet_decode_fields_model = PacketDecodeFieldsModel(self.packet_decode_fields_table)
+        self.packet_decode_fields_table.setModel(self.packet_decode_fields_model)
+        self.packet_decode_fields_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.packet_decode_fields_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.packet_decode_fields_table.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.packet_decode_fields_table.setAlternatingRowColors(True)
+        self.packet_decode_fields_table.verticalHeader().setVisible(False)
+        self.packet_decode_fields_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.packet_decode_fields_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.packet_decode_splitter.addWidget(self.packet_decode_fields_table)
+        self.packet_decode_splitter.setStretchFactor(0, 3)
+        self.packet_decode_splitter.setStretchFactor(1, 2)
+
+        self.packet_decode_table.selectionModel().currentRowChanged.connect(
+            self.on_packet_decode_row_changed
+        )
+
+        # 舊程式大量位置使用 tree_packet_decode 判斷分頁；保留 alias，只代表 panel。
+        self.tree_packet_decode = self.packet_decode_panel
+        # 注意：此處不 addTab；由「顯示封包完整解析」勾選框動態加入/移除。
+        self.packet_decode_data = []
         
         self.tabs.currentChanged.connect(self.on_tab_changed)
         
@@ -2423,6 +3029,169 @@ class MainUI(QWidget):
         self.last_update_end = None
         from collections import defaultdict
         self.state_change_count = defaultdict(lambda: defaultdict(int))
+
+
+    def _create_options_dialog(self):
+        """建立集中管理所有勾選項目的設定視窗。"""
+        self.options_dialog = QDialog(self)
+        self.options_dialog.setWindowTitle("選項設定")
+        self.options_dialog.setModal(True)
+        self.options_dialog.setMinimumWidth(360)
+
+        vbox = QVBoxLayout(self.options_dialog)
+
+        vbox.addWidget(QLabel("解析 / 顯示選項"))
+
+        self.Character_ability_changes_checkbox = QCheckBox("解析角色能力變動", self.options_dialog)
+        self.Character_ability_changes_checkbox.setChecked(False)
+        vbox.addWidget(self.Character_ability_changes_checkbox)
+
+        # 選項設定內所有項目預設關閉；需要時再由使用者勾選。
+        self.show_status_history_checkbox = QCheckBox("傷害歷程顯示狀態", self.options_dialog)
+        self.show_status_history_checkbox.setChecked(False)
+        vbox.addWidget(self.show_status_history_checkbox)
+
+        # 一般 STATE_CHANGE2 / STATE_CHANGE 再獨立控制，與 VANISH 分開。
+        self.show_state_change_checkbox = QCheckBox("狀態開始 / 結束", self.options_dialog)
+        self.show_state_change_checkbox.setChecked(False)
+        vbox.addWidget(self.show_state_change_checkbox)
+
+        self.show_packet_decode_checkbox = QCheckBox("顯示封包完整解析分頁", self.options_dialog)
+        self.show_packet_decode_checkbox.setChecked(False)
+        vbox.addWidget(self.show_packet_decode_checkbox)
+
+        vbox.addSpacing(8)
+        vbox.addWidget(QLabel("VANISH 狀態顯示（需同時勾選「傷害歷程顯示狀態」）"))
+
+        # 依使用需求提供四種 VANISH 顯示選項；全部預設關閉。
+        self.vanish_out_of_sight_checkbox = QCheckBox("離開視野 (mode 0)", self.options_dialog)
+        self.vanish_death_checkbox = QCheckBox("死亡 (mode 1)", self.options_dialog)
+        self.vanish_logout_checkbox = QCheckBox("登出 (mode 2)", self.options_dialog)
+        self.vanish_teleport_checkbox = QCheckBox("瞬移 (mode 3)", self.options_dialog)
+
+        self.vanish_out_of_sight_checkbox.setChecked(False)
+        self.vanish_death_checkbox.setChecked(False)
+        self.vanish_logout_checkbox.setChecked(False)
+        self.vanish_teleport_checkbox.setChecked(False)
+
+        vbox.addWidget(self.vanish_out_of_sight_checkbox)
+        vbox.addWidget(self.vanish_death_checkbox)
+        vbox.addWidget(self.vanish_logout_checkbox)
+        vbox.addWidget(self.vanish_teleport_checkbox)
+
+        close_btn = QPushButton("關閉", self.options_dialog)
+        close_btn.clicked.connect(self.options_dialog.accept)
+        vbox.addWidget(close_btn)
+
+    def show_options_dialog(self):
+        """開啟集中設定視窗；各勾選狀態會持續保留。"""
+        self.options_dialog.exec()
+
+    def _vanish_checkbox_for_mode(self, mode):
+        return {
+            0: getattr(self, "vanish_out_of_sight_checkbox", None),
+            1: getattr(self, "vanish_death_checkbox", None),
+            2: getattr(self, "vanish_logout_checkbox", None),
+            3: getattr(self, "vanish_teleport_checkbox", None),
+        }.get(mode)
+
+    def is_vanish_mode_visible(self, mode):
+        """VANISH 需通過狀態總開關，且該 mode 自己也必須勾選。"""
+        if not getattr(self, "show_status_history_checkbox", None):
+            return False
+        if not self.show_status_history_checkbox.isChecked():
+            return False
+        checkbox = self._vanish_checkbox_for_mode(mode)
+        return bool(checkbox and checkbox.isChecked())
+
+
+    def _set_packet_decode_message(self, message):
+        """完整解析分頁只更新狀態與 Model，不建立 placeholder Item。"""
+        if hasattr(self, "packet_decode_status_label"):
+            self.packet_decode_status_label.setText(message or "")
+        if hasattr(self, "packet_decode_model"):
+            self.packet_decode_model.set_records([], [])
+        if hasattr(self, "packet_decode_fields_model"):
+            self.packet_decode_fields_model.clear()
+
+    def _packet_decode_visible_indices(self):
+        """依顯示選項建立可見 index；Model 仍共用原始 records，不複製每筆資料。"""
+        records = getattr(self, "packet_decode_data", [])
+        visible = []
+        visible_transform_by_sid = {}
+
+        for idx, rec in enumerate(records):
+            packet_name = rec.get("packet_name")
+            source_packet_name = rec.get("source_packet_name", packet_name)
+            decoded = rec.get("decoded") or {}
+
+            # 變身只顯示 TRANSFORM_DURATION_MAP 白名單。
+            if source_packet_name == "HEADER_ZC_MSG_STATE_CHANGE3" and decoded.get("type") == 665:
+                sid = decoded.get("sid") or decoded.get("aid")
+                evt = decoded.get("transform_event")
+                skin = decoded.get("monsterskin", 0)
+
+                if evt == "start":
+                    if skin not in TRANSFORM_DURATION_MAP:
+                        if sid:
+                            visible_transform_by_sid.pop(sid, None)
+                        continue
+                    if sid:
+                        visible_transform_by_sid[sid] = skin
+                elif evt == "end":
+                    original_skin = visible_transform_by_sid.pop(sid, None) if sid else None
+                    if original_skin not in TRANSFORM_DURATION_MAP:
+                        continue
+
+            if source_packet_name in ("HEADER_ZC_MSG_STATE_CHANGE2", "HEADER_ZC_MSG_STATE_CHANGE"):
+                if (not self.show_status_history_checkbox.isChecked()
+                        or not self.show_state_change_checkbox.isChecked()):
+                    continue
+
+            if source_packet_name == "HEADER_ZC_NOTIFY_VANISH":
+                if not self.is_vanish_mode_visible(decoded.get("mode")):
+                    continue
+
+            visible.append(idx)
+
+        return visible
+
+    def refresh_packet_decode_tree(self):
+        """v1.3：只替換虛擬 Model 的資料來源，不再重建 Tree/UI Item。"""
+        if not hasattr(self, "packet_decode_model"):
+            return
+        if not getattr(self, "show_packet_decode_checkbox", None):
+            return
+        if not self.show_packet_decode_checkbox.isChecked():
+            return
+
+        records = getattr(self, "packet_decode_data", [])
+        visible_indices = self._packet_decode_visible_indices()
+        self.packet_decode_model.set_records(records, visible_indices)
+        self.packet_decode_fields_model.clear()
+
+        if not records:
+            self.packet_decode_status_label.setText("目前沒有完整封包解析資料")
+        else:
+            self.packet_decode_status_label.setText(
+                f"完整解析：{len(visible_indices):,} / {len(records):,} 包（虛擬表格）"
+            )
+
+        # 只選第一列，不建立任何額外 UI row/item。
+        if visible_indices:
+            self.packet_decode_table.selectRow(0)
+
+    def _append_packet_decode_tree_chunk(self, token=None):
+        """v1.3 相容空殼：QTableView/Model 已不需要分批建立 UI 節點。"""
+        return
+
+    def on_packet_decode_row_changed(self, current, previous=None):
+        """只將目前選取的一包完整解析欄位替換到下方虛擬表格。"""
+        if not current.isValid():
+            self.packet_decode_fields_model.clear()
+            return
+        rec = self.packet_decode_model.record_at(current.row())
+        self.packet_decode_fields_model.set_record(rec)
 
     def merge_new_packets_with_true_sid(self, new_packets):
         for pkt in new_packets:
@@ -2664,13 +3433,94 @@ class MainUI(QWidget):
             self.hud.show()
             self.toggle_hud_btn.setText("隱藏 HUD")
 
+    def toggle_packet_decode_tab(self, state=None):
+        """勾選後顯示分頁並自動重新載入目前 RRF，不同步重建整棵樹。"""
+        if not hasattr(self, "tabs") or not hasattr(self, "tree_packet_decode"):
+            return
+
+        checked = self.show_packet_decode_checkbox.isChecked()
+        idx = self.tabs.indexOf(self.tree_packet_decode)
+
+        if checked:
+            if idx == -1:
+                self.tabs.addTab(self.tree_packet_decode, "封包完整解析")
+
+            # 先讓 UI 立即返回 event loop，再開始 reload。虛擬表格只替換 Model 內容。
+            self._set_packet_decode_message("正在重新載入目前 RRF…")
+            self._packet_decode_reload_pending = True
+            QTimer.singleShot(0, self._reload_current_rrf_for_packet_decode)
+        else:
+            self._packet_decode_reload_pending = False
+            if idx != -1:
+                self.tabs.removeTab(idx)
+
+    def _reload_current_rrf_for_packet_decode(self):
+        """直接重讀目前 RRF，不跳選檔視窗；若正在更新則等完成後再執行。"""
+        if not self.show_packet_decode_checkbox.isChecked():
+            self._packet_decode_reload_pending = False
+            return
+
+        if not self.last_rrf_path:
+            self._packet_decode_reload_pending = False
+            self.status.setText("請先載入 RRF，再開啟封包完整解析分頁")
+            self._set_packet_decode_message("尚未載入 RRF")
+            return
+
+        thread_running = bool(self.worker_thread and self.worker_thread.isRunning())
+        if self.is_processing or getattr(self, "_load_lock", False) or thread_running:
+            self.status.setText("封包完整解析：等待目前更新完成後重新載入…")
+            QTimer.singleShot(200, self._reload_current_rrf_for_packet_decode)
+            return
+
+        self._packet_decode_reload_pending = False
+        self._packet_decode_reload_in_progress = True
+        self.auto_timer.stop()
+
+        # 強制下一次 reader.poll() 回傳 full；保留目前畫面資料直到新結果完成。
+        self.rrf_reader = None
+        self.first_full_parse_done = False
+        self.packet_decode_data = []
+
+        self.status.setText("封包完整解析：正在重新載入目前 RRF…")
+        self.progress_bar.show()
+        self.progress_bar.setValue(5)
+        self.is_processing = True
+        self._load_lock = True
+        self.start_worker(self.last_rrf_path)
+        self.update_load_button_text()
+
+    def _finish_packet_decode_reload(self):
+        """完整 reload 結束後只替換虛擬 Model 內容。"""
+        if not getattr(self, "_packet_decode_reload_in_progress", False):
+            return
+        self._packet_decode_reload_in_progress = False
+        if (self.show_packet_decode_checkbox.isChecked()
+                and self.tabs.indexOf(self.tree_packet_decode) != -1):
+            QTimer.singleShot(0, self.refresh_packet_decode_tree)
+
+    def on_status_display_changed(self, *_args):
+        """狀態總開關、開始/結束或 VANISH 個別選項改變時，立即刷新相關畫面。"""
+        self.apply_did_filter()
+        # 完整解析正在 reload 時先不要替換 Model；完成後會自動刷新。
+        if (hasattr(self, "tree_packet_decode")
+                and self.tabs.indexOf(self.tree_packet_decode) != -1
+                and not getattr(self, "_packet_decode_reload_in_progress", False)
+                and not getattr(self, "_packet_decode_reload_pending", False)):
+            self.refresh_packet_decode_tree()
+
     def on_tab_changed(self, idx):
-        if idx == 1:
+        # 分頁可動態增減，因此不要再依固定 index 判斷。
+        current = self.tabs.widget(idx) if idx >= 0 else None
+        if current is self.table_raw:
             self.update_raw_table()
-        elif idx == 2:
+        elif current is self.table_drop:
             self.update_drop_table()
-        elif idx == 3:
-            self.update_monster_drop_tree()   
+        elif current is self.tree_monster_drop:
+            self.update_monster_drop_tree()
+        elif current is self.tree_packet_decode:
+            if (not getattr(self, "_packet_decode_reload_in_progress", False)
+                    and not getattr(self, "_packet_decode_reload_pending", False)):
+                self.refresh_packet_decode_tree()
 
     def on_scroll(self, event):
         ax = event.inaxes
@@ -2948,6 +3798,7 @@ class MainUI(QWidget):
             self.progress_bar.setValue(100)
             self.is_processing = False
             self._load_lock = False
+            self._finish_packet_decode_reload()
 
             interval = self.refresh_input.value()
             if interval > 0 and not self.underMouse():
@@ -2972,6 +3823,7 @@ class MainUI(QWidget):
             self.progress_bar.setValue(100)
             self.is_processing = False
             self._load_lock = False
+            self._finish_packet_decode_reload()
             interval = self.refresh_input.value()
             if interval > 0 and not self.underMouse():
                 self.auto_timer.start(interval * 1000)
@@ -3016,6 +3868,10 @@ class MainUI(QWidget):
                 "drop":   exe.submit(parse_itemdrop_blocks, text),
             }
 
+            # 未勾完整解析時完全不跑這個較重的掃描。
+            if self.show_packet_decode_checkbox.isChecked():
+                futures["full_packets"] = exe.submit(parse_all_known_packets_complete, text)
+
             # raw snapshot 每次都帶目前 metadata；delta 時也更新 SID/隊友名稱。
             futures["sid"] = exe.submit(build_sid_to_name_map, text)
 
@@ -3036,6 +3892,7 @@ class MainUI(QWidget):
         ground = []
         skill2 = []
         act3 = []
+        full_packet_records = []
         
         # 🔥 誰先完成，就先處理誰
         for future in as_completed(futures.values()):
@@ -3051,7 +3908,9 @@ class MainUI(QWidget):
                 #standentry_blocks = result
                 for blk in result:
                     info = decode_newentry11(blk["hex"], blk["size"])
-                    self.update_did_name(info["did"], info["name"], "new")
+                    # 0x09FE 的 AID 用來對應傷害封包的 DID。
+                    # GID 只保留於完整解析資料，不拿來做未知目標名稱配對。
+                    self.update_actor_entry_names(info, "new")
                 #print(f"[new] 已立即完成 decode，寫入 {len(result)} 筆")
                 print(f"new 已處理")
 
@@ -3076,14 +3935,14 @@ class MainUI(QWidget):
                 
                 for blk in result:
                     info = decode_moveentry11(blk["hex"], blk["size"])
-                    self.update_did_name(info["did"], info["name"], "move")
+                    self.update_actor_entry_names(info, "move")
                 print(f"move 已處理")
                 
             elif name == "stand":
                 #standentry_blocks = result
                 for blk in result:
                     info = decode_standentry11(blk["hex"], blk["size"])
-                    self.update_did_name(info["did"], info["name"], "stand")
+                    self.update_actor_entry_names(info, "stand")
                 print(f"stand 已處理")
                 
             elif name == "state3":
@@ -3103,7 +3962,21 @@ class MainUI(QWidget):
                 vanish = result
             elif name == "drop":
                 drops = result
+            elif name == "full_packets":
+                full_packet_records = result
                 
+        # 完整解析資料獨立保存；不影響原本傷害/掉落統計。
+        if mode == "full":
+            self.packet_decode_data = full_packet_records
+        else:
+            self.packet_decode_data.extend(full_packet_records)
+        if (
+            not getattr(self, "_packet_decode_reload_in_progress", False)
+            and self.tabs.indexOf(self.tree_packet_decode) != -1
+            and self.tabs.currentWidget() is self.tree_packet_decode
+        ):
+            self.refresh_packet_decode_tree()
+
         print("全部 future 已處理完畢")
         
         # 只有 full 模式才重建整體狀態
@@ -3150,14 +4023,24 @@ class MainUI(QWidget):
             # ------------------------------
             if evt == "start":
 
+                # 只處理 TRANSFORM_DURATION_MAP 白名單內的變身。
+                # 不在表內的 monsterskin 仍可被底層封包 decoder 解析，
+                # 但不計次數、不建立歷程，也不顯示成變身事件。
+                if skin not in TRANSFORM_DURATION_MAP:
+                    # 若同 SID 之前殘留舊的追蹤狀態，避免之後 END 誤配。
+                    self.transform_original_skin.pop(sid, None)
+                    self.transform_start_time.pop(sid, None)
+                    self.transform_end_time.pop(sid, None)
+                    continue
+
                 # 若是第一次變身 → 記住原始 skin
                 if sid not in self.transform_original_skin:
                     self.transform_original_skin[sid] = skin
 
                 original_skin = self.transform_original_skin[sid]
 
-                # 變身持續秒數 → 毫秒
-                TRANSFORM_INTERVAL_MS = TRANSFORM_DURATION_MAP.get(original_skin, DEFAULT_INTERVAL) * 1000
+                # 白名單內一定有對應持續秒數，不使用 fallback。
+                TRANSFORM_INTERVAL_MS = TRANSFORM_DURATION_MAP[original_skin] * 1000
 
                 # start 本身 +1
                 self.state_change_count[sid][original_skin] += 1
@@ -3179,8 +4062,14 @@ class MainUI(QWidget):
                 if sid not in self.transform_start_time:
                     continue
 
-                original_skin = self.transform_original_skin.get(sid, skin)
-                TRANSFORM_INTERVAL_MS = TRANSFORM_DURATION_MAP.get(original_skin, DEFAULT_INTERVAL) * 1000
+                # END 封包通常 monsterskin=0，因此只接受先前已追蹤到的白名單 START。
+                original_skin = self.transform_original_skin.get(sid)
+                if original_skin not in TRANSFORM_DURATION_MAP:
+                    self.transform_start_time.pop(sid, None)
+                    self.transform_original_skin.pop(sid, None)
+                    continue
+
+                TRANSFORM_INTERVAL_MS = TRANSFORM_DURATION_MAP[original_skin] * 1000
 
                 t_start_ms = self.transform_start_time[sid]
                 t_end_ms   = t_now_ms
@@ -3292,14 +4181,24 @@ class MainUI(QWidget):
                 "status_event": dec["status_event"],
             })
 
+        # VANISH 顯示事件：UI 提供四種可勾選類型。
+        # 事件先完整放入 raw_data，之後 apply_did_filter() 再依勾選狀態決定畫面顯示。
+        vanish_display_names = {
+            0: "離開視野",
+            1: "死亡",
+            2: "登出",
+            3: "瞬移",
+        }
         vanish_events = []
-        #print(f"{vanish}")
         for ev in vanish:
+            mode_value = ev.get("mode")
+            if mode_value not in vanish_display_names:
+                continue
             vanish_events.append({
                 "timestamp": ev["timestamp"],
                 "skill_id": 0,
-                "skill_name": "消失狀態",
-                "sid": "死亡",                 # 不知道攻方就先 0
+                "skill_name": vanish_display_names[mode_value],
+                "sid": "",
                 "did": ev["did"],
                 "damage": 0,
                 "damage_display": "",
@@ -3307,6 +4206,9 @@ class MainUI(QWidget):
                 "hit_count": "",
                 "skill_delay": "",
                 "global_delay": "",
+                "vanish_mode": mode_value,
+                "vanish_mode_name": ev.get("mode_name", ""),
+                "status_event": "vanish",
             })
 
 
@@ -3403,6 +4305,7 @@ class MainUI(QWidget):
                 "packet_pos": ev["packet_pos"],   # ★ 新增
             }
             for ev in vanish
+            if ev.get("mode") == 1
         ]
 
         if mode == "full":
@@ -3482,13 +4385,8 @@ class MainUI(QWidget):
             self.did_filter.addItem(FILTER_ALL_WITH_STAT, None)
 
             for did in did_set:
-                if did in self.sid_name_map:
-                    name = self.sid_name_map[did]
-                elif did in self.did_name_map:
-                    name = self.did_name_map[did]
-                else:
-                    name = "未知目標"
-
+                # 目標名稱統一解析：SID/既有 DID 名稱 -> 09FE.AID 對 DID -> 未知目標。
+                name = self.lookup_actor_name(did) or "未知目標"
                 self.did_filter.addItem(f"{name} ({did})", did)
 
             if previous_did_value is not None:
@@ -3547,6 +4445,7 @@ class MainUI(QWidget):
 
         self.is_processing = False
         self._load_lock = False
+        self._finish_packet_decode_reload()
 
         interval = self.refresh_input.value()
         if interval > 0 and not self.underMouse():
@@ -3680,6 +4579,11 @@ class MainUI(QWidget):
         self.progress_bar.setValue(0)
         self.is_processing = False
         self._load_lock = False
+        if getattr(self, "_packet_decode_reload_in_progress", False):
+            self._packet_decode_reload_in_progress = False
+            if (self.show_packet_decode_checkbox.isChecked()
+                    and self.tabs.indexOf(self.tree_packet_decode) != -1):
+                self._set_packet_decode_message(f"完整封包重新載入失敗：{msg}")
 
     def start_auto_update(self):
         if not self.rrf_thread and self.background_enabled:
@@ -3862,7 +4766,7 @@ class MainUI(QWidget):
 
             self.table_raw.setItem(r, 2, QTableWidgetItem(sid_display))
             did = d["did"]
-            name = self.sid_name_map.get(did, self.did_name_map.get(did, str(did)))
+            name = self.lookup_actor_name(did) or str(did)
             self.table_raw.setItem(r, 3, QTableWidgetItem(name))
 
             dmg_text = d.get("damage_display")
@@ -3932,7 +4836,7 @@ class MainUI(QWidget):
         if same_sec_above:
             best = max(same_sec_above, key=lambda x: x["packet_pos"])
             did = best["did"]
-            return did, self.did_name_map.get(did, f"ID {did}")
+            return did, self.lookup_actor_name(did) or f"ID {did}"
 
         # ② 其次找「上方」且時間最近的
         above_candidates = [
@@ -3946,12 +4850,12 @@ class MainUI(QWidget):
                 key=lambda x: (abs(x["time_ms"] - drop_ms), drop_packet_pos - x["packet_pos"])
             )
             did = best["did"]
-            return did, self.did_name_map.get(did, f"ID {did}")
+            return did, self.lookup_actor_name(did) or f"ID {did}"
 
         # ③ 最後才退回單純最近時間差
         best = min(candidates, key=lambda x: abs(x["time_ms"] - drop_ms))
         did = best["did"]
-        return did, self.did_name_map.get(did, f"ID {did}")
+        return did, self.lookup_actor_name(did) or f"ID {did}"
 
     def update_drop_table(self):
         interval = self.refresh_input.value()
@@ -4585,8 +5489,78 @@ class MainUI(QWidget):
 
         self.canvas.draw()
 
-    def update_did_name(self, did, raw_name, source):
-        """更新 DID 顯示名稱；避免低品質/內部名稱覆寫正常名稱。"""
+    def update_actor_entry_names(self, info, source):
+        """把 actor entry 的 AID 建立成 DID 名稱索引。
+
+        傷害封包的來源欄位視為 AID、目標欄位視為 DID。
+        0x09FE 的 AID 就是用來回查未知 DID 名稱的值；GID 雖然仍保留在
+        完整封包解析結果中，但不參與未知目標名稱配對。
+
+        0x09FE 有時只給 #mk_1 這類內部名稱。這種名稱雖不適合覆寫一般
+        actor 名稱，但仍是有效的 AID -> DID 關聯標籤，因此特別保留。
+        """
+        if not info:
+            return
+        name = info.get("name")
+        aid = info.get("aid") or info.get("did")
+        if aid:
+            is_09fe = (info.get("packet_id") == 0x09FE or info.get("opcode") == 0x09FE)
+            self.update_did_name(
+                aid,
+                name,
+                "09fe" if is_09fe else source,
+                allow_internal=is_09fe,
+            )
+
+    def find_actor_name_from_09fe(self, did):
+        """未知 DID 時，以 0x09FE 的 AID 回查名稱。
+
+        配對關係固定為：09FE.AID == 傷害封包.DID。
+        GID 不參與這個名稱解析流程。
+        """
+        if not did:
+            return None
+
+        records = getattr(self, "packet_decode_data", [])
+        for record in reversed(records):
+            if record.get("opcode") != 0x09FE:
+                continue
+            dec = record.get("decoded") or {}
+            aid = dec.get("aid") or dec.get("did")
+            if aid != did:
+                continue
+
+            # 09FE 即使只有 #mk_1 這種內部名稱，也要能用來關聯 DID。
+            name = sanitize_actor_name(dec.get("name"), allow_internal=True)
+            if not name:
+                continue
+
+            # 找到後只把 09FE.AID 註冊成 DID 名稱快取；GID 不加入。
+            self.update_did_name(aid, name, "09fe", allow_internal=True)
+            return name
+        return None
+
+    def lookup_actor_name(self, actor_id):
+        """統一取得角色/怪物名稱；未知時最後回查 0x09FE。"""
+        if not actor_id:
+            return None
+        if actor_id in self.sid_name_map:
+            name = str(self.sid_name_map[actor_id]).strip()
+            if name:
+                return name
+        if actor_id in self.did_name_map:
+            # 09FE 名稱可能是 #mk_1；這是 replay 提供的有效關聯標籤。
+            allow_internal = self.did_name_source.get(actor_id) == "09fe"
+            name = sanitize_actor_name(
+                self.did_name_map[actor_id],
+                allow_internal=allow_internal,
+            )
+            if name:
+                return name
+        return self.find_actor_name_from_09fe(actor_id)
+
+    def update_did_name(self, did, raw_name, source, allow_internal=False):
+        """更新 DID 顯示名稱；09FE 可保留 #mk_* / #le_* 內部名稱。"""
         if not did:
             return
 
@@ -4596,13 +5570,16 @@ class MainUI(QWidget):
             self.did_name_source[did] = "override"
             return
 
-        name = sanitize_actor_name(raw_name)
+        name = sanitize_actor_name(raw_name, allow_internal=allow_internal)
         if not name:
             return
 
-        priority = {"stand": 1, "move": 2, "new": 3, "override": 99}
+        priority = {"stand": 1, "move": 2, "new": 3, "09fe": 4, "override": 99}
         old_source = self.did_name_source.get(did)
-        old_name = sanitize_actor_name(self.did_name_map.get(did))
+        old_name = sanitize_actor_name(
+            self.did_name_map.get(did),
+            allow_internal=(old_source == "09fe"),
+        )
         old_priority = priority.get(old_source, 0)
         new_priority = priority.get(source, 0)
 
@@ -4611,11 +5588,9 @@ class MainUI(QWidget):
             self.did_name_source[did] = source
 
     def get_monster_name_by_did(self, did, fallback=None):
-        if did in self.did_name_map:
-            name = self.did_name_map[did]
-        elif did in self.sid_name_map:
-            name = self.sid_name_map[did]
-        else:
+        # 未知 DID 會自動以 0x09FE.AID 回查名稱。
+        name = self.lookup_actor_name(did)
+        if not name:
             if fallback:
                 name = fallback
             elif did:
@@ -4693,9 +5668,10 @@ class MainUI(QWidget):
             "dids": set(),
         })
 
-        # 1) 死亡統計：從 raw 裡的「消失狀態」抓
+        # 1) 死亡統計：從內部 raw 的 VANISH mode=1「死亡」事件抓。
+        # 這裡不受「傷害歷程顯示狀態」勾選影響，避免關閉顯示後破壞掉落率統計。
         for row in raw_base:
-            if row.get("skill_name") != "消失狀態":
+            if row.get("skill_name") != "死亡" or row.get("vanish_mode") != 1:
                 continue
 
             did = row.get("did", 0)
@@ -4882,12 +5858,26 @@ class MainUI(QWidget):
             if d.get("skill_name") not in STAT_SKILL_NAMES
         ]
 
-        # 只控制傷害歷程中的一般狀態開始 / 結束事件。
-        # 不影響實際傷害、能力變動、死亡/消失、掉落或任何統計資料。
+        # 「傷害歷程顯示狀態」是狀態總開關，預設開啟：
+        #   1) 一般狀態開始 / 結束，再由「狀態開始 / 結束」子選項控制。
+        #   2) VANISH 四種 mode，再由各自勾選框細分。
+        # 只影響畫面顯示；死亡/掉落配對與統計仍使用未過濾的 raw_base。
         if not self.show_status_history_checkbox.isChecked():
             raw_source = [
                 d for d in raw_source
-                if d.get("status_event") not in ("start", "end")
+                if d.get("status_event") not in ("start", "end", "vanish")
+            ]
+        else:
+            if not self.show_state_change_checkbox.isChecked():
+                raw_source = [
+                    d for d in raw_source
+                    if d.get("status_event") not in ("start", "end")
+                ]
+
+            raw_source = [
+                d for d in raw_source
+                if d.get("status_event") != "vanish"
+                or self.is_vanish_mode_visible(d.get("vanish_mode"))
             ]
 
         filtered_damage = self.parsed_data
@@ -4913,8 +5903,8 @@ class MainUI(QWidget):
             self.current_drop_data = drop_base.copy()
 
         # 攻方 SID 條件只篩選「實際傷害事件」。
-        # 狀態開始/結束、能力變動、死亡消失等 damage=0 的歷程事件
-        # 必須保留，不能因為沒有攻方 SID 而被排除。
+        # 已通過上方顯示開關的狀態事件、能力變動、死亡等 damage=0 歷程事件，
+        # 不因為沒有攻方 SID 而被排除。
         if sid_value is not None:
             filtered_damage = [
                 d for d in filtered_damage
