@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.11-260929"
+Version = "v0.8.13-260930"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -29,6 +29,73 @@ import requests
 DEFAULT_UI_SCALE_FACTOR = 1.0
 UI_SCALE_FACTOR_MIN = 0.5
 UI_SCALE_FACTOR_MAX = 3.0
+
+# 介面主題：auto = 跟隨系統；light / dark = 手動指定。
+UI_THEME_AUTO = "auto"
+UI_THEME_LIGHT = "light"
+UI_THEME_DARK = "dark"
+UI_THEME_VALUES = {UI_THEME_AUTO, UI_THEME_LIGHT, UI_THEME_DARK}
+
+def normalize_ui_theme(value, default=UI_THEME_AUTO) -> str:
+    theme = str(value or "").strip().lower()
+    return theme if theme in UI_THEME_VALUES else default
+
+def refresh_ui_theme(app) -> None:
+    """主題切換後強制既有 Widget 重新 polish / repaint 一次。
+
+    不重建視窗、不修改各 Widget 原有 stylesheet；只讓已存在的 UI
+    重新依目前 QApplication palette / ColorScheme 計算並繪製。
+    """
+    if app is None:
+        return
+
+    for widget in app.allWidgets():
+        try:
+            style = widget.style()
+            if style is not None:
+                style.unpolish(widget)
+                style.polish(widget)
+            widget.updateGeometry()
+
+            # 不直接呼叫 widget.update()：QListView / QAbstractItemView 等
+            # 可能覆寫 update(QModelIndex)，PySide 會因此拒絕零參數呼叫。
+            # 直接指定 QWidget 的基底實作，可安全要求所有 Widget 重繪。
+            QWidget.update(widget)
+
+            # QAbstractScrollArea 類控制項真正繪圖區在 viewport。
+            viewport_getter = getattr(widget, "viewport", None)
+            if callable(viewport_getter):
+                viewport = viewport_getter()
+                if viewport is not None:
+                    QWidget.update(viewport)
+        except RuntimeError:
+            # Widget 若剛好在切換期間被 Qt 刪除，直接略過。
+            continue
+
+    app.processEvents()
+
+
+def apply_ui_theme(app, theme: str, *, refresh: bool = False) -> None:
+    """以 Qt 全域 ColorScheme 控制主題；避免逐一改既有 palette / stylesheet 邏輯。"""
+    if app is None:
+        return
+    theme = normalize_ui_theme(theme)
+    hints = app.styleHints()
+
+    # Qt 6 新版可直接覆寫/解除覆寫系統配色。
+    if theme == UI_THEME_AUTO:
+        if hasattr(hints, "unsetColorScheme"):
+            hints.unsetColorScheme()
+        elif hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
+            hints.setColorScheme(Qt.ColorScheme.Unknown)
+    elif hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
+        scheme = Qt.ColorScheme.Dark if theme == UI_THEME_DARK else Qt.ColorScheme.Light
+        hints.setColorScheme(scheme)
+
+    if refresh:
+        # ColorScheme / palette 變更可能由 Qt 事件迴圈稍後傳遞；
+        # 下一輪事件迴圈再重新 polish，確保吃到新 palette。
+        QTimer.singleShot(0, lambda: refresh_ui_theme(app))
 
 
 def get_app_base_dir():
@@ -3861,7 +3928,6 @@ class PreferencesDialog(QDialog):
         self,
         current_mode: str,
         current_api_key: str = "",
-        current_ui_scale: float = DEFAULT_UI_SCALE_FACTOR,
         current_load_kro_data: bool = False,
         parent=None,
     ):
@@ -3905,36 +3971,6 @@ class PreferencesDialog(QDialog):
         )
         layout.addWidget(self.load_kro_cb)
 
-        # 介面縮放倍率（Qt 需在 QApplication 建立前套用，因此下次啟動生效）
-        scale_row = QHBoxLayout()
-        scale_row.addWidget(QLabel(tr("label.ui_scale", "介面縮放")))
-        self.ui_scale_combo = QComboBox()
-        scale_options = [
-            ("100%", 1.0),
-            ("125%", 1.25),
-            ("150%", 1.5),
-            ("175%", 1.75),
-            ("200%", 2.0),
-        ]
-        for text, value in scale_options:
-            self.ui_scale_combo.addItem(text, userData=value)
-
-        current_ui_scale = normalize_ui_scale_factor(current_ui_scale)
-        scale_idx = self.ui_scale_combo.findData(current_ui_scale)
-        if scale_idx < 0:
-            custom_text = f"{current_ui_scale * 100:g}%"
-            self.ui_scale_combo.addItem(custom_text, userData=current_ui_scale)
-            scale_idx = self.ui_scale_combo.count() - 1
-        self.ui_scale_combo.setCurrentIndex(scale_idx)
-        scale_row.addWidget(self.ui_scale_combo)
-        layout.addLayout(scale_row)
-
-        scale_tip = QLabel(
-            tr("label.ui_scale_tip", "變更縮放倍率後，重新啟動程式才會生效。")
-        )
-        scale_tip.setWordWrap(True)
-        layout.addWidget(scale_tip)
-
         # ✅ 新增：API Key
         ak = QHBoxLayout()
         ak.addWidget(QLabel(tr("label.api_key")))
@@ -3976,11 +4012,78 @@ class PreferencesDialog(QDialog):
     def api_key(self) -> str:
         return self.api_edit.text().strip()
 
+    def should_load_kro_data(self) -> bool:
+        return self.load_kro_cb.isChecked()
+
+
+class UISettingsDialog(QDialog):
+    """獨立的 UI 設定：介面縮放與主題，不混在偏好設定。"""
+    def __init__(
+        self,
+        current_ui_scale: float = DEFAULT_UI_SCALE_FACTOR,
+        current_ui_theme: str = UI_THEME_AUTO,
+        parent=None,
+    ):
+        super().__init__(parent)
+        self.setWindowTitle(tr("window.ui_settings", "UI 設定"))
+        self.resize(360, 180)
+
+        layout = QVBoxLayout(self)
+
+        scale_row = QHBoxLayout()
+        scale_row.addWidget(QLabel(tr("label.ui_scale", "介面縮放")))
+        self.ui_scale_combo = QComboBox()
+        scale_options = [
+            ("100%", 1.0),
+            ("125%", 1.25),
+            ("150%", 1.5),
+            ("175%", 1.75),
+            ("200%", 2.0),
+        ]
+        for text, value in scale_options:
+            self.ui_scale_combo.addItem(text, userData=value)
+
+        current_ui_scale = normalize_ui_scale_factor(current_ui_scale)
+        scale_idx = self.ui_scale_combo.findData(current_ui_scale)
+        if scale_idx < 0:
+            self.ui_scale_combo.addItem(f"{current_ui_scale * 100:g}%", userData=current_ui_scale)
+            scale_idx = self.ui_scale_combo.count() - 1
+        self.ui_scale_combo.setCurrentIndex(scale_idx)
+        scale_row.addWidget(self.ui_scale_combo)
+        layout.addLayout(scale_row)
+
+        scale_tip = QLabel(
+            tr("label.ui_scale_tip", "變更縮放倍率後，重新啟動程式才會生效。")
+        )
+        scale_tip.setWordWrap(True)
+        layout.addWidget(scale_tip)
+
+        theme_row = QHBoxLayout()
+        theme_row.addWidget(QLabel(tr("label.ui_theme", "介面主題")))
+        self.ui_theme_combo = QComboBox()
+        self.ui_theme_combo.addItem(tr("theme.auto", "自動（跟隨系統）"), UI_THEME_AUTO)
+        self.ui_theme_combo.addItem(tr("theme.light", "淺色"), UI_THEME_LIGHT)
+        self.ui_theme_combo.addItem(tr("theme.dark", "深色"), UI_THEME_DARK)
+        theme_idx = self.ui_theme_combo.findData(normalize_ui_theme(current_ui_theme))
+        self.ui_theme_combo.setCurrentIndex(theme_idx if theme_idx >= 0 else 0)
+        theme_row.addWidget(self.ui_theme_combo)
+        layout.addLayout(theme_row)
+
+        btns = QHBoxLayout()
+        ok_btn = QPushButton(tr("button.ok"))
+        cancel_btn = QPushButton(tr("button.cancel"))
+        ok_btn.clicked.connect(self.accept)
+        cancel_btn.clicked.connect(self.reject)
+        btns.addStretch(1)
+        btns.addWidget(ok_btn)
+        btns.addWidget(cancel_btn)
+        layout.addLayout(btns)
+
     def selected_ui_scale(self) -> float:
         return normalize_ui_scale_factor(self.ui_scale_combo.currentData())
 
-    def should_load_kro_data(self) -> bool:
-        return self.load_kro_cb.isChecked()
+    def selected_ui_theme(self) -> str:
+        return normalize_ui_theme(self.ui_theme_combo.currentData())
 
 
 class InternalDataInspectorDialog(QDialog):
@@ -6638,6 +6741,7 @@ class ItemSearchApp(QWidget):
         self.update_mode = "online_only"
         self.api_key = ""
         self.ui_scale_factor = DEFAULT_UI_SCALE_FACTOR
+        self.ui_theme = UI_THEME_AUTO
         self.load_kro_equipment_data = False
 
         cfg = load_config_data()
@@ -6646,6 +6750,7 @@ class ItemSearchApp(QWidget):
         self.ui_scale_factor = normalize_ui_scale_factor(
             cfg.get("ui_scale_factor", self.ui_scale_factor)
         )
+        self.ui_theme = normalize_ui_theme(cfg.get("ui_theme", self.ui_theme))
 
         kro_setting = cfg.get(
             "load_kro_equipment_data", self.load_kro_equipment_data
@@ -6664,6 +6769,7 @@ class ItemSearchApp(QWidget):
             "ui_scale_factor": normalize_ui_scale_factor(
                 getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
             ),
+            "ui_theme": normalize_ui_theme(getattr(self, "ui_theme", UI_THEME_AUTO)),
             "load_kro_equipment_data": bool(
                 getattr(self, "load_kro_equipment_data", False)
             ),
@@ -6688,46 +6794,69 @@ class ItemSearchApp(QWidget):
 
     def open_compile_set(self):
         self.load_config()
-        previous_ui_scale = normalize_ui_scale_factor(
-            getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
-        )
         previous_load_kro = self.should_load_kro_equipment_data()
         dlg = PreferencesDialog(
             current_mode=self.update_mode,
             current_api_key=getattr(self, "api_key", ""),
-            current_ui_scale=previous_ui_scale,
             current_load_kro_data=previous_load_kro,
             parent=self
         )
         if dlg.exec() == QDialog.Accepted:
             self.update_mode = dlg.selected_mode()
             self.api_key = dlg.api_key()
-            self.ui_scale_factor = dlg.selected_ui_scale()
             self.load_kro_equipment_data = dlg.should_load_kro_data()
             self.save_config()
 
-            restart_messages = []
-            if self.ui_scale_factor != previous_ui_scale:
-                restart_messages.append(
-                    tr(
-                        "message.ui_scale_restart_required",
-                        "介面縮放已儲存，請重新啟動程式以套用新倍率。",
-                    )
-                )
             if self.load_kro_equipment_data != previous_load_kro:
-                restart_messages.append(
-                    tr(
-                        "message.kro_data_restart_required",
-                        "KRO 裝備資料設定已儲存，請重新啟動程式以套用。",
-                    )
-                )
-
-            if restart_messages:
                 QMessageBox.information(
                     self,
                     tr("window.preferences"),
-                    "\n".join(restart_messages),
+                    tr(
+                        "message.kro_data_restart_required",
+                        "KRO 裝備資料設定已儲存，請重新啟動程式以套用。",
+                    ),
                 )
+
+    def open_ui_settings(self):
+        self.load_config()
+        previous_ui_scale = normalize_ui_scale_factor(
+            getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
+        )
+        previous_ui_theme = normalize_ui_theme(
+            getattr(self, "ui_theme", UI_THEME_AUTO)
+        )
+
+        dlg = UISettingsDialog(
+            current_ui_scale=previous_ui_scale,
+            current_ui_theme=previous_ui_theme,
+            parent=self,
+        )
+        if dlg.exec() != QDialog.Accepted:
+            return
+
+        self.ui_scale_factor = dlg.selected_ui_scale()
+        self.ui_theme = dlg.selected_ui_theme()
+        self.save_config()
+
+        # 主題即時套用；縮放仍需下次啟動。
+        if self.ui_theme != previous_ui_theme:
+            apply_ui_theme(QApplication.instance(), self.ui_theme, refresh=True)
+
+            # apply_ui_theme(refresh=True) 會把 UI refresh 排到下一輪 Qt event loop。
+            # 這裡再排一次既有的總計算入口，確保順序為：
+            # 套用主題 -> UI 重新渲染 -> 重新計算。
+            # trigger_total_effect_update() 本身已有 debounce，且最終會 force_recalc。
+            QTimer.singleShot(0, self.trigger_total_effect_update)
+
+        if self.ui_scale_factor != previous_ui_scale:
+            QMessageBox.information(
+                self,
+                tr("window.ui_settings", "UI 設定"),
+                tr(
+                    "message.ui_scale_restart_required",
+                    "介面縮放已儲存，請重新啟動程式以套用新倍率。",
+                ),
+            )
 
 
     def generate_highlighted_html(self, lines: list[str]) -> str:
@@ -9386,12 +9515,19 @@ class ItemSearchApp(QWidget):
         def _download_with_progress(url: str, dest_path: str) -> bool:
             """
             下載資料：
-            1. 優先 raw.githubusercontent.com
-            2. Raw 失敗後改用 github.io
-            3. connect/read timeout 分開
-            4. 不會因單一來源卡住 30 秒以上
+            1. 優先從 NAS 下載
+            2. NAS 失敗後改用 GitHub Raw
+            3. GitHub Raw 失敗後改用 GitHub Pages
+            4. connect/read timeout 分開
+            5. 不會因單一來源卡住 30 秒以上
+
+            注意：
+            - GitHub 仍負責既有的「檢查資料是否需要更新」流程。
+            - NAS 只取代實際資料檔的主要下載來源。
+            - NAS 目錄需對應 /data/<filename>。
             """
 
+            NAS_PREFIX = "https://trwts.dsmynas.com/ROItemSearchApp/"
             PAGES_PREFIX = "https://z2911902.github.io/ROItemSearchApp/"
             RAW_PREFIX = (
                 "https://raw.githubusercontent.com/"
@@ -9399,21 +9535,26 @@ class ItemSearchApp(QWidget):
             )
 
             # --------------------------------------------
-            # 建立下載來源
+            # 建立下載來源：NAS -> GitHub Raw -> GitHub Pages
             # --------------------------------------------
             sources = []
 
             if url.startswith(PAGES_PREFIX):
-                relative_path = url[len(PAGES_PREFIX):]
+                relative_path = url[len(PAGES_PREFIX):].lstrip("/")
 
+                nas_url = NAS_PREFIX.rstrip("/") + "/" + relative_path
                 raw_url = RAW_PREFIX + relative_path
 
-                # Raw 優先
+                # NAS 為主要下載來源
+                sources.append(("NAS", nas_url))
+
+                # GitHub Raw 為第一備援
                 sources.append(("GitHub Raw", raw_url))
 
-                # GitHub Pages 當備援
+                # GitHub Pages 為第二備援
                 sources.append(("GitHub Pages", url))
             else:
+                # 非 ROItemSearchApp Pages 的其他網址維持原始行為
                 sources.append(("原始來源", url))
 
             tmp = dest_path + ".tmp"
@@ -12277,6 +12418,10 @@ class ItemSearchApp(QWidget):
         # === 設定選單 ===
         settings_menu = menubar.addMenu(tr("menu.settings"))
 
+        ui_settings_action = QAction(tr("menu.ui_settings", "UI 設定"), self)
+        ui_settings_action.triggered.connect(self.open_ui_settings)
+        settings_menu.addAction(ui_settings_action)
+
         preferences_action = QAction(tr("menu.preferences"), self)
         preferences_action.triggered.connect(self.open_compile_set)
         settings_menu.addAction(preferences_action)
@@ -13554,6 +13699,10 @@ if __name__ == "__main__":
     os.environ["QT_SCALE_FACTOR"] = format_ui_scale_factor(startup_ui_scale)
 
     app = QApplication(sys.argv)
+
+    # QApplication 建立後、任何視窗建立前套用主題。auto 會維持 Qt 原本的系統跟隨行為。
+    startup_cfg = load_config_data()
+    apply_ui_theme(app, startup_cfg.get("ui_theme", UI_THEME_AUTO))
 
     if len(sys.argv) > 1 and sys.argv[1] == "rrf":
         from RRF_compile_damage_view_raw_v4 import MainUI
