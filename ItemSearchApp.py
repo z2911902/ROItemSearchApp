@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.13-260930"
+Version = "v0.8.14-260930"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -7761,8 +7761,8 @@ class ItemSearchApp(QWidget):
             ("ItemReformSystem.lua",    "data/ItemReformSystem.lua"),
             ("stateiconinfo.lua",         "data/stateiconinfo.lua"),
             ("EFSTIDs.lua",             "data/EFSTIDs.lua"),
-            ("User_iteminfo_new.lua",        "data/User_iteminfo_new.lua"),
-            ("User_EquipmentProperties.lua","data/User_EquipmentProperties.lua"),
+            ("User_iteminfo_new.lua",        "data/USER_iteminfo_new.lua"),
+            ("User_EquipmentProperties.lua","data/USER_EquipmentProperties.lua"),
             ("skill_tree.yml",          "data/skill_tree.yml"),
             ("skilltreeview.lub",       "data/skilltreeview.lub"),
             ("skillneme.csv",           "data/skillneme.csv"),
@@ -9418,9 +9418,9 @@ class ItemSearchApp(QWidget):
 
         # === 線上來源（已整理好的 Lua） ===
         ONLINE_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/iteminfo_new.lua"
-        ONLINE_USER_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/User_iteminfo_new.lua"
+        ONLINE_USER_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/USER_iteminfo_new.lua"
         ONLINE_EQUIP_URL    = "https://z2911902.github.io/ROItemSearchApp/data/EquipmentProperties.lua"
-        ONLINE_User_EQUIP_URL    = "https://z2911902.github.io/ROItemSearchApp/data/User_EquipmentProperties.lua"
+        ONLINE_User_EQUIP_URL    = "https://z2911902.github.io/ROItemSearchApp/data/USER_EquipmentProperties.lua"
         ONLINE_KRO_ITEMINFO_URL = "https://z2911902.github.io/ROItemSearchApp/data/KRO_itemInfo_true.lua"
         ONLINE_KRO_EQUIP_URL = "https://z2911902.github.io/ROItemSearchApp/data/KRO_equipmentproperties.lua"
         ONLINE_EnchantList_URL = "https://z2911902.github.io/ROItemSearchApp/data/EnchantList.lua"
@@ -9447,10 +9447,10 @@ class ItemSearchApp(QWidget):
         data_dir = os.path.join(BASE_DIR, "data")
         os.makedirs(data_dir, exist_ok=True)
         iteminfo_path      = os.path.join(data_dir, "iteminfo_new.lua")        
-        user_iteminfo_path      = os.path.join(data_dir, "User_iteminfo_new.lua")
+        user_iteminfo_path      = os.path.join(data_dir, "USER_iteminfo_new.lua")
         kro_iteminfo_path      = os.path.join(data_dir, "KRO_itemInfo_true.lua")
         equipment_lua_path = os.path.join(data_dir, "EquipmentProperties.lua")
-        user_equipment_lua_path = os.path.join(data_dir, "User_EquipmentProperties.lua")
+        user_equipment_lua_path = os.path.join(data_dir, "USER_EquipmentProperties.lua")
         kro_equipment_lua_path = os.path.join(data_dir, "KRO_equipmentproperties.lua")
         EnchantList_path  = os.path.join(data_dir, "EnchantList.lua")
         ItemDBNameTbl_path  = os.path.join(data_dir, "ItemDBNameTbl.lua")
