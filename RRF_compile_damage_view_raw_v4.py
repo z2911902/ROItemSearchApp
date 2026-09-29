@@ -5,12 +5,14 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QTabWidget,
     QTableWidget, QTableWidgetItem, QFileDialog, QLabel,
     QTreeWidget, QTreeWidgetItem, QHBoxLayout, QCheckBox, QProgressBar,
-    QTableView, QSplitter, QAbstractItemView, QScrollBar
+    QTableView, QSplitter, QAbstractItemView, QScrollBar, QSlider, QSizePolicy
 )
-from PySide6.QtCore import QObject, QThread, Signal, QAbstractTableModel, QModelIndex
+from PySide6.QtCore import QObject, QThread, Signal, QAbstractTableModel, QModelIndex, QRectF
 import time
 import math
 import colorsys
+import bisect
+import struct
 from PySide6.QtCore import Qt
 import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -23,11 +25,13 @@ from PySide6.QtWidgets import QComboBox
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QLineEdit
 from PySide6.QtWidgets import QSpinBox
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QPainter, QImage, QPen, QBrush
 from PySide6.QtGui import QGuiApplication, QClipboard
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PySide6.QtWidgets import QMessageBox
 import threading
+import multiprocessing as mp
+import queue
 from PySide6.QtWidgets import QHeaderView
 from collections import defaultdict
 from matplotlib.ticker import FuncFormatter, MultipleLocator
@@ -925,21 +929,8 @@ def parse_replaydata_charactername(text):
     #print(f"[ReplayData] Charactername = {name!r}")
     return name
 
-def parse_replaydata_mapname(text):
-    pattern = re.compile(
-        r'\[Chunk ReplayData\]\s+Unparsed opcode Mapname,[\s\S]*?'
-        r'Raw hex:\s*\[0x[0-9A-Fa-f]+\s*\(\d+\)\]\s*\{\s*\n'
-        r'([\s\S]*?)^}',
-        re.MULTILINE
-    )
-
-    m = pattern.search(text)
-    if not m:
-        return None
-
-    block = m.group(1)
+def _decode_replaydata_mapname_block(block):
     hex_bytes = re.findall(r'\b([0-9A-Fa-f]{2})\b', block)
-
     name_raw_bytes = []
     for h in hex_bytes:
         if h == '00':
@@ -950,11 +941,86 @@ def parse_replaydata_mapname(text):
         return None
 
     raw = bytes(name_raw_bytes)
-
     try:
         return raw.decode("ascii")
     except Exception:
         return raw.decode("ascii", errors="replace")
+
+
+def parse_replaydata_mapname(text):
+    """回傳這段資料中最後一個 Mapname；切圖 replay 會以最新地圖為準。"""
+    pattern = re.compile(
+        r'\[Chunk ReplayData\]\s+Unparsed opcode Mapname,[\s\S]*?'
+        r'Raw hex:\s*\[0x[0-9A-Fa-f]+\s*\(\d+\)\]\s*\{\s*\n'
+        r'([\s\S]*?)^}',
+        re.MULTILINE
+    )
+
+    matches = list(pattern.finditer(text))
+    if not matches:
+        return None
+    return _decode_replaydata_mapname_block(matches[-1].group(1))
+
+
+def parse_replaydata_map_changes(text):
+    """
+    解析 ReplayData 裡所有 Mapname，建立可供全域時間軸使用的地圖切換事件。
+
+    Mapname metadata 本身通常沒有 [+hh:mm:ss:ms]，因此切圖時間以該 Mapname
+    之後第一個 packet 的時間為準；若後面沒有 packet，則退回前一個 packet 時間。
+    初始地圖沒有前置 packet 時視為 0 秒。
+    """
+    map_pattern = re.compile(
+        r'\[Chunk ReplayData\]\s+Unparsed opcode Mapname,[\s\S]*?'
+        r'Raw hex:\s*\[0x[0-9A-Fa-f]+\s*\(\d+\)\]\s*\{\s*\n'
+        r'([\s\S]*?)^}',
+        re.MULTILINE
+    )
+    packet_time_re = re.compile(
+        r'^\[(\+\d{2}:\d{2}:\d{2}:\d{3})\]\s+packet\s+',
+        re.MULTILINE,
+    )
+
+    matches = list(map_pattern.finditer(text))
+    if not matches:
+        return []
+
+    results = []
+    last_name = None
+    for idx, m in enumerate(matches):
+        map_name = _decode_replaydata_mapname_block(m.group(1))
+        if not map_name:
+            continue
+
+        next_map_pos = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+        after_segment = text[m.end():next_map_pos]
+        next_packet = packet_time_re.search(after_segment)
+
+        if next_packet:
+            timestamp = next_packet.group(1)
+            sec = _packet_timestamp_to_seconds(timestamp)
+        else:
+            # 找 Mapname 之前最後一個 packet timestamp。
+            prev_packets = list(packet_time_re.finditer(text[:m.start()]))
+            if prev_packets:
+                timestamp = prev_packets[-1].group(1)
+                sec = _packet_timestamp_to_seconds(timestamp)
+            else:
+                timestamp = "+00:00:00:000"
+                sec = 0.0
+
+        # 同一段 legacy metadata 可能重複輸出相同 Mapname；連續相同地圖只留一次。
+        if map_name == last_name:
+            continue
+        results.append({
+            "time": sec,
+            "timestamp": timestamp,
+            "map_name": map_name,
+            "kind": "map_change",
+        })
+        last_name = map_name
+
+    return results
 
 # ============================================================
 # 解析 [Chunk Session] Unparsed opcode Aid
@@ -2408,6 +2474,398 @@ def parse_newentry11_blocks(text):
     return results
 
 
+def _packet_timestamp_to_seconds(ts):
+    try:
+        h, m, sec, ms = map(int, str(ts)[1:].split(":"))
+        return h * 3600.0 + m * 60.0 + sec + ms / 1000.0
+    except Exception:
+        return 0.0
+
+
+def _seconds_to_packet_timestamp(sec):
+    """float 秒數轉成 replay 顯示用 +HH:MM:SS:mmm。"""
+    total_ms = max(0, int(round(float(sec or 0.0) * 1000.0)))
+    h, rem = divmod(total_ms, 3600000)
+    m, rem = divmod(rem, 60000)
+    s, ms = divmod(rem, 1000)
+    return f"+{h:02d}:{m:02d}:{s:02d}:{ms:03d}"
+
+
+# 09FD/09FE/09FF 的 objecttype 是 client-side actor 顯示類型，
+# 不是 map.hpp 的 BL_PC/BL_MOB/BL_PET bitmask。
+# rAthena clif_bl_type() 對新版 client 的實際值如下。
+CLIENT_ACTOR_TYPE_NAMES = {
+    0x00: "PC_TYPE",
+    0x01: "NPC_TYPE",
+    0x02: "ITEM_TYPE",
+    0x03: "SKILL_TYPE",
+    0x04: "UNKNOWN_TYPE",
+    0x05: "NPC_MOB_TYPE",
+    0x06: "NPC_EVT_TYPE",
+    0x07: "NPC_PET_TYPE",
+    0x08: "NPC_HOM_TYPE",
+    0x09: "NPC_MERSOL_TYPE",
+    0x0A: "NPC_ELEMENTAL_TYPE",
+    0x0C: "NPC_MOB_NPC_TYPE",
+    0x0D: "NPC_ABR_TYPE",
+    0x0E: "NPC_BIONIC_TYPE",
+}
+
+
+
+def _decode_fixed_text_field(hex_bytes, start, length):
+    """解固定長度的 RO 字串欄位；優先 cp950/big5。"""
+    if not hex_bytes or start < 0 or start >= len(hex_bytes):
+        return ""
+    raw = bytes(int(x, 16) for x in hex_bytes[start:start + length])
+    raw = raw.split(b"\x00", 1)[0]
+    if not raw:
+        return ""
+    for enc in ("cp950", "big5", "utf-8", "ascii"):
+        try:
+            return raw.decode(enc).strip()
+        except Exception:
+            continue
+    return raw.decode("cp950", errors="replace").strip()
+
+
+def decode_guild_related_packet(hex_bytes):
+    """完整解析會用到的公會名稱相關封包。"""
+    opcode = _u16(hex_bytes, 0) if len(hex_bytes) >= 2 else 0
+    parsed = _packet_meta(hex_bytes)
+    if opcode in (0x0150, 0x01B6):
+        parsed.update({
+            "guild_id": _u32(hex_bytes, 2),
+            "level": _i32(hex_bytes, 6),
+            "user_num": _i32(hex_bytes, 10),
+            "max_user_num": _i32(hex_bytes, 14),
+            "user_average_level": _i32(hex_bytes, 18),
+            "exp": _i32(hex_bytes, 22),
+            "max_exp": _i32(hex_bytes, 26),
+            "point": _i32(hex_bytes, 30),
+            "honor": _i32(hex_bytes, 34),
+            "virtue": _i32(hex_bytes, 38),
+            "emblem_version": _i32(hex_bytes, 42),
+            "guild_name": _decode_fixed_text_field(hex_bytes, 46, 24),
+            "master_name": _decode_fixed_text_field(hex_bytes, 70, 24),
+            "manage_land": _decode_fixed_text_field(hex_bytes, 94, 16),
+        })
+        if opcode == 0x01B6 and len(hex_bytes) >= 114:
+            parsed["zeny"] = _i32(hex_bytes, 110)
+        parsed["opcode_name"] = "ZC_GUILD_INFO2" if opcode == 0x01B6 else "ZC_GUILD_INFO"
+        return parsed
+    if opcode in (0x0195, 0x0A30):
+        # 0x0A30 ZC_ACK_REQNAMEALL2 延續 0x0195 的前 102 bytes layout，
+        # 並在尾端追加 4-byte title_id。
+        parsed.update({
+            "aid": _u32(hex_bytes, 2),
+            "character_name": _decode_fixed_text_field(hex_bytes, 6, 24),
+            "party_name": _decode_fixed_text_field(hex_bytes, 30, 24),
+            "guild_name": _decode_fixed_text_field(hex_bytes, 54, 24),
+            "position_name": _decode_fixed_text_field(hex_bytes, 78, 24),
+            "opcode_name": "ZC_ACK_REQNAMEALL2" if opcode == 0x0A30 else "ZC_ACK_REQNAMEALL",
+        })
+        if opcode == 0x0A30 and len(hex_bytes) >= 106:
+            parsed["title_id"] = _u32(hex_bytes, 102)
+        return parsed
+    if opcode == 0x016A:
+        parsed.update({
+            "guild_id": _u32(hex_bytes, 2),
+            "guild_name": _decode_fixed_text_field(hex_bytes, 6, 24),
+            "opcode_name": "ZC_REQ_JOIN_GUILD",
+        })
+        return parsed
+    if opcode == 0x01B4:
+        parsed.update({
+            "aid": _u32(hex_bytes, 2),
+            "guild_id": _u32(hex_bytes, 6),
+            "emblem_version": _i16(hex_bytes, 10),
+            "opcode_name": "ZC_CHANGE_GUILD",
+        })
+        return parsed
+    return parsed
+
+
+def parse_guild_name_info(text):
+    """從 Replay 建立 GuildID→公會名與 AID→公會名/ID 對照。"""
+    lines = text.splitlines()
+    packet_re = re.compile(r'^\[(\+\d{2}:\d{2}:\d{2}:\d{3})\]\s+packet\s+(\S+)\s*$')
+    guild_id_to_name = {}
+    aid_to_guild_name = {}
+    aid_to_guild_id = {}
+    self_guild_id = 0
+    i = 0
+    while i < len(lines):
+        m = packet_re.match(lines[i].strip())
+        if not m or i + 1 >= len(lines):
+            i += 1
+            continue
+        sm = SIZE_RE.search(lines[i + 1])
+        if not sm:
+            i += 1
+            continue
+        size = int(sm.group(1))
+        j = i + 2
+        packet = []
+        while j < len(lines):
+            row = lines[j].strip()
+            if row.startswith("}"):
+                break
+            ma = re.match(r'^\s*[0-9A-Fa-f]{4,}\s+(.*)$', lines[j])
+            if ma:
+                for tok in ma.group(1).split():
+                    if re.fullmatch(r'[0-9A-Fa-f]{2}', tok):
+                        packet.append(tok.upper())
+                        if len(packet) >= size:
+                            break
+                    else:
+                        break
+            if len(packet) >= size:
+                break
+            j += 1
+        packet = packet[:size]
+        opcode = _u16(packet, 0) if len(packet) >= 2 else 0
+        try:
+            if opcode in (0x0150, 0x01B6) and len(packet) >= 70:
+                gid = _u32(packet, 2)
+                name = _decode_fixed_text_field(packet, 46, 24)
+                if gid:
+                    self_guild_id = gid
+                    if name:
+                        guild_id_to_name[gid] = name
+            elif opcode in (0x0195, 0x0A30) and len(packet) >= 78:
+                aid = _u32(packet, 2)
+                name = _decode_fixed_text_field(packet, 54, 24)
+                if aid and name:
+                    aid_to_guild_name[aid] = name
+            elif opcode == 0x016A and len(packet) >= 30:
+                gid = _u32(packet, 2)
+                name = _decode_fixed_text_field(packet, 6, 24)
+                if gid and name:
+                    guild_id_to_name[gid] = name
+            elif opcode == 0x01B4 and len(packet) >= 12:
+                aid = _u32(packet, 2)
+                gid = _u32(packet, 6)
+                if aid:
+                    aid_to_guild_id[aid] = gid
+        except Exception:
+            pass
+        i = max(i + 1, j)
+    return {
+        "guild_id_to_name": guild_id_to_name,
+        "aid_to_guild_name": aid_to_guild_name,
+        "aid_to_guild_id": aid_to_guild_id,
+        "self_guild_id": self_guild_id,
+    }
+
+
+def minimap_category_from_client_object_type(object_type):
+    """把 actor packet 的 client objecttype 轉成小地圖分類。
+
+    注意：0x00 是 PC_TYPE；某些使用玩家 sprite 的 NPC/寵物/魔物也可能被
+    client 當 PC_TYPE 傳送，因此這裡依封包能提供的最可靠類型分類。
+    """
+    t = int(object_type or 0) & 0xFF
+    if t == 0x00:
+        return "player"
+    if t == 0x05:
+        return "mob"
+    if t in (0x06, 0x0C):
+        return "npc"
+    if t == 0x07:
+        return "pet"
+    if t in (0x08, 0x09, 0x0A, 0x0D, 0x0E):
+        return "companion"
+    if t == 0x01:
+        return "npc"
+    return "other"
+
+
+def _decode_packet_map_name(hex_bytes, start=2, length=16):
+    """解析 0x0091/0x0092/0x0AC7 內固定長度的 mapName。"""
+    if not hex_bytes or len(hex_bytes) <= start:
+        return ""
+    raw = bytes(int(x, 16) for x in hex_bytes[start:start + length])
+    raw = raw.split(b"\x00", 1)[0]
+    if not raw:
+        return ""
+    for enc in ("ascii", "cp950", "big5", "utf-8"):
+        try:
+            return raw.decode(enc).strip()
+        except Exception:
+            continue
+    return raw.decode("ascii", errors="replace").strip()
+
+
+def parse_actor_map_events(text):
+    """
+    只為小地圖掃描位置事件，不依賴 RRF 顯示的 packet 標題。
+
+    0x09FE: spawn/new entry，提供初始座標
+    0x09FD: walking，提供 from/to 座標
+    0x09FF: idle/stand，提供目前座標
+    0x0087: ZC_NOTIFY_PLAYERMOVE，自身移動（09FD 不會送給自己）
+    0x02EB/0x0A18: ZC_ACCEPT_ENTER，自身進圖初始座標
+    0x0088: ZC_STOPMOVE，位置校正
+    0x0091: ZC_NPCACK_MAPMOVE，同 map-server 切圖（含 mapName + 目標座標）
+    0x0092/0x0AC7: ZC_NPCACK_SERVERMOVE，跨 map-server 切圖
+    VANISH : 單位離開目前場景
+    """
+    lines = text.splitlines()
+    packet_re = re.compile(r'^\[(\+\d{2}:\d{2}:\d{2}:\d{3})\]\s+packet\s+(\S+)\s*$')
+    results = []
+    i = 0
+    n = len(lines)
+
+    while i < n:
+        m = packet_re.match(lines[i].strip())
+        if not m:
+            i += 1
+            continue
+
+        timestamp, packet_name = m.groups()
+        if i + 1 >= n:
+            break
+        sm = SIZE_RE.search(lines[i + 1])
+        if not sm:
+            i += 1
+            continue
+
+        size = int(sm.group(1))
+        j = i + 2
+        hex_bytes = []
+        while j < n:
+            row = lines[j].strip()
+            if row.startswith("}"):
+                break
+            ma = re.match(r'^\s*[0-9A-Fa-f]{4,}\s+(.*)$', lines[j])
+            if ma:
+                for tok in ma.group(1).split():
+                    if re.fullmatch(r'[0-9A-Fa-f]{2}', tok):
+                        hex_bytes.append(tok.upper())
+                        if len(hex_bytes) >= size:
+                            break
+                    else:
+                        break
+            if len(hex_bytes) >= size:
+                break
+            j += 1
+
+        packet = hex_bytes[:size]
+        opcode = _u16(packet, 0) if len(packet) >= 2 else 0
+        t_sec = _packet_timestamp_to_seconds(timestamp)
+
+        try:
+            if opcode == 0x0091 and len(packet) >= 22:
+                # ZC_NPCACK_MAPMOVE：最可靠的切圖來源，封包本身帶 replay timestamp。
+                map_name = _decode_packet_map_name(packet, 2, 16)
+                if map_name:
+                    results.append({
+                        "time": t_sec, "timestamp": timestamp, "kind": "map_change",
+                        "opcode": opcode, "map_name": map_name, "map_change_source": "packet_0091",
+                    })
+                # 此包同時提供自身進入新圖後的位置。map_change 先加入，確保先清舊圖再放自己。
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "self_pos",
+                    "opcode": opcode, "aid": 0, "gid": 0,
+                    "self_event": True, "object_type": 0x00, "job": 0,
+                    "name": "", "x": _u16(packet, 18), "y": _u16(packet, 20),
+                })
+            elif opcode in (0x0092, 0x0AC7) and len(packet) >= 22:
+                # ZC_NPCACK_SERVERMOVE(_DOMAIN)：跨 map-server。
+                # 目標 mapName / x / y 都在封包內，時間也比 ReplayData metadata 可靠。
+                map_name = _decode_packet_map_name(packet, 2, 16)
+                if map_name:
+                    results.append({
+                        "time": t_sec, "timestamp": timestamp, "kind": "map_change",
+                        "opcode": opcode, "map_name": map_name, "map_change_source": "packet_servermove",
+                    })
+            elif opcode == 0x09FE:
+                dec = decode_newentry11(packet, size)
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "spawn",
+                    "opcode": opcode, "aid": dec.get("aid", 0), "gid": dec.get("gid", 0),
+                    "guild_id": dec.get("guild_id", 0),
+                    "object_type": dec.get("object_type", 0), "job": dec.get("job", 0),
+                    "name": dec.get("name", ""), "x": dec.get("x", 0), "y": dec.get("y", 0),
+                    "details": dict(dec),
+                })
+            elif opcode == 0x09FD:
+                dec = decode_moveentry11(packet, size)
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "move",
+                    "opcode": opcode, "aid": dec.get("aid", 0), "gid": dec.get("gid", 0),
+                    "guild_id": dec.get("guild_id", 0),
+                    "object_type": dec.get("object_type", 0), "job": dec.get("job", 0),
+                    "name": dec.get("name", ""), "speed": abs(dec.get("speed", 0) or 0),
+                    "move_start_time": dec.get("move_start_time", 0),
+                    "from_x": dec.get("from_x", 0), "from_y": dec.get("from_y", 0),
+                    "to_x": dec.get("to_x", 0), "to_y": dec.get("to_y", 0),
+                    "details": dict(dec),
+                })
+            elif opcode == 0x09FF:
+                dec = decode_standentry11(packet, size)
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "stand",
+                    "opcode": opcode, "aid": dec.get("aid", 0), "gid": dec.get("gid", 0),
+                    "guild_id": dec.get("guild_id", 0),
+                    "object_type": dec.get("object_type", 0), "job": dec.get("job", 0),
+                    "name": dec.get("name", ""), "x": dec.get("x", 0), "y": dec.get("y", 0),
+                    "details": dict(dec),
+                })
+            elif opcode == 0x0087 and len(packet) >= 12:
+                # 自己走路不會收到 09FD；server 以 ZC_NOTIFY_PLAYERMOVE 回覆自身。
+                movement = _decode_move_data(packet[6:12])
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "move",
+                    "opcode": opcode, "aid": 0, "gid": 0,
+                    "self_event": True, "object_type": 0x00, "job": 0,
+                    "name": "", "speed": 0,
+                    "move_start_time": _u32(packet, 2),
+                    "from_x": movement.get("from_x", 0), "from_y": movement.get("from_y", 0),
+                    "to_x": movement.get("to_x", 0), "to_y": movement.get("to_y", 0),
+                    "details": {
+                        "packet_id": opcode, "packet_size": size,
+                        "move_start_time": _u32(packet, 2), **movement,
+                    },
+                })
+            elif opcode in (0x02EB, 0x0A18) and len(packet) >= 9:
+                # ZC_ACCEPT_ENTER：進地圖時自己的初始位置。
+                pos = _decode_pos_dir(packet[6:9])
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "self_pos",
+                    "opcode": opcode, "aid": 0, "gid": 0,
+                    "self_event": True, "object_type": 0x00, "job": 0,
+                    "name": "", "x": pos.get("x", 0), "y": pos.get("y", 0),
+                    "details": {"packet_id": opcode, "packet_size": size, **pos},
+                })
+            elif opcode == 0x0088 and len(packet) >= 10:
+                # ZC_STOPMOVE：server 強制/校正單位座標。
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "stop",
+                    "opcode": opcode, "aid": _u32(packet, 2), "gid": 0,
+                    "x": _u16(packet, 6), "y": _u16(packet, 8),
+                    "details": {
+                        "packet_id": opcode, "packet_size": size,
+                        "aid": _u32(packet, 2), "x": _u16(packet, 6), "y": _u16(packet, 8),
+                    },
+                })
+            elif packet_name == "HEADER_ZC_NOTIFY_VANISH":
+                dec = decode_vanish(packet)
+                results.append({
+                    "time": t_sec, "timestamp": timestamp, "kind": "vanish",
+                    "opcode": opcode, "aid": dec.get("did", 0),
+                    "mode": dec.get("mode", 0), "mode_name": dec.get("mode_name", ""),
+                })
+        except Exception:
+            # 小地圖是附加功能；單一異常 actor packet 不應中斷傷害解析。
+            pass
+
+        i = max(i + 1, j)
+
+    results.sort(key=lambda e: e.get("time", 0.0))
+    return results
+
 
 KNOWN_PACKET_NAMES = {
     "HEADER_ZC_NOTIFY_GROUNDSKILL",
@@ -2431,12 +2889,22 @@ def decode_known_packet_full(packet_name, hex_bytes, size=None):
     size = len(hex_bytes) if size is None else size
     opcode = _u16(hex_bytes, 0) if len(hex_bytes) >= 2 else 0
 
-    # 0x09FE = modern spawn_unit / NEWENTRY11。
-    # 直接依 opcode 解碼，避免 RRF 的 packet 標題不同時漏掉。
+    # 2015-05-13+ actor packets：直接依 opcode 解碼，避免 RRF 標題不同而漏掉。
     if opcode == 0x09FE:
         parsed = decode_newentry11(hex_bytes, size)
         parsed["opcode_name"] = "ZC_NOTIFY_NEWENTRY / spawn_unit"
         return parsed
+    if opcode == 0x09FD:
+        parsed = decode_moveentry11(hex_bytes, size)
+        parsed["opcode_name"] = "ZC_NOTIFY_MOVEENTRY / unit_walking"
+        return parsed
+    if opcode == 0x09FF:
+        parsed = decode_standentry11(hex_bytes, size)
+        parsed["opcode_name"] = "ZC_NOTIFY_STANDENTRY / idle_unit"
+        return parsed
+
+    if opcode in (0x0150, 0x01B6, 0x0195, 0x0A30, 0x016A, 0x01B4):
+        return decode_guild_related_packet(hex_bytes)
 
     if packet_name == "HEADER_ZC_NOTIFY_GROUNDSKILL":
         return decode_groundskill(hex_bytes)
@@ -2508,14 +2976,24 @@ def parse_all_known_packets_complete(text):
         packet = hex_bytes[:size]
         opcode = _u16(packet, 0) if len(packet) >= 2 else 0
 
-        # 平常依標題辨識；0x09FE 額外直接依 opcode 辨識，避免標題名稱不同而漏掉。
-        is_09fe = opcode == 0x09FE
-        if packet_name not in KNOWN_PACKET_NAMES and not is_09fe:
+        # actor 0x09FD/09FE/09FF 額外直接依 opcode 辨識，避免標題名稱不同而漏掉。
+        actor_opcode_name = {
+            0x09FD: "HEADER_ZC_NOTIFY_MOVEENTRY11 (0x09FD)",
+            0x09FE: "HEADER_ZC_NOTIFY_NEWENTRY11 (0x09FE)",
+            0x09FF: "HEADER_ZC_NOTIFY_STANDENTRY11 (0x09FF)",
+            0x0150: "ZC_GUILD_INFO (0x0150)",
+            0x01B6: "ZC_GUILD_INFO2 (0x01B6)",
+            0x0195: "ZC_ACK_REQNAMEALL (0x0195)",
+            0x0A30: "ZC_ACK_REQNAMEALL2 (0x0A30)",
+            0x016A: "ZC_REQ_JOIN_GUILD (0x016A)",
+            0x01B4: "ZC_CHANGE_GUILD (0x01B4)",
+        }.get(opcode)
+        if packet_name not in KNOWN_PACKET_NAMES and actor_opcode_name is None:
             i = max(i + 1, j)
             continue
 
         decoded = decode_known_packet_full(packet_name, packet, size)
-        display_packet_name = "HEADER_ZC_NOTIFY_NEWENTRY11 (0x09FE)" if is_09fe else packet_name
+        display_packet_name = actor_opcode_name or packet_name
 
         # VANISH 各 mode 都保留在完整解析資料中；真正是否顯示由 UI 勾選控制。
         results.append({
@@ -2678,6 +3156,1508 @@ def get_drop_highlight_color(effect_id):
 
 import hashlib
 import os
+
+
+def load_gat_navigation(path):
+    """讀取 Ragnarok .gat 導航格。只保留小地圖需要的 terrain type。"""
+    with open(path, "rb") as f:
+        data = f.read()
+
+    base = 0
+    if data[:4] != b"GRAT":
+        # 少數舊檔有一個 zero-byte prefix。
+        if len(data) >= 5 and data[1:5] == b"GRAT":
+            base = 1
+        else:
+            raise ValueError("不是有效的 GAT 檔（找不到 GRAT header）")
+
+    if len(data) < base + 14:
+        raise ValueError("GAT 檔案過短")
+
+    major = data[base + 4]
+    minor = data[base + 5]
+    width = struct.unpack_from("<i", data, base + 6)[0]
+    height = struct.unpack_from("<i", data, base + 10)[0]
+    if width <= 0 or height <= 0 or width > 10000 or height > 10000:
+        raise ValueError(f"GAT 尺寸異常：{width} x {height}")
+
+    tile_off = base + 14
+    required = tile_off + width * height * 20
+    if len(data) < required:
+        raise ValueError(
+            f"GAT 資料不完整：需要 {required:,} bytes，實際 {len(data):,} bytes"
+        )
+
+    terrain = []
+    water = []
+    for idx in range(width * height):
+        raw_type = struct.unpack_from("<I", data, tile_off + idx * 20 + 16)[0]
+        # GAT 1.3 可能把水域旗標放在高位；底層 terrain type 保留低 31 位。
+        terrain.append(raw_type & 0x7FFFFFFF)
+        water.append(bool(raw_type & 0x80000000))
+
+    return {
+        "path": os.path.abspath(path),
+        "version": f"{major}.{minor}",
+        "width": width,
+        "height": height,
+        "terrain": terrain,
+        "water": water,
+    }
+
+
+
+class MiniMapReplayEngine:
+    """v2.14: 純 Python 小地圖計算核心，可安全放在獨立 process。
+
+    Qt / QWidget 完全不會進到這裡。process 只保留 replay actor state、
+    傷害時間索引，輸出一份小型 frame snapshot 給 GUI thread 畫。
+    """
+    def __init__(self):
+        self.source_version = -1
+        self.events = []
+        self.damage_times = []
+        self.damage_rows = []
+        self.names = {}
+        self.guild_names = {}
+        self.guild_aid_names = {}
+        self.self_sid = 0
+        self.self_guild_id = 0
+        self.self_guild_name = ""
+        self._reset_state()
+
+    def _reset_state(self):
+        self.actor_state = {}
+        self.recent_positions = {}
+        self.event_cursor = 0
+        self.state_time = -1.0
+        self.active_map_name = ""
+
+    def set_sources(self, payload):
+        version = int(payload.get("version", 0) or 0)
+        if version == self.source_version:
+            return
+        self.source_version = version
+        self.events = list(payload.get("events") or [])
+        self.names = dict(payload.get("names") or {})
+        self.guild_names = {int(k): str(v) for k, v in dict(payload.get("guild_names") or {}).items() if int(k or 0)}
+        self.guild_aid_names = {int(k): str(v) for k, v in dict(payload.get("guild_aid_names") or {}).items() if int(k or 0) and str(v)}
+        self.self_sid = int(payload.get("self_sid", 0) or 0)
+        self.self_guild_id = int(payload.get("self_guild_id", 0) or 0)
+        self.self_guild_name = str(payload.get("self_guild_name") or self.guild_aid_names.get(self.self_sid, "") or self.guild_names.get(self.self_guild_id, ""))
+
+        indexed = []
+        for item in payload.get("damage_rows") or []:
+            try:
+                # (time, sid, did, damage, skill_name)
+                t, sid, did, damage, skill = item
+                damage = int(damage or 0)
+                if damage < 0:
+                    continue
+                indexed.append((float(t), int(sid or 0), int(did or 0), damage, str(skill or "")))
+            except Exception:
+                continue
+        indexed.sort(key=lambda x: x[0])
+        self.damage_times = [x[0] for x in indexed]
+        self.damage_rows = indexed
+        self._reset_state()
+
+    def _lookup_name(self, actor_id):
+        try:
+            actor_id = int(actor_id or 0)
+        except Exception:
+            actor_id = 0
+        return self.names.get(actor_id) or (f"AID {actor_id}" if actor_id else "")
+
+    def _apply_event(self, event):
+        kind = event.get("kind")
+        if kind == "map_change":
+            self.actor_state = {}
+            self.recent_positions = {}
+            self.active_map_name = (event.get("map_name") or "").strip()
+            return
+
+        if event.get("self_event"):
+            aid = int(self.self_sid or 0)
+        else:
+            aid = int(event.get("aid", 0) or 0)
+        if not aid:
+            return
+
+        if kind == "vanish":
+            remove_aid = aid if aid in self.actor_state else next((
+                state_aid for state_aid, state in self.actor_state.items()
+                if int(state.get("gid", 0) or 0) == aid
+            ), None)
+            if remove_aid is not None:
+                state = self.actor_state.get(remove_aid) or {}
+                x = float(state.get("x", 0.0) or 0.0)
+                y = float(state.get("y", 0.0) or 0.0)
+                move = state.get("move")
+                if move:
+                    mt = float(event.get("time", 0.0) or 0.0)
+                    start = float(move.get("start", 0.0) or 0.0)
+                    duration = max(0.001, float(move.get("duration", 0.001) or 0.001))
+                    ratio = min(1.0, max(0.0, (mt - start) / duration))
+                    x = move["from_x"] + (move["to_x"] - move["from_x"]) * ratio
+                    y = move["from_y"] + (move["to_y"] - move["from_y"]) * ratio
+                self.recent_positions[remove_aid] = {
+                    "x": x, "y": y, "time": float(event.get("time", 0.0) or 0.0),
+                    "name": state.get("name", ""),
+                    "category": minimap_category_from_client_object_type(state.get("object_type", 0)),
+                }
+                self.actor_state.pop(remove_aid, None)
+            return
+
+        state = self.actor_state.get(aid, {"aid": aid})
+        state["gid"] = event.get("gid", state.get("gid", 0))
+        state["object_type"] = event.get("object_type", state.get("object_type", 0))
+        state["job"] = event.get("job", state.get("job", 0))
+        details_for_guild = event.get("details") if isinstance(event.get("details"), dict) else {}
+        event_guild_id = int(event.get("guild_id", details_for_guild.get("guild_id", state.get("guild_id", 0))) or 0)
+        if event_guild_id:
+            state["guild_id"] = event_guild_id
+        resolved_guild_name = (
+            event.get("guild_name")
+            or self.guild_aid_names.get(aid, "")
+            or (self.self_guild_name if self.self_sid and aid == self.self_sid else "")
+            or self.guild_names.get(int(state.get("guild_id", 0) or 0), "")
+            or state.get("guild_name", "")
+        )
+        if resolved_guild_name:
+            state["guild_name"] = resolved_guild_name
+        if event.get("speed"):
+            state["speed"] = abs(float(event.get("speed") or 0))
+        raw_name = event.get("name")
+        if raw_name:
+            state["name"] = raw_name
+        details = event.get("details")
+        if isinstance(details, dict):
+            merged_details = dict(state.get("details") or {})
+            merged_details.update(details)
+            state["details"] = merged_details
+        state["last_event_kind"] = kind
+        state["last_event_timestamp"] = event.get("timestamp", state.get("last_event_timestamp", ""))
+        state["last_packet_opcode"] = int(event.get("opcode", state.get("last_packet_opcode", 0)) or 0)
+
+        if kind in ("spawn", "stand", "self_pos", "stop"):
+            state["x"] = float(event.get("x", state.get("x", 0)) or 0)
+            state["y"] = float(event.get("y", state.get("y", 0)) or 0)
+            state["move"] = None
+        elif kind == "move":
+            event_time = float(event.get("time", 0.0) or 0.0)
+            packet_fx = float(event.get("from_x", state.get("x", 0)) or 0)
+            packet_fy = float(event.get("from_y", state.get("y", 0)) or 0)
+            tx = float(event.get("to_x", packet_fx) or packet_fx)
+            ty = float(event.get("to_y", packet_fy) or packet_fy)
+
+            fx, fy = packet_fx, packet_fy
+            previous_move = state.get("move")
+            if previous_move:
+                prev_start = float(previous_move.get("start", 0.0) or 0.0)
+                prev_duration = max(0.001, float(previous_move.get("duration", 0.001) or 0.001))
+                prev_ratio = min(1.0, max(0.0, (event_time - prev_start) / prev_duration))
+                predicted_x = float(previous_move.get("from_x", 0.0)) + (float(previous_move.get("to_x", 0.0)) - float(previous_move.get("from_x", 0.0))) * prev_ratio
+                predicted_y = float(previous_move.get("from_y", 0.0)) + (float(previous_move.get("to_y", 0.0)) - float(previous_move.get("from_y", 0.0))) * prev_ratio
+                if math.hypot(predicted_x - packet_fx, predicted_y - packet_fy) <= 4.0:
+                    fx, fy = predicted_x, predicted_y
+
+            speed_ms = max(1.0, float(event.get("speed", 0) or state.get("speed", 0) or 150.0))
+            dx_cells = abs(tx - fx)
+            dy_cells = abs(ty - fy)
+            diagonal_cells = min(dx_cells, dy_cells)
+            straight_cells = max(dx_cells, dy_cells) - diagonal_cells
+            weighted_cells = straight_cells + diagonal_cells * math.sqrt(2.0)
+            duration = max(0.05, weighted_cells * speed_ms / 1000.0) if weighted_cells > 0 else 0.05
+
+            next_time = event.get("_next_pos_time")
+            next_x = event.get("_next_pos_x")
+            next_y = event.get("_next_pos_y")
+            if next_time is not None:
+                dt = float(next_time) - event_time
+                if dt > 0.02 and next_x is not None and next_y is not None:
+                    next_x = float(next_x)
+                    next_y = float(next_y)
+                    target_gap = math.hypot(next_x - tx, next_y - ty)
+                    interrupted = dt < duration - 0.02
+                    near_expected_timing = dt <= duration * 1.25
+                    if interrupted or (target_gap > 0.75 and near_expected_timing):
+                        tx, ty = next_x, next_y
+                        duration = max(0.05, dt)
+
+            state["x"] = fx
+            state["y"] = fy
+            state["move"] = {
+                "start": event_time, "duration": duration,
+                "from_x": fx, "from_y": fy, "to_x": tx, "to_y": ty,
+            }
+
+        self.actor_state[aid] = state
+
+    def _advance_to(self, sec):
+        sec = max(0.0, float(sec or 0.0))
+        if sec + 1e-9 < self.state_time:
+            self._reset_state()
+        cursor = self.event_cursor
+        while cursor < len(self.events) and float(self.events[cursor].get("time", 0.0)) <= sec + 1e-9:
+            self._apply_event(self.events[cursor])
+            cursor += 1
+        self.event_cursor = cursor
+        self.state_time = sec
+
+    def _seed_self_from_next_event(self):
+        self_aid = int(self.self_sid or 0)
+        if not self_aid or self_aid in self.actor_state:
+            return
+        seed_event = None
+        seed_x = seed_y = None
+        for idx in range(int(self.event_cursor or 0), len(self.events)):
+            event = self.events[idx]
+            if event.get("kind") == "map_change":
+                break
+            event_aid = int(event.get("aid", 0) or 0)
+            if not event.get("self_event") and event_aid != self_aid:
+                continue
+            kind = event.get("kind")
+            if kind == "move":
+                seed_x, seed_y = event.get("from_x"), event.get("from_y")
+            elif kind in ("self_pos", "stand", "stop", "spawn"):
+                seed_x, seed_y = event.get("x"), event.get("y")
+            else:
+                continue
+            if seed_x is not None and seed_y is not None:
+                seed_event = event
+                break
+        if seed_event is None:
+            return
+        self.actor_state[self_aid] = {
+            "aid": self_aid,
+            "gid": int(seed_event.get("gid", 0) or 0),
+            "object_type": 0x00,
+            "job": int(seed_event.get("job", 0) or 0),
+            "guild_id": int(seed_event.get("guild_id", (seed_event.get("details") or {}).get("guild_id", self.self_guild_id)) or self.self_guild_id or 0),
+            "guild_name": (seed_event.get("guild_name") or self.self_guild_name or self.guild_aid_names.get(self_aid, "") or self.guild_names.get(int(seed_event.get("guild_id", (seed_event.get("details") or {}).get("guild_id", self.self_guild_id)) or self.self_guild_id or 0), "")),
+            "name": self._lookup_name(self_aid),
+            "x": float(seed_x or 0.0), "y": float(seed_y or 0.0), "move": None,
+            "details": dict(seed_event.get("details") or {}),
+            "last_event_kind": seed_event.get("kind", ""),
+            "last_event_timestamp": seed_event.get("timestamp", ""),
+            "last_packet_opcode": int(seed_event.get("opcode", 0) or 0),
+        }
+
+    def _units_at(self, sec):
+        self._advance_to(sec)
+        self._seed_self_from_next_event()
+        units = []
+        for aid, state in self.actor_state.items():
+            x = float(state.get("x", 0.0) or 0.0)
+            y = float(state.get("y", 0.0) or 0.0)
+            move = state.get("move")
+            if move:
+                start = float(move.get("start", 0.0))
+                duration = max(0.001, float(move.get("duration", 0.001)))
+                ratio = min(1.0, max(0.0, (float(sec) - start) / duration))
+                x = move["from_x"] + (move["to_x"] - move["from_x"]) * ratio
+                y = move["from_y"] + (move["to_y"] - move["from_y"]) * ratio
+            object_type = int(state.get("object_type", 0) or 0) & 0xFF
+            category = minimap_category_from_client_object_type(object_type)
+            name = state.get("name") or self._lookup_name(aid)
+            units.append({
+                "aid": int(aid), "gid": state.get("gid", 0), "name": name,
+                "object_type": object_type,
+                "object_type_name": CLIENT_ACTOR_TYPE_NAMES.get(object_type, f"TYPE_0x{object_type:02X}"),
+                "category": category, "job": state.get("job", 0),
+                "guild_id": int(state.get("guild_id", 0) or 0),
+                "guild_name": state.get("guild_name") or self.guild_aid_names.get(int(aid), "") or (self.self_guild_name if self.self_sid and int(aid) == self.self_sid else "") or self.guild_names.get(int(state.get("guild_id", 0) or 0), ""),
+                "speed": state.get("speed", 0),
+                "x": x, "y": y, "is_self": bool(self.self_sid and int(aid) == self.self_sid),
+                "last_event_kind": state.get("last_event_kind", ""),
+                "last_event_timestamp": state.get("last_event_timestamp", ""),
+                "last_packet_opcode": state.get("last_packet_opcode", 0),
+                "details": dict(state.get("details") or {}),
+            })
+            self.recent_positions[int(aid)] = {
+                "x": x, "y": y, "time": float(sec), "name": name, "category": category,
+            }
+        return units
+
+    def _damage_links_at(self, sec, units, selected_did=None, selected_sid=None, damage_time_range=None):
+        sec = max(0.0, float(sec or 0.0))
+        start_sec = max(0.0, sec - 1.0)
+        positions = {
+            int(u.get("aid", 0) or 0): (float(u.get("x", 0.0)), float(u.get("y", 0.0)))
+            for u in units if int(u.get("aid", 0) or 0)
+        }
+        for aid, pos in self.recent_positions.items():
+            if aid not in positions and sec - float(pos.get("time", -9999.0) or -9999.0) <= 1.25:
+                positions[int(aid)] = (float(pos.get("x", 0.0)), float(pos.get("y", 0.0)))
+
+        lo = bisect.bisect_left(self.damage_times, start_sec - 1e-9)
+        hi = bisect.bisect_right(self.damage_times, sec + 1e-9)
+        grouped = {}
+        did_filter = int(selected_did) if selected_did is not None else None
+        sid_filter = int(selected_sid) if selected_sid is not None else None
+
+        for idx in range(lo, hi):
+            t, sid, did, damage, skill = self.damage_rows[idx]
+            if did_filter is not None and did != did_filter:
+                continue
+            if sid_filter is not None and sid != sid_filter:
+                continue
+            if damage_time_range is not None:
+                rs, re_ = damage_time_range
+                if t < float(rs) - 1e-9 or t > float(re_) + 1e-9:
+                    continue
+            if not sid or not did or sid == did or sid not in positions or did not in positions:
+                continue
+            key = (sid, did)
+            item = grouped.setdefault(key, {
+                "sid": sid, "did": did, "damage": 0, "count": 0,
+                "latest_time": t, "skills": set(),
+            })
+            item["damage"] += damage
+            item["count"] += 1
+            item["latest_time"] = max(float(item["latest_time"]), float(t))
+            if skill:
+                item["skills"].add(skill)
+
+        links = []
+        for item in grouped.values():
+            sx, sy = positions[item["sid"]]
+            tx, ty = positions[item["did"]]
+            links.append({
+                **item,
+                "source_x": sx, "source_y": sy,
+                "target_x": tx, "target_y": ty,
+                "age": max(0.0, sec - float(item["latest_time"])),
+                "source_name": self._lookup_name(item["sid"]),
+                "target_name": self._lookup_name(item["did"]),
+                "skills": sorted(item["skills"]),
+            })
+        links.sort(key=lambda x: (x.get("age", 0.0), -x.get("damage", 0)))
+        return links
+
+    def compute(self, request):
+        sec = max(0.0, float(request.get("sec", 0.0) or 0.0))
+        units = self._units_at(sec)
+
+        # v2.15：人物位置可以 60 FPS 算，但傷害箭頭/文字沒有必要每幀重算。
+        # GUI 端只在約 10 FPS 時送 include_damage=True，其餘 frame 只回傳 units。
+        include_damage = bool(request.get("include_damage", True))
+        if include_damage:
+            links = self._damage_links_at(
+                sec, units,
+                selected_did=request.get("selected_did"),
+                selected_sid=request.get("selected_sid"),
+                damage_time_range=request.get("damage_time_range"),
+            )
+            damage_event_count = sum(int(x.get("count", 0) or 0) for x in links)
+        else:
+            links = None
+            damage_event_count = None
+
+        counts = {
+            "self": sum(1 for u in units if u.get("is_self")),
+            "player": sum(1 for u in units if u.get("category") == "player" and not u.get("is_self")),
+            "mob": sum(1 for u in units if u.get("category") == "mob"),
+            "pet": sum(1 for u in units if u.get("category") == "pet"),
+            "npc": sum(1 for u in units if u.get("category") == "npc"),
+            "companion": sum(1 for u in units if u.get("category") == "companion"),
+            "other": sum(1 for u in units if u.get("category") == "other"),
+        }
+        return {
+            "seq": int(request.get("seq", 0) or 0),
+            # 回傳 engine 真正已套用的 source version；若 request 比 sources 更早抵達，
+            # GUI 會丟棄這一幀，不會誤把舊資料當成新資料。
+            "source_version": int(self.source_version),
+            "sec": sec,
+            "active_map": self.active_map_name,
+            "units": units,
+            "links": links,
+            "damage_updated": include_damage,
+            "counts": counts,
+            "damage_event_count": damage_event_count,
+        }
+
+
+def _minimap_process_put_fifo(q, item):
+    """v2.19：回放 frame/result 一律 FIFO，不丟棄中間結果。
+
+    正常播放寧可因計算負載而延後，也不能把中間 Replay frame 直接覆蓋掉。
+    """
+    try:
+        q.put(item)
+        return True
+    except (EOFError, OSError, BrokenPipeError):
+        return False
+    except Exception:
+        return False
+
+
+def minimap_compute_process_main(source_queue, request_queue, result_queue):
+    """v2.19: 獨立 process 小地圖計算迴圈。
+
+    sources 只在 RRF 資料更新時傳一次；正常播放的 frame request 嚴格 FIFO。
+    不再使用 latest-only：每個已送入的 Replay frame 都會依序計算、依序回傳。
+    """
+    engine = MiniMapReplayEngine()
+    running = True
+    while running:
+        # source 更新優先，並只吃最新一份。
+        latest_source = None
+        try:
+            while True:
+                latest_source = source_queue.get_nowait()
+        except queue.Empty:
+            pass
+        if latest_source is not None:
+            if latest_source.get("cmd") == "stop":
+                break
+            engine.set_sources(latest_source)
+
+        try:
+            req = request_queue.get(timeout=0.02)
+        except queue.Empty:
+            continue
+        except (EOFError, OSError):
+            break
+
+        # v2.19：正常回放不得丟 frame。
+        # 只取這一筆 request，下一筆留在 FIFO queue 等下一輪處理。
+        if req.get("cmd") == "stop":
+            break
+
+        # request 若已經是更新後 source，但 source queue 尚未 drain，再補一次。
+        latest_source = None
+        try:
+            while True:
+                latest_source = source_queue.get_nowait()
+        except queue.Empty:
+            pass
+        if latest_source is not None:
+            if latest_source.get("cmd") == "stop":
+                break
+            engine.set_sources(latest_source)
+
+        try:
+            result = engine.compute(req)
+            _minimap_process_put_fifo(result_queue, result)
+        except Exception as e:
+            _minimap_process_put_fifo(result_queue, {
+                "seq": int(req.get("seq", 0) or 0),
+                "source_version": int(req.get("source_version", 0) or 0),
+                "error": f"{type(e).__name__}: {e}",
+            })
+
+class GATMiniMapWidget(QWidget):
+    """輕量 GAT 小地圖。底圖快取成 QImage，播放時只重畫單位點。"""
+    unitSelected = Signal(object)
+    unitContextRequested = Signal(object)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumSize(360, 360)
+        self.setMouseTracking(True)
+        self.gat = None
+        self.map_image = None
+        self.units = []
+        self.damage_links = []
+        self.current_sec = 0.0
+        self._last_draw_rect = None
+        self._unit_screen_points = []
+        self.selected_aid = None
+        # v2.12：右上「篩選魔物」鎖定 DID 時，小地圖額外標示該 AID。
+        self.highlight_aid = None
+        # v2.4：獨立小地圖視窗支援縮放 / 平移。
+        self.zoom_factor = 1.0
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+        self._panning = False
+        self._pan_last_pos = None
+        # v2.7：小地圖預設鎖定自身，以自身周邊約 80 格作為初始視野。
+        self.follow_self = True
+        self.self_view_cells = 80.0
+        self._needs_initial_self_focus = True
+        # v2.13：傷害標籤的避讓結果只在第一次出現時決定；
+        # 同一 SID→DID 在可見期間沿用同一組相對 offset，避免每幀左右跳。
+        self._damage_label_layout = {}
+        self._damage_label_last_seen = {}
+        # v2.15：傷害箭頭/文字先畫到透明 overlay，人物 60FPS 時只貼快取圖。
+        self._damage_overlay_image = None
+        self._damage_overlay_dirty = True
+        self._damage_overlay_last_data_sec = -9999.0
+        # v2.18：技能名稱可選擇顯示；距離格數固定顯示。
+        self.show_skill_names = False
+
+        # v2.24：上方常駐說明精簡，只保留地圖 / 時間。
+        # 地圖空白處懸停顯示圖例與操作方式；懸停單位標記則顯示該單位資料。
+        self._default_hover_tooltip = (
+            "標記：玩家=公會固定色（無公會藍）｜自身=同公會色＋黃白雙圈｜"
+            "魔物=紅色菱形｜寵物=橘色點｜NPC=綠色方塊｜召喚=紫色點｜其他=灰點\n"
+            "桃紅箭頭=傷害/距離｜左鍵選取｜右鍵單位看完整資料｜"
+            "右鍵空白拖曳｜滾輪縮放｜同格單位會自動錯位"
+        )
+        self.setToolTip(self._default_hover_tooltip)
+
+    @staticmethod
+    def _unit_hover_tooltip(unit):
+        if not unit:
+            return ""
+        if unit.get("is_self"):
+            category_name = "自身"
+        else:
+            category_name = {
+                "player": "玩家", "mob": "魔物", "pet": "寵物", "npc": "NPC",
+                "companion": "召喚/傭兵", "other": "其他"
+            }.get(unit.get("category"), "其他")
+        guild_id = int(unit.get("guild_id", 0) or 0)
+        guild_name = str(unit.get("guild_name") or "").strip()
+        guild_text = f"{guild_name} [{guild_id}]" if guild_name else (f"GuildID {guild_id}" if guild_id else "無公會")
+        name = str(unit.get("name") or "").strip() or f"AID {int(unit.get('aid', 0) or 0)}"
+        return (
+            f"{category_name}：{name}\n"
+            f"AID {int(unit.get('aid', 0) or 0)}｜GID {int(unit.get('gid', 0) or 0)}\n"
+            f"公會：{guild_text}\n"
+            f"座標：({float(unit.get('x', 0) or 0):.1f}, {float(unit.get('y', 0) or 0):.1f})\n"
+            f"ObjectType：0x{int(unit.get('object_type', 0) or 0):02X} "
+            f"({unit.get('object_type_name', '')})"
+        )
+
+    def clear_map(self):
+        self.gat = None
+        self.map_image = None
+        self.units = []
+        self.damage_links = []
+        self.selected_aid = None
+        self.highlight_aid = None
+        self.zoom_factor = 1.0
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+        self._panning = False
+        self._pan_last_pos = None
+        self.follow_self = True
+        self._needs_initial_self_focus = True
+        self._damage_label_layout.clear()
+        self._damage_label_last_seen.clear()
+        self._damage_overlay_image = None
+        self._damage_overlay_dirty = True
+        self.update()
+
+    def set_gat(self, gat):
+        self.gat = gat
+        self.map_image = self._build_map_image(gat) if gat else None
+        # 切圖時上一張地圖的傷害箭頭不能殘留到新 GAT。
+        self.damage_links = []
+        # 換圖後先等待自身座標，再自動以自身為中心縮放。
+        self.zoom_factor = 1.0
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+        self._panning = False
+        self._pan_last_pos = None
+        self.follow_self = True
+        self._needs_initial_self_focus = True
+        self._damage_label_layout.clear()
+        self._damage_label_last_seen.clear()
+        self._damage_overlay_image = None
+        self._damage_overlay_dirty = True
+        self.update()
+
+    def reset_view(self):
+        """100%：顯示整張 GAT，並暫停自動跟隨自身。"""
+        self.zoom_factor = 1.0
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+        self._panning = False
+        self._pan_last_pos = None
+        self.follow_self = False
+        self._needs_initial_self_focus = False
+        self._damage_overlay_dirty = True
+        self.update()
+
+    def _self_unit(self):
+        for unit in self.units:
+            if unit.get("is_self"):
+                return unit
+        return None
+
+    def _center_on_map_point(self, x, y):
+        if not self.gat:
+            return
+        # 先以零 pan 算出目前 zoom 的基準位置，再把指定地圖座標移到視窗中央。
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+        rect = self._map_rect()
+        if not rect:
+            return
+        sx, sy = self._unit_to_screen(float(x), float(y), rect)
+        self.pan_x = self.width() / 2.0 - sx
+        self.pan_y = self.height() / 2.0 - sy
+        self._clamp_pan()
+
+    def focus_self(self, auto_zoom=True, request_update=True):
+        """鎖定自身；auto_zoom=True 時把視野縮到自身周邊固定格數。"""
+        if not self.gat:
+            return False
+        unit = self._self_unit()
+        if not unit:
+            self.follow_self = True
+            self._needs_initial_self_focus = True
+            return False
+
+        self.follow_self = True
+        if auto_zoom:
+            w = max(1.0, float(self.gat["width"]))
+            h = max(1.0, float(self.gat["height"]))
+            margin = 12.0
+            avail_w = max(1.0, self.width() - margin * 2)
+            avail_h = max(1.0, self.height() - margin * 2)
+            fit = min(avail_w / w, avail_h / h)
+            target = max(20.0, float(self.self_view_cells))
+            # 讓短邊大約可看到 target 格；長寬比不同時另一邊自然多看到一些。
+            z_w = avail_w / max(1e-9, fit * target)
+            z_h = avail_h / max(1e-9, fit * target)
+            self.zoom_factor = max(1.0, min(20.0, min(z_w, z_h)))
+
+        self._center_on_map_point(unit.get("x", 0.0), unit.get("y", 0.0))
+        self._needs_initial_self_focus = False
+        if request_update:
+            self.update()
+        return True
+
+    def zoom_by(self, factor, anchor=None):
+        if not self.gat:
+            return
+        old_zoom = float(self.zoom_factor)
+        new_zoom = max(1.0, min(20.0, old_zoom * float(factor)))
+        if abs(new_zoom - old_zoom) < 1e-9:
+            return
+
+        old_rect = self._map_rect()
+        if anchor is None:
+            ax = self.width() / 2.0
+            ay = self.height() / 2.0
+        else:
+            ax = float(anchor.x())
+            ay = float(anchor.y())
+
+        # 保持滑鼠所在的 GAT 座標在縮放前後位於同一個螢幕位置。
+        map_rx = 0.5
+        map_ry = 0.5
+        if old_rect:
+            left, top, dw, dh = old_rect
+            if dw > 0 and dh > 0:
+                map_rx = (ax - left) / dw
+                map_ry = (ay - top) / dh
+
+        self.zoom_factor = new_zoom
+        # 先以新 zoom 的置中矩形估算，再補 pan。
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+        base_rect = self._map_rect()
+        if base_rect:
+            left, top, dw, dh = base_rect
+            self.pan_x = ax - map_rx * dw - left
+            self.pan_y = ay - map_ry * dh - top
+            self._clamp_pan()
+        if self.follow_self and self._self_unit() is not None:
+            unit = self._self_unit()
+            self._center_on_map_point(unit.get("x", 0.0), unit.get("y", 0.0))
+        self._damage_overlay_dirty = True
+        self.update()
+
+    def _clamp_pan(self):
+        if not self.gat:
+            self.pan_x = self.pan_y = 0.0
+            return
+        w = max(1, int(self.gat["width"]))
+        h = max(1, int(self.gat["height"]))
+        margin = 12.0
+        avail_w = max(1.0, self.width() - margin * 2)
+        avail_h = max(1.0, self.height() - margin * 2)
+        fit = min(avail_w / w, avail_h / h)
+        dw = w * fit * self.zoom_factor
+        dh = h * fit * self.zoom_factor
+        max_x = max(0.0, (dw - avail_w) / 2.0)
+        max_y = max(0.0, (dh - avail_h) / 2.0)
+        self.pan_x = max(-max_x, min(max_x, self.pan_x))
+        self.pan_y = max(-max_y, min(max_y, self.pan_y))
+
+    def _assign_units(self, units, current_sec=0.0):
+        self.units = list(units or [])
+        new_sec = float(current_sec or 0.0)
+        # 往回 seek 時重新建立當下可見傷害標籤配置；往前播放則保持既有位置。
+        if new_sec + 1e-9 < float(self.current_sec or 0.0):
+            self._damage_label_layout.clear()
+            self._damage_label_last_seen.clear()
+        self.current_sec = new_sec
+        if self.selected_aid is not None and not any(u.get("aid") == self.selected_aid for u in self.units):
+            self.selected_aid = None
+
+        # 第一次拿到自身座標時自動縮到自身周邊；之後播放時持續以自身為中心。
+        if self._self_unit() is not None and self.follow_self:
+            self.focus_self(auto_zoom=self._needs_initial_self_focus, request_update=False)
+
+    def set_units(self, units, current_sec=0.0):
+        self._assign_units(units, current_sec)
+        self.update()
+
+    def set_damage_links(self, links):
+        """設定傷害 overlay。v2.15：只有資料真的更新時才重建透明快取圖。"""
+        self.damage_links = list(links or [])
+        self._damage_overlay_dirty = True
+        self.update()
+
+    def set_highlight_aid(self, aid):
+        try:
+            aid = int(aid) if aid is not None else None
+        except (TypeError, ValueError):
+            aid = None
+        self.highlight_aid = aid
+        self.update()
+
+    def set_frame(self, units, links=None, current_sec=0.0, highlight_aid=None):
+        """人物每幀更新；links=None 代表沿用上一張傷害 overlay，不做昂貴重畫。"""
+        self._assign_units(units, current_sec)
+        if links is not None:
+            self.damage_links = list(links or [])
+            self._damage_overlay_dirty = True
+            self._damage_overlay_last_data_sec = float(current_sec or 0.0)
+        try:
+            self.highlight_aid = int(highlight_aid) if highlight_aid is not None else None
+        except (TypeError, ValueError):
+            self.highlight_aid = None
+        self.update()
+
+    def set_show_skill_names(self, enabled):
+        enabled = bool(enabled)
+        if self.show_skill_names == enabled:
+            return
+        self.show_skill_names = enabled
+        self._damage_overlay_dirty = True
+        self.update()
+
+    def _compute_unit_visual_offsets(self):
+        """同一格有多個單位時只做畫面像素偏移，不改 Replay/GAT 真實座標。"""
+        groups = defaultdict(list)
+        for unit in self.units:
+            try:
+                key = (round(float(unit.get("x", 0.0)), 2), round(float(unit.get("y", 0.0)), 2))
+            except Exception:
+                continue
+            groups[key].append(unit)
+
+        offsets = {}
+        for group in groups.values():
+            if len(group) <= 1:
+                aid = int(group[0].get("aid", 0) or 0) if group else 0
+                if aid:
+                    offsets[aid] = (0.0, 0.0)
+                continue
+
+            ordered = sorted(group, key=lambda u: (0 if u.get("is_self") else 1, int(u.get("aid", 0) or 0)))
+            remaining = ordered
+            if ordered and ordered[0].get("is_self"):
+                aid = int(ordered[0].get("aid", 0) or 0)
+                if aid:
+                    offsets[aid] = (0.0, 0.0)
+                remaining = ordered[1:]
+
+            total = len(remaining)
+            for idx, unit in enumerate(remaining):
+                ring = idx // 8
+                pos = idx % 8
+                ring_start = ring * 8
+                ring_count = min(8, total - ring_start)
+                radius = 10.0 + ring * 9.0
+                angle = -math.pi / 2.0 + (2.0 * math.pi * pos / max(1, ring_count))
+                aid = int(unit.get("aid", 0) or 0)
+                if aid:
+                    offsets[aid] = (math.cos(angle) * radius, math.sin(angle) * radius)
+        return offsets
+
+    def _hit_test_unit(self, pos, radius=13.0):
+        best = None
+        best_d2 = float(radius) * float(radius)
+        # 後畫的 marker 優先，和畫面視覺層級一致。
+        for sx, sy, unit in reversed(self._unit_screen_points):
+            dx = float(pos.x()) - float(sx)
+            dy = float(pos.y()) - float(sy)
+            d2 = dx * dx + dy * dy
+            if d2 <= best_d2:
+                best_d2 = d2
+                best = unit
+        return best
+
+    def _build_map_image(self, gat):
+        w = int(gat["width"])
+        h = int(gat["height"])
+        terrain = gat["terrain"]
+        water = gat.get("water") or [False] * len(terrain)
+        image = QImage(w, h, QImage.Format_RGB32)
+
+        c_walk = QColor(224, 224, 224)
+        c_block = QColor(55, 55, 55)
+        c_cliff = QColor(110, 110, 110)
+        c_other = QColor(150, 150, 150)
+        c_water = QColor(120, 160, 190)
+
+        for y in range(h):
+            row = y * w
+            py = h - 1 - y  # GAT/map 座標原點在左下；Qt image 原點在左上。
+            for x in range(w):
+                idx = row + x
+                typ = terrain[idx]
+                if water[idx]:
+                    color = c_water
+                elif typ == 0:
+                    color = c_walk
+                elif typ == 1:
+                    color = c_block
+                elif typ == 5:
+                    color = c_cliff
+                else:
+                    color = c_other
+                image.setPixelColor(x, py, color)
+        return image
+
+    def _map_rect(self):
+        if not self.gat:
+            return None
+        w = max(1, int(self.gat["width"]))
+        h = max(1, int(self.gat["height"]))
+        margin = 12.0
+        avail_w = max(1.0, self.width() - margin * 2)
+        avail_h = max(1.0, self.height() - margin * 2)
+        scale = min(avail_w / w, avail_h / h) * max(1.0, float(self.zoom_factor))
+        dw = w * scale
+        dh = h * scale
+        left = (self.width() - dw) / 2.0 + float(self.pan_x)
+        top = (self.height() - dh) / 2.0 + float(self.pan_y)
+        return left, top, dw, dh
+
+    def _unit_to_screen(self, x, y, rect):
+        left, top, dw, dh = rect
+        mw = max(1.0, float(self.gat["width"]))
+        mh = max(1.0, float(self.gat["height"]))
+        sx = left + (float(x) / mw) * dw
+        sy = top + (1.0 - float(y) / mh) * dh
+        return sx, sy
+
+
+    def _render_damage_overlay(self, rect):
+        """v2.15：把箭頭/傷害文字一次畫到透明 QImage；一般 60FPS frame 只貼快取。"""
+        w = max(1, int(self.width()))
+        h = max(1, int(self.height()))
+        image = QImage(w, h, QImage.Format_ARGB32_Premultiplied)
+        image.fill(Qt.transparent)
+        painter = QPainter(image)
+        # v2.11：以高對比桃紅色畫最近 1 秒傷害關係線，傷害文字會自動避讓。
+        # 線尾的箭頭指向受方 DID；同一攻方→受方在該時間窗內會先合併。
+        if self.damage_links:
+            painter.setRenderHint(QPainter.Antialiasing, True)
+
+            # 傷害數字使用貪婪式 label placement：每個標籤依序嘗試
+            # 線段法向兩側、再沿線前後錯開，盡量不和前面的標籤重疊。
+            # 極端密集時選擇重疊面積最小的位置，而不是全部堆在線段中點。
+            damage_label_rects = []
+            damage_label_index = 0
+            # 近距離戰鬥時也把單位 marker 當作避讓障礙，傷害文字優先往外排。
+            visual_offsets = self._compute_unit_visual_offsets()
+            unit_obstacles = []
+            for obstacle_unit in self.units:
+                ox = obstacle_unit.get("x")
+                oy = obstacle_unit.get("y")
+                if ox is None or oy is None:
+                    continue
+                osx, osy = self._unit_to_screen(ox, oy, rect)
+                offx, offy = visual_offsets.get(int(obstacle_unit.get("aid", 0) or 0), (0.0, 0.0))
+                osx += offx
+                osy += offy
+                unit_obstacles.append(QRectF(osx - 10.0, osy - 10.0, 20.0, 20.0))
+
+            def _label_overlap_score(candidate):
+                padded = candidate.adjusted(-4.0, -3.0, 4.0, 3.0)
+                score = 0.0
+                for used in damage_label_rects:
+                    inter = padded.intersected(used.adjusted(-4.0, -3.0, 4.0, 3.0))
+                    if not inter.isEmpty():
+                        score += max(0.0, inter.width()) * max(0.0, inter.height())
+                for obstacle in unit_obstacles:
+                    inter = padded.intersected(obstacle)
+                    if not inter.isEmpty():
+                        # 單位本體比文字彼此重疊更重要，給更高懲罰。
+                        score += 2.5 * max(0.0, inter.width()) * max(0.0, inter.height())
+                return score
+
+            # 已有固定配置的 label 先畫，讓新出現的 label 主動避開舊位置；
+            # 排序本身固定，不再受 damage/age 每幀變化影響。
+            def _damage_link_key(link):
+                return (int(link.get("sid", 0) or 0), int(link.get("did", 0) or 0))
+
+            ordered_damage_links = sorted(
+                self.damage_links,
+                key=lambda link: (
+                    0 if _damage_link_key(link) in self._damage_label_layout else 1,
+                    _damage_link_key(link),
+                )
+            )
+
+            for link in ordered_damage_links:
+                try:
+                    x1, y1 = float(link.get("source_x")), float(link.get("source_y"))
+                    x2, y2 = float(link.get("target_x")), float(link.get("target_y"))
+                except (TypeError, ValueError):
+                    continue
+                sx1, sy1 = self._unit_to_screen(x1, y1, rect)
+                sx2, sy2 = self._unit_to_screen(x2, y2, rect)
+                # 同格單位 marker 只做視覺錯位；箭頭端點同步指向錯位後的 marker。
+                source_off = visual_offsets.get(int(link.get("sid", 0) or 0), (0.0, 0.0))
+                target_off = visual_offsets.get(int(link.get("did", 0) or 0), (0.0, 0.0))
+                sx1 += source_off[0]
+                sy1 += source_off[1]
+                sx2 += target_off[0]
+                sy2 += target_off[1]
+                dx = sx2 - sx1
+                dy = sy2 - sy1
+                dist = math.hypot(dx, dy)
+                # v2.12：近身/重疊座標也不能丟掉傷害。
+                # 幾乎同點時使用穩定的虛擬方向，只用於箭頭/文字避讓，不改變實際座標。
+                if dist >= 1.0:
+                    ux = dx / dist
+                    uy = dy / dist
+                else:
+                    ux, uy = 1.0, 0.0
+                px = -uy
+                py = ux
+
+                age = max(0.0, float(link.get("age", 0.0) or 0.0))
+                alpha = int(max(80, min(235, 235 - age * 135)))
+                total_damage = max(0, int(link.get("damage", 0) or 0))
+                width = 2 if total_damage < 1000000 else 3
+                line_color = QColor(220, 20, 120, alpha)
+                painter.setPen(QPen(line_color, width))
+                painter.setBrush(QBrush(line_color))
+                if dist >= 1.0:
+                    painter.drawLine(int(sx1), int(sy1), int(sx2), int(sy2))
+                else:
+                    # 完全重疊時以小圓脈衝表示此處有攻擊關係，傷害數字仍會顯示。
+                    painter.setBrush(Qt.NoBrush)
+                    painter.drawEllipse(int(sx2 - 7), int(sy2 - 7), 14, 14)
+                    painter.setBrush(QBrush(line_color))
+
+                # 箭頭放在目標點前，方向由 SID → DID。距離太短時不硬塞箭頭，避免蓋滿單位點。
+                if dist >= 10.0:
+                    tip_x = sx2 - ux * 7.0
+                    tip_y = sy2 - uy * 7.0
+                    arrow_len = 8.0
+                    arrow_w = 4.0
+                    bx = tip_x - ux * arrow_len
+                    by = tip_y - uy * arrow_len
+                    painter.drawLine(int(tip_x), int(tip_y), int(bx + px * arrow_w), int(by + py * arrow_w))
+                    painter.drawLine(int(tip_x), int(tip_y), int(bx - px * arrow_w), int(by - py * arrow_w))
+
+                # v2.16：勾選「傷害 0」時，0 傷害攻擊也要顯示標籤。
+                # link 本身存在就代表至少有一筆攻擊事件，因此 0 也顯示。
+                if int(link.get("count", 0) or 0) > 0:
+                    count = max(1, int(link.get("count", 1) or 1))
+                    damage_text = f"{total_damage:,}"
+                    if count > 1:
+                        damage_text += f" ×{count}"
+
+                    # Ragnarok 的格數/技能 range 使用格子距離概念：max(|dx|, |dy|)。
+                    grid_distance = max(abs(x2 - x1), abs(y2 - y1))
+                    if abs(grid_distance - round(grid_distance)) < 0.05:
+                        distance_text = f"距離 {int(round(grid_distance))}格"
+                    else:
+                        distance_text = f"距離 {grid_distance:.1f}格"
+                    detail_line = f"{damage_text}｜{distance_text}"
+
+                    label_lines = []
+                    if self.show_skill_names:
+                        skills = [str(x) for x in (link.get("skills") or []) if str(x).strip()]
+                        if skills:
+                            skill_text = skills[0]
+                            if len(skills) > 1:
+                                skill_text += f" +{len(skills) - 1}"
+                            label_lines.append(skill_text)
+                    label_lines.append(detail_line)
+                    label = "\n".join(label_lines)
+
+                    mx = (sx1 + sx2) / 2.0
+                    my = (sy1 + sy2) / 2.0
+                    fm = painter.fontMetrics()
+                    text_w = max(1.0, max(float(fm.horizontalAdvance(line)) for line in label_lines))
+                    text_h = max(1.0, float(fm.height()) * len(label_lines))
+                    box_w = text_w + 12.0
+                    box_h = text_h + 6.0
+
+                    # v2.13：同一 SID→DID 的 label offset 一旦選定，在這條傷害關係
+                    # 可見期間就固定，不再每 16ms 重新避讓而左右跳。人物移動時標籤只會
+                    # 跟著該攻擊線平滑移動，側邊/前後 offset 不改變。
+                    label_key = (int(link.get("sid", 0) or 0), int(link.get("did", 0) or 0))
+                    cached_layout = self._damage_label_layout.get(label_key)
+                    base_off = 24.0 if dist < 48.0 else 13.0
+
+                    if cached_layout is not None:
+                        candidate_offsets = [(
+                            float(cached_layout.get("perp", base_off)),
+                            float(cached_layout.get("along", 0.0)),
+                        )]
+                    else:
+                        # 左/右側由 SID/DID 固定決定，不依當前列表排序。
+                        side = 1.0 if ((label_key[0] * 31 + label_key[1]) & 1) == 0 else -1.0
+                        perp_offsets = [
+                            base_off * side, -base_off * side,
+                            (base_off + 16.0) * side, -(base_off + 16.0) * side,
+                            (base_off + 32.0) * side, -(base_off + 32.0) * side,
+                            (base_off + 50.0) * side, -(base_off + 50.0) * side,
+                            (base_off + 68.0) * side, -(base_off + 68.0) * side,
+                        ]
+                        along_offsets = [0.0, 20.0, -20.0, 40.0, -40.0, 60.0, -60.0]
+                        candidate_offsets = [
+                            (perp_off, along_off)
+                            for perp_off in perp_offsets
+                            for along_off in along_offsets
+                        ]
+
+                    best_rect = None
+                    best_score = None
+                    best_offsets = None
+                    for perp_off, along_off in candidate_offsets:
+                        cx = mx + px * perp_off + ux * along_off
+                        cy = my + py * perp_off + uy * along_off
+                        rx = cx - box_w / 2.0
+                        ry = cy - box_h / 2.0
+
+                        # 保持文字在 widget 可視範圍內。
+                        rx = max(3.0, min(max(3.0, self.width() - box_w - 3.0), rx))
+                        ry = max(3.0, min(max(3.0, self.height() - box_h - 3.0), ry))
+                        candidate = QRectF(rx, ry, box_w, box_h)
+
+                        if cached_layout is not None:
+                            # v2.14：固定標籤已經在第一次出現時完成避讓；後續每幀直接
+                            # 沿用 offset，不再和所有 label / unit 做 O(N²) overlap 掃描。
+                            best_rect = candidate
+                            best_score = 0.0
+                            best_offsets = (perp_off, along_off)
+                            break
+
+                        score = _label_overlap_score(candidate)
+                        if best_score is None or score < best_score:
+                            best_rect = candidate
+                            best_score = score
+                            best_offsets = (perp_off, along_off)
+                        if score <= 0.0:
+                            break
+
+                    if best_rect is not None:
+                        if cached_layout is None and best_offsets is not None:
+                            self._damage_label_layout[label_key] = {
+                                "perp": float(best_offsets[0]),
+                                "along": float(best_offsets[1]),
+                            }
+                        self._damage_label_last_seen[label_key] = float(self.current_sec or 0.0)
+                        damage_label_rects.append(QRectF(best_rect))
+                        damage_label_index += 1
+
+                        # 標籤被挪開時，用細引導線指回原本攻擊線中點。
+                        cx = best_rect.center().x()
+                        cy = best_rect.center().y()
+                        if math.hypot(cx - mx, cy - my) > 17.0:
+                            painter.setPen(QPen(QColor(135, 25, 85, max(70, alpha - 55)), 1))
+                            painter.drawLine(int(mx), int(my), int(cx), int(cy))
+
+                        # 淡色底框提升白色 GAT 上的可讀性，也讓相鄰數字邊界更清楚。
+                        painter.setPen(QPen(QColor(145, 15, 85, alpha), 1))
+                        painter.setBrush(QBrush(QColor(255, 244, 250, max(155, alpha - 20))))
+                        painter.drawRoundedRect(best_rect, 3.0, 3.0)
+                        painter.setPen(QColor(105, 0, 60, alpha))
+                        painter.drawText(best_rect, Qt.AlignCenter | Qt.TextWordWrap, label)
+
+        # 只保留最近仍可見的傷害關係配置；消失一段時間後重新出現時可重新避讓。
+        if self._damage_label_last_seen:
+            now_sec = float(self.current_sec or 0.0)
+            stale_keys = [
+                key for key, last_seen in self._damage_label_last_seen.items()
+                if now_sec - float(last_seen) > 1.5
+            ]
+            for key in stale_keys:
+                self._damage_label_last_seen.pop(key, None)
+                self._damage_label_layout.pop(key, None)
+
+        painter.end()
+        return image
+
+    @staticmethod
+    def _guild_color(guild_id, guild_name=""):
+        """同公會固定同色。優先 GuildID；自身缺 GuildID 時可由公會名稱穩定配色。"""
+        try:
+            gid = int(guild_id or 0)
+        except Exception:
+            gid = 0
+        if gid > 0:
+            hue = int((gid * 137.508 + 29.0) % 360.0)
+            return QColor.fromHsv(hue, 190, 225)
+        name = str(guild_name or "").strip()
+        if not name:
+            return None
+        digest = hashlib.blake2s(name.encode("utf-8", errors="ignore"), digest_size=4).digest()
+        value = int.from_bytes(digest, "little")
+        hue = int((value * 137.508 + 29.0) % 360.0)
+        return QColor.fromHsv(hue, 190, 225)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, False)
+        painter.fillRect(self.rect(), QColor(28, 28, 28))
+
+        if not self.gat or self.map_image is None:
+            painter.setPen(QColor(220, 220, 220))
+            painter.drawText(self.rect(), Qt.AlignCenter, "請載入 .gat 地圖")
+            return
+
+        rect = self._map_rect()
+        self._last_draw_rect = rect
+        left, top, dw, dh = rect
+        painter.save()
+        painter.setClipRect(self.rect())
+        painter.setRenderHint(QPainter.SmoothPixmapTransform, False)
+        # v2.12：不要每幀建立 map_image.scaled() 巨大暫存圖。
+        # 只把目前 widget 真正看得到的 GAT 區域直接縮放到畫面，播放/跟隨自身時成本大幅降低。
+        map_target = QRectF(float(left), float(top), float(dw), float(dh))
+        visible = map_target.intersected(QRectF(self.rect()))
+        if not visible.isEmpty() and dw > 0 and dh > 0:
+            src_w = float(self.map_image.width())
+            src_h = float(self.map_image.height())
+            src_left = (visible.left() - left) / dw * src_w
+            src_top = (visible.top() - top) / dh * src_h
+            src_width = visible.width() / dw * src_w
+            src_height = visible.height() / dh * src_h
+            source_rect = QRectF(src_left, src_top, src_width, src_height)
+            painter.drawImage(visible, self.map_image, source_rect)
+        painter.restore()
+
+        # v2.15：傷害 overlay 與人物渲染解耦。人物可 60 FPS；箭頭/文字只有
+        # 傷害資料更新、縮放/平移/尺寸改變時才重建，其餘 frame 直接貼透明快取。
+        overlay_size_bad = (
+            self._damage_overlay_image is None
+            or self._damage_overlay_image.width() != self.width()
+            or self._damage_overlay_image.height() != self.height()
+        )
+        if self._damage_overlay_dirty or overlay_size_bad:
+            self._damage_overlay_image = self._render_damage_overlay(rect)
+            self._damage_overlay_dirty = False
+        if self._damage_overlay_image is not None:
+            painter.drawImage(0, 0, self._damage_overlay_image)
+
+        # 固定類型配色/形狀；Replay seek / 切圖時不重新分配。
+        player_color = QColor(55, 165, 255)      # PC_TYPE(0)：玩家，藍色
+        mob_color = QColor(245, 75, 75)           # NPC_MOB_TYPE(5)：魔物，紅色
+        pet_color = QColor(255, 165, 45)           # NPC_PET_TYPE(7)：寵物，橘色
+        npc_color = QColor(70, 205, 110)           # NPC_EVT_TYPE(6/12)：NPC，綠色
+        companion_color = QColor(180, 105, 255)    # HOM/MER/ELEM/ABR/BIONIC：紫色
+        other_color = QColor(190, 190, 190)        # 其他：灰點
+        self_color = QColor(255, 215, 50)           # 自身：黃色雙圈
+
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        self._unit_screen_points = []
+
+        # v2.18：同一 GAT 格的單位以畫面像素做環狀錯位，真實座標不變。
+        visual_offsets = self._compute_unit_visual_offsets()
+        # 自身最後畫，避免和其他單位重疊時被蓋住。
+        draw_units = sorted(self.units, key=lambda u: bool(u.get("is_self")))
+        for unit in draw_units:
+            x = unit.get("x")
+            y = unit.get("y")
+            if x is None or y is None:
+                continue
+            sx, sy = self._unit_to_screen(x, y, rect)
+            offx, offy = visual_offsets.get(int(unit.get("aid", 0) or 0), (0.0, 0.0))
+            sx += offx
+            sy += offy
+            category = unit.get("category")
+            is_self = bool(unit.get("is_self"))
+
+            painter.setPen(QPen(QColor(20, 20, 20), 1))
+            guild_color = self._guild_color(unit.get("guild_id"), unit.get("guild_name")) if category == "player" or is_self else None
+            if is_self:
+                radius = 5
+                painter.setBrush(QBrush(guild_color or self_color))
+                painter.drawEllipse(int(sx - radius), int(sy - radius), radius * 2, radius * 2)
+                painter.setBrush(Qt.NoBrush)
+                painter.setPen(QPen(QColor(255, 215, 50), 2))
+                painter.drawEllipse(int(sx - 9), int(sy - 9), 18, 18)
+                painter.setPen(QPen(QColor(255, 255, 255), 1))
+                painter.drawEllipse(int(sx - 7), int(sy - 7), 14, 14)
+            elif category == "player":
+                radius = 4
+                painter.setBrush(QBrush(guild_color or player_color))
+                painter.drawEllipse(int(sx - radius), int(sy - radius), radius * 2, radius * 2)
+            elif category == "mob":
+                # 魔物：紅色菱形。
+                painter.save()
+                painter.translate(float(sx), float(sy))
+                painter.rotate(45.0)
+                painter.setBrush(QBrush(mob_color))
+                painter.drawRect(-4, -4, 8, 8)
+                painter.restore()
+            elif category == "pet":
+                radius = 4
+                painter.setBrush(QBrush(pet_color))
+                painter.drawEllipse(int(sx - radius), int(sy - radius), radius * 2, radius * 2)
+                painter.setBrush(QBrush(QColor(40, 40, 40)))
+                painter.drawEllipse(int(sx - 1), int(sy - 1), 2, 2)
+            elif category == "npc":
+                half = 4
+                painter.setBrush(QBrush(npc_color))
+                painter.drawRect(int(sx - half), int(sy - half), half * 2, half * 2)
+            elif category == "companion":
+                radius = 4
+                painter.setBrush(QBrush(companion_color))
+                painter.drawEllipse(int(sx - radius), int(sy - radius), radius * 2, radius * 2)
+            else:
+                radius = 3
+                painter.setBrush(QBrush(other_color))
+                painter.drawEllipse(int(sx - radius), int(sy - radius), radius * 2, radius * 2)
+
+            # v2.12：右上「篩選魔物」鎖定 DID 時，以青色準星/雙圈特別標示該魔物。
+            if (self.highlight_aid is not None and unit.get("aid") == self.highlight_aid
+                    and category == "mob"):
+                painter.setBrush(Qt.NoBrush)
+                lock_color = QColor(0, 180, 255)
+                painter.setPen(QPen(lock_color, 3))
+                painter.drawEllipse(int(sx - 11), int(sy - 11), 22, 22)
+                painter.setPen(QPen(QColor(0, 70, 120), 1))
+                painter.drawEllipse(int(sx - 14), int(sy - 14), 28, 28)
+                # 四向準星，比單純換色更容易在密集魔物中辨認。
+                painter.setPen(QPen(lock_color, 2))
+                painter.drawLine(int(sx), int(sy - 18), int(sx), int(sy - 12))
+                painter.drawLine(int(sx), int(sy + 12), int(sx), int(sy + 18))
+                painter.drawLine(int(sx - 18), int(sy), int(sx - 12), int(sy))
+                painter.drawLine(int(sx + 12), int(sy), int(sx + 18), int(sy))
+
+            if unit.get("aid") == self.selected_aid:
+                painter.setBrush(Qt.NoBrush)
+                painter.setPen(QPen(QColor(255, 255, 255), 2))
+                painter.drawEllipse(int(sx - 10), int(sy - 10), 20, 20)
+
+                # v2.26：選取單位名稱加深色半透明底框與亮色外框，
+                # 避免白字直接壓在亮色/複雜 GAT 背景上看不清楚。
+                label = str(unit.get("name") or f"AID {unit.get('aid')}")
+                fm = painter.fontMetrics()
+                text_w = max(1, fm.horizontalAdvance(label))
+                text_h = max(1, fm.height())
+                text_x = float(sx + 11)
+                text_y = float(sy - 7)
+                pad_x, pad_y = 5.0, 3.0
+                label_rect = QRectF(
+                    text_x - pad_x,
+                    text_y - float(fm.ascent()) - pad_y,
+                    float(text_w) + pad_x * 2.0,
+                    float(text_h) + pad_y * 2.0,
+                )
+                painter.setPen(QPen(QColor(235, 235, 235, 235), 1))
+                painter.setBrush(QBrush(QColor(20, 20, 20, 205)))
+                painter.drawRoundedRect(label_rect, 4.0, 4.0)
+                painter.setPen(QColor(255, 255, 255))
+                painter.drawText(int(text_x), int(text_y), label)
+
+            self._unit_screen_points.append((sx, sy, unit))
+
+        # 邊框最後畫，讓地圖範圍清楚。
+        painter.setBrush(Qt.NoBrush)
+        painter.setPen(QPen(QColor(210, 210, 210), 1))
+        painter.drawRect(int(left), int(top), max(1, int(dw)), max(1, int(dh)))
+
+    def wheelEvent(self, event):
+        # 滾輪以游標位置為中心縮放。
+        steps = event.angleDelta().y() / 120.0
+        if steps:
+            self.zoom_by(1.20 ** steps, event.position())
+            event.accept()
+            return
+        super().wheelEvent(event)
+
+    def mousePressEvent(self, event):
+        pos = event.position()
+        if event.button() == Qt.RightButton:
+            hit = self._hit_test_unit(pos)
+            if hit is not None:
+                self.selected_aid = hit.get("aid")
+                self.unitSelected.emit(hit)
+                self.unitContextRequested.emit(hit)
+                self.update()
+                event.accept()
+                return
+
+        if event.button() in (Qt.RightButton, Qt.MiddleButton):
+            # 右鍵空白/中鍵仍保留平移；右鍵點單位則改為完整資料。
+            self.follow_self = False
+            self._needs_initial_self_focus = False
+            self._panning = True
+            self._pan_last_pos = pos
+            event.accept()
+            return
+
+        best = self._hit_test_unit(pos)
+        if best is not None:
+            self.selected_aid = best.get("aid")
+            self.unitSelected.emit(best)
+            self.update()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._panning and self._pan_last_pos is not None:
+            pos = event.position()
+            self.pan_x += pos.x() - self._pan_last_pos.x()
+            self.pan_y += pos.y() - self._pan_last_pos.y()
+            self._pan_last_pos = pos
+            self._clamp_pan()
+            self._damage_overlay_dirty = True
+            self.update()
+            event.accept()
+            return
+
+        # v2.24：標記資訊改成 hover Tooltip，不再占用小地圖上方常駐文字。
+        hit = self._hit_test_unit(event.position())
+        if hit is not None:
+            self.setToolTip(self._unit_hover_tooltip(hit))
+        else:
+            self.setToolTip(self._default_hover_tooltip)
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() in (Qt.RightButton, Qt.MiddleButton) and self._panning:
+            self._panning = False
+            self._pan_last_pos = None
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+    def resizeEvent(self, event):
+        if self.follow_self and self._self_unit() is not None:
+            unit = self._self_unit()
+            self._center_on_map_point(unit.get("x", 0.0), unit.get("y", 0.0))
+        else:
+            self._clamp_pan()
+        self._damage_overlay_dirty = True
+        super().resizeEvent(event)
+
+
+class GATMiniMapWindow(QWidget):
+    """v2.18：可縮放/跟隨、自動錯位、傷害距離與單位完整資料的小地圖。"""
+    def __init__(self, parent=None):
+        super().__init__(parent, Qt.Window)
+        self.setWindowTitle("Replay 場上小地圖")
+        self.resize(720, 760)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 6, 6, 6)
+
+        top = QHBoxLayout()
+        self.map_label = QLabel("地圖：尚未取得")
+        self.map_label.setToolTip("地圖詳細資訊會在載入後顯示於此提示")
+        top.addWidget(self.map_label)
+        self.count_label = QLabel("時間 00:00:00.000")
+        self.count_label.setToolTip("單位數量與傷害線統計會顯示於此提示")
+        top.addWidget(self.count_label)
+        top.addStretch(1)
+        self.zoom_out_btn = QPushButton("－")
+        self.zoom_out_btn.setFixedWidth(36)
+        top.addWidget(self.zoom_out_btn)
+        self.zoom_reset_btn = QPushButton("100%")
+        self.zoom_reset_btn.setFixedWidth(58)
+        top.addWidget(self.zoom_reset_btn)
+        self.focus_self_btn = QPushButton("自身")
+        self.focus_self_btn.setFixedWidth(58)
+        top.addWidget(self.focus_self_btn)
+        self.zoom_in_btn = QPushButton("＋")
+        self.zoom_in_btn.setFixedWidth(36)
+        top.addWidget(self.zoom_in_btn)
+        self.load_gat_btn = QPushButton("載入 .gat")
+        top.addWidget(self.load_gat_btn)
+        self.show_skill_name_checkbox = QCheckBox("顯示技能名稱")
+        self.show_skill_name_checkbox.setChecked(False)
+        top.addWidget(self.show_skill_name_checkbox)
+        layout.addLayout(top)
+
+        # v2.22：Replay 控制列移到小地圖上方。
+        # 與主畫面共用同一個 playhead / 播放狀態，只是提供第二組控制器。
+        jump_row = QHBoxLayout()
+        jump_row.addWidget(QLabel("快速跳轉："))
+        self.playback_jump_buttons = []
+        for text, delta in (("−1分", -60.0), ("−10秒", -10.0), ("−1秒", -1.0),
+                            ("+1秒", 1.0), ("+10秒", 10.0), ("+1分", 60.0)):
+            btn = QPushButton(text)
+            btn.setFixedWidth(58)
+            btn.clicked.connect(lambda _checked=False, d=delta: parent.jump_damage_playback(d) if parent else None)
+            self.playback_jump_buttons.append(btn)
+            jump_row.addWidget(btn)
+        jump_row.addStretch(1)
+        layout.addLayout(jump_row)
+
+        playback_row = QHBoxLayout()
+        playback_row.addWidget(QLabel("Replay時間："))
+        self.playback_btn = QPushButton("▶ 播放")
+        self.playback_btn.setFixedWidth(82)
+        self.playback_btn.clicked.connect(lambda: parent.toggle_damage_playback() if parent else None)
+        playback_row.addWidget(self.playback_btn)
+
+        # v2.26：小地圖也提供 Replay 播放倍速，與主 UI 共用同一個值。
+        from PySide6.QtWidgets import QDoubleSpinBox, QAbstractSpinBox
+        playback_row.addWidget(QLabel("倍速："))
+        self.playback_speed_input = QDoubleSpinBox()
+        self.playback_speed_input.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.playback_speed_input.setRange(0.1, 4.0)
+        self.playback_speed_input.setSingleStep(0.1)
+        self.playback_speed_input.setDecimals(1)
+        self.playback_speed_input.setPrefix("x")
+        self.playback_speed_input.setValue(
+            float(getattr(parent, "damage_playback_speed", 1.0) or 1.0) if parent else 1.0
+        )
+        self.playback_speed_input.setFixedWidth(70)
+        if parent:
+            self.playback_speed_input.valueChanged.connect(
+                lambda value: parent.damage_playback_speed_input.setValue(value)
+                if hasattr(parent, "damage_playback_speed_input") else parent.on_damage_playback_speed_changed(value)
+            )
+        playback_row.addWidget(self.playback_speed_input)
+
+        self.playback_slider = QSlider(Qt.Horizontal)
+        self.playback_slider.setRange(0, 0)
+        self.playback_slider.setSingleStep(100)
+        self.playback_slider.setPageStep(1000)
+        playback_row.addWidget(self.playback_slider, 1)
+
+        self.playback_time_label = QLabel("00:00:00.000 / 00:00:00.000")
+        self.playback_time_label.setMinimumWidth(210)
+        self.playback_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        playback_row.addWidget(self.playback_time_label)
+        layout.addLayout(playback_row)
+
+        # v2.24：圖例與操作說明不再常駐；改由地圖空白處 hover 顯示。
+        self.legend_label = QLabel("")
+        self.legend_label.hide()
+        self.selected_label = QLabel("")
+        self.selected_label.hide()
+
+        self.map_widget = GATMiniMapWidget(self)
+        layout.addWidget(self.map_widget, 1)
+
+        if parent:
+            self.playback_slider.sliderPressed.connect(parent.on_minimap_playback_slider_pressed)
+            self.playback_slider.valueChanged.connect(parent.on_minimap_playback_slider_value_changed)
+            self.playback_slider.sliderReleased.connect(parent.on_minimap_playback_slider_released)
+
+        self.zoom_out_btn.clicked.connect(lambda: self.map_widget.zoom_by(1 / 1.25))
+        self.zoom_in_btn.clicked.connect(lambda: self.map_widget.zoom_by(1.25))
+        self.zoom_reset_btn.clicked.connect(self.map_widget.reset_view)
+        self.focus_self_btn.clicked.connect(lambda: self.map_widget.focus_self(auto_zoom=True))
+        self.show_skill_name_checkbox.stateChanged.connect(
+            lambda _state: self.map_widget.set_show_skill_names(self.show_skill_name_checkbox.isChecked())
+        )
+
+
 # ============================================================
 # PySide6 使用者介面
 # ============================================================
@@ -2699,10 +4679,31 @@ class MainUI(QWidget):
         # v1.4：時間區間圈選。使用 replay 絕對秒數，避免切換圖表後座標基準改變。
         self.damage_time_range = None        # None 或 (start_sec, end_sec)
         self._span_selector = None
+
+        # v2.0：全介面 Replay 線性播放。
+        # 滑桿使用「相對於目前可播放範圍起點」的毫秒值，避免長 Replay 的絕對秒數
+        # 造成 QSlider 整數範圍過大。
+        self.damage_playback_mode = False
+        self.damage_playback_running = False
+        self.damage_playback_range_start = 0.0
+        self.damage_playback_range_end = 0.0
+        self.damage_playback_anchor_sec = 0.0
+        self.damage_playback_current_sec = 0.0
+        self.damage_playback_source = []
+        self.damage_playback_times = []
+        self.damage_playback_cursor = 0
+        self.damage_playback_wall_t0 = 0.0
+        self.damage_playback_base_sec = 0.0
+        # v2.17：Replay 播放倍速，0.1x ～ 4.0x。
+        self.damage_playback_speed = 1.0
+        self._playback_resume_after_seek = False
+        # v2.1：滑桿拖曳時即時更新全介面；用短節流避免高速拖曳造成 UI 重算塞車。
+        self._playback_pending_seek_sec = None
+        self._playback_last_live_seek_sec = None
         self.hud = DamageHUD()
         self.hud.hide()
         super().__init__()
-        self.setWindowTitle("RRF傷害解析器 v1.8")
+        self.setWindowTitle("RRF傷害解析器 v2.24")
         self.resize(1100, 900)
         self.transform_end_time = {}#結束變身時間
         self.transform_start_time = {}#變身時間    
@@ -2727,7 +4728,48 @@ class MainUI(QWidget):
         self.did_name_map = {}
         self.did_name_source = {}
         self.self_sid = 0
+        self.guild_id_name_map = {}
+        self.guild_aid_name_map = {}
+        self.guild_aid_id_map = {}
+        self.self_guild_id = 0
+        self.self_guild_name = ""
         self.current_map_name = ""
+
+        # v2.12：GAT 小地圖 / actor replay timeline + 60FPS 輕量渲染、鎖定目標與近距離傷害。
+        # actor_map_events 內也會混入 kind=map_change，讓 seek / playback 能重建切圖狀態。
+        self.actor_map_events = []
+        self.gat_data = None
+        self.gat_path = ""
+        self._gat_autoload_attempted_map = None
+        self._minimap_loaded_map_name = ""
+        self._minimap_active_map_name = ""
+        self._minimap_actor_state = {}
+        self._minimap_recent_positions = {}
+        self._minimap_event_cursor = 0
+        self._minimap_state_time = -1.0
+        # v2.12：小地圖傷害線使用時間索引，60FPS 時只掃最近 1 秒的事件。
+        self._minimap_damage_index_signature = None
+        self._minimap_damage_times = []
+        self._minimap_damage_rows = []
+
+        # v2.16：延續小地圖計算 process + 傷害 overlay 快取，並支援可選的 damage==0 攻擊事件。
+        self._minimap_compute_ctx = None
+        self._minimap_compute_process = None
+        self._minimap_source_queue = None
+        self._minimap_request_queue = None
+        self._minimap_result_queue = None
+        self._minimap_compute_source_version = 0
+        self._minimap_compute_request_seq = 0
+        self._minimap_last_applied_seq = -1
+        self._minimap_async_ready = False
+        self._minimap_async_last_error = ""
+        # v2.15：位置快照 60FPS，但傷害資料/overlay 只約 10FPS 更新。
+        self._minimap_damage_request_interval = 0.10
+        self._minimap_last_damage_request_wall = -9999.0
+        self._minimap_last_damage_request_sec = -9999.0
+        self._minimap_last_damage_filter_sig = None
+        self._minimap_last_damage_line_count = 0
+        self._minimap_last_damage_event_count = 0
 
         # v1.3：封包完整解析改用 QTableView + Model 虛擬表格，不建立大量 Tree Item。
         self._packet_decode_reload_pending = False
@@ -2763,23 +4805,31 @@ class MainUI(QWidget):
         self.options_btn.clicked.connect(self.show_options_dialog)
         btn_layout.addWidget(self.options_btn)
 
+        self.minimap_btn = QPushButton("小地圖")
+        self.minimap_btn.setFixedWidth(80)
+        self.minimap_btn.clicked.connect(self.show_minimap_window)
+        btn_layout.addWidget(self.minimap_btn)
+
         self._create_options_dialog()
 
         # 將按鈕布局加到主要布局中
         layout.addLayout(btn_layout)
 
-        # --- 更新秒數 + DID 選擇在同一行（靠右） ---
-        interval_layout = QHBoxLayout()
-
-  
+        # --- 處理狀態獨立一行，避免和更新秒數 / 篩選器擠在一起 ---
+        status_layout = QHBoxLayout()
+        status_layout.setContentsMargins(0, 0, 0, 0)
+        status_layout.addWidget(QLabel("處理狀態："))
         self.status = QLabel("")
         self.status.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        self.status.setMaximumWidth(400) 
-        interval_layout.addWidget(self.status)
-        # ★靠右關鍵：先塞一個彈性空間
+        self.status.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.status.setWordWrap(False)
+        status_layout.addWidget(self.status, 1)
+        layout.addLayout(status_layout)
+
+        # --- 更新秒數 + SID / DID 篩選獨立一行 ---
+        interval_layout = QHBoxLayout()
         interval_layout.addStretch()
-        # 更新秒數標籤
-        interval_layout.addWidget(QLabel("｜更新秒數："))
+        interval_layout.addWidget(QLabel("更新秒數："))
 
         # 數字框改右對齊 + 固定寬度
         self.refresh_input = QSpinBox()
@@ -2822,6 +4872,7 @@ class MainUI(QWidget):
 
         # 狀態勾選只改變「顯示」，不重新解析 RRF，也不影響死亡/掉落內部統計資料。
         self.show_status_history_checkbox.stateChanged.connect(self.on_status_display_changed)
+        self.show_zero_damage_checkbox.stateChanged.connect(self.on_zero_damage_display_changed)
         self.show_state_change_checkbox.stateChanged.connect(self.on_status_display_changed)
         self.vanish_out_of_sight_checkbox.stateChanged.connect(self.on_status_display_changed)
         self.vanish_death_checkbox.stateChanged.connect(self.on_status_display_changed)
@@ -2831,6 +4882,85 @@ class MainUI(QWidget):
 
 
         layout.addLayout(interval_layout)
+
+        # ===== v2.20：全域 Replay 時間軸 =====
+        # 快進/快退獨立一列，時間軸本身維持較寬。
+        jump_row = QHBoxLayout()
+        jump_row.addWidget(QLabel("快速跳轉："))
+        for text, delta in (("−1分", -60.0), ("−10秒", -10.0), ("−1秒", -1.0),
+                            ("+1秒", 1.0), ("+10秒", 10.0), ("+1分", 60.0)):
+            btn = QPushButton(text)
+            btn.setFixedWidth(58)
+            btn.clicked.connect(lambda _checked=False, d=delta: self.jump_damage_playback(d))
+            jump_row.addWidget(btn)
+        jump_row.addStretch(1)
+        layout.addLayout(jump_row)
+
+        playback_row = QHBoxLayout()
+        playback_row.addWidget(QLabel("Replay時間："))
+
+        self.damage_playback_btn = QPushButton("▶ 播放")
+        self.damage_playback_btn.setFixedWidth(82)
+        self.damage_playback_btn.clicked.connect(self.toggle_damage_playback)
+        playback_row.addWidget(self.damage_playback_btn)
+
+        playback_row.addWidget(QLabel("倍速："))
+        from PySide6.QtWidgets import QDoubleSpinBox, QAbstractSpinBox
+        self.damage_playback_speed_input = QDoubleSpinBox()
+        self.damage_playback_speed_input.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.damage_playback_speed_input.setRange(0.1, 4.0)
+        self.damage_playback_speed_input.setSingleStep(0.1)
+        self.damage_playback_speed_input.setDecimals(1)
+        self.damage_playback_speed_input.setPrefix("x")
+        self.damage_playback_speed_input.setValue(1.0)
+        self.damage_playback_speed_input.setFixedWidth(70)
+        self.damage_playback_speed_input.valueChanged.connect(self.on_damage_playback_speed_changed)
+        playback_row.addWidget(self.damage_playback_speed_input)
+
+        self.damage_playback_show_all_btn = QPushButton("顯示全部時間")
+        self.damage_playback_show_all_btn.setFixedWidth(104)
+        self.damage_playback_show_all_btn.clicked.connect(self.show_all_damage_history)
+        playback_row.addWidget(self.damage_playback_show_all_btn)
+
+        self.damage_playback_slider = QSlider(Qt.Horizontal)
+        self.damage_playback_slider.setRange(0, 0)
+        self.damage_playback_slider.setSingleStep(100)
+        self.damage_playback_slider.setPageStep(1000)
+        self.damage_playback_slider.sliderPressed.connect(self.on_damage_playback_slider_pressed)
+        self.damage_playback_slider.valueChanged.connect(self.on_damage_playback_slider_value_changed)
+        self.damage_playback_slider.sliderReleased.connect(self.on_damage_playback_slider_released)
+        playback_row.addWidget(self.damage_playback_slider, 1)
+
+        self.damage_playback_time_label = QLabel("00:00:00.000 / 00:00:00.000")
+        self.damage_playback_time_label.setMinimumWidth(210)
+        self.damage_playback_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        playback_row.addWidget(self.damage_playback_time_label)
+
+        layout.addLayout(playback_row)
+
+        # 10 FPS 更新整個介面。播放時間仍以 perf_counter 計算，因此不因 UI 忙碌累積誤差。
+        # 100 ms 也正好對應短區間圖表的 0.1 秒粒度。
+        self.damage_playback_timer = QTimer(self)
+        self.damage_playback_timer.setInterval(100)
+        self.damage_playback_timer.timeout.connect(self.on_damage_playback_tick)
+
+        # v2.1：即時 seek 合併器。約 30 FPS 更新，拖曳手感即時，同時避免每個 pixel 都完整重算。
+        self.damage_playback_seek_timer = QTimer(self)
+        self.damage_playback_seek_timer.setSingleShot(True)
+        self.damage_playback_seek_timer.setInterval(33)
+        self.damage_playback_seek_timer.timeout.connect(self._flush_damage_playback_live_seek)
+
+        # v2.12：小地圖獨立 60 FPS 視覺更新。
+        # 主介面仍維持 10 FPS 做昂貴統計，避免為了地圖動畫拖慢整個 UI。
+        self.minimap_render_timer = QTimer(self)
+        self.minimap_render_timer.setInterval(16)
+        try:
+            self.minimap_render_timer.setTimerType(Qt.PreciseTimer)
+        except Exception:
+            pass
+        self.minimap_render_timer.timeout.connect(self.on_minimap_render_tick)
+        # v2.14：即使暫停播放也保持低成本 polling；視窗沒開時 tick 會立刻 return。
+        self.minimap_render_timer.start()
 
 
         # 計時器
@@ -2957,15 +5087,28 @@ class MainUI(QWidget):
 
         vbox.addLayout(btn_row)
 
+        # RRF 大檔案解析進度改用獨立非阻塞小視窗顯示。
+        self.parse_progress_dialog = None
+        self.parse_progress_tree = None
+        self.parse_progress_summary = None
+        self.parse_progress_dialog_bar = None
+
         self.tabs.addTab(tab_stats, "統計傷害")
-        # Tab2：原始資料
+        # Tab2：傷害歷程。v2.0 播放控制已提升到全域時間軸。
+        self.raw_history_tab = QWidget()
+        raw_history_layout = QVBoxLayout(self.raw_history_tab)
+        raw_history_layout.setContentsMargins(4, 4, 4, 4)
+        raw_history_layout.setSpacing(4)
+
         self.table_raw = QTableWidget()
         self.table_raw.setColumnCount(9)
         self.table_raw.setHorizontalHeaderLabels([
             "時間戳", "技能名稱", "攻方ID", "受方ID",
             "傷害", "等級", "次數", "來源延遲", "目標延遲"
         ])
-        self.tabs.addTab(self.table_raw, "傷害歷程")
+        raw_history_layout.addWidget(self.table_raw, 1)
+
+        self.tabs.addTab(self.raw_history_tab, "傷害歷程")
         
         self.table_drop = QTableWidget()
         self.table_drop.setColumnCount(7)
@@ -2999,6 +5142,20 @@ class MainUI(QWidget):
         self.tree_monster_drop.setAlternatingRowColors(True)
 
         self.tabs.addTab(self.tree_monster_drop, "死亡/掉落統計")
+
+        # v2.4：GAT 小地圖改成獨立視窗，不占用主介面分頁。
+        self.minimap_window = GATMiniMapWindow(self)
+        self.minimap_widget = self.minimap_window.map_widget
+        self.minimap_map_label = self.minimap_window.map_label
+        self.minimap_count_label = self.minimap_window.count_label
+        self.minimap_selected_label = self.minimap_window.selected_label
+        self.load_gat_btn = self.minimap_window.load_gat_btn
+        self.load_gat_btn.clicked.connect(self.choose_gat_file)
+        self.minimap_widget.unitSelected.connect(self.on_minimap_unit_selected)
+        self.minimap_widget.unitContextRequested.connect(self.on_minimap_unit_context_requested)
+
+        # v2.14：長駐獨立 process。小地圖位置重建 / 傷害聚合不再跑在 Qt GUI thread。
+        self._start_minimap_compute_process()
 
         # Tab5：完整封包解析（v1.3 虛擬 UI）
         # 上半部只顯示封包列；下半部只顯示目前選取封包的完整欄位。
@@ -3090,6 +5247,12 @@ class MainUI(QWidget):
         self.Character_ability_changes_checkbox.setChecked(False)
         vbox.addWidget(self.Character_ability_changes_checkbox)
 
+        # v2.16：真正的攻擊封包 damage == 0 預設保留在底層，但畫面預設隱藏。
+        # 勾選後立即納入傷害歷程 / 技能統計 / 小地圖傷害線，不需要重讀 RRF。
+        self.show_zero_damage_checkbox = QCheckBox("解析 / 顯示傷害 0", self.options_dialog)
+        self.show_zero_damage_checkbox.setChecked(False)
+        vbox.addWidget(self.show_zero_damage_checkbox)
+
         # 選項設定內所有項目預設關閉；需要時再由使用者勾選。
         self.show_status_history_checkbox = QCheckBox("傷害歷程顯示狀態", self.options_dialog)
         self.show_status_history_checkbox.setChecked(False)
@@ -3165,6 +5328,10 @@ class MainUI(QWidget):
         visible_transform_by_sid = {}
 
         for idx, rec in enumerate(records):
+            if self.damage_playback_mode:
+                rec_t = self.timestamp_to_float_seconds(rec.get("timestamp"))
+                if rec_t is not None and rec_t > self.damage_playback_current_sec + 1e-9:
+                    continue
             packet_name = rec.get("packet_name")
             source_packet_name = rec.get("source_packet_name", packet_name)
             decoded = rec.get("decoded") or {}
@@ -3340,6 +5507,10 @@ class MainUI(QWidget):
             self.did_name_map = {}
             self.did_name_source = {}
             self.self_sid = 0
+            self.actor_map_events = []
+            self._minimap_loaded_map_name = ""
+            self._minimap_active_map_name = ""
+            self._reset_minimap_replay_state()
 
 
     def extract_complete_blocks(self, text: str):
@@ -3541,6 +5712,22 @@ class MainUI(QWidget):
         if (self.show_packet_decode_checkbox.isChecked()
                 and self.tabs.indexOf(self.tree_packet_decode) != -1):
             QTimer.singleShot(0, self.refresh_packet_decode_tree)
+
+    def on_zero_damage_display_changed(self, *_args):
+        """v2.16：傷害 0 顯示開關只改篩選，不重新讀 RRF。"""
+        # fallback 小地圖索引也要失效；async process 則重新同步精簡傷害來源。
+        self._minimap_damage_index_signature = None
+        self._sync_minimap_compute_sources()
+        self._minimap_last_damage_filter_sig = None
+        self._minimap_last_damage_request_wall = -9999.0
+        self.apply_did_filter()
+
+        # 若目前在播放模式，重建播放來源，讓 0 傷害事件立刻加入/移除歷程。
+        if getattr(self, "damage_playback_mode", False):
+            try:
+                self._sync_damage_playback_source(keep_current=True)
+            except Exception:
+                pass
 
     def on_status_display_changed(self, *_args):
         """狀態總開關、開始/結束或 VANISH 個別選項改變時，立即刷新相關畫面。"""
@@ -3923,6 +6110,203 @@ class MainUI(QWidget):
             # singleShot 重新排程前的短暫空窗、或剛完成一次更新
             self.load_btn.setText(f"載入傷害表：{base}（狀態:等待下次更新, 每 {interval} 秒）")
 
+    def _ensure_parse_progress_dialog(self):
+        """建立 / 顯示 RRF 解析進度小視窗（非 modal，不阻塞主 UI）。"""
+        dlg = getattr(self, "parse_progress_dialog", None)
+        if dlg is None:
+            dlg = QDialog(self)
+            dlg.setWindowTitle("RRF 載入 / 解析進度")
+            dlg.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint | Qt.WindowTitleHint)
+            dlg.setModal(False)
+            dlg.resize(520, 700)
+
+            layout = QVBoxLayout(dlg)
+            layout.setContentsMargins(10, 10, 10, 10)
+            layout.setSpacing(8)
+
+            summary = QLabel("準備載入 RRF…")
+            summary.setWordWrap(True)
+            layout.addWidget(summary)
+
+            bar = QProgressBar()
+            bar.setRange(0, 100)
+            bar.setValue(0)
+            layout.addWidget(bar)
+
+            tree = QTreeWidget()
+            tree.setColumnCount(3)
+            tree.setHeaderLabels(["處理項目", "狀態", "耗時"])
+            tree.setRootIsDecorated(False)
+            tree.setAlternatingRowColors(True)
+            tree.header().setSectionResizeMode(0, QHeaderView.Stretch)
+            tree.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            tree.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            layout.addWidget(tree)
+
+            note = QLabel("完成項目會以綠色標示；等待中／處理中維持原本底色。進度條依解析項目完成數計算；全部完成後視窗會自動關閉。")
+            note.setWordWrap(True)
+            layout.addWidget(note)
+
+            self.parse_progress_dialog = dlg
+            self.parse_progress_tree = tree
+            self.parse_progress_summary = summary
+            self.parse_progress_dialog_bar = bar
+
+        if not dlg.isVisible():
+            dlg.show()
+        dlg.raise_()
+        return dlg
+
+    def _close_parse_progress_dialog(self):
+        dlg = getattr(self, "parse_progress_dialog", None)
+        if dlg is not None:
+            dlg.hide()
+
+    def _parse_progress_reset(self, raw_elapsed=None, mode=None, packet_count=None, show_dialog=None):
+        """開始一次 RRF 載入時重設解析進度；只有首次 full 載入顯示小視窗。"""
+        if show_dialog is None:
+            show_dialog = not bool(getattr(self, "first_full_parse_done", False))
+        self._parse_progress_popup_enabled = bool(show_dialog)
+        self._parse_stage_wall_start = time.perf_counter()
+        self._parse_stage_timings = {}
+        self._parse_stage_states = {}
+        self._parse_stage_order = [
+            "RRF raw", "raw-adapter",
+            "ground", "skill2", "act3", "move", "stand", "new",
+            "state3", "status", "efst", "couple", "par", "vanish",
+            "drop", "map_events", "map_changes", "guilds", "sid",
+            "full_packets", "all Thread", "merge_with_true_sid", "資料整理", "UI更新", "整體完成",
+        ]
+        self._parse_stage_meta = {
+            "mode": mode or "",
+            "packet_count": int(packet_count or 0),
+            "completed": 0,
+            "total": 0,
+            "active": "RRF raw",
+            "total_lines": 0,
+            "processed_lines": 0,
+        }
+        for name in self._parse_stage_order:
+            self._parse_stage_states[name] = "pending"
+        if raw_elapsed is not None:
+            self._parse_stage_timings["RRF raw"] = float(raw_elapsed)
+            self._parse_stage_states["RRF raw"] = "done"
+        else:
+            self._parse_stage_states["RRF raw"] = "running"
+
+        if self._parse_progress_popup_enabled:
+            self._ensure_parse_progress_dialog()
+        self._render_parse_progress()
+        QApplication.processEvents()
+
+    def _parse_progress_set(self, name, *, state=None, elapsed=None, completed=None, total=None, active=None, total_lines=None, processed_lines=None):
+        if not hasattr(self, "_parse_stage_timings"):
+            self._parse_progress_reset()
+        if elapsed is not None:
+            self._parse_stage_timings[name] = float(elapsed)
+        if state is not None:
+            self._parse_stage_states[name] = state
+        if completed is not None:
+            self._parse_stage_meta["completed"] = int(completed)
+        if total is not None:
+            self._parse_stage_meta["total"] = int(total)
+        if active is not None:
+            self._parse_stage_meta["active"] = active
+        if total_lines is not None:
+            self._parse_stage_meta["total_lines"] = max(0, int(total_lines))
+        if processed_lines is not None:
+            self._parse_stage_meta["processed_lines"] = max(0, int(processed_lines))
+        self._render_parse_progress()
+
+    def _render_parse_progress(self):
+        dlg = getattr(self, "parse_progress_dialog", None)
+        tree = getattr(self, "parse_progress_tree", None)
+        summary = getattr(self, "parse_progress_summary", None)
+        dialog_bar = getattr(self, "parse_progress_dialog_bar", None)
+
+        meta = getattr(self, "_parse_stage_meta", {})
+        elapsed_total = 0.0
+        if hasattr(self, "_parse_stage_wall_start"):
+            elapsed_total = max(0.0, time.perf_counter() - self._parse_stage_wall_start)
+
+        active = meta.get("active", "") or ""
+        mode = meta.get("mode", "") or ""
+        packet_count = int(meta.get("packet_count", 0) or 0)
+
+        timings = getattr(self, "_parse_stage_timings", {})
+        states = getattr(self, "_parse_stage_states", {})
+        visible_order = list(getattr(self, "_parse_stage_order", []))
+        if hasattr(self, "show_packet_decode_checkbox") and not self.show_packet_decode_checkbox.isChecked():
+            visible_order = [n for n in visible_order if n != "full_packets"]
+
+        # 單一真實進度來源：小視窗與主 UI 都依同一份 stage state 計算。
+        # pending/running 不算完成，done/error 都代表該步驟已結束。
+        total = len(visible_order)
+        completed = sum(1 for n in visible_order if states.get(n) in ("done", "error"))
+        meta["completed"] = completed
+        meta["total"] = total
+        pct_done = (completed / max(1, total)) * 100.0 if total else 0.0
+
+        summary_text = f"模式：{mode or '讀取中'}　封包：{packet_count:,}　經過：{elapsed_total:.1f} 秒"
+        if total:
+            summary_text += f"　已完成：{completed}/{total}（{pct_done:.0f}%）"
+        if active:
+            summary_text += f"\n目前：{active}"
+        if summary is not None:
+            summary.setText(summary_text)
+
+        state_text = {
+            "pending": "○ 等待中",
+            "running": "▶ 處理中",
+            "done": "✓ 已完成",
+            "error": "✕ 錯誤",
+        }
+
+        if tree is not None:
+            existing = {}
+            for i in range(tree.topLevelItemCount()):
+                item = tree.topLevelItem(i)
+                existing[item.text(0)] = item
+
+            for name in visible_order:
+                item = existing.get(name)
+                if item is None:
+                    item = QTreeWidgetItem([name, "", ""])
+                    tree.addTopLevelItem(item)
+                state = states.get(name, "pending")
+                item.setText(1, state_text.get(state, state))
+                item.setText(2, f"{timings[name]:.2f} s" if name in timings else "—")
+
+                # 完成項目使用低亮度綠色；等待／處理中沿用原底色。
+                if state == "done":
+                    bg = QBrush(QColor(72, 125, 83))
+                elif state == "error":
+                    bg = QBrush(QColor(120, 65, 65))
+                else:
+                    bg = QBrush()
+                for col in range(3):
+                    item.setBackground(col, bg)
+
+            for i in range(tree.topLevelItemCount() - 1, -1, -1):
+                if tree.topLevelItem(i).text(0) not in visible_order:
+                    tree.takeTopLevelItem(i)
+
+        if total:
+            pct = int(round(100 * completed / max(1, total)))
+        else:
+            pct = 0
+        if states.get("整體完成") == "done":
+            pct = 100
+        pct = max(0, min(100, pct))
+        if dialog_bar is not None:
+            dialog_bar.setValue(pct)
+        if hasattr(self, "progress_bar"):
+            self.progress_bar.setValue(pct)
+
+        if hasattr(self, "status") and active and active != "完成":
+            count_text = f"{completed}/{total}" if total else "準備中"
+            self.status.setText(f"RRF解析 {count_text}｜{active}｜{elapsed_total:.1f}s")
+
     def on_worker_start_time(self, t0):
         self.process_start_time = t0   # ★ 儲存開始時間
         self.estimated_total_time = None
@@ -3938,6 +6322,12 @@ class MainUI(QWidget):
         abs_rrf_path = os.path.abspath(rrf_path)
         if self.rrf_reader is None or self.rrf_reader.path != abs_rrf_path:
             self.rrf_reader = RRFIncrementalReader(abs_rrf_path)
+
+        # 只有第一次完整載入顯示解析小視窗；後續 delta 更新只同步主 UI 進度條。
+        self._parse_progress_reset(
+            mode="讀取中", packet_count=0,
+            show_dialog=not bool(getattr(self, "first_full_parse_done", False)),
+        )
 
         self.worker_thread = QThread()
         self.worker = RRFWorker(abs_rrf_path, self.rrf_reader)
@@ -3984,18 +6374,32 @@ class MainUI(QWidget):
             if interval > 0 and not self.underMouse():
                 self.auto_timer.start(interval * 1000)
             self.update_load_button_text()
+            self._close_parse_progress_dialog()
             return
 
         mode = delta.mode
+        # raw 階段完成；沿用 start_worker() 的總計時，不重新歸零。
+        if not hasattr(self, "_parse_stage_meta"):
+            self._parse_progress_reset(mode=mode, packet_count=len(delta.packets))
+        self._parse_stage_meta["mode"] = mode
+        self._parse_stage_meta["packet_count"] = len(delta.packets)
+        self._parse_progress_set("RRF raw", state="done", elapsed=elapsed, active="raw-adapter")
 
         # 第一階段相容層：raw bytes 已直接由 Python RRF reader 取得，完全不寫 TXT。
         # 為了先保留既有 decode_* 的行為，暫時只在記憶體中產生舊 parser 需要的
         # 最小文字 block。下一階段可逐一把 parse_* 改成直接接 RawPacket.data。
         t0_opentxt = time.perf_counter()
         text = delta.to_legacy_text(include_metadata=True)
+        total_text_lines = (text.count("\n") + 1) if text else 0
+        self._parse_progress_set(
+            "raw-adapter", state="running", active="建立相容解析資料",
+            total_lines=total_text_lines, processed_lines=0,
+        )
 
         map_name = parse_replaydata_mapname(text)
         if map_name:
+            # current_map_name 保留「Replay 最新地圖」；小地圖實際顯示哪張，
+            # 由全域播放時間對應的 map_change event 決定。
             self.current_map_name = map_name
 
         if not text.strip():
@@ -4007,17 +6411,23 @@ class MainUI(QWidget):
             interval = self.refresh_input.value()
             if interval > 0 and not self.underMouse():
                 self.auto_timer.start(interval * 1000)
+            self._close_parse_progress_dialog()
             return
 
         t1_opentxt = time.perf_counter()
+        raw_adapter_elapsed = t1_opentxt - t0_opentxt
+        self._parse_progress_set(
+            "raw-adapter", state="done", elapsed=raw_adapter_elapsed, active="平行解析封包",
+            total_lines=total_text_lines, processed_lines=0,
+        )
         print("====RRF raw → compatibility blocks====")
-        print(f"[raw-adapter] 耗時: {(t1_opentxt - t0_opentxt) * 1000:.3f} ms")
+        print(f"[raw-adapter] 耗時: {raw_adapter_elapsed * 1000:.3f} ms")
         print("====多執行緒區段====")
-        self.progress_bar.setValue(30)
+        self._render_parse_progress()
         self.status.setText(f"直接解析 raw packet（{mode}，新增 {len(delta.packets)} 包）...")
         QApplication.processEvents()
 
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
 
         # -------------------------------------------------------
         # ❶ 多執行緒平行解析封包
@@ -4026,34 +6436,77 @@ class MainUI(QWidget):
 
 
         checked = check_button_state(self)
+
+        def _timed_parse_call(func, *args, **kwargs):
+            t0 = time.perf_counter()
+            result = func(*args, **kwargs)
+            return result, (time.perf_counter() - t0)
         
         with ThreadPoolExecutor(max_workers=12) as exe:
             futures = {
-                "ground": exe.submit(parse_groundskill_blocks, text),
-                "skill2": exe.submit(parse_skill2_blocks, text),
-                "act3":   exe.submit(parse_act3_blocks, text),
-                "move":   exe.submit(parse_moveentry11_blocks, text),
-                "stand":  exe.submit(parse_standentry11_blocks, text),
-                "new":    exe.submit(parse_newentry11_blocks, text),
-                "state3": exe.submit(parse_statechange3_blocks, text),
-                "status": exe.submit(parse_status_change_blocks, text),
+                "ground": exe.submit(_timed_parse_call, parse_groundskill_blocks, text),
+                "skill2": exe.submit(_timed_parse_call, parse_skill2_blocks, text),
+                "act3":   exe.submit(_timed_parse_call, parse_act3_blocks, text),
+                "move":   exe.submit(_timed_parse_call, parse_moveentry11_blocks, text),
+                "stand":  exe.submit(_timed_parse_call, parse_standentry11_blocks, text),
+                "new":    exe.submit(_timed_parse_call, parse_newentry11_blocks, text),
+                "state3": exe.submit(_timed_parse_call, parse_statechange3_blocks, text),
+                "status": exe.submit(_timed_parse_call, parse_status_change_blocks, text),
                 "efst":   exe.submit(
-                    extract_efstinfo_values,
+                    _timed_parse_call, extract_efstinfo_values,
                     content=text,
                     include_status_changes=True,
                 ),
-                "couple": exe.submit(parse_couplestatus_blocks, text, checked),
-                "par":    exe.submit(parse_par_change_blocks, text, checked),
-                "vanish": exe.submit(parse_vanish_blocks, text),
-                "drop":   exe.submit(parse_itemdrop_blocks, text),
+                "couple": exe.submit(_timed_parse_call, parse_couplestatus_blocks, text, checked),
+                "par":    exe.submit(_timed_parse_call, parse_par_change_blocks, text, checked),
+                "vanish": exe.submit(_timed_parse_call, parse_vanish_blocks, text),
+                "drop":   exe.submit(_timed_parse_call, parse_itemdrop_blocks, text),
+                "map_events": exe.submit(_timed_parse_call, parse_actor_map_events, text),
+                "map_changes": exe.submit(_timed_parse_call, parse_replaydata_map_changes, text),
+                "guilds": exe.submit(_timed_parse_call, parse_guild_name_info, text),
             }
 
             # 未勾完整解析時完全不跑這個較重的掃描。
             if self.show_packet_decode_checkbox.isChecked():
-                futures["full_packets"] = exe.submit(parse_all_known_packets_complete, text)
+                futures["full_packets"] = exe.submit(_timed_parse_call, parse_all_known_packets_complete, text)
 
             # raw snapshot 每次都帶目前 metadata；delta 時也更新 SID/隊友名稱。
-            futures["sid"] = exe.submit(build_sid_to_name_map, text)
+            futures["sid"] = exe.submit(_timed_parse_call, build_sid_to_name_map, text)
+            # 即時輪詢 futures；timeout 讓 Qt event loop 持續有機會重繪，
+            # 即使最後一個 parser 要跑二三十秒，視窗也不會看起來像當機。
+            parser_total = len(futures)
+            parser_done = 0
+            future_to_name = {future: name for name, future in futures.items()}
+            for parser_name in futures:
+                self._parse_stage_states[parser_name] = "running"
+            self._parse_progress_set(
+                "all Thread", state="running", completed=0, total=parser_total, active="平行解析封包"
+            )
+
+            pending = set(future_to_name)
+            while pending:
+                done_now, pending = wait(pending, timeout=0.10, return_when=FIRST_COMPLETED)
+                if done_now:
+                    for finished_future in done_now:
+                        parser_name = future_to_name[finished_future]
+                        try:
+                            _preview_result, parser_elapsed = finished_future.result()
+                            self._parse_stage_timings[parser_name] = parser_elapsed
+                            self._parse_stage_states[parser_name] = "done"
+                        except Exception:
+                            self._parse_stage_states[parser_name] = "error"
+                        parser_done += 1
+                    converted_lines = int(total_text_lines * parser_done / max(1, parser_total))
+                    self._parse_progress_set(
+                        "all Thread", completed=parser_done, total=parser_total,
+                        active=("平行解析封包" if pending else "處理解析結果"),
+                        total_lines=total_text_lines, processed_lines=converted_lines,
+                    )
+                    # 主 UI 與小視窗皆由 _render_parse_progress() 的同一份 stage state 更新。
+                else:
+                    self._render_parse_progress()
+                QApplication.processEvents()
+
 
         # 用來存這次解析後的資料
         if mode == "full":
@@ -4061,6 +6514,11 @@ class MainUI(QWidget):
             self.did_name_map = {}
             self.did_name_source = {}
             self.efst_info_map = {}
+            self.guild_id_name_map = {}
+            self.guild_aid_name_map = {}
+            self.guild_aid_id_map = {}
+            self.self_guild_id = 0
+            self.self_guild_name = ""
         elif not hasattr(self, "efst_info_map"):
             self.efst_info_map = {}
         drops = []
@@ -4073,12 +6531,16 @@ class MainUI(QWidget):
         skill2 = []
         act3 = []
         full_packet_records = []
+        actor_map_events = []
+        map_change_events = []
+        guild_info_result = {}
         
         # 🔥 誰先完成，就先處理誰
         for future in as_completed(futures.values()):
             name = next(k for k, v in futures.items() if v is future)
-            result = future.result()
-
+            result, parser_elapsed = future.result()
+            self._parse_progress_set(name, state="done", elapsed=parser_elapsed, active=f"整理 {name} 結果")
+            QApplication.processEvents()
 
             print(f"[{name}] 已完成，開始處理…")
 
@@ -4142,9 +6604,206 @@ class MainUI(QWidget):
                 vanish = result
             elif name == "drop":
                 drops = result
+            elif name == "map_events":
+                actor_map_events = result
+            elif name == "map_changes":
+                map_change_events = result
+            elif name == "guilds":
+                guild_info_result = result or {}
+                self.guild_id_name_map.update(guild_info_result.get("guild_id_to_name") or {})
+                self.guild_aid_name_map.update(guild_info_result.get("aid_to_guild_name") or {})
+                self.guild_aid_id_map.update(guild_info_result.get("aid_to_guild_id") or {})
+                if int(guild_info_result.get("self_guild_id", 0) or 0):
+                    self.self_guild_id = int(guild_info_result.get("self_guild_id", 0) or 0)
             elif name == "full_packets":
                 full_packet_records = result
                 
+        # v2.8：位置事件 + 地圖切換事件共用同一條 replay timeline。
+        # 優先使用真正帶 timestamp 的 0x0091 / 0x0092 / 0x0AC7。
+        # ReplayData Mapname 沒有時間戳，在 legacy metadata 集中輸出時不能拿來判斷歷史切圖時間。
+        # v2.22：自身通常不會收到自己的 09FE/09FF，因此不能只靠 actor entry 的 guild_id。
+        # 直接用 Session 的 self AID 去吃 0x0195/0x0A30 的 AID→公會名稱，以及 0x01B4 的 AID→GuildID。
+        if self.self_sid:
+            self_aid = int(self.self_sid)
+            mapped_gid = int(self.guild_aid_id_map.get(self_aid, 0) or 0)
+            if mapped_gid:
+                self.self_guild_id = mapped_gid
+            self.self_guild_name = (
+                self.guild_aid_name_map.get(self_aid, "")
+                or self.guild_id_name_map.get(int(self.self_guild_id or 0), "")
+                or getattr(self, "self_guild_name", "")
+            )
+            if self.self_guild_id and self.self_guild_name:
+                self.guild_id_name_map[int(self.self_guild_id)] = self.self_guild_name
+
+        packet_map_changes = [
+            e for e in actor_map_events
+            if e.get("kind") == "map_change" and e.get("map_change_source")
+        ]
+
+        metadata_for_timeline = list(map_change_events)
+        if packet_map_changes:
+            # 有 authoritative 切圖封包時，metadata 只在 full 初始載入保留第一張地圖作 0 秒初始地圖。
+            # delta 更新帶的是「目前 metadata」，若硬塞回 0 秒會把歷史初始地圖改成新地圖。
+            metadata_for_timeline = []
+            if mode == "full" and map_change_events:
+                initial = dict(map_change_events[0])
+                initial["time"] = 0.0
+                initial["timestamp"] = "+00:00:00:000"
+                initial["map_change_source"] = "metadata_initial"
+                metadata_for_timeline.append(initial)
+        else:
+            # 增量 poll 的 ReplayData metadata 通常只是目前地圖快照，沒有可靠歷史時間；
+            # 已經有 timeline 時不要再把它當成新切圖事件。
+            if mode != "full":
+                metadata_for_timeline = []
+            else:
+                # 沒有 0x0091/0x0092 時，利用每次 ACCEPT_ENTER/self_pos 的時間對齊 Mapname 順序。
+                # 這比依 metadata 在文字中的位置猜時間穩定。
+                enter_times = sorted({
+                    float(e.get("time", 0.0))
+                    for e in actor_map_events
+                    if e.get("kind") == "self_pos"
+                })
+                if metadata_for_timeline and enter_times:
+                    aligned = []
+                    for idx, event in enumerate(metadata_for_timeline):
+                        ev = dict(event)
+                        if idx < len(enter_times):
+                            ev["time"] = enter_times[idx]
+                            ev["timestamp"] = _seconds_to_packet_timestamp(enter_times[idx])
+                        elif idx == 0:
+                            ev["time"] = 0.0
+                            ev["timestamp"] = "+00:00:00:000"
+                        ev["map_change_source"] = "metadata_aligned"
+                        aligned.append(ev)
+                    metadata_for_timeline = aligned
+
+        incoming_minimap_events = list(actor_map_events) + metadata_for_timeline
+        if mode == "full":
+            combined_minimap_events = incoming_minimap_events
+        else:
+            combined_minimap_events = list(self.actor_map_events) + incoming_minimap_events
+
+        combined_minimap_events.sort(
+            key=lambda e: (
+                float(e.get("time", 0.0)),
+                0 if e.get("kind") == "map_change" else 1,
+                0 if e.get("map_change_source", "").startswith("packet") else 1,
+            )
+        )
+
+        # 只去掉真正重複的切圖事件。相同地圖之後若曾切到別圖再切回來，必須保留。
+        deduped_minimap_events = []
+        last_map_name = None
+        last_map_time = None
+        for event in combined_minimap_events:
+            if event.get("kind") == "map_change":
+                event_map = (event.get("map_name") or "").strip()
+                event_time = float(event.get("time", 0.0))
+                if not event_map:
+                    continue
+                # 同時間 metadata 與 packet 衝突時，以 packet 為準。
+                if deduped_minimap_events and deduped_minimap_events[-1].get("kind") == "map_change":
+                    prev = deduped_minimap_events[-1]
+                    prev_time = float(prev.get("time", 0.0))
+                    if abs(prev_time - event_time) < 1e-6:
+                        prev_src = prev.get("map_change_source", "")
+                        cur_src = event.get("map_change_source", "")
+                        if cur_src.startswith("packet") and not prev_src.startswith("packet"):
+                            deduped_minimap_events[-1] = event
+                            last_map_name = event_map
+                            last_map_time = event_time
+                        elif event_map == (prev.get("map_name") or "").strip():
+                            pass
+                        continue
+                if event_map == last_map_name and last_map_time is not None and abs(event_time - last_map_time) < 0.001:
+                    continue
+                last_map_name = event_map
+                last_map_time = event_time
+            deduped_minimap_events.append(event)
+
+        # v2.13：為每段 move 預先找「同一單位的下一個位置事件」。
+        # 如果下一包在預估走完之前就到達，表示這段路徑被改向/校正；
+        # 播放時用下一包的實際時間與起點收斂，避免新封包一到就往回跳。
+        next_anchor_by_actor = {}
+        for ev in reversed(deduped_minimap_events):
+            kind = ev.get("kind")
+            if kind == "map_change":
+                next_anchor_by_actor.clear()
+                continue
+
+            ev_aid = int(ev.get("aid", 0) or 0)
+            if ev.get("self_event") or (self.self_sid and ev_aid == int(self.self_sid)):
+                actor_key = ("self",)
+            else:
+                actor_key = ("aid", ev_aid) if ev_aid else None
+
+            if actor_key is None:
+                continue
+
+            if kind == "move":
+                nxt = next_anchor_by_actor.get(actor_key)
+                if nxt is not None:
+                    ev["_next_pos_time"] = float(nxt.get("time", 0.0))
+                    ev["_next_pos_x"] = nxt.get("x")
+                    ev["_next_pos_y"] = nxt.get("y")
+                # 這包在事件發生當下的位置就是 from_x/from_y；
+                # 讓更早一段 move 可以精準銜接到這裡。
+                next_anchor_by_actor[actor_key] = {
+                    "time": float(ev.get("time", 0.0)),
+                    "x": float(ev.get("from_x", 0.0) or 0.0),
+                    "y": float(ev.get("from_y", 0.0) or 0.0),
+                }
+            elif kind in ("spawn", "stand", "self_pos", "stop"):
+                next_anchor_by_actor[actor_key] = {
+                    "time": float(ev.get("time", 0.0)),
+                    "x": float(ev.get("x", 0.0) or 0.0),
+                    "y": float(ev.get("y", 0.0) or 0.0),
+                }
+
+        # v2.20：actor packet 的 GID 是單位識別；真正公會欄位是 guild_id / GUID。
+        # 將 entry packet 的 GuildID 與 0x0195/0x0A30/0x0150/0x01B6 等公會名稱封包關聯。
+        for ev in deduped_minimap_events:
+            aid = int(ev.get("aid", 0) or 0)
+            details = ev.get("details") if isinstance(ev.get("details"), dict) else {}
+            guild_id = int(ev.get("guild_id", details.get("guild_id", 0)) or 0)
+            if ev.get("self_event") and not guild_id:
+                guild_id = int(self.self_guild_id or 0)
+            if aid and guild_id:
+                self.guild_aid_id_map[aid] = guild_id
+            if aid and not guild_id:
+                guild_id = int(self.guild_aid_id_map.get(aid, 0) or 0)
+            if guild_id:
+                ev["guild_id"] = guild_id
+            guild_name = (
+                self.guild_id_name_map.get(guild_id, "")
+                or self.guild_aid_name_map.get(aid, "")
+                or (self.self_guild_name if (ev.get("self_event") or (self.self_sid and aid == int(self.self_sid))) else "")
+            )
+            if guild_name:
+                ev["guild_name"] = guild_name
+                if guild_id:
+                    self.guild_id_name_map[guild_id] = guild_name
+
+        for aid, guild_name in list(self.guild_aid_name_map.items()):
+            guild_id = int(self.guild_aid_id_map.get(int(aid), 0) or 0)
+            if guild_id and guild_name:
+                self.guild_id_name_map[guild_id] = guild_name
+
+        for rec in full_packet_records:
+            dec = rec.get("decoded") if isinstance(rec, dict) else None
+            if not isinstance(dec, dict):
+                continue
+            guild_id = int(dec.get("guild_id", 0) or 0)
+            aid = int(dec.get("aid", 0) or 0)
+            guild_name = self.guild_id_name_map.get(guild_id) or self.guild_aid_name_map.get(aid, "")
+            if guild_name:
+                dec["guild_name"] = guild_name
+
+        self.actor_map_events = deduped_minimap_events
+        self._reset_minimap_replay_state()
+
         # 完整解析資料獨立保存；不影響原本傷害/掉落統計。
         if mode == "full":
             self.packet_decode_data = full_packet_records
@@ -4395,9 +7054,13 @@ class MainUI(QWidget):
 
         
         t1_allThread = time.perf_counter()
-        print(f"[all Thread] 解析耗時: {(t1_allThread - t0_allThread) * 1000:.3f} ms")
+        all_thread_elapsed = t1_allThread - t0_allThread
+        print(f"[all Thread] 解析耗時: {all_thread_elapsed * 1000:.3f} ms")
+        self._parse_progress_set(
+            "all Thread", state="done", elapsed=all_thread_elapsed, active="整併封包",
+            total_lines=total_text_lines, processed_lines=total_text_lines,
+        )
 
-        self.progress_bar.setValue(50)
         self.status.setText("封包解析完成，正在整併資料...")
         QApplication.processEvents()
 
@@ -4429,12 +7092,18 @@ class MainUI(QWidget):
         # -------------------------------------------------------
         # ❺ 修正假 SID（不建議多執行緒，要保持順序）
         # -------------------------------------------------------
+        merge_t0 = time.perf_counter()
+        self._parse_progress_set("merge_with_true_sid", state="running", active="merge_with_true_sid")
+        QApplication.processEvents()
         if mode == "full":
             all_packets = merge_with_true_sid(all_packets)
         else:
             all_packets = self.merge_new_packets_with_true_sid(all_packets)
+        merge_elapsed = time.perf_counter() - merge_t0
+        self._parse_progress_set("merge_with_true_sid", state="done", elapsed=merge_elapsed, active="整理傷害資料")
 
-        self.progress_bar.setValue(70)
+        data_stage_t0 = time.perf_counter()
+        self._parse_progress_set("資料整理", state="running", active="整理傷害資料")
         self.status.setText("正在整理傷害資料...")
         QApplication.processEvents()
 
@@ -4452,28 +7121,38 @@ class MainUI(QWidget):
             d["timestamp"] = p["timestamp"]
 
             # 主傷害（技能傷害 / 普攻主手）
-            dmg = d.get("damage", 0)
-            main_damage_valid = 0 < dmg <= INT_MAX
-            if main_damage_valid:
+            # v2.16：damage == 0 也保留成真正的攻擊事件；是否顯示由右上選項控制。
+            # 負值或超過 signed 32-bit 的值仍視為無效資料。
+            dmg = int(d.get("damage", 0) or 0)
+            main_damage_positive = 0 < dmg <= INT_MAX
+            main_damage_zero = (dmg == 0)
+
+            # 先看 ACT3 是否有有效左手傷害，用來避免左右手攻擊次數重複計算。
+            left_damage = int(d.get("damage2", 0) or 0) if p["type"] == "ACT3" else 0
+            left_damage_positive = 0 < left_damage <= INT_MAX
+
+            if main_damage_positive or main_damage_zero:
                 d["is_offhand_damage"] = False
-                d["counts_as_attack"] = True
+                d["zero_damage_event"] = bool(main_damage_zero)
+                d["is_damage_event"] = True
+                # 主手 >0 時由主手代表本次攻擊。主手=0 但左手有傷害時，
+                # 攻擊次數交給左手，避免勾選傷害0後同一 ACT3 被算兩次。
+                d["counts_as_attack"] = bool(main_damage_positive or not left_damage_positive)
                 new_parsed_data.append(d)
 
             # ACT3 的 damage2 是副手（左手）傷害。
-            # 拆成獨立事件，讓傷害歷程、總傷害、DPS、技能統計都會納入，
-            # 同時使用獨立虛擬 skill_id，避免和主手普攻(skill_id=0)被合併。
-            if p["type"] == "ACT3":
-                left_damage = d.get("damage2", 0)
-                if 0 < left_damage <= INT_MAX:
-                    left = d.copy()
-                    left["skill_id"] = NORMAL_ATTACK_LEFT_SKILL_ID
-                    left["skill_name"] = "普通攻擊(左手)"
-                    left["damage"] = left_damage
-                    left["is_offhand_damage"] = True
-                    # 同一 ACT3 最多只算一次角色攻擊次數。
-                    # 若主手為 0/無效，則由左手這筆代表該次攻擊。
-                    left["counts_as_attack"] = not main_damage_valid
-                    new_parsed_data.append(left)
+            # 只保留真正 >0 的左手事件；damage2=0 常代表沒有副手傷害，
+            # 若也建立 0 傷害事件會產生大量不存在的「左手 MISS」。
+            if p["type"] == "ACT3" and left_damage_positive:
+                left = d.copy()
+                left["skill_id"] = NORMAL_ATTACK_LEFT_SKILL_ID
+                left["skill_name"] = "普通攻擊(左手)"
+                left["damage"] = left_damage
+                left["zero_damage_event"] = False
+                left["is_damage_event"] = True
+                left["is_offhand_damage"] = True
+                left["counts_as_attack"] = not main_damage_positive
+                new_parsed_data.append(left)
 
         new_raw_data = new_parsed_data + stat_events + status_events + vanish_events
         
@@ -4544,8 +7223,15 @@ class MainUI(QWidget):
         self.current_filtered_raw = self.raw_data.copy()
         self.current_drop_data = self.drop_data.copy()
 
+        # v2.14：RRF 資料完成後把小地圖需要的純資料同步到獨立 process。
+        # 只在資料更新時做一次；60FPS 播放每幀不再複製整份傷害資料。
+        self._sync_minimap_compute_sources()
+
         # ★ 這裡資料已經完成
-        self.progress_bar.setValue(90)
+        data_stage_elapsed = time.perf_counter() - data_stage_t0
+        self._parse_progress_set("資料整理", state="done", elapsed=data_stage_elapsed, active="更新圖表與統計")
+        ui_stage_t0 = time.perf_counter()
+        self._parse_progress_set("UI更新", state="running", active="更新圖表與統計")
         self.status.setText("正在更新圖表與統計...")
         QApplication.processEvents()
         # 記錄使用者目前的攻方 / 受方選擇，更新資料後盡量保留。
@@ -4610,16 +7296,24 @@ class MainUI(QWidget):
         self.update_group_tree()
         self.refresh_chart()
         self.update_hud_top5()
+        ui_stage_elapsed = time.perf_counter() - ui_stage_t0
+        self._parse_progress_set("UI更新", state="done", elapsed=ui_stage_elapsed, active="完成")
 
 
 
         #self.status.setText(f"更新完成，耗時 {elapsed:.3f} 秒")        
         #self.status.setText(f"共解析到 {len(self.parsed_data)} 筆 更新耗時：{elapsed:.2f} 秒")
         real_elapsed = time.time() - self.process_start_time
+        finalize_elapsed = max(0.0, time.perf_counter() - getattr(self, "_parse_stage_wall_start", time.perf_counter()))
+        self._parse_progress_set("整體完成", state="done", elapsed=finalize_elapsed, active="完成")
+        self._render_parse_progress()
 
         self.status.setText(f"共解析 {len(self.parsed_data)} 筆 更新耗時：{real_elapsed:.2f} 秒")
         self.progress_bar.setValue(100)
+        if getattr(self, "parse_progress_dialog_bar", None) is not None:
+            self.parse_progress_dialog_bar.setValue(100)
         QApplication.processEvents()
+        self._close_parse_progress_dialog()
         
         self.first_full_parse_done = True
 
@@ -4755,6 +7449,14 @@ class MainUI(QWidget):
     def on_worker_failed(self, msg):
         self.status.setText(f"解析錯誤#")#：{msg}")
         print(f"解析錯誤：{msg}")
+        try:
+            active = getattr(self, "_parse_stage_meta", {}).get("active", "RRF raw") or "RRF raw"
+            stage = active if active in getattr(self, "_parse_stage_order", []) else "RRF raw"
+            self._parse_progress_set(stage, state="error", active=f"錯誤：{msg}")
+            QApplication.processEvents()
+        except Exception:
+            pass
+        self._close_parse_progress_dialog()
         self.progress_bar.hide()
         self.progress_bar.setValue(0)
         self.is_processing = False
@@ -4921,73 +7623,580 @@ class MainUI(QWidget):
     # ========================================================
     # Tab1：Raw 顯示
     # ========================================================
-    def update_raw_table(self):
-        interval = self.refresh_input.value()
-        data = getattr(self, "current_filtered_raw", self.current_filtered_data)
-        self.table_raw.setRowCount(len(data))
+    def _raw_table_row_time(self, row):
+        """傷害歷程 row 的 replay 絕對秒數。"""
+        t = self.timestamp_to_float_seconds(row.get("timestamp"))
+        return float(t) if t is not None else None
 
-        for r, d in enumerate(data):
-            self.table_raw.setItem(r, 0, QTableWidgetItem(d["timestamp"]))
-            self.table_raw.setItem(r, 1, QTableWidgetItem(d["skill_name"]))
-            # --- SID 顯示名稱 ---
-            sid = d["sid"]
+    def _populate_raw_table_row(self, table_row, d):
+        """只建立/替換一列傷害歷程；播放模式會重複使用這個函式。"""
+        self.table_raw.setItem(table_row, 0, QTableWidgetItem(d.get("timestamp", "")))
+        self.table_raw.setItem(table_row, 1, QTableWidgetItem(d.get("skill_name", "")))
 
-            # 玩家（GroupInfo）
-            if sid in self.sid_name_map:
-                sid_display = f"{self.sid_name_map[sid]}"# ({sid})"
+        sid = d.get("sid", 0)
+        if sid in self.sid_name_map:
+            sid_display = f"{self.sid_name_map[sid]}"
+        elif sid in self.did_name_map:
+            sid_display = f"{self.did_name_map[sid]}"
+        else:
+            sid_display = str(sid)
+        self.table_raw.setItem(table_row, 2, QTableWidgetItem(sid_display))
 
-            # 怪物（MOVEENTRY/STANDENTRY/NEWENTRY）
-            elif sid in self.did_name_map:
-                sid_display = f"{self.did_name_map[sid]}"# ({sid})"
+        did = d.get("did", 0)
+        name = self.lookup_actor_name(did) or str(did)
+        self.table_raw.setItem(table_row, 3, QTableWidgetItem(name))
 
-            # 未知
-            else:
-                sid_display = str(sid)               
+        dmg_text = d.get("damage_display")
+        if dmg_text is None:
+            dmg_text = f"{int(d.get('damage', 0) or 0):,}"
+        self.table_raw.setItem(table_row, 4, QTableWidgetItem(dmg_text))
+        self.table_raw.setItem(table_row, 5, QTableWidgetItem(str(d.get("level", 0))))
+        self.table_raw.setItem(table_row, 6, QTableWidgetItem(str(d.get("hit_count", 0))))
+        self.table_raw.setItem(table_row, 7, QTableWidgetItem(str(d.get("skill_delay", 0))))
+        self.table_raw.setItem(table_row, 8, QTableWidgetItem(str(d.get("global_delay", 0))))
 
-            self.table_raw.setItem(r, 2, QTableWidgetItem(sid_display))
-            did = d["did"]
-            name = self.lookup_actor_name(did) or str(did)
-            self.table_raw.setItem(r, 3, QTableWidgetItem(name))
-
-            dmg_text = d.get("damage_display")
-            if dmg_text is None:
-                dmg_text = f"{int(d['damage']):,}"
-            self.table_raw.setItem(r, 4, QTableWidgetItem(dmg_text))
-            self.table_raw.setItem(r, 5, QTableWidgetItem(str(d["level"])))
-            self.table_raw.setItem(r, 6, QTableWidgetItem(str(d["hit_count"])))
-            self.table_raw.setItem(r, 7, QTableWidgetItem(str(d["skill_delay"])))
-            self.table_raw.setItem(r, 8, QTableWidgetItem(str(d["global_delay"])))
-            
-        # 滾動到最後一行
-        if interval > 0 :
-            self.table_raw.scrollToBottom()
-        # 字體測量（使用表格目前字體）
+    def _resize_raw_table_columns(self):
+        """完整刷新時才測量欄寬；播放每一 tick 不做 O(rows*cols) 掃描。"""
         metrics = QFontMetrics(self.table_raw.font())
-
-        padding = metrics.horizontalAdvance("字" * 1)   # 5 個中文字的寬度
+        padding = metrics.horizontalAdvance("字")
 
         for col in range(self.table_raw.columnCount()):
-            max_width = 0
-
-            # 1. 檢查表頭文字寬度
-            header_text = self.table_raw.horizontalHeaderItem(col).text()
-            max_width = metrics.horizontalAdvance(header_text)
-
-            # 2. 檢查每列資料
+            header = self.table_raw.horizontalHeaderItem(col)
+            max_width = metrics.horizontalAdvance(header.text() if header else "")
             for row in range(self.table_raw.rowCount()):
                 item = self.table_raw.item(row, col)
                 if item is not None:
-                    w = metrics.horizontalAdvance(item.text())
-                    if w > max_width:
-                        max_width = w
+                    max_width = max(max_width, metrics.horizontalAdvance(item.text()))
+            self.table_raw.setColumnWidth(col, max(max_width + padding, 80))
 
-            # 3. 最後加上額外 5 個字寬度
-            final_width = max_width + padding
+    def _get_replay_end_sec(self):
+        """取得整個 Replay 的最晚時間，不受 SID/DID/播放上限篩選影響。"""
+        latest = 0.0
+        for seq in (
+            getattr(self, "raw_data", []),
+            getattr(self, "parsed_data", []),
+            getattr(self, "drop_data", []),
+            getattr(self, "packet_decode_data", []),
+        ):
+            for row in seq:
+                t = self.timestamp_to_float_seconds(row.get("timestamp"))
+                if t is not None and t > latest:
+                    latest = t
+        # 小地圖 actor 封包可能比最後一筆傷害更晚，Replay slider 也要涵蓋它們。
+        for event in getattr(self, "actor_map_events", []):
+            t = float(event.get("time", 0.0) or 0.0)
+            if t > latest:
+                latest = t
+        return latest
 
-            # 最小寬度避免太窄（可調整）
-            final_width = max(final_width, 80)
+    def _build_playback_raw_source_without_cutoff(self):
+        """建立傷害歷程播放來源，但刻意不套用全域 playhead 上限。
 
-            self.table_raw.setColumnWidth(col, final_width)
+        這樣暫停後再播放，或把滑桿往前跳時，未來事件仍保留在來源中。
+        """
+        selected_did_text = self.did_filter.currentText()
+        did_value = self.did_filter.currentData()
+        sid_value = self.sid_filter.currentData()
+        include_stat = selected_did_text == FILTER_ALL_WITH_STAT
+
+        raw_base = getattr(self, "raw_data", self.parsed_data)
+        raw_source = list(raw_base) if include_stat else [
+            d for d in raw_base if d.get("skill_name") not in STAT_SKILL_NAMES
+        ]
+
+        if not self.show_zero_damage_checkbox.isChecked():
+            raw_source = [d for d in raw_source if not d.get("zero_damage_event", False)]
+
+        if not self.show_status_history_checkbox.isChecked():
+            raw_source = [
+                d for d in raw_source
+                if d.get("status_event") not in ("start", "end", "vanish")
+            ]
+        else:
+            if not self.show_state_change_checkbox.isChecked():
+                raw_source = [
+                    d for d in raw_source
+                    if d.get("status_event") not in ("start", "end")
+                ]
+            raw_source = [
+                d for d in raw_source
+                if d.get("status_event") != "vanish"
+                or self.is_vanish_mode_visible(d.get("vanish_mode"))
+            ]
+
+        if did_value is not None:
+            raw_source = [d for d in raw_source if d.get("did") == did_value]
+
+        if sid_value is not None:
+            raw_source = [
+                d for d in raw_source
+                if int(d.get("damage", 0) or 0) <= 0 or d.get("sid") == sid_value
+            ]
+
+        if self.damage_time_range is not None:
+            range_start, range_end = self.damage_time_range
+            raw_source = [
+                d for d in raw_source
+                if (lambda t: t is not None and range_start <= t <= range_end)(
+                    self.timestamp_to_float_seconds(d.get("timestamp"))
+                )
+            ]
+
+        return raw_source
+
+    def _get_transform_counts_for_display(self):
+        """依目前全域 playhead 計算變身次數；非播放模式直接用完整統計。"""
+        if not self.damage_playback_mode:
+            return self.state_change_count
+
+        cutoff_ms = int(round(max(0.0, self.damage_playback_current_sec) * 1000.0))
+        counts = defaultdict(lambda: defaultdict(int))
+        tolerance_ms = 200
+
+        for sid, history in getattr(self, "transform_history", {}).items():
+            for rec in history:
+                skin = rec.get("skin")
+                if skin not in TRANSFORM_DURATION_MAP:
+                    continue
+                start_ms = int(rec.get("start", 0) or 0)
+                if start_ms > cutoff_ms:
+                    continue
+                end_ms = min(int(rec.get("end", cutoff_ms) or cutoff_ms), cutoff_ms)
+                counts[sid][skin] += 1
+                interval_ms = int(TRANSFORM_DURATION_MAP[skin] * 1000)
+                if interval_ms <= 0:
+                    continue
+                effective_end_ms = end_ms - tolerance_ms
+                next_check = start_ms + interval_ms
+                while next_check <= effective_end_ms:
+                    counts[sid][skin] += 1
+                    next_check += interval_ms
+
+        # Replay 結尾仍處於變身中的 SID 也納入目前時間的累積。
+        for sid, start_ms in getattr(self, "transform_start_time", {}).items():
+            skin = getattr(self, "transform_original_skin", {}).get(sid)
+            if skin not in TRANSFORM_DURATION_MAP:
+                continue
+            start_ms = int(start_ms or 0)
+            if start_ms > cutoff_ms:
+                continue
+            # 若這個 start 已經在 history 中結束，不重複。
+            if any(int(h.get("start", -1)) == start_ms for h in getattr(self, "transform_history", {}).get(sid, [])):
+                continue
+            counts[sid][skin] += 1
+            interval_ms = int(TRANSFORM_DURATION_MAP[skin] * 1000)
+            effective_end_ms = cutoff_ms - tolerance_ms
+            next_check = start_ms + interval_ms
+            while interval_ms > 0 and next_check <= effective_end_ms:
+                counts[sid][skin] += 1
+                next_check += interval_ms
+
+        return counts
+
+    def _format_playback_time(self, sec):
+        ms = max(0, int(round(float(sec) * 1000.0)))
+        return self.ms_to_timestamp(ms)
+
+    def _update_damage_playback_time_label(self, current=None):
+        if current is None:
+            current = self.damage_playback_current_sec
+        text = (
+            f"{self._format_playback_time(current)} / "
+            f"{self._format_playback_time(self.damage_playback_range_end)}"
+        )
+        if hasattr(self, "damage_playback_time_label"):
+            self.damage_playback_time_label.setText(text)
+        # 小地圖顯示同一個全域 playhead。
+        window = getattr(self, "minimap_window", None)
+        if window is not None and hasattr(window, "playback_time_label"):
+            window.playback_time_label.setText(text)
+
+    def _playback_slider_to_sec(self, value=None):
+        if value is None:
+            value = self.damage_playback_slider.value()
+        return self.damage_playback_range_start + (int(value) / 1000.0)
+
+    def _set_playback_slider_sec(self, sec):
+        if not hasattr(self, "damage_playback_slider"):
+            return
+        sec = min(max(float(sec), self.damage_playback_range_start), self.damage_playback_range_end)
+        rel_ms = int(round((sec - self.damage_playback_range_start) * 1000.0))
+        old = self.damage_playback_slider.blockSignals(True)
+        self.damage_playback_slider.setValue(rel_ms)
+        self.damage_playback_slider.blockSignals(old)
+
+        # 鏡像到小地圖滑桿；blockSignals 避免形成 seek 回圈。
+        window = getattr(self, "minimap_window", None)
+        if window is not None and hasattr(window, "playback_slider"):
+            mini_old = window.playback_slider.blockSignals(True)
+            window.playback_slider.setValue(rel_ms)
+            window.playback_slider.blockSignals(mini_old)
+        self._update_damage_playback_time_label(sec)
+
+    def _sync_damage_playback_source(self, data=None, keep_current=True):
+        """更新播放來源。滑桿固定代表整個 Replay 的 0 -> 結尾。"""
+        if not hasattr(self, "damage_playback_slider"):
+            return
+
+        # 播放模式中 current_filtered_raw 已經被 playhead 截短，不能拿它當未來來源。
+        if self.damage_playback_mode:
+            data = self._build_playback_raw_source_without_cutoff()
+        elif data is None:
+            data = getattr(self, "current_filtered_raw", getattr(self, "current_filtered_data", []))
+
+        timed = []
+        for row in data:
+            t = self._raw_table_row_time(row)
+            if t is not None:
+                timed.append((t, row))
+        timed.sort(key=lambda x: x[0])
+
+        self.damage_playback_source = [row for _, row in timed]
+        self.damage_playback_times = [t for t, _ in timed]
+
+        # v2.0：全域播放永遠從 Replay 0 秒開始；篩選不改變滑桿總長度。
+        range_start = 0.0
+        range_end = self._get_replay_end_sec()
+        if range_end <= 0.0 and self.damage_playback_times:
+            range_end = max(self.damage_playback_times)
+
+        old_current = self.damage_playback_current_sec
+        self.damage_playback_range_start = float(range_start)
+        self.damage_playback_range_end = float(range_end)
+
+        duration_ms = max(0, int(round((range_end - range_start) * 1000.0)))
+        # v2.1：更新資料時調整 range 不應觸發使用者 seek。
+        _old_slider_signals = self.damage_playback_slider.blockSignals(True)
+        self.damage_playback_slider.setRange(0, duration_ms)
+        self.damage_playback_slider.blockSignals(_old_slider_signals)
+        enabled = duration_ms > 0
+        self.damage_playback_slider.setEnabled(enabled)
+        self.damage_playback_btn.setEnabled(enabled)
+
+        window = getattr(self, "minimap_window", None)
+        if window is not None and hasattr(window, "playback_slider"):
+            mini_old = window.playback_slider.blockSignals(True)
+            window.playback_slider.setRange(0, duration_ms)
+            window.playback_slider.setEnabled(enabled)
+            window.playback_slider.blockSignals(mini_old)
+            window.playback_btn.setEnabled(enabled)
+            for btn in getattr(window, "playback_jump_buttons", []):
+                btn.setEnabled(enabled)
+
+        if not enabled:
+            if self.damage_playback_running:
+                self.pause_damage_playback()
+            self.damage_playback_current_sec = range_start
+            self.damage_playback_anchor_sec = range_start
+            self._set_playback_slider_sec(range_start)
+            return
+
+        if keep_current and range_start <= old_current <= range_end:
+            current = old_current
+        else:
+            current = range_start
+
+        self.damage_playback_current_sec = current
+        # 全域播放的累積起點固定是 0 秒。
+        self.damage_playback_anchor_sec = range_start
+        self._set_playback_slider_sec(current)
+
+        # 播放中若因篩選、圈選或增量資料更新而重新同步範圍，
+        # 從目前 playhead 重新校準 wall clock，避免下一 tick 突然跳時。
+        if self.damage_playback_running:
+            self.damage_playback_base_sec = current
+            self.damage_playback_wall_t0 = time.perf_counter()
+
+    def _rebuild_playback_table_to_current(self):
+        """篩選條件改變時，重建 0 秒～目前 playhead；timer tick 本身只 append。"""
+        self.table_raw.setRowCount(0)
+        if not self.damage_playback_times:
+            self.damage_playback_cursor = 0
+            return
+
+        # v2.0：滑到 1:00 就顯示 0:00～1:00 的全部歷程。
+        start_idx = bisect.bisect_left(self.damage_playback_times, self.damage_playback_range_start - 1e-9)
+        end_idx = bisect.bisect_right(self.damage_playback_times, self.damage_playback_current_sec + 1e-9)
+        self.damage_playback_cursor = start_idx
+
+        for idx in range(start_idx, end_idx):
+            r = self.table_raw.rowCount()
+            self.table_raw.insertRow(r)
+            self._populate_raw_table_row(r, self.damage_playback_source[idx])
+            self.damage_playback_cursor = idx + 1
+
+        if self.table_raw.rowCount():
+            self.table_raw.scrollToBottom()
+
+    def _seek_damage_playback(self, sec, clear_and_anchor=True):
+        """跳到指定 Replay 秒數，整個介面顯示 0 秒～該秒的累積狀態。"""
+        sec = min(max(float(sec), self.damage_playback_range_start), self.damage_playback_range_end)
+
+        # 全域播放和「圈選區間分析」是兩種不同模式。
+        # 使用滑桿/播放時清除圈選，確保滑到 1:00 就一定是 0:00～1:00，
+        # 不會被先前 30～40 秒之類的圈選再次截斷。
+        if self.damage_time_range is not None:
+            self.damage_time_range = None
+            self.update_damage_range_label()
+            self._update_chart_resolution_labels()
+            if hasattr(self, "btn_select_range") and self.btn_select_range.isChecked():
+                old = self.btn_select_range.blockSignals(True)
+                self.btn_select_range.setChecked(False)
+                self.btn_select_range.blockSignals(old)
+            if hasattr(self, "left_pan"):
+                self.left_pan.enabled = True
+
+        self.damage_playback_mode = True
+        self.damage_playback_current_sec = sec
+        self.damage_playback_anchor_sec = self.damage_playback_range_start
+        self._set_playback_slider_sec(sec)
+        # 一次重算整個介面；apply_did_filter 內也會重建 0～目前時間的歷程表。
+        self.apply_did_filter()
+
+    def jump_damage_playback(self, delta_sec):
+        """v2.17：相對目前 playhead 快退/快進，範圍固定限制在 Replay 0～結尾。"""
+        # 尚未建立 range 時先同步一次，確保按鈕在資料剛載入後也可直接使用。
+        if self.damage_playback_range_end <= self.damage_playback_range_start:
+            data = getattr(self, "current_filtered_raw", getattr(self, "current_filtered_data", []))
+            self._sync_damage_playback_source(data, keep_current=True)
+        if self.damage_playback_range_end <= self.damage_playback_range_start:
+            return
+
+        if self.damage_playback_mode:
+            current = float(self.damage_playback_current_sec)
+        else:
+            current = float(self._playback_slider_to_sec())
+
+        target = min(
+            max(current + float(delta_sec), self.damage_playback_range_start),
+            self.damage_playback_range_end,
+        )
+        was_running = bool(self.damage_playback_running)
+        self._seek_damage_playback(target, clear_and_anchor=True)
+
+        # 播放中跳轉後立即以新位置作為 wall-clock 基準，避免下一 tick 又跳回舊軌跡。
+        if was_running:
+            self.damage_playback_base_sec = target
+            self.damage_playback_wall_t0 = time.perf_counter()
+
+    def on_damage_playback_speed_changed(self, value):
+        """v2.17：播放中變更倍速時，先鎖定當下 playhead，再用新倍速平順續播。"""
+        new_speed = min(max(float(value), 0.1), 4.0)
+        old_speed = float(getattr(self, "damage_playback_speed", 1.0) or 1.0)
+
+        if self.damage_playback_running:
+            now = time.perf_counter()
+            elapsed = max(0.0, now - self.damage_playback_wall_t0)
+            current = self.damage_playback_base_sec + elapsed * old_speed
+            current = min(max(current, self.damage_playback_range_start), self.damage_playback_range_end)
+            self.damage_playback_current_sec = current
+            self._set_playback_slider_sec(current)
+            self.damage_playback_base_sec = current
+            self.damage_playback_wall_t0 = now
+
+        self.damage_playback_speed = new_speed
+
+        # v2.26：主 UI / 小地圖播放倍速雙向同步，避免兩邊顯示不同。
+        window = getattr(self, "minimap_window", None)
+        mini_speed = getattr(window, "playback_speed_input", None) if window is not None else None
+        if mini_speed is not None and abs(float(mini_speed.value()) - new_speed) > 1e-9:
+            mini_speed.blockSignals(True)
+            mini_speed.setValue(new_speed)
+            mini_speed.blockSignals(False)
+
+    def toggle_damage_playback(self):
+        if self.damage_playback_running:
+            self.pause_damage_playback()
+        else:
+            self.start_damage_playback()
+
+    def start_damage_playback(self):
+        data = getattr(self, "current_filtered_raw", getattr(self, "current_filtered_data", []))
+        self._sync_damage_playback_source(data, keep_current=True)
+        if self.damage_playback_range_end <= self.damage_playback_range_start:
+            return
+
+        # 第一次按播放：從滑桿目前位置開始，但統計內容固定累積自 0 秒。
+        if not self.damage_playback_mode:
+            sec = self._playback_slider_to_sec()
+            self._seek_damage_playback(sec, clear_and_anchor=True)
+
+        # 已播放到尾端，再按播放就從 0 秒重播。
+        if self.damage_playback_current_sec >= self.damage_playback_range_end - 1e-6:
+            self._seek_damage_playback(self.damage_playback_range_start, clear_and_anchor=True)
+
+        self.damage_playback_running = True
+        self.damage_playback_base_sec = self.damage_playback_current_sec
+        self.damage_playback_wall_t0 = time.perf_counter()
+        self.damage_playback_btn.setText("⏸ 暫停")
+        window = getattr(self, "minimap_window", None)
+        if window is not None and hasattr(window, "playback_btn"):
+            window.playback_btn.setText("⏸ 暫停")
+        self.damage_playback_timer.start()
+        if hasattr(self, "minimap_render_timer"):
+            self.minimap_render_timer.start()
+
+    def pause_damage_playback(self):
+        if hasattr(self, "damage_playback_timer"):
+            self.damage_playback_timer.stop()
+        # v2.14：minimap_render_timer 也負責收獨立 process 的結果，暫停播放時不能停止。
+        self.damage_playback_running = False
+        if hasattr(self, "damage_playback_btn"):
+            self.damage_playback_btn.setText("▶ 播放")
+        window = getattr(self, "minimap_window", None)
+        if window is not None and hasattr(window, "playback_btn"):
+            window.playback_btn.setText("▶ 播放")
+
+    def show_all_damage_history(self):
+        """離開全域播放模式，整個介面恢復完整 Replay。"""
+        self.pause_damage_playback()
+        self.damage_playback_mode = False
+        self.damage_playback_current_sec = self._get_replay_end_sec()
+        self.damage_playback_anchor_sec = 0.0
+        self.apply_did_filter()
+        data = getattr(self, "current_filtered_raw", getattr(self, "current_filtered_data", []))
+        self._sync_damage_playback_source(data, keep_current=False)
+        self.damage_playback_current_sec = self.damage_playback_range_end
+        self.damage_playback_anchor_sec = 0.0
+        self._set_playback_slider_sec(self.damage_playback_range_end)
+
+    def on_damage_playback_slider_pressed(self):
+        self._playback_resume_after_seek = self.damage_playback_running
+        self.pause_damage_playback()
+        self._playback_pending_seek_sec = self._playback_slider_to_sec()
+
+    def on_minimap_playback_slider_pressed(self):
+        """小地圖開始拖曳：沿用主時間軸的 pause/resume 邏輯。"""
+        self._playback_resume_after_seek = self.damage_playback_running
+        self.pause_damage_playback()
+        window = getattr(self, "minimap_window", None)
+        if window is not None:
+            self._playback_pending_seek_sec = self._playback_slider_to_sec(window.playback_slider.value())
+
+    def on_minimap_playback_slider_value_changed(self, value):
+        """小地圖 seek，同步主滑桿並沿用既有 33ms 合併器。"""
+        if hasattr(self, "damage_playback_slider"):
+            old = self.damage_playback_slider.blockSignals(True)
+            self.damage_playback_slider.setValue(int(value))
+            self.damage_playback_slider.blockSignals(old)
+        self.on_damage_playback_slider_value_changed(int(value))
+
+    def on_minimap_playback_slider_released(self):
+        window = getattr(self, "minimap_window", None)
+        if window is not None and hasattr(self, "damage_playback_slider"):
+            value = int(window.playback_slider.value())
+            old = self.damage_playback_slider.blockSignals(True)
+            self.damage_playback_slider.setValue(value)
+            self.damage_playback_slider.blockSignals(old)
+        self.on_damage_playback_slider_released()
+
+    def on_damage_playback_slider_value_changed(self, value):
+        """v2.1：滑桿拖曳/鍵盤改值時立即排程全介面更新，不等滑鼠放開。"""
+        sec = self._playback_slider_to_sec(value)
+        self._update_damage_playback_time_label(sec)
+        self._playback_pending_seek_sec = sec
+
+        # 內部程式設定 slider 時都有 blockSignals，不會走到這裡。
+        # 33ms 合併高速 valueChanged，避免 apply_did_filter 疊成長佇列。
+        if hasattr(self, "damage_playback_seek_timer"):
+            if not self.damage_playback_seek_timer.isActive():
+                self.damage_playback_seek_timer.start()
+        else:
+            self._flush_damage_playback_live_seek()
+
+    def _flush_damage_playback_live_seek(self):
+        """套用目前最新的滑桿位置；只重算最新位置，舊的拖曳事件直接合併掉。"""
+        sec = self._playback_pending_seek_sec
+        if sec is None:
+            return
+        self._playback_pending_seek_sec = None
+
+        if (self._playback_last_live_seek_sec is not None and
+                abs(float(sec) - float(self._playback_last_live_seek_sec)) < 0.0005):
+            return
+
+        self._playback_last_live_seek_sec = float(sec)
+        self._seek_damage_playback(sec, clear_and_anchor=True)
+
+    def on_damage_playback_slider_released(self):
+        # 放開時把尚未到 33ms 的最後一格立即套用，確保最終位置完全一致。
+        sec = self._playback_slider_to_sec()
+        self._playback_pending_seek_sec = sec
+        if hasattr(self, "damage_playback_seek_timer"):
+            self.damage_playback_seek_timer.stop()
+        self._flush_damage_playback_live_seek()
+
+        if self._playback_resume_after_seek:
+            self.start_damage_playback()
+        self._playback_resume_after_seek = False
+
+    def _append_playback_until(self, sec):
+        """一次把這個 tick 到期的事件批次填入，避免每筆 insertRow 造成 UI 抖動。"""
+        times = self.damage_playback_times
+        source = self.damage_playback_source
+        cursor = self.damage_playback_cursor
+        end_idx = bisect.bisect_right(times, sec + 1e-9, lo=cursor)
+        if end_idx <= cursor:
+            return
+
+        # 全域播放固定從 0 秒累積，cursor 就是下一筆尚未顯示的事件。
+        first_idx = cursor
+        count = max(0, end_idx - first_idx)
+
+        if count:
+            old_rows = self.table_raw.rowCount()
+            self.table_raw.setUpdatesEnabled(False)
+            try:
+                self.table_raw.setRowCount(old_rows + count)
+                out_row = old_rows
+                for idx in range(first_idx, end_idx):
+                    self._populate_raw_table_row(out_row, source[idx])
+                    out_row += 1
+            finally:
+                self.table_raw.setUpdatesEnabled(True)
+            self.table_raw.viewport().update()
+            self.table_raw.scrollToBottom()
+
+        self.damage_playback_cursor = end_idx
+
+    def on_damage_playback_tick(self):
+        if not self.damage_playback_running:
+            return
+
+        elapsed = time.perf_counter() - self.damage_playback_wall_t0
+        current = self.damage_playback_base_sec + elapsed * self.damage_playback_speed
+        if current >= self.damage_playback_range_end:
+            current = self.damage_playback_range_end
+
+        self.damage_playback_current_sec = current
+        self._set_playback_slider_sec(current)
+
+        # v2.0：playhead 是全介面的時間上限。
+        # 這次更新會同步總傷害、技能統計、圖表、HUD、掉落與歷程。
+        self.apply_did_filter(playback_tick=True)
+        self._append_playback_until(current)
+
+        if current >= self.damage_playback_range_end - 1e-9:
+            self.pause_damage_playback()
+
+    def update_raw_table(self, force_full=False):
+        interval = self.refresh_input.value()
+        data = getattr(self, "current_filtered_raw", getattr(self, "current_filtered_data", []))
+        self._sync_damage_playback_source(data, keep_current=True)
+
+        # 播放模式中，外部篩選/重新解析更新資料時維持目前 playhead，
+        # 不突然把整張歷程表灌回 UI。
+        if self.damage_playback_mode and not force_full:
+            self._rebuild_playback_table_to_current()
+            return
+
+        self.table_raw.setRowCount(len(data))
+        for r, d in enumerate(data):
+            self._populate_raw_table_row(r, d)
+
+        if interval > 0:
+            self.table_raw.scrollToBottom()
+        self._resize_raw_table_columns()
 
     def resolve_drop_source_by_tolerance(self, drop_timestamp, drop_packet_pos, vanish_points=None):
         if vanish_points is None:
@@ -5106,6 +8315,9 @@ class MainUI(QWidget):
             self.tree_group.clear()
             return
 
+        # 全域播放時，變身次數也只計算到目前 playhead。
+        visible_state_change_count = self._get_transform_counts_for_display()
+
         # ------------------------------------------------
         # 1. 將所有資料依「整秒」分組
         # ------------------------------------------------
@@ -5223,7 +8435,7 @@ class MainUI(QWidget):
                     parent.addChild(child)
                                     
                 # ★ 顯示 monsterskin 的變身次數（type=9999）與機率
-                skin_dict = self.state_change_count.get(sid, {})  # dict: skin -> count
+                skin_dict = visible_state_change_count.get(sid, {})  # dict: skin -> count
                 attack_cnt = self.sid_attack_count.get(sid, 0)
 
                 for skin_id, cnt in sorted(skin_dict.items()):
@@ -5359,7 +8571,7 @@ class MainUI(QWidget):
                 parent.addChild(child)
                 
             # ★ 顯示 monsterskin 的變身次數（type=9999）與機率
-            skin_dict = self.state_change_count.get(sid, {})  # dict: skin -> count
+            skin_dict = visible_state_change_count.get(sid, {})  # dict: skin -> count
             attack_cnt = self.sid_attack_count.get(sid, 0)
 
             for skin_id, cnt in sorted(skin_dict.items()):
@@ -5542,6 +8754,9 @@ class MainUI(QWidget):
             start, end = self.damage_time_range
             if math.isfinite(start) and math.isfinite(end) and 0 < (end - start) <= 3.000001:
                 return 0.1
+        # 全域播放在最前 3 秒也使用真正的 0.1 秒分桶。
+        if self.damage_playback_mode and 0 < self.damage_playback_current_sec <= 3.000001:
+            return 0.1
         return 1.0
 
     def _damage_time_resolution_text(self):
@@ -5567,6 +8782,10 @@ class MainUI(QWidget):
         """回傳對齊 replay 絕對時間的 bucket index 範圍。"""
         if self.damage_time_range is not None:
             start, end = self.damage_time_range
+        elif self.damage_playback_mode:
+            # 全域播放的圖表永遠是 0 -> playhead 累積，而不是只看目前附近。
+            start = 0.0
+            end = max(0.0, float(self.damage_playback_current_sec))
         else:
             start = min(t for t, _ in timed_rows)
             end = max(t for t, _ in timed_rows)
@@ -5749,6 +8968,8 @@ class MainUI(QWidget):
             start, end = self.damage_time_range
             if end > start:
                 ax.set_xlim(start, end)
+        elif self.damage_playback_mode and self.damage_playback_current_sec > 0:
+            ax.set_xlim(0, self.damage_playback_current_sec)
         self.fig.subplots_adjust(left=0.20)
         self.setup_damage_span_selector(ax)
         self.canvas.draw()
@@ -5803,6 +9024,8 @@ class MainUI(QWidget):
             start, end = self.damage_time_range
             if end > start:
                 ax.set_xlim(start, end)
+        elif self.damage_playback_mode and self.damage_playback_current_sec > 0:
+            ax.set_xlim(0, self.damage_playback_current_sec)
         self.setup_damage_span_selector(ax)
         self.canvas.draw()
 
@@ -6158,7 +9381,977 @@ class MainUI(QWidget):
             parent.setExpanded(True)
 
 
-    def apply_did_filter(self, *_args):
+    # ========================================================
+    # v2.4：GAT 小地圖 / Replay actor state
+    # ========================================================
+    def _start_minimap_compute_process(self):
+        """啟動 v2.14 小地圖獨立計算 process；失敗時仍保留舊同步 fallback。"""
+        if self._minimap_compute_process is not None:
+            try:
+                if self._minimap_compute_process.is_alive():
+                    return True
+            except Exception:
+                pass
+        try:
+            self._minimap_compute_ctx = mp.get_context("spawn")
+            # source 是完整快照，保留 latest-only 即可；Replay frame request/result 則不可丟棄。
+            self._minimap_source_queue = self._minimap_compute_ctx.Queue(maxsize=1)
+            self._minimap_request_queue = self._minimap_compute_ctx.Queue()
+            self._minimap_result_queue = self._minimap_compute_ctx.Queue()
+            self._minimap_compute_process = self._minimap_compute_ctx.Process(
+                target=minimap_compute_process_main,
+                args=(self._minimap_source_queue, self._minimap_request_queue, self._minimap_result_queue),
+                name="RRF-Minimap-Compute",
+                daemon=True,
+            )
+            self._minimap_compute_process.start()
+            self._minimap_async_ready = True
+            self._minimap_async_last_error = ""
+            self._sync_minimap_compute_sources()
+            return True
+        except Exception as e:
+            self._minimap_async_ready = False
+            self._minimap_async_last_error = str(e)
+            print(f"[minimap async] 啟動失敗，改用同步模式: {e}")
+            return False
+
+    @staticmethod
+    def _queue_replace_latest(q, item):
+        if q is None:
+            return False
+        try:
+            while True:
+                q.get_nowait()
+        except queue.Empty:
+            pass
+        except Exception:
+            return False
+        try:
+            q.put_nowait(item)
+            return True
+        except queue.Full:
+            try:
+                q.get_nowait()
+                q.put_nowait(item)
+                return True
+            except Exception:
+                return False
+        except Exception:
+            return False
+
+    @staticmethod
+    def _queue_put_fifo(q, item):
+        """v2.19：Replay frame 用 FIFO；不覆蓋、不清空舊 request。"""
+        if q is None:
+            return False
+        try:
+            q.put_nowait(item)
+            return True
+        except queue.Full:
+            # request/result queue 在 v2.19 為 unbounded；保留 fallback，寧可等待也不丟。
+            try:
+                q.put(item, timeout=0.25)
+                return True
+            except Exception:
+                return False
+        except Exception:
+            return False
+
+    def _sync_minimap_compute_sources(self):
+        """把 actor timeline + 精簡傷害索引一次性送到 worker process。"""
+        if not getattr(self, "_minimap_async_ready", False):
+            return
+        process = getattr(self, "_minimap_compute_process", None)
+        if process is None:
+            return
+        try:
+            if not process.is_alive():
+                self._minimap_async_ready = False
+                return
+        except Exception:
+            return
+
+        # 只傳小地圖真正需要的欄位，避免把 parsed_data 全 dict pickle 過去。
+        damage_rows = []
+        ids = set()
+        include_zero_damage = bool(getattr(self, "show_zero_damage_checkbox", None)
+                                   and self.show_zero_damage_checkbox.isChecked())
+        for row in getattr(self, "parsed_data", []) or []:
+            try:
+                damage = int(row.get("damage", 0) or 0)
+                if damage < 0:
+                    continue
+                if damage == 0 and not include_zero_damage:
+                    continue
+                t = _packet_timestamp_to_seconds(row.get("timestamp"))
+                sid = int(row.get("sid", 0) or 0)
+                did = int(row.get("did", 0) or 0)
+                damage_rows.append((float(t), sid, did, damage, row.get("skill_name") or ""))
+                if sid:
+                    ids.add(sid)
+                if did:
+                    ids.add(did)
+            except Exception:
+                continue
+
+        events = [dict(ev) for ev in (getattr(self, "actor_map_events", []) or [])]
+        for ev in events:
+            aid = int(ev.get("aid", 0) or 0)
+            gid = int(ev.get("gid", 0) or 0)
+            if aid:
+                ids.add(aid)
+            if gid:
+                ids.add(gid)
+
+        names = {}
+        # 先吃現有快取，再以 event 內名稱補強；不在 worker process 重新掃 09FE。
+        for actor_id, name in getattr(self, "sid_name_map", {}).items():
+            if name:
+                names[int(actor_id)] = str(name)
+        for actor_id, name in getattr(self, "did_name_map", {}).items():
+            if name and int(actor_id) not in names:
+                names[int(actor_id)] = str(name)
+        for ev in events:
+            aid = int(ev.get("aid", 0) or 0)
+            raw_name = ev.get("name")
+            if aid and raw_name:
+                names[aid] = str(raw_name)
+        # 不在這裡對每個未知 ID 呼叫 find_actor_name_from_09fe()；那會造成
+        # O(ID數 × 完整封包數) 的重掃。09FE/entry 名稱已經由 did_name_map / events 帶入。
+
+        self._minimap_compute_source_version += 1
+        payload = {
+            "cmd": "sources",
+            "version": self._minimap_compute_source_version,
+            "events": events,
+            "damage_rows": damage_rows,
+            "names": names,
+            "guild_names": dict(getattr(self, "guild_id_name_map", {}) or {}),
+            "guild_aid_names": dict(getattr(self, "guild_aid_name_map", {}) or {}),
+            "self_sid": int(self.self_sid or 0),
+            "self_guild_id": int(getattr(self, "self_guild_id", 0) or 0),
+            "self_guild_name": str(getattr(self, "self_guild_name", "") or ""),
+        }
+        self._queue_replace_latest(self._minimap_source_queue, payload)
+
+    def _request_minimap_async_frame(self, sec):
+        if not getattr(self, "_minimap_async_ready", False):
+            return False
+        process = getattr(self, "_minimap_compute_process", None)
+        try:
+            if process is None or not process.is_alive():
+                self._minimap_async_ready = False
+                return False
+        except Exception:
+            return False
+
+        self._minimap_compute_request_seq += 1
+        selected_did = self.did_filter.currentData() if hasattr(self, "did_filter") else None
+        selected_sid = self.sid_filter.currentData() if hasattr(self, "sid_filter") else None
+        sec = max(0.0, float(sec or 0.0))
+        damage_range = tuple(self.damage_time_range) if self.damage_time_range is not None else None
+
+        # 人物位置要順：每個 16ms request 都算。傷害箭頭/文字只約每 100ms 更新一次。
+        # 暫停/seek/篩選改變時強制更新一次，避免停在舊傷害畫面。
+        now_wall = time.perf_counter()
+        filter_sig = (
+            selected_did, selected_sid, damage_range,
+            bool(getattr(self, "show_zero_damage_checkbox", None) and self.show_zero_damage_checkbox.isChecked()),
+        )
+        include_damage = (
+            not bool(getattr(self, "damage_playback_running", False))
+            or filter_sig != self._minimap_last_damage_filter_sig
+            or sec + 1e-9 < float(self._minimap_last_damage_request_sec)
+            or now_wall - float(self._minimap_last_damage_request_wall) >= float(self._minimap_damage_request_interval)
+        )
+        if include_damage:
+            self._minimap_last_damage_request_wall = now_wall
+            self._minimap_last_damage_request_sec = sec
+            self._minimap_last_damage_filter_sig = filter_sig
+
+        req = {
+            "cmd": "frame",
+            "seq": self._minimap_compute_request_seq,
+            "source_version": self._minimap_compute_source_version,
+            "sec": sec,
+            "selected_did": selected_did,
+            "selected_sid": selected_sid,
+            "damage_time_range": damage_range,
+            "include_damage": include_damage,
+        }
+        # v2.19：正常 Replay frame 嚴格排隊，不再 latest-only。
+        return self._queue_put_fifo(self._minimap_request_queue, req)
+
+    def _poll_minimap_async_result(self):
+        if not getattr(self, "_minimap_async_ready", False):
+            return False
+        q = getattr(self, "_minimap_result_queue", None)
+        if q is None:
+            return False
+        # v2.19：一次只套一個 FIFO result，讓中間 frame 真的有機會被畫出來。
+        # 不再 drain 到最後一幀。
+        try:
+            latest = q.get_nowait()
+        except queue.Empty:
+            return False
+        except Exception:
+            return False
+        if latest.get("error"):
+            err = latest.get("error")
+            if err != self._minimap_async_last_error:
+                self._minimap_async_last_error = err
+                print(f"[minimap async] 計算錯誤: {err}")
+            return False
+        if int(latest.get("source_version", -1)) != int(self._minimap_compute_source_version):
+            # source 與 request 經不同 multiprocessing.Queue 傳送，極少數情況 request
+            # 會比大型 source payload 先抵達。這一幀丟棄後立刻再請求目前 playhead，
+            # 避免暫停狀態只送過一次 request 而一直停在舊 frame。
+            if getattr(self, "minimap_window", None) is not None and self.minimap_window.isVisible():
+                if self.damage_playback_mode:
+                    retry_sec = float(self.damage_playback_current_sec or 0.0)
+                else:
+                    retry_sec = float(self._get_replay_end_sec() or 0.0)
+                self._request_minimap_async_frame(retry_sec)
+            return False
+        seq = int(latest.get("seq", -1))
+        if seq <= int(self._minimap_last_applied_seq):
+            return False
+        self._minimap_last_applied_seq = seq
+        self._apply_minimap_async_snapshot(latest)
+        return True
+
+    def _apply_minimap_async_snapshot(self, snapshot):
+        active_map = (snapshot.get("active_map") or self.current_map_name or "").strip()
+        self._minimap_active_map_name = active_map
+        if active_map:
+            self._switch_minimap_gat_for_map(active_map)
+
+        units = snapshot.get("units") or []
+        damage_updated = bool(snapshot.get("damage_updated", snapshot.get("links") is not None))
+        links = snapshot.get("links") if damage_updated else None
+        sec = float(snapshot.get("sec", 0.0) or 0.0)
+        selected_did = self.did_filter.currentData() if hasattr(self, "did_filter") else None
+        self.minimap_widget.set_frame(units, links, sec, highlight_aid=selected_did)
+
+        counts = snapshot.get("counts") or {}
+        if damage_updated:
+            self._minimap_last_damage_line_count = len(links or [])
+            self._minimap_last_damage_event_count = int(snapshot.get("damage_event_count", 0) or 0)
+        damage_line_count = int(getattr(self, "_minimap_last_damage_line_count", 0) or 0)
+        damage_event_count = int(getattr(self, "_minimap_last_damage_event_count", 0) or 0)
+        self.minimap_count_label.setText(f"時間 {self._format_playback_time(sec)}")
+        self.minimap_count_label.setToolTip(
+            f"自身 {int(counts.get('self', 0))}｜玩家 {int(counts.get('player', 0))}｜"
+            f"魔物 {int(counts.get('mob', 0))}｜寵物 {int(counts.get('pet', 0))}｜"
+            f"NPC {int(counts.get('npc', 0))}｜召喚 {int(counts.get('companion', 0))}｜"
+            f"其他 {int(counts.get('other', 0))}\n"
+            f"傷害線 {damage_line_count}組 / {damage_event_count}筆"
+        )
+
+    def _stop_minimap_compute_process(self):
+        process = getattr(self, "_minimap_compute_process", None)
+        if process is None:
+            return
+        self._minimap_async_ready = False
+        try:
+            self._queue_replace_latest(self._minimap_request_queue, {"cmd": "stop"})
+            self._queue_replace_latest(self._minimap_source_queue, {"cmd": "stop"})
+        except Exception:
+            pass
+        try:
+            process.join(timeout=0.8)
+        except Exception:
+            pass
+        try:
+            if process.is_alive():
+                process.terminate()
+                process.join(timeout=0.5)
+        except Exception:
+            pass
+        for q in (self._minimap_source_queue, self._minimap_request_queue, self._minimap_result_queue):
+            try:
+                q.close()
+                q.cancel_join_thread()
+            except Exception:
+                pass
+        self._minimap_compute_process = None
+
+    def _reset_minimap_replay_state(self):
+        self._minimap_actor_state = {}
+        self._minimap_recent_positions = {}
+        self._minimap_event_cursor = 0
+        self._minimap_state_time = -1.0
+        self._minimap_active_map_name = ""
+
+    def show_minimap_window(self):
+        if not hasattr(self, "minimap_window"):
+            return
+        # 由目前 playhead 決定應該載入哪張 GAT，不直接使用 Replay 最後一張地圖。
+        self._sync_damage_playback_source(
+            getattr(self, "current_filtered_raw", getattr(self, "current_filtered_data", [])),
+            keep_current=True,
+        )
+        self._sync_minimap_compute_sources()
+        self.refresh_minimap_for_time(force=True)
+        self.minimap_window.show()
+        self.minimap_window.raise_()
+        self.minimap_window.activateWindow()
+
+        # 打開小地圖就 zoom 到最近：最大倍率 20x，並把自身鎖在中央。
+        # 若自身座標尚未到達，set_frame() 取得自身後仍會依 follow_self 自動置中。
+        def _focus_nearest():
+            widget = self.minimap_widget
+            if widget.gat and widget._self_unit():
+                widget.follow_self = True
+                widget.zoom_factor = 20.0
+                unit = widget._self_unit()
+                widget._center_on_map_point(unit.get("x", 0.0), unit.get("y", 0.0))
+                widget._needs_initial_self_focus = False
+                widget.update()
+            else:
+                widget.follow_self = True
+                widget._needs_initial_self_focus = True
+
+        QTimer.singleShot(0, _focus_nearest)
+
+    @staticmethod
+    def _normalize_minimap_map_stem(map_name):
+        """
+        Replay 地圖名用於 GAT 對應。
+        使用者規則：名稱只要含 @，就忽略最前 3 個字元，從第 4 個字元開始。
+        """
+        normalized = (map_name or "").strip().replace("\\", "/")
+        base_name = os.path.basename(normalized)
+        stem = os.path.splitext(base_name)[0]
+        if "@" in stem and len(stem) > 3:
+            stem = stem[3:]
+        return stem
+
+    def _python_map_directory(self):
+        """取得目前 Python 程式檔所在目錄下的 MAP 資料夾；兼容大小寫。"""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        direct = os.path.join(base_dir, "MAP")
+        if os.path.isdir(direct):
+            return direct
+        try:
+            for name in os.listdir(base_dir):
+                candidate = os.path.join(base_dir, name)
+                if name.lower() == "map" and os.path.isdir(candidate):
+                    return candidate
+        except OSError:
+            pass
+        return direct
+
+    def choose_gat_file(self):
+        start_dir = os.path.dirname(self.gat_path) if self.gat_path else self._python_map_directory()
+        if not os.path.isdir(start_dir):
+            start_dir = os.path.dirname(os.path.abspath(__file__))
+        path, _ = QFileDialog.getOpenFileName(
+            self, "選擇 GAT 地圖", start_dir, "Ragnarok GAT (*.gat);;所有檔案 (*.*)"
+        )
+        if path:
+            self.load_gat_file(path)
+
+    def load_gat_file(self, path, quiet=False, map_name=None):
+        try:
+            gat = load_gat_navigation(path)
+        except Exception as e:
+            if not quiet:
+                QMessageBox.warning(self, "GAT 載入失敗", str(e))
+            return False
+
+        self.gat_data = gat
+        self.gat_path = gat["path"]
+        if hasattr(self, "minimap_widget"):
+            self.minimap_widget.set_gat(gat)
+        map_name = (map_name or self._minimap_active_map_name or self.current_map_name or "").strip()
+        self._minimap_loaded_map_name = map_name
+        if hasattr(self, "minimap_map_label"):
+            map_text = self._normalize_minimap_map_stem(map_name) or os.path.splitext(os.path.basename(path))[0]
+            self.minimap_map_label.setText(f"地圖：{map_text}")
+            self.minimap_map_label.setToolTip(
+                f"地圖：{map_text}\n尺寸：{gat['width']} x {gat['height']}\nGAT：{gat['version']}\n"
+                f"檔案：{os.path.basename(path)}"
+            )
+        return True
+
+    def _try_auto_load_gat_for_current_map(self):
+        return self._try_auto_load_gat_for_map(self.current_map_name)
+
+    def _try_auto_load_gat_for_map(self, map_name):
+        map_name = (map_name or "").strip()
+        if not map_name:
+            return False
+
+        stem = self._normalize_minimap_map_stem(map_name)
+        if not stem:
+            return False
+        lookup_key = (map_name, stem, os.path.dirname(os.path.abspath(__file__)))
+        if self._gat_autoload_attempted_map == lookup_key and self.gat_data is not None:
+            return True
+        self._gat_autoload_attempted_map = lookup_key
+
+        gat_name = stem + ".gat"
+        map_dir = self._python_map_directory()
+
+        # v2.4：只以「Python 程式檔所在目錄 / MAP」為自動 GAT 來源。
+        # Windows 本來不分大小寫；這裡額外做 case-insensitive 掃描，方便其他環境測試。
+        candidate = os.path.abspath(os.path.join(map_dir, gat_name))
+        if os.path.isfile(candidate) and self.load_gat_file(candidate, quiet=True, map_name=map_name):
+            return True
+
+        if os.path.isdir(map_dir):
+            wanted = gat_name.lower()
+            try:
+                for name in os.listdir(map_dir):
+                    if name.lower() == wanted:
+                        candidate = os.path.abspath(os.path.join(map_dir, name))
+                        if os.path.isfile(candidate) and self.load_gat_file(candidate, quiet=True, map_name=map_name):
+                            return True
+            except OSError:
+                pass
+
+        if hasattr(self, "minimap_map_label"):
+            self.minimap_map_label.setText(f"地圖：{stem}")
+            self.minimap_map_label.setToolTip(f"尚未找到 MAP\\{gat_name}")
+        return False
+
+    def _switch_minimap_gat_for_map(self, map_name):
+        """依播放時間切換 GAT；切回舊時間也會載回對應地圖。"""
+        map_name = (map_name or "").strip()
+        if not map_name:
+            return False
+
+        if self._minimap_loaded_map_name == map_name and self.gat_data is not None:
+            return True
+
+        # 先清舊圖，避免找不到新 GAT 時仍誤顯示前一張。
+        self.gat_data = None
+        self.gat_path = ""
+        self._minimap_loaded_map_name = ""
+        self._gat_autoload_attempted_map = None
+        if hasattr(self, "minimap_widget"):
+            self.minimap_widget.clear_map()
+
+        return self._try_auto_load_gat_for_map(map_name)
+
+    def _apply_minimap_event(self, event):
+        kind = event.get("kind")
+
+        if kind == "map_change":
+            # 切圖代表上一張地圖上的視野單位全部失效。
+            self._minimap_actor_state = {}
+            self._minimap_recent_positions = {}
+            self._minimap_active_map_name = (event.get("map_name") or "").strip()
+            return
+
+        # 0x0087 / ZC_ACCEPT_ENTER 不帶自己的 AID；由 Replay Session Aid 補上。
+        if event.get("self_event"):
+            aid = int(self.self_sid or 0)
+        else:
+            aid = int(event.get("aid", 0) or 0)
+        if not aid:
+            return
+
+        if kind == "vanish":
+            # ZC_NOTIFY_VANISH 欄位本身是 GID；傷害分析常用 AID/DID。
+            # 移除前保留最後位置 1 個 replay segment，讓致死傷害仍能畫到目標位置。
+            remove_aid = aid if aid in self._minimap_actor_state else next((
+                state_aid for state_aid, state in self._minimap_actor_state.items()
+                if int(state.get("gid", 0) or 0) == aid
+            ), None)
+            if remove_aid is not None:
+                state = self._minimap_actor_state.get(remove_aid) or {}
+                x = float(state.get("x", 0.0) or 0.0)
+                y = float(state.get("y", 0.0) or 0.0)
+                move = state.get("move")
+                if move:
+                    mt = float(event.get("time", 0.0) or 0.0)
+                    start = float(move.get("start", 0.0) or 0.0)
+                    duration = max(0.001, float(move.get("duration", 0.001) or 0.001))
+                    ratio = min(1.0, max(0.0, (mt - start) / duration))
+                    x = move["from_x"] + (move["to_x"] - move["from_x"]) * ratio
+                    y = move["from_y"] + (move["to_y"] - move["from_y"]) * ratio
+                self._minimap_recent_positions[remove_aid] = {
+                    "x": x, "y": y, "time": float(event.get("time", 0.0) or 0.0),
+                    "name": state.get("name", ""), "category": minimap_category_from_client_object_type(state.get("object_type", 0)),
+                }
+                self._minimap_actor_state.pop(remove_aid, None)
+            return
+
+        state = self._minimap_actor_state.get(aid, {"aid": aid})
+        state["gid"] = event.get("gid", state.get("gid", 0))
+        state["object_type"] = event.get("object_type", state.get("object_type", 0))
+        state["job"] = event.get("job", state.get("job", 0))
+        details_for_guild = event.get("details") if isinstance(event.get("details"), dict) else {}
+        event_guild_id = int(event.get("guild_id", details_for_guild.get("guild_id", state.get("guild_id", 0))) or 0)
+        if event.get("self_event") and not event_guild_id:
+            event_guild_id = int(getattr(self, "self_guild_id", 0) or 0)
+        if event_guild_id:
+            state["guild_id"] = event_guild_id
+        resolved_guild_name = (
+            event.get("guild_name")
+            or getattr(self, "guild_aid_name_map", {}).get(aid, "")
+            or (getattr(self, "self_guild_name", "") if self.self_sid and aid == int(self.self_sid) else "")
+            or getattr(self, "guild_id_name_map", {}).get(int(state.get("guild_id", 0) or 0), "")
+            or state.get("guild_name", "")
+        )
+        if resolved_guild_name:
+            state["guild_name"] = resolved_guild_name
+        if event.get("speed"):
+            state["speed"] = abs(float(event.get("speed") or 0))
+        raw_name = event.get("name")
+        if raw_name:
+            state["name"] = raw_name
+        details = event.get("details")
+        if isinstance(details, dict):
+            merged_details = dict(state.get("details") or {})
+            merged_details.update(details)
+            state["details"] = merged_details
+        state["last_event_kind"] = kind
+        state["last_event_timestamp"] = event.get("timestamp", state.get("last_event_timestamp", ""))
+        state["last_packet_opcode"] = int(event.get("opcode", state.get("last_packet_opcode", 0)) or 0)
+
+        if kind in ("spawn", "stand", "self_pos", "stop"):
+            state["x"] = float(event.get("x", state.get("x", 0)) or 0)
+            state["y"] = float(event.get("y", state.get("y", 0)) or 0)
+            state["move"] = None
+        elif kind == "move":
+            event_time = float(event.get("time", 0.0) or 0.0)
+            packet_fx = float(event.get("from_x", state.get("x", 0)) or 0)
+            packet_fy = float(event.get("from_y", state.get("y", 0)) or 0)
+            tx = float(event.get("to_x", packet_fx) or packet_fx)
+            ty = float(event.get("to_y", packet_fy) or packet_fy)
+
+            # v2.13：新 move 包到達時，先算上一段在「這一刻」應該走到哪。
+            # 若和新包的 from 只差幾格，沿用連續位置作視覺起點；這可以消掉
+            # 因 client/server speed 誤差造成的 1~3 格往回拉扯。真正的大幅校正/瞬移仍尊重封包。
+            fx, fy = packet_fx, packet_fy
+            previous_move = state.get("move")
+            if previous_move:
+                prev_start = float(previous_move.get("start", 0.0) or 0.0)
+                prev_duration = max(0.001, float(previous_move.get("duration", 0.001) or 0.001))
+                prev_ratio = min(1.0, max(0.0, (event_time - prev_start) / prev_duration))
+                predicted_x = float(previous_move.get("from_x", 0.0)) + (float(previous_move.get("to_x", 0.0)) - float(previous_move.get("from_x", 0.0))) * prev_ratio
+                predicted_y = float(previous_move.get("from_y", 0.0)) + (float(previous_move.get("to_y", 0.0)) - float(previous_move.get("from_y", 0.0))) * prev_ratio
+                if math.hypot(predicted_x - packet_fx, predicted_y - packet_fy) <= 4.0:
+                    fx, fy = predicted_x, predicted_y
+
+            # 09FD 的 speed 是每一格的基準走路時間；斜走在 server 端成本較高。
+            # 舊版用 Chebyshev max(dx,dy) 會把所有斜步當成一般一步，導致越走越超前，
+            # 下一個封包一來就往回跳。改成直走 + 約 sqrt(2) 的斜走時間。
+            speed_ms = max(1.0, float(event.get("speed", 0) or state.get("speed", 0) or 150.0))
+            dx_cells = abs(tx - fx)
+            dy_cells = abs(ty - fy)
+            diagonal_cells = min(dx_cells, dy_cells)
+            straight_cells = max(dx_cells, dy_cells) - diagonal_cells
+            weighted_cells = straight_cells + diagonal_cells * math.sqrt(2.0)
+            duration = max(0.05, weighted_cells * speed_ms / 1000.0) if weighted_cells > 0 else 0.05
+
+            # 如果同一 actor 的下一個位置包在預估走完之前就出現，代表途中改向/校正。
+            # 直接讓本段在下一包時間點抵達「下一包的起點」，可保證段與段連續，
+            # 不會先走過頭再瞬間倒退。若下一包很晚才到，仍照 speed 正常抵達後等待。
+            next_time = event.get("_next_pos_time")
+            next_x = event.get("_next_pos_x")
+            next_y = event.get("_next_pos_y")
+            if next_time is not None:
+                dt = float(next_time) - event_time
+                if dt > 0.02 and next_x is not None and next_y is not None:
+                    next_x = float(next_x)
+                    next_y = float(next_y)
+                    target_gap = math.hypot(next_x - tx, next_y - ty)
+                    interrupted = dt < duration - 0.02
+                    near_expected_timing = dt <= duration * 1.25
+                    if interrupted or (target_gap > 0.75 and near_expected_timing):
+                        tx, ty = next_x, next_y
+                        duration = max(0.05, dt)
+
+            state["x"] = fx
+            state["y"] = fy
+            state["move"] = {
+                "start": event_time,
+                "duration": duration,
+                "from_x": fx, "from_y": fy, "to_x": tx, "to_y": ty,
+                "packet_from_x": packet_fx, "packet_from_y": packet_fy,
+                "speed_ms": speed_ms,
+            }
+
+        self._minimap_actor_state[aid] = state
+
+    def _advance_minimap_state_to(self, sec):
+        sec = max(0.0, float(sec or 0.0))
+        events = getattr(self, "actor_map_events", [])
+
+        # 往回 seek 必須重播位置事件；往前則只吃新增事件。
+        if sec + 1e-9 < self._minimap_state_time:
+            self._reset_minimap_replay_state()
+
+        cursor = self._minimap_event_cursor
+        while cursor < len(events) and float(events[cursor].get("time", 0.0)) <= sec + 1e-9:
+            self._apply_minimap_event(events[cursor])
+            cursor += 1
+        self._minimap_event_cursor = cursor
+        self._minimap_state_time = sec
+
+    def _seed_minimap_self_from_next_event(self, sec):
+        """
+        剛進圖若沒有留下可用的 ACCEPT_ENTER，自身在第一次移動前仍應可見。
+        往目前 map segment 後面找第一個自身位置事件：
+        - 0x0087 move：使用 from_x/from_y 當作進圖初始位置
+        - self_pos/stand/stop：使用該事件座標
+        只回填顯示位置，不提前套用移動本身。
+        """
+        self_aid = int(self.self_sid or 0)
+        if not self_aid or self_aid in self._minimap_actor_state:
+            return
+
+        events = getattr(self, "actor_map_events", [])
+        cursor = int(self._minimap_event_cursor or 0)
+        seed_event = None
+        seed_x = seed_y = None
+
+        for idx in range(cursor, len(events)):
+            event = events[idx]
+            if event.get("kind") == "map_change":
+                # 下一次切圖之後的座標不屬於目前地圖。
+                break
+
+            is_self_event = bool(event.get("self_event"))
+            event_aid = int(event.get("aid", 0) or 0)
+            if not is_self_event and event_aid != self_aid:
+                continue
+
+            kind = event.get("kind")
+            if kind == "move":
+                seed_x = event.get("from_x")
+                seed_y = event.get("from_y")
+            elif kind in ("self_pos", "stand", "stop", "spawn"):
+                seed_x = event.get("x")
+                seed_y = event.get("y")
+            else:
+                continue
+
+            if seed_x is not None and seed_y is not None:
+                seed_event = event
+                break
+
+        if seed_event is None:
+            return
+
+        state = {
+            "aid": self_aid,
+            "gid": int(seed_event.get("gid", 0) or 0),
+            "object_type": 0x00,
+            "job": int(seed_event.get("job", 0) or 0),
+            "guild_id": int(seed_event.get("guild_id", (seed_event.get("details") or {}).get("guild_id", getattr(self, "self_guild_id", 0))) or getattr(self, "self_guild_id", 0) or 0),
+            "guild_name": (seed_event.get("guild_name") or getattr(self, "self_guild_name", "") or getattr(self, "guild_aid_name_map", {}).get(self_aid, "") or getattr(self, "guild_id_name_map", {}).get(int(seed_event.get("guild_id", (seed_event.get("details") or {}).get("guild_id", getattr(self, "self_guild_id", 0))) or getattr(self, "self_guild_id", 0) or 0), "")),
+            "name": self.lookup_actor_name(self_aid) or "",
+            "x": float(seed_x or 0.0),
+            "y": float(seed_y or 0.0),
+            "move": None,
+            "details": dict(seed_event.get("details") or {}),
+            "last_event_kind": seed_event.get("kind", ""),
+            "last_event_timestamp": seed_event.get("timestamp", ""),
+            "last_packet_opcode": int(seed_event.get("opcode", 0) or 0),
+        }
+        self._minimap_actor_state[self_aid] = state
+
+    def _minimap_units_at(self, sec):
+        self._advance_minimap_state_to(sec)
+        # v2.8：若進圖封包沒有自身座標，用之後第一個自身移動的起點回填。
+        self._seed_minimap_self_from_next_event(sec)
+        units = []
+
+        for aid, state in self._minimap_actor_state.items():
+            x = float(state.get("x", 0.0) or 0.0)
+            y = float(state.get("y", 0.0) or 0.0)
+            move = state.get("move")
+            if move:
+                start = float(move.get("start", 0.0))
+                duration = max(0.001, float(move.get("duration", 0.001)))
+                ratio = min(1.0, max(0.0, (float(sec) - start) / duration))
+                x = move["from_x"] + (move["to_x"] - move["from_x"]) * ratio
+                y = move["from_y"] + (move["to_y"] - move["from_y"]) * ratio
+
+            object_type = int(state.get("object_type", 0) or 0) & 0xFF
+            # 這裡不能用 BL_* bitmask。09FD/09FE/09FF 的 objecttype 是
+            # clif_bl_type() 產生的 client actor type：0=玩家、5=魔物、
+            # 6=NPC、7=寵物、8=生命體、9=傭兵、10=元素等。
+            category = minimap_category_from_client_object_type(object_type)
+
+            # 小地圖名稱先使用 entry packet，缺少時再回查既有 AID/DID 名稱表。
+            name = state.get("name") or self.lookup_actor_name(aid) or f"AID {aid}"
+            units.append({
+                "aid": aid, "gid": state.get("gid", 0), "name": name,
+                "object_type": object_type,
+                "object_type_name": CLIENT_ACTOR_TYPE_NAMES.get(object_type, f"TYPE_0x{object_type:02X}"),
+                "category": category,
+                "job": state.get("job", 0),
+                "guild_id": int(state.get("guild_id", 0) or 0),
+                "guild_name": state.get("guild_name") or getattr(self, "guild_aid_name_map", {}).get(int(aid), "") or (getattr(self, "self_guild_name", "") if self.self_sid and int(aid) == int(self.self_sid) else "") or getattr(self, "guild_id_name_map", {}).get(int(state.get("guild_id", 0) or 0), ""),
+                "speed": state.get("speed", 0), "x": x, "y": y,
+                "is_self": bool(self.self_sid and aid == self.self_sid),
+                "last_event_kind": state.get("last_event_kind", ""),
+                "last_event_timestamp": state.get("last_event_timestamp", ""),
+                "last_packet_opcode": state.get("last_packet_opcode", 0),
+                "details": dict(state.get("details") or {}),
+            })
+            self._minimap_recent_positions[aid] = {
+                "x": x, "y": y, "time": float(sec), "name": name, "category": category,
+            }
+        return units
+
+    def _ensure_minimap_damage_index(self):
+        """建立全傷害事件的時間索引；資料未改變時 60FPS frame 不重掃整份 parsed_data。"""
+        source = getattr(self, "parsed_data", [])
+        last_ts = source[-1].get("timestamp") if source else None
+        signature = (id(source), len(source), last_ts)
+        if signature == self._minimap_damage_index_signature:
+            return
+
+        indexed = []
+        include_zero_damage = bool(getattr(self, "show_zero_damage_checkbox", None)
+                                   and self.show_zero_damage_checkbox.isChecked())
+        for row in source:
+            damage = int(row.get("damage", 0) or 0)
+            if damage < 0 or (damage == 0 and not include_zero_damage):
+                continue
+            t = self.timestamp_to_float_seconds(row.get("timestamp"))
+            if t is None:
+                continue
+            indexed.append((float(t), row))
+        indexed.sort(key=lambda item: item[0])
+        self._minimap_damage_times = [item[0] for item in indexed]
+        self._minimap_damage_rows = [item[1] for item in indexed]
+        self._minimap_damage_index_signature = signature
+
+    def _minimap_damage_links_at(self, sec, units):
+        """建立 playhead 最近 1 秒內的 SID→DID 攻擊關係線。
+
+        使用 trailing window [sec-1, sec]，所以播放時不會預先看到該秒尚未發生的攻擊。
+        同一 SID→DID 在視窗內合併成一條線並累計傷害/次數。
+        """
+        sec = max(0.0, float(sec or 0.0))
+        window_sec = 1.0
+        start_sec = max(0.0, sec - window_sec)
+
+        # 目前畫面上的位置優先；剛死亡/剛離場的目標使用最後已知位置，
+        # 讓致死傷害線不會在 VANISH 後立刻消失。
+        positions = {
+            int(u.get("aid", 0) or 0): (float(u.get("x", 0.0)), float(u.get("y", 0.0)))
+            for u in units if int(u.get("aid", 0) or 0)
+        }
+        for aid, pos in getattr(self, "_minimap_recent_positions", {}).items():
+            if aid not in positions and sec - float(pos.get("time", -9999.0) or -9999.0) <= 1.25:
+                positions[int(aid)] = (float(pos.get("x", 0.0)), float(pos.get("y", 0.0)))
+
+        grouped = {}
+        # v2.12：以 parsed_data 的時間索引 bisect 最近 1 秒，不再 60FPS 全表掃描。
+        self._ensure_minimap_damage_index()
+        times = self._minimap_damage_times
+        rows = self._minimap_damage_rows
+        lo = bisect.bisect_left(times, start_sec - 1e-9)
+        hi = bisect.bisect_right(times, sec + 1e-9)
+        selected_did = self.did_filter.currentData() if hasattr(self, "did_filter") else None
+        selected_sid = self.sid_filter.currentData() if hasattr(self, "sid_filter") else None
+
+        for idx in range(lo, hi):
+            row = rows[idx]
+            t = times[idx]
+            damage = int(row.get("damage", 0) or 0)
+            if damage < 0:
+                continue
+            sid = int(row.get("sid", 0) or 0)
+            did = int(row.get("did", 0) or 0)
+            if selected_did is not None and did != int(selected_did):
+                continue
+            if selected_sid is not None and sid != int(selected_sid):
+                continue
+            if self.damage_time_range is not None:
+                rs, re_ = self.damage_time_range
+                if t < rs - 1e-9 or t > re_ + 1e-9:
+                    continue
+            if not sid or not did or sid == did:
+                continue
+            if sid not in positions or did not in positions:
+                continue
+            key = (sid, did)
+            item = grouped.setdefault(key, {
+                "sid": sid, "did": did, "damage": 0, "count": 0, "latest_time": t,
+                "skills": set(),
+            })
+            item["damage"] += damage
+            item["count"] += 1
+            item["latest_time"] = max(float(item["latest_time"]), float(t))
+            skill = row.get("skill_name")
+            if skill:
+                item["skills"].add(str(skill))
+
+        links = []
+        for item in grouped.values():
+            sx, sy = positions[item["sid"]]
+            tx, ty = positions[item["did"]]
+            links.append({
+                **item,
+                "source_x": sx, "source_y": sy,
+                "target_x": tx, "target_y": ty,
+                "age": max(0.0, sec - float(item["latest_time"])),
+                "source_name": self.lookup_actor_name(item["sid"]) or f"AID {item['sid']}",
+                "target_name": self.lookup_actor_name(item["did"]) or f"AID {item['did']}",
+                "skills": sorted(item["skills"]),
+            })
+        links.sort(key=lambda x: (x.get("age", 0.0), -x.get("damage", 0)))
+        return links
+
+    def refresh_minimap_for_time(self, force=False, sec_override=None):
+        if not hasattr(self, "minimap_widget"):
+            return
+        # 小地圖視窗沒開時不做 frame request；打開視窗會立刻補到 playhead。
+        if not force:
+            window = getattr(self, "minimap_window", None)
+            if window is None or not window.isVisible():
+                return
+
+        if sec_override is not None:
+            sec = max(0.0, float(sec_override))
+        elif self.damage_playback_mode:
+            sec = max(0.0, float(self.damage_playback_current_sec))
+        else:
+            sec = self._get_replay_end_sec()
+
+        # v2.14：正常路徑只送 playhead 給獨立 process。GUI 不再重建 actor state / 掃傷害。
+        if self._request_minimap_async_frame(sec):
+            self._poll_minimap_async_result()
+            return
+
+        # process 不可用時保留舊同步 fallback。
+        units = self._minimap_units_at(sec)
+
+        # 全域時間軸決定地圖。若 replay 沒有 map_change event，才退回最新 metadata。
+        active_map = (self._minimap_active_map_name or self.current_map_name or "").strip()
+        if active_map:
+            self._switch_minimap_gat_for_map(active_map)
+
+        damage_links = self._minimap_damage_links_at(sec, units)
+        selected_did = self.did_filter.currentData() if hasattr(self, "did_filter") else None
+        self.minimap_widget.set_frame(units, damage_links, sec, highlight_aid=selected_did)
+
+        self_count = sum(1 for u in units if u.get("is_self"))
+        players = sum(1 for u in units if u["category"] == "player" and not u.get("is_self"))
+        mobs = sum(1 for u in units if u["category"] == "mob")
+        pets = sum(1 for u in units if u["category"] == "pet")
+        npcs = sum(1 for u in units if u["category"] == "npc")
+        companions = sum(1 for u in units if u["category"] == "companion")
+        others = sum(1 for u in units if u["category"] == "other")
+        damage_event_count = sum(int(link.get("count", 0) or 0) for link in damage_links)
+        self.minimap_count_label.setText(f"時間 {self._format_playback_time(sec)}")
+        self.minimap_count_label.setToolTip(
+            f"自身 {self_count}｜玩家 {players}｜魔物 {mobs}｜寵物 {pets}｜"
+            f"NPC {npcs}｜召喚 {companions}｜其他 {others}\n"
+            f"傷害線 {len(damage_links)}組 / {damage_event_count}筆"
+        )
+
+    def on_minimap_render_tick(self):
+        """v2.19：60FPS UI poll/request；正常播放按 FIFO 套用每一個 snapshot，不跳幀。"""
+        window = getattr(self, "minimap_window", None)
+        if window is None or not window.isVisible():
+            return
+
+        # 先收 worker 已完成的 frame；沒有新 frame 時沿用上一幀，不阻塞 UI。
+        self._poll_minimap_async_result()
+
+        if not self.damage_playback_running:
+            return
+        # 使用 wall clock 推算欲播放時間；request 會 FIFO 排隊。
+        # 若計算跟不上，視覺回放會延後，而不是直接跳掉中間 frame。
+        sec = self.damage_playback_base_sec + (
+            time.perf_counter() - self.damage_playback_wall_t0
+        ) * self.damage_playback_speed
+        sec = min(max(sec, self.damage_playback_range_start), self.damage_playback_range_end)
+        self._request_minimap_async_frame(sec)
+
+    def on_minimap_unit_selected(self, unit):
+        if not unit:
+            return
+        if unit.get("is_self"):
+            category_name = "自身"
+        else:
+            category_name = {
+                "player": "玩家", "mob": "魔物", "pet": "寵物", "npc": "NPC",
+                "companion": "召喚/傭兵", "other": "其他"
+            }.get(unit.get("category"), "其他")
+        guild_id = int(unit.get("guild_id", 0) or 0)
+        guild_name = (unit.get("guild_name") or self.guild_aid_name_map.get(int(unit.get("aid", 0) or 0), "") or (self.self_guild_name if unit.get("is_self") else "") or (self.guild_id_name_map.get(guild_id, "") if guild_id else ""))
+        guild_text = f"{guild_name} [{guild_id}]" if guild_name else (f"GuildID {guild_id}" if guild_id else "無公會")
+        # v2.24：選取資訊不再常駐占用上方空間；單位詳細資料由 hover Tooltip 顯示。
+        self.minimap_selected_label.setText("")
+        if hasattr(self, "minimap_widget"):
+            self.minimap_widget.setToolTip(self.minimap_widget._unit_hover_tooltip(unit))
+
+    def on_minimap_unit_context_requested(self, unit):
+        """右鍵單位：顯示目前快照 + 最近一包 actor 封包的完整解析欄位。"""
+        if not unit:
+            return
+
+        def flatten(prefix, value, rows):
+            if isinstance(value, dict):
+                for k, v in value.items():
+                    child = f"{prefix}.{k}" if prefix else str(k)
+                    flatten(child, v, rows)
+            elif isinstance(value, (list, tuple, set)):
+                rows.append((prefix, ", ".join(str(x) for x in value)))
+            else:
+                rows.append((prefix, str(value)))
+
+        if unit.get("is_self"):
+            category_name = "自身"
+        else:
+            category_name = {
+                "player": "玩家", "mob": "魔物", "pet": "寵物", "npc": "NPC",
+                "companion": "召喚/傭兵", "other": "其他"
+            }.get(unit.get("category"), "其他")
+
+        rows = [
+            ("目前.類型", category_name),
+            ("目前.名稱", str(unit.get("name", ""))),
+            ("目前.AID", str(unit.get("aid", 0))),
+            ("目前.GID", str(unit.get("gid", 0))),
+            ("目前.GuildID", str(unit.get("guild_id", 0))),
+            ("目前.公會名稱", str(unit.get("guild_name") or self.guild_id_name_map.get(int(unit.get("guild_id", 0) or 0), ""))),
+            ("目前.ObjectType", f"0x{int(unit.get('object_type', 0) or 0):02X} ({unit.get('object_type_name', '')})"),
+            ("目前.Job", str(unit.get("job", 0))),
+            ("目前.Speed", str(unit.get("speed", 0))),
+            ("目前.X", f"{float(unit.get('x', 0.0) or 0.0):.3f}"),
+            ("目前.Y", f"{float(unit.get('y', 0.0) or 0.0):.3f}"),
+            # ("最近事件", str(unit.get("last_event_kind", ""))),
+            # ("最近事件時間", str(unit.get("last_event_timestamp", ""))),
+            # ("最近Opcode", f"0x{int(unit.get('last_packet_opcode', 0) or 0):04X}"),
+        ]
+        # details = unit.get("details") or {}
+        # if details:
+        #     flatten("封包", details, rows)
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"單位完整資料 - {unit.get('name') or unit.get('aid', '')}")
+        dialog.resize(400, 500)
+        vbox = QVBoxLayout(dialog)
+        table = QTableWidget(len(rows), 2, dialog)
+        table.setHorizontalHeaderLabels(["欄位", "值"])
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.verticalHeader().setVisible(False)
+        for r, (key, value) in enumerate(rows):
+            table.setItem(r, 0, QTableWidgetItem(str(key)))
+            table.setItem(r, 1, QTableWidgetItem(str(value)))
+        table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        vbox.addWidget(table)
+        close_btn = QPushButton("關閉")
+        close_btn.clicked.connect(dialog.accept)
+        vbox.addWidget(close_btn)
+        dialog.exec()
+
+    def apply_did_filter(self, *_args, playback_tick=False):
         """同時套用攻方 SID 與受方 DID 篩選。"""
         selected_did_text = self.did_filter.currentText()
 
@@ -6174,6 +10367,10 @@ class MainUI(QWidget):
             d for d in raw_base
             if d.get("skill_name") not in STAT_SKILL_NAMES
         ]
+
+        # v2.16：只隱藏真正攻擊事件中的 damage==0，不影響狀態/能力變動等本來就是 damage=0 的事件。
+        if not self.show_zero_damage_checkbox.isChecked():
+            raw_source = [d for d in raw_source if not d.get("zero_damage_event", False)]
 
         # 「傷害歷程顯示狀態」是狀態總開關，預設開啟：
         #   1) 一般狀態開始 / 結束，再由「狀態開始 / 結束」子選項控制。
@@ -6198,6 +10395,8 @@ class MainUI(QWidget):
             ]
 
         filtered_damage = self.parsed_data
+        if not self.show_zero_damage_checkbox.isChecked():
+            filtered_damage = [d for d in filtered_damage if not d.get("zero_damage_event", False)]
         filtered_raw = raw_source
 
         # 掉落頁沒有攻方 SID，因此只跟隨受方 DID 篩選。
@@ -6245,16 +10444,40 @@ class MainUI(QWidget):
             filtered_damage = [d for d in filtered_damage if in_selected_range(d)]
             filtered_raw = [d for d in filtered_raw if in_selected_range(d)]
 
+        # v2.0：全域 playhead 是「時間上限」。
+        # 例如滑到 60 秒，所有統計都使用 0～60 秒已發生的內容。
+        if self.damage_playback_mode:
+            cutoff = max(0.0, float(self.damage_playback_current_sec))
+
+            def before_playhead(row):
+                t = self.timestamp_to_float_seconds(row.get("timestamp"))
+                return t is not None and t <= cutoff + 1e-9
+
+            filtered_damage = [d for d in filtered_damage if before_playhead(d)]
+            filtered_raw = [d for d in filtered_raw if before_playhead(d)]
+            self.current_drop_filtered_raw = [
+                d for d in self.current_drop_filtered_raw if before_playhead(d)
+            ]
+            self.current_drop_data = [
+                d for d in self.current_drop_data if before_playhead(d)
+            ]
+
         self.current_filtered_data = list(filtered_damage)
         self.current_filtered_raw = list(filtered_raw)
         self.update_damage_range_label()
 
-        self.update_raw_table()
+        # 播放 tick 時傷害歷程採增量 append，避免每 0.1 秒重建整張表。
+        # 手動拖曳/篩選改變時仍完整重建，確保 0～playhead 的內容正確。
+        if not playback_tick:
+            self.update_raw_table()
         self.update_drop_table()
         self.update_monster_drop_tree()
         self.update_group_tree()
         self.refresh_chart()
         self.update_hud_top5()
+        # 播放中由獨立 60FPS timer 負責小地圖；seek/暫停/篩選變更仍立即刷新。
+        if not (playback_tick and self.damage_playback_running):
+            self.refresh_minimap_for_time()
 
 
     def get_active_filter_title(self):
@@ -6393,6 +10616,22 @@ class MainUI(QWidget):
 
         self.canvas.draw()
 
+    def closeEvent(self, event):
+        """關閉主程式時停止小地圖獨立 process，避免背景程序殘留。"""
+        try:
+            self._stop_minimap_compute_process()
+        except Exception:
+            pass
+        try:
+            if self.worker_thread and self.worker_thread.isRunning():
+                if self.worker:
+                    self.worker.stop()
+                self.worker_thread.quit()
+                self.worker_thread.wait(500)
+        except Exception:
+            pass
+        super().closeEvent(event)
+
     def enterEvent(self, event):
         """滑鼠進入視窗 → 暫停自動更新（但不影響正在解析）"""
         if not self.is_processing and self.auto_timer.isActive():
@@ -6420,6 +10659,8 @@ class MainUI(QWidget):
 # MAIN
 # ============================================================
 if __name__ == "__main__":
+    # v2.14：Windows spawn / 未來 PyInstaller 都需要 freeze_support。
+    mp.freeze_support()
     app = QApplication(sys.argv)
     ui = MainUI()
     ui.show()

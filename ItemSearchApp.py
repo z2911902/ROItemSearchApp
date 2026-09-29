@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.10-260920"
+Version = "v0.8.11-260929"
 Server_area = "TwRO"
 
 import sys, builtins, time

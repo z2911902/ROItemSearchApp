@@ -35,7 +35,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.85"
+RO_CORE_VERSION = "v0.21.86"
 
 from dataclasses import dataclass, field
 import ast
@@ -395,8 +395,8 @@ def parse_lub_text(
 ) -> dict[int, dict[str, Any]]:
     """把 iteminfo 格式的 Lua 文字解析成既有 Desktop dictionary 結構。
 
-    解析規則與目前 ``ItemSearchApp.parse_lub_file`` 一致。與 Desktop 函式不同，
-    此處直接接受文字，因此可用於 API 與單元測試，不需要 filesystem / UI 依賴。
+    同一個來源檔案內若有重複 ID，以最後出現的資料為準。
+    與 existing_items 發生重複時，則依 duplicate_mode 決定 skip / overwrite。
     """
     item_entries = re.findall(
         r"\[(\d+)\]\s*=\s*{(.*?)}(?=,\s*\[\d+\]|\s*\[\d+\]|\s*$)",
@@ -404,15 +404,16 @@ def parse_lub_text(
         re.DOTALL,
     )
 
-    parsed_items = existing_items.copy() if existing_items is not None else {}
-
     total = len(item_entries)
+
     if verbose:
         print(f"📦 開始讀取 {source_name}，共 {total} 筆物品資料。")
 
-    added_count = 0
-    overwritten_count = 0
-    skipped_count = 0
+    # 先解析「目前這一個檔案」
+    # 同檔案有相同 ID 時，後面的直接覆蓋前面的。
+    file_items: dict[int, dict[str, Any]] = {}
+
+    file_duplicate_count = 0
 
     for index, (item_id, body) in enumerate(item_entries, start=1):
         try:
@@ -420,28 +421,39 @@ def parse_lub_text(
                 print(f"  → 正在讀取第 {index}/{total} 筆", end="\r")
 
             item_id = int(item_id)
+
             identified_name = re.search(
-                r'(?<!un)identifiedDisplayName\s*=\s*"([^"]+)"', body
+                r'(?<!un)identifiedDisplayName\s*=\s*"([^"]+)"',
+                body,
             )
             kr_name = re.search(
-                r'(?<!un)identifiedResourceName\s*=\s*"([^"]+)"', body
+                r'(?<!un)identifiedResourceName\s*=\s*"([^"]+)"',
+                body,
             )
-            slot = re.search(r"slotCount\s*=\s*(\d+)", body)
+            slot = re.search(
+                r"slotCount\s*=\s*(\d+)",
+                body,
+            )
 
             desc_match = re.search(
                 r"(?<!un)identifiedDescriptionName\s*=\s*{(.*?)}",
                 body,
                 re.DOTALL,
             )
+
             if desc_match:
                 desc_body = desc_match.group(1)
                 desc_lines_raw = re.findall(r'"([^"]*)"', desc_body)
+
                 desc_lines: list[str] = []
+
                 for line in desc_lines_raw:
                     cleaned = line.strip()
+
                     # 控制碼行過濾，但保留真正空白行
                     if re.fullmatch(r"\^?[a-fA-F0-9]+", cleaned):
                         continue
+
                     if cleaned == "":
                         desc_lines.append("")
                     else:
@@ -452,9 +464,13 @@ def parse_lub_text(
             if identified_name and kr_name and slot:
                 base_name = identified_name.group(1).strip()
                 slot_count = int(slot.group(1))
+
                 display_name = (
-                    f"{base_name} [{slot_count}]" if slot_count > 0 else base_name
+                    f"{base_name} [{slot_count}]"
+                    if slot_count > 0
+                    else base_name
                 )
+
                 new_item = {
                     "name": display_name,
                     "base_name": base_name,
@@ -463,19 +479,48 @@ def parse_lub_text(
                     "slot": slot_count,
                 }
 
-                if item_id in parsed_items:
-                    if duplicate_mode == "overwrite":
-                        parsed_items[item_id] = new_item
-                        overwritten_count += 1
-                    elif duplicate_mode == "skip":
-                        skipped_count += 1
-                        continue
-                else:
-                    parsed_items[item_id] = new_item
-                    added_count += 1
+                # 同一份檔案內重複：
+                # 永遠以最後出現的資料為準。
+                if item_id in file_items:
+                    file_duplicate_count += 1
+
+                file_items[item_id] = new_item
+
         except Exception:
-            # 保留目前 Desktop 行為：格式錯誤的資料直接略過。
+            # 保留目前 Desktop 行為：
+            # 格式錯誤的資料直接略過。
             continue
+
+    # ---------------------------------------------------------
+    # 再處理與既有資料的衝突
+    # ---------------------------------------------------------
+
+    parsed_items = (
+        existing_items.copy()
+        if existing_items is not None
+        else {}
+    )
+
+    added_count = 0
+    overwritten_count = 0
+    skipped_count = 0
+
+    for item_id, new_item in file_items.items():
+        if item_id in parsed_items:
+            if duplicate_mode == "overwrite":
+                parsed_items[item_id] = new_item
+                overwritten_count += 1
+
+            elif duplicate_mode == "skip":
+                skipped_count += 1
+
+            else:
+                raise ValueError(
+                    f"未知的 duplicate_mode: {duplicate_mode!r}"
+                )
+        else:
+            parsed_items[item_id] = new_item
+            added_count += 1
 
     if verbose:
         print()
@@ -484,8 +529,13 @@ def parse_lub_text(
         print(f"   覆蓋：{overwritten_count} 筆")
         print(f"   略過：{skipped_count} 筆")
 
-    return parsed_items
+        if file_duplicate_count:
+            print(
+                f"   同檔重複：{file_duplicate_count} 筆"
+                "（已採用最後出現資料）"
+            )
 
+    return parsed_items
 
 def parse_lub_file(
     filename: str | os.PathLike[str],
@@ -1910,11 +1960,12 @@ def parse_lua_effects_with_variables(
             {"name": "階級", "map": "class_map"},
             {"name": "數值%", "type": "value"}
         ])
-        ignore_class_pct = re.match(r"SetIgnoreDefClass_Percent\((\d+),\s*(\d+)\)", line)
+        ignore_class_pct = re.match(r"SetIgnoreDefClass_Percent\((\d+),\s*(.+?)\)", line)
         if ignore_class_pct and condition_met:
-            class_id, value = ignore_class_pct.groups()
+            class_id, value_expr = ignore_class_pct.groups()
             class_name = dependencies.require("class_map").get(int(class_id), f"階級{class_id}")
-            results.append(f"無視 {class_name} 階級的物理防禦 {value}%")
+            val = safe_eval_expr(value_expr, variables, get_values, refine_inputs, grade)
+            results.append(f"無視 {class_name} 階級的物理防禦 {val}%")
             continue
 
         # SetIgnoreDefRace_Percent(race_id, value)

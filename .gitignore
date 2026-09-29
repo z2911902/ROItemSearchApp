@@ -224,3 +224,4 @@ __marimo__/
 *.bat
 /backup
 /deploy_backend_nas_github_v7.py
+/map
