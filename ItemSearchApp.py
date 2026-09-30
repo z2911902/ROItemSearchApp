@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.14-260930"
+Version = "v0.8.15-260930"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -7,6 +7,7 @@ import os
 import json
 import hashlib
 from PySide6.QtCore import QThread, Signal, Qt, QMetaObject, QTimer
+from PySide6.QtGui import QPalette, QColor
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPlainTextEdit, QLabel
 import enchant #載入附魔工具
 import lapine_upgrade #載入 LapineUpgradeBox 附魔工具
@@ -75,26 +76,151 @@ def refresh_ui_theme(app) -> None:
     app.processEvents()
 
 
+# Win10 專用主題相容層。
+# Windows 11 保持原本 Qt ColorScheme 行為，不強制改成 Fusion / QPalette。
+_UI_THEME_ORIGINAL_PALETTE = None
+_UI_THEME_ORIGINAL_STYLE_NAME = None
+
+def is_windows_10() -> bool:
+    """Windows 10 與 Windows 11 的 major/minor 都可能顯示 10.0；
+    Windows 11 正式版 build 從 22000 起，因此用 build number 區分。
+    """
+    if sys.platform != "win32":
+        return False
+
+    try:
+        winver = sys.getwindowsversion()
+        return (
+            int(winver.major) == 10
+            and int(winver.minor) == 0
+            and int(winver.build) < 22000
+        )
+    except Exception:
+        return False
+
+
+def _build_ui_palette(theme: str) -> QPalette:
+    """建立僅供 Windows 10 fallback 使用的明/暗色 QPalette。"""
+    palette = QPalette()
+
+    if theme == UI_THEME_DARK:
+        window = QColor(45, 45, 48)
+        base = QColor(30, 30, 30)
+        alternate = QColor(55, 55, 58)
+        button = QColor(55, 55, 58)
+        text = QColor(240, 240, 240)
+        disabled_text = QColor(145, 145, 145)
+        highlight = QColor(42, 130, 218)
+        highlighted_text = QColor(255, 255, 255)
+        tooltip_base = QColor(55, 55, 58)
+        tooltip_text = QColor(240, 240, 240)
+    else:
+        window = QColor(240, 240, 240)
+        base = QColor(255, 255, 255)
+        alternate = QColor(245, 245, 245)
+        button = QColor(240, 240, 240)
+        text = QColor(0, 0, 0)
+        disabled_text = QColor(120, 120, 120)
+        highlight = QColor(0, 120, 215)
+        highlighted_text = QColor(255, 255, 255)
+        tooltip_base = QColor(255, 255, 220)
+        tooltip_text = QColor(0, 0, 0)
+
+    palette.setColor(QPalette.ColorRole.Window, window)
+    palette.setColor(QPalette.ColorRole.WindowText, text)
+    palette.setColor(QPalette.ColorRole.Base, base)
+    palette.setColor(QPalette.ColorRole.AlternateBase, alternate)
+    palette.setColor(QPalette.ColorRole.ToolTipBase, tooltip_base)
+    palette.setColor(QPalette.ColorRole.ToolTipText, tooltip_text)
+    palette.setColor(QPalette.ColorRole.Text, text)
+    palette.setColor(QPalette.ColorRole.Button, button)
+    palette.setColor(QPalette.ColorRole.ButtonText, text)
+    palette.setColor(QPalette.ColorRole.BrightText, QColor(255, 80, 80))
+    palette.setColor(QPalette.ColorRole.Link, highlight)
+    palette.setColor(QPalette.ColorRole.Highlight, highlight)
+    palette.setColor(QPalette.ColorRole.HighlightedText, highlighted_text)
+
+    disabled = QPalette.ColorGroup.Disabled
+    palette.setColor(disabled, QPalette.ColorRole.WindowText, disabled_text)
+    palette.setColor(disabled, QPalette.ColorRole.Text, disabled_text)
+    palette.setColor(disabled, QPalette.ColorRole.ButtonText, disabled_text)
+    palette.setColor(disabled, QPalette.ColorRole.HighlightedText, disabled_text)
+
+    if hasattr(QPalette.ColorRole, "PlaceholderText"):
+        palette.setColor(QPalette.ColorRole.PlaceholderText, disabled_text)
+        palette.setColor(disabled, QPalette.ColorRole.PlaceholderText, disabled_text)
+
+    return palette
+
+
 def apply_ui_theme(app, theme: str, *, refresh: bool = False) -> None:
-    """以 Qt 全域 ColorScheme 控制主題；避免逐一改既有 palette / stylesheet 邏輯。"""
+    """套用 UI 主題。
+
+    Windows 10:
+        light / dark 使用 Fusion + QPalette fallback。
+
+    Windows 11 / 其他平台:
+        維持原本 Qt ColorScheme 路徑，不強制更換 style 或 palette。
+    """
+    global _UI_THEME_ORIGINAL_PALETTE, _UI_THEME_ORIGINAL_STYLE_NAME
+
     if app is None:
         return
+
     theme = normalize_ui_theme(theme)
     hints = app.styleHints()
 
-    # Qt 6 新版可直接覆寫/解除覆寫系統配色。
-    if theme == UI_THEME_AUTO:
-        if hasattr(hints, "unsetColorScheme"):
-            hints.unsetColorScheme()
+    if is_windows_10():
+        if _UI_THEME_ORIGINAL_PALETTE is None:
+            _UI_THEME_ORIGINAL_PALETTE = QPalette(app.palette())
+
+        if _UI_THEME_ORIGINAL_STYLE_NAME is None:
+            style = app.style()
+            _UI_THEME_ORIGINAL_STYLE_NAME = (
+                style.objectName() if style is not None else ""
+            )
+
+        if theme == UI_THEME_AUTO:
+            if hasattr(hints, "unsetColorScheme"):
+                hints.unsetColorScheme()
+            elif hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
+                hints.setColorScheme(Qt.ColorScheme.Unknown)
+
+            if _UI_THEME_ORIGINAL_STYLE_NAME:
+                app.setStyle(_UI_THEME_ORIGINAL_STYLE_NAME)
+
+            if _UI_THEME_ORIGINAL_PALETTE is not None:
+                app.setPalette(QPalette(_UI_THEME_ORIGINAL_PALETTE))
+
+        else:
+            app.setStyle("Fusion")
+            app.setPalette(_build_ui_palette(theme))
+
+            if hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
+                scheme = (
+                    Qt.ColorScheme.Dark
+                    if theme == UI_THEME_DARK
+                    else Qt.ColorScheme.Light
+                )
+                hints.setColorScheme(scheme)
+
+    else:
+        # Windows 11 不套用 Win10 fallback。
+        if theme == UI_THEME_AUTO:
+            if hasattr(hints, "unsetColorScheme"):
+                hints.unsetColorScheme()
+            elif hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
+                hints.setColorScheme(Qt.ColorScheme.Unknown)
+
         elif hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
-            hints.setColorScheme(Qt.ColorScheme.Unknown)
-    elif hasattr(hints, "setColorScheme") and hasattr(Qt, "ColorScheme"):
-        scheme = Qt.ColorScheme.Dark if theme == UI_THEME_DARK else Qt.ColorScheme.Light
-        hints.setColorScheme(scheme)
+            scheme = (
+                Qt.ColorScheme.Dark
+                if theme == UI_THEME_DARK
+                else Qt.ColorScheme.Light
+            )
+            hints.setColorScheme(scheme)
 
     if refresh:
-        # ColorScheme / palette 變更可能由 Qt 事件迴圈稍後傳遞；
-        # 下一輪事件迴圈再重新 polish，確保吃到新 palette。
         QTimer.singleShot(0, lambda: refresh_ui_theme(app))
 
 
