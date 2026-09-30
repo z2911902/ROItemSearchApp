@@ -3691,13 +3691,13 @@ class GATMiniMapWidget(QWidget):
 
         # v2.24：上方常駐說明精簡，只保留地圖 / 時間。
         # 地圖空白處懸停顯示圖例與操作方式；懸停單位標記則顯示該單位資料。
-        self._default_hover_tooltip = (
-            "標記：玩家=公會固定色（無公會藍）｜自身=同公會色＋黃白雙圈｜"
-            "魔物=紅色菱形｜寵物=橘色點｜NPC=綠色方塊｜召喚=紫色點｜其他=灰點\n"
-            "桃紅箭頭=傷害/距離｜左鍵選取｜右鍵單位看完整資料｜"
-            "右鍵空白拖曳｜滾輪縮放｜同格單位會自動錯位"
-        )
-        self.setToolTip(self._default_hover_tooltip)
+        # self._default_hover_tooltip = (
+        #     "標記：玩家=公會固定色（無公會藍）｜自身=同公會色＋黃白雙圈｜"
+        #     "魔物=紅色菱形｜寵物=橘色點｜NPC=綠色方塊｜召喚=紫色點｜其他=灰點\n"
+        #     "桃紅箭頭=傷害/距離｜左鍵選取｜"#右鍵單位看完整資料｜"
+        #     "右鍵空白拖曳｜滾輪縮放｜同格單位會自動錯位"
+        # )
+        # self.setToolTip(self._default_hover_tooltip)
 
     @staticmethod
     def _unit_hover_tooltip(unit):
@@ -4519,12 +4519,12 @@ class GATMiniMapWidget(QWidget):
             return
 
         # v2.24：標記資訊改成 hover Tooltip，不再占用小地圖上方常駐文字。
-        hit = self._hit_test_unit(event.position())
-        if hit is not None:
-            self.setToolTip(self._unit_hover_tooltip(hit))
-        else:
-            self.setToolTip(self._default_hover_tooltip)
-        super().mouseMoveEvent(event)
+        # hit = self._hit_test_unit(event.position())
+        # if hit is not None:
+        #     self.setToolTip(self._unit_hover_tooltip(hit))
+        # else:
+        #     self.setToolTip(self._default_hover_tooltip)
+        # super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() in (Qt.RightButton, Qt.MiddleButton) and self._panning:
@@ -4703,7 +4703,7 @@ class MainUI(QWidget):
         self.hud = DamageHUD()
         self.hud.hide()
         super().__init__()
-        self.setWindowTitle("RRF傷害解析器 v2.24")
+        self.setWindowTitle("RRF傷害解析器 v2.25")
         self.resize(1100, 900)
         self.transform_end_time = {}#結束變身時間
         self.transform_start_time = {}#變身時間    
@@ -5151,7 +5151,7 @@ class MainUI(QWidget):
         self.minimap_selected_label = self.minimap_window.selected_label
         self.load_gat_btn = self.minimap_window.load_gat_btn
         self.load_gat_btn.clicked.connect(self.choose_gat_file)
-        self.minimap_widget.unitSelected.connect(self.on_minimap_unit_selected)
+        #self.minimap_widget.unitSelected.connect(self.on_minimap_unit_selected)
         self.minimap_widget.unitContextRequested.connect(self.on_minimap_unit_context_requested)
 
         # v2.14：長駐獨立 process。小地圖位置重建 / 傷害聚合不再跑在 Qt GUI thread。
@@ -10314,11 +10314,11 @@ class MainUI(QWidget):
         rows = [
             ("目前.類型", category_name),
             ("目前.名稱", str(unit.get("name", ""))),
-            ("目前.AID", str(unit.get("aid", 0))),
-            ("目前.GID", str(unit.get("gid", 0))),
-            ("目前.GuildID", str(unit.get("guild_id", 0))),
+            #("目前.AID", str(unit.get("aid", 0))),
+            #("目前.GID", str(unit.get("gid", 0))),
+            #("目前.GuildID", str(unit.get("guild_id", 0))),
             ("目前.公會名稱", str(unit.get("guild_name") or self.guild_id_name_map.get(int(unit.get("guild_id", 0) or 0), ""))),
-            ("目前.ObjectType", f"0x{int(unit.get('object_type', 0) or 0):02X} ({unit.get('object_type_name', '')})"),
+            #("目前.ObjectType", f"0x{int(unit.get('object_type', 0) or 0):02X} ({unit.get('object_type_name', '')})"),
             ("目前.Job", str(unit.get("job", 0))),
             ("目前.Speed", str(unit.get("speed", 0))),
             ("目前.X", f"{float(unit.get('x', 0.0) or 0.0):.3f}"),
