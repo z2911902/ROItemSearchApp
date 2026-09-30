@@ -10659,7 +10659,9 @@ class MainUI(QWidget):
 # MAIN
 # ============================================================
 if __name__ == "__main__":
-    # v2.14：Windows spawn / 未來 PyInstaller 都需要 freeze_support。
+    # v2.14：Windows spawn / frozen executable 需要 freeze_support。
+    # 注意：若本模組是由 ItemSearchApp.py import，真正打包入口 ItemSearchApp.py
+    # 也必須在其 __main__ 最前面呼叫 mp.freeze_support()。
     mp.freeze_support()
     app = QApplication(sys.argv)
     ui = MainUI()

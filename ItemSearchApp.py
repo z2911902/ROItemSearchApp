@@ -1,8 +1,9 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.15-260930"
+Version = "v0.8.16-260930"
 Server_area = "TwRO"
 
 import sys, builtins, time
+import multiprocessing as mp
 import os
 import json
 import hashlib
@@ -13820,6 +13821,10 @@ class ItemSearchApp(QWidget):
             
 
 if __name__ == "__main__":
+    # Windows frozen executable + multiprocessing(spawn) 必須先攔截 worker 啟動。
+    # 否則 PyInstaller/Nuitka 打包後建立 child process 時，可能重新進入完整主程式 UI。
+    mp.freeze_support()
+
     # 必須在建立 QApplication 前設定縮放倍率
     startup_ui_scale = get_startup_ui_scale_factor(sys.argv)
     os.environ["QT_SCALE_FACTOR"] = format_ui_scale_factor(startup_ui_scale)
