@@ -5709,6 +5709,48 @@ STAGE17_CLASS_DAMAGE_NAMES = ["一般", "首領"]
 STAGE17_CLASS_DEF_NAMES = ["一般", "首領", "玩家"]
 STAGE17_DEX_WEAPON_CLASSES = {11, 13, 14, 17, 18, 19, 20, 21}
 
+# -----------------------------------------------------------------------------
+# Damage_view 獨立驗算器資料橋接
+# -----------------------------------------------------------------------------
+# 重要：這裡只保存「原始輸入 / 取值」與 Core 最終答案。
+# 不提供前 ATK、精煉 ATK/MATK、武器段、小計、倍率套用後結果等中間計算值，
+# 避免 Damage_view 直接沿用 Core 的中間答案，失去驗證 Core 公式的意義。
+_STAGE17_LAST_DEBUG_RAW = None
+
+
+def get_last_damage_debug_raw():
+    """回傳最近一次傷害計算的驗算資料。
+
+    結構只包含：
+    - raw: Damage_view 重新計算所需的原始值 / 取值
+    - core_result: Core 最終起始 ATK/MATK，僅供最後比對
+
+    Damage_view 不應使用 core_result 參與自己的公式計算。
+    """
+    global _STAGE17_LAST_DEBUG_RAW
+    snap = _STAGE17_LAST_DEBUG_RAW
+    if not isinstance(snap, dict):
+        return None
+
+    raw = snap.get("raw", {})
+    # effect_dict 的 key 是 tuple，value 是 list；做淺層容器複製即可避免 UI 誤改 Core 狀態。
+    effect_dict = raw.get("effect_dict", {}) if isinstance(raw, dict) else {}
+    raw_copy = dict(raw) if isinstance(raw, dict) else {}
+    raw_copy["stats"] = dict(raw.get("stats", {}) or {})
+    raw_copy["weapon_right"] = dict(raw.get("weapon_right", {}) or {})
+    raw_copy["weapon_left"] = dict(raw.get("weapon_left", {}) or {})
+    raw_copy["target"] = dict(raw.get("target", {}) or {})
+    raw_copy["used_skills"] = dict(raw.get("used_skills", {}) or {})
+    raw_copy["special"] = dict(raw.get("special", {}) or {})
+    raw_copy["effect_dict"] = {
+        key: list(values) if isinstance(values, list) else values
+        for key, values in (effect_dict or {}).items()
+    }
+    return {
+        "raw": raw_copy,
+        "core_result": dict(snap.get("core_result", {}) or {}),
+    }
+
 
 def _stage17_number(value, default=0.0):
     try:
@@ -7211,6 +7253,10 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     else:
         refine_weapon_min = int(weapon_base_min + atk_refine + refine_over_atk_min - refine_over_atk)
         refine_weapon_max = int(weapon_base_max + atk_refine)
+    #地符武器10%
+    if _stage17_int(used.get(3018, 0)) == 1:
+        refine_weapon_min = int(refine_weapon_min * 2)
+        refine_weapon_max = int(refine_weapon_max * 2)
 
     # 武器體型修正；若裝備效果已達 100% 忽略體型，倍率固定為 1。
     target_size = _stage17_int(monster.get("size", 1))
@@ -7799,6 +7845,74 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
         total_dex=total_dex,
         total_int=total_int,
     )
+
+    # ---------------------------------------------------------------------
+    # Damage_view 獨立驗算器：只輸出原始取值 + Core 最終答案
+    # ---------------------------------------------------------------------
+    # 注意：不得把 atk_refine / matk_refine / matkf / magic_max_raw /
+    # weapon_back_max 等 Core 中間計算值塞進 raw。
+    # Damage_view 必須用下列原始值自行重算，才能真正抓出 Core 公式錯誤。
+    global _STAGE17_LAST_DEBUG_RAW
+    _STAGE17_LAST_DEBUG_RAW = {
+        "raw": {
+            "attack_type": attack_type,
+            "base_lv": base_lv,
+            "stats": {
+                "STR": total_str,
+                "DEX": total_dex,
+                "LUK": total_luk,
+                "POW": total_pow,
+                "INT": total_int,
+                "SPL": total_spl,
+                "CON": total_con,
+                "CRT": total_crt,
+            },
+            "weapon_class": weapon_class,
+            # 前 ATK 驗算所需的原始技能屬性設定。這些是輸入/選擇值，不是 Core 中間計算結果。
+            "skill_row_element": row_element,
+            "attack_element_override": damage.get("attack_element", None),
+            "weapon_right": {
+                "level": weapon_r_level,
+                "atk": weapon_r_atk,
+                "matk": weapon_r_matk,
+                "refine": refine_r,
+                "grade": grade_r,
+            },
+            "weapon_left": {
+                "level": weapon_l_level,
+                "matk": weapon_l_matk,
+                "refine": refine_l,
+                "grade": grade_l,
+            },
+            "target": {
+                "size": target_size,
+                "element": target_element,
+                "element_lv": target_element_lv,
+                "race": target_race,
+                "class": target_class,
+                "def": target_def,
+            },
+            # 技能是否啟用/等級屬於輸入狀態，不是本段傷害公式的中間結果。
+            "used_skills": dict(used),
+
+            # 特殊增傷驗算所需的原始狀態。
+            # 只傳 UI / runtime 原始勾選值與技能 row 原始設定，不傳 Core 已算好的倍率。
+            "special": dict(special),
+            "skill_rangedamage": row.get("Rangedamage", 0),
+            "special_wprange": row.get("special_wprange", 0),
+
+            # 裝備/卡片/技能效果 parser 的原始取值；由 Damage_view 自行做指定名稱加總。
+            "effect_dict": {
+                key: list(values) if isinstance(values, list) else values
+                for key, values in (effect_dict or {}).items()
+            },
+        },
+        # 只供比對，不得回灌 Damage_view 的重新計算。
+        "core_result": {
+            "weapon_atk_max": weapon_back_max,
+            "magic_max": magic_max,
+        },
+    }
 
     return {
         "coverage": "shared-desktop-standard-path",
