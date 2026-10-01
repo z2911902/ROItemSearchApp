@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.18-261002"
+Version = "v0.8.19-261002"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -36,7 +36,7 @@ UI_SCALE_FACTOR_MAX = 3.0
 # 固定應用程式字體：忽略 Windows「文字大小」的額外放大，
 # 但仍保留 Windows 顯示縮放（DPI）與程式自身 QT_SCALE_FACTOR 的整體縮放。
 # 字體大小由程式自己的 UI 設定控制；預設 11 pt。
-DEFAULT_APP_FONT_POINT_SIZE = 12.0
+DEFAULT_APP_FONT_POINT_SIZE = 11.0
 APP_FONT_POINT_SIZE_MIN = 9.0
 APP_FONT_POINT_SIZE_MAX = 12.0
 
