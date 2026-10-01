@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.16-260930"
+Version = "v0.8.18-261002"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -31,6 +31,32 @@ import requests
 DEFAULT_UI_SCALE_FACTOR = 1.0
 UI_SCALE_FACTOR_MIN = 0.5
 UI_SCALE_FACTOR_MAX = 3.0
+
+
+# 固定應用程式字體：忽略 Windows「文字大小」的額外放大，
+# 但仍保留 Windows 顯示縮放（DPI）與程式自身 QT_SCALE_FACTOR 的整體縮放。
+# 字體大小由程式自己的 UI 設定控制；預設 11 pt。
+DEFAULT_APP_FONT_POINT_SIZE = 12.0
+APP_FONT_POINT_SIZE_MIN = 9.0
+APP_FONT_POINT_SIZE_MAX = 12.0
+
+def normalize_app_font_point_size(value, default=DEFAULT_APP_FONT_POINT_SIZE) -> float:
+    """將字體大小轉為安全的 point size。"""
+    try:
+        size = float(value)
+    except (TypeError, ValueError):
+        return float(default)
+    if not APP_FONT_POINT_SIZE_MIN <= size <= APP_FONT_POINT_SIZE_MAX:
+        return float(default)
+    return size
+
+def apply_fixed_app_font(app, point_size=DEFAULT_APP_FONT_POINT_SIZE) -> None:
+    """固定應用程式基準字體，避免 Windows 協助工具文字大小破壞既有版面。"""
+    if app is None:
+        return
+    font = app.font()
+    font.setPointSizeF(normalize_app_font_point_size(point_size))
+    app.setFont(font)
 
 # 介面主題：auto = 跟隨系統；light / dark = 手動指定。
 UI_THEME_AUTO = "auto"
@@ -4144,16 +4170,17 @@ class PreferencesDialog(QDialog):
 
 
 class UISettingsDialog(QDialog):
-    """獨立的 UI 設定：介面縮放與主題，不混在偏好設定。"""
+    """獨立的 UI 設定：介面縮放、文字大小與主題，不混在偏好設定。"""
     def __init__(
         self,
         current_ui_scale: float = DEFAULT_UI_SCALE_FACTOR,
+        current_font_point_size: float = DEFAULT_APP_FONT_POINT_SIZE,
         current_ui_theme: str = UI_THEME_AUTO,
         parent=None,
     ):
         super().__init__(parent)
         self.setWindowTitle(tr("window.ui_settings", "UI 設定"))
-        self.resize(360, 180)
+        self.resize(380, 230)
 
         layout = QVBoxLayout(self)
 
@@ -4161,6 +4188,8 @@ class UISettingsDialog(QDialog):
         scale_row.addWidget(QLabel(tr("label.ui_scale", "介面縮放")))
         self.ui_scale_combo = QComboBox()
         scale_options = [
+            ("50%", 0.5),
+            ("75%", 0.75),
             ("100%", 1.0),
             ("125%", 1.25),
             ("150%", 1.5),
@@ -4185,6 +4214,26 @@ class UISettingsDialog(QDialog):
         scale_tip.setWordWrap(True)
         layout.addWidget(scale_tip)
 
+        font_row = QHBoxLayout()
+        font_row.addWidget(QLabel(tr("label.ui_font_size", "文字大小")))
+        self.ui_font_size_spin = QDoubleSpinBox()
+        self.ui_font_size_spin.setRange(APP_FONT_POINT_SIZE_MIN, APP_FONT_POINT_SIZE_MAX)
+        self.ui_font_size_spin.setDecimals(1)
+        self.ui_font_size_spin.setSingleStep(0.5)
+        self.ui_font_size_spin.setSuffix(" pt")
+        self.ui_font_size_spin.setValue(normalize_app_font_point_size(current_font_point_size))
+        font_row.addWidget(self.ui_font_size_spin)
+        layout.addLayout(font_row)
+
+        font_tip = QLabel(
+            tr(
+                "label.ui_font_size_tip",
+                "文字大小由程式自行控制，不跟隨 Windows『文字大小』設定；預設為 11 pt。",
+            )
+        )
+        font_tip.setWordWrap(True)
+        layout.addWidget(font_tip)
+
         theme_row = QHBoxLayout()
         theme_row.addWidget(QLabel(tr("label.ui_theme", "介面主題")))
         self.ui_theme_combo = QComboBox()
@@ -4208,6 +4257,9 @@ class UISettingsDialog(QDialog):
 
     def selected_ui_scale(self) -> float:
         return normalize_ui_scale_factor(self.ui_scale_combo.currentData())
+
+    def selected_font_point_size(self) -> float:
+        return normalize_app_font_point_size(self.ui_font_size_spin.value())
 
     def selected_ui_theme(self) -> str:
         return normalize_ui_theme(self.ui_theme_combo.currentData())
@@ -6868,6 +6920,7 @@ class ItemSearchApp(QWidget):
         self.update_mode = "online_only"
         self.api_key = ""
         self.ui_scale_factor = DEFAULT_UI_SCALE_FACTOR
+        self.ui_font_point_size = DEFAULT_APP_FONT_POINT_SIZE
         self.ui_theme = UI_THEME_AUTO
         self.load_kro_equipment_data = False
 
@@ -6876,6 +6929,9 @@ class ItemSearchApp(QWidget):
         self.api_key = cfg.get("api_key", self.api_key)
         self.ui_scale_factor = normalize_ui_scale_factor(
             cfg.get("ui_scale_factor", self.ui_scale_factor)
+        )
+        self.ui_font_point_size = normalize_app_font_point_size(
+            cfg.get("ui_font_point_size", self.ui_font_point_size)
         )
         self.ui_theme = normalize_ui_theme(cfg.get("ui_theme", self.ui_theme))
 
@@ -6895,6 +6951,9 @@ class ItemSearchApp(QWidget):
             "api_key": getattr(self, "api_key", ""),
             "ui_scale_factor": normalize_ui_scale_factor(
                 getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
+            ),
+            "ui_font_point_size": normalize_app_font_point_size(
+                getattr(self, "ui_font_point_size", DEFAULT_APP_FONT_POINT_SIZE)
             ),
             "ui_theme": normalize_ui_theme(getattr(self, "ui_theme", UI_THEME_AUTO)),
             "load_kro_equipment_data": bool(
@@ -6949,12 +7008,16 @@ class ItemSearchApp(QWidget):
         previous_ui_scale = normalize_ui_scale_factor(
             getattr(self, "ui_scale_factor", DEFAULT_UI_SCALE_FACTOR)
         )
+        previous_font_point_size = normalize_app_font_point_size(
+            getattr(self, "ui_font_point_size", DEFAULT_APP_FONT_POINT_SIZE)
+        )
         previous_ui_theme = normalize_ui_theme(
             getattr(self, "ui_theme", UI_THEME_AUTO)
         )
 
         dlg = UISettingsDialog(
             current_ui_scale=previous_ui_scale,
+            current_font_point_size=previous_font_point_size,
             current_ui_theme=previous_ui_theme,
             parent=self,
         )
@@ -6962,8 +7025,14 @@ class ItemSearchApp(QWidget):
             return
 
         self.ui_scale_factor = dlg.selected_ui_scale()
+        self.ui_font_point_size = dlg.selected_font_point_size()
         self.ui_theme = dlg.selected_ui_theme()
         self.save_config()
+
+        # 文字大小可即時套用；介面縮放（QT_SCALE_FACTOR）仍需下次啟動。
+        if self.ui_font_point_size != previous_font_point_size:
+            apply_fixed_app_font(QApplication.instance(), self.ui_font_point_size)
+            QTimer.singleShot(0, lambda: refresh_ui_theme(QApplication.instance()))
 
         # 主題即時套用；縮放仍需下次啟動。
         if self.ui_theme != previous_ui_theme:
@@ -10567,6 +10636,7 @@ class ItemSearchApp(QWidget):
         # 1. 建立分頁元件
         tab_widget = QTabWidget()
         tab_widget.setFixedWidth(340)
+        tab_widget.tabBar().setUsesScrollButtons(False)
         # 2. 為每個分頁建立 ScrollArea → 放內容
         # === 分頁1：角色能力值 ===
         char_scroll = QScrollArea()
@@ -13831,8 +13901,13 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
-    # QApplication 建立後、任何視窗建立前套用主題。auto 會維持 Qt 原本的系統跟隨行為。
+    # QApplication 建立後、任何視窗建立前套用程式自己的字體大小與主題。
+    # 如此可忽略 Windows「文字大小」的額外放大，同時保留 Windows DPI 與 UI 縮放。
     startup_cfg = load_config_data()
+    apply_fixed_app_font(
+        app,
+        startup_cfg.get("ui_font_point_size", DEFAULT_APP_FONT_POINT_SIZE),
+    )
     apply_ui_theme(app, startup_cfg.get("ui_theme", UI_THEME_AUTO))
 
     if len(sys.argv) > 1 and sys.argv[1] == "rrf":
