@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.19-261002"
+Version = "v0.8.20-261002"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -2395,7 +2395,7 @@ stat_fields = {
     263: "石碑開啟格數", 264: "石碑精煉"
 }
 default_values = {
-    "BaseLv": 260,"STR": 1,"AGI": 1,"AGI": 1,"VIT": 1,"INT": 1,"DEX": 1,"LUK": 1,
+    "BaseLv": 275,"JobLv": 60,"STR": 1,"AGI": 1,"AGI": 1,"VIT": 1,"INT": 1,"DEX": 1,"LUK": 1,
     "POW": 0,"STA": 0,"WIS": 0,"SPL": 0,"CON": 0,"CRT": 0,
 }
 
