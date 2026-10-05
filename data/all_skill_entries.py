@@ -225,7 +225,19 @@ all_skill_entries = {#範例[    "": {"buff":"","type": "技能/料理","code":[
     
     
     #忍者
+
+    "念": {"buff": ["208"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(543)","AddExtParam(1, 103, 5)","AddExtParam(1, 106, 5)"]},
+    "火符:炎天": {"buff": ["203015"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3015)","AddDamage_Property(1, 2, 30)"],"exclusive": "KO_mark"},
+    "冰符:吹雪": {"buff": ["203016"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3016)","AddDamage_Property(1, 3, 30)"],"exclusive": "KO_mark"},
+    "風符:青嵐": {"buff": ["203017"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3017)","AddDamage_Property(1, 1, 30)"],"exclusive": "KO_mark"},
+    "地符:剛塊": {"buff": ["203018"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3018)","AddDamage_Property(1, 4, 30)"],"exclusive": "KO_mark"},
+    
+    "十六夜": {"buff": ["652"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3022)","AddExtParam(1, 200, 150)"]},
+    "變形的上弦月": {"buff": ["657"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3026)","AddExtParam(1, 41, get(11)/3+5*20)","AddExtParam(1, 200, get(11)/3+5*20)"]},
+    "影子武士": {"buff": ["656"],"id": ["OB"],"type": "技能","code":["UseSkill(3025)","AddDamage_SKID(1, 3009, 20)","AddDamage_SKID(1, 3006, 20)","AddDamage_SKID(1, 3007, 20)","AddDamage_SKID(1, 3004, 20)"]},
     "四色符": {"buff": ["1667","1668","1669","1670"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(5499)"]},
+
+    "十字創傷狀態": {"buff": ["645"],"id": ["OB","KO"],"type": "技能","code":["UseSkill(3004)"]},
     "噩夢狀態": {"buff":"","id": ["OB","KO"],"type": "技能","code":["UseSkill(5493)","UseSkill(5494)","UseSkill(5495)"]},
     "暗器狀態": {"buff":"","id": ["OB","KO"],"type": "技能","code":["UseSkill(5484)"]},
     #槍手
