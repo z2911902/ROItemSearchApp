@@ -5072,6 +5072,10 @@ tblLapineUpgradeBox = {
 			NeedOptionNumMin = 0,
 			NotSocketEnchantItem = false,
 			TargetItems = {
+				{ "S_TR_MS_Earring", 1270134 },
+				{ "S_TR_MS_Pendant", 1270135 },
+				{ "S_TR_RB_Armor", 1270136 },
+				{ "S_TR_RB_Shoes", 1270137 },
 				{ "S_NW_MS_Earring", 1270138 },
 				{ "S_NW_MS_Pendant", 1270139 },
 				{ "S_NW_NF_Armor", 1270140 },
@@ -6622,6 +6626,10 @@ tblLapineUpgradeBox = {
 			NeedOptionNumMin = 0,
 			NotSocketEnchantItem = false,
 			TargetItems = {
+				{ "S_TR_MS_Earring", 1270134 },
+				{ "S_TR_MS_Pendant", 1270135 },
+				{ "S_TR_RB_Armor", 1270136 },
+				{ "S_TR_RB_Shoes", 1270137 },
 				{ "S_NW_MS_Earring", 1270138 },
 				{ "S_NW_MS_Pendant", 1270139 },
 				{ "S_NW_NF_Armor", 1270140 },

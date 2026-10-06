@@ -4130,6 +4130,18 @@ InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附
 [1801] = {BaseItem = "S_SS_KF_Shoes", 
 Material = {S_Enchant_Essence = 2}, ResultItem = "S_SS_KF_Shoes", NeedRefineMin = 0, NeedRefineMax = 10, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 0, RandomOptionCode = "NSU", PreserveSocketItem = true, PreserveGrade = true, 
 InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變"}}, 
+[1825] = {BaseItem = "S_TR_MS_Earring", 
+Material = {S_Enchant_Essence = 2}, ResultItem = "S_TR_MS_Earring", NeedRefineMin = 0, NeedRefineMax = 10, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 0, RandomOptionCode = "NSU", PreserveSocketItem = true, PreserveGrade = true, 
+InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變"}}, 
+[1826] = {BaseItem = "S_TR_MS_Pendant", 
+Material = {S_Enchant_Essence = 2}, ResultItem = "S_TR_MS_Pendant", NeedRefineMin = 0, NeedRefineMax = 10, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 0, RandomOptionCode = "NSU", PreserveSocketItem = true, PreserveGrade = true, 
+InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變"}}, 
+[1827] = {BaseItem = "S_TR_RB_Armor", 
+Material = {S_Enchant_Essence = 2}, ResultItem = "S_TR_RB_Armor", NeedRefineMin = 0, NeedRefineMax = 10, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 0, RandomOptionCode = "NSU", PreserveSocketItem = true, PreserveGrade = true, 
+InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變"}}, 
+[1828] = {BaseItem = "S_TR_RB_Shoes", 
+Material = {S_Enchant_Essence = 2}, ResultItem = "S_TR_RB_Shoes", NeedRefineMin = 0, NeedRefineMax = 10, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 0, RandomOptionCode = "NSU", PreserveSocketItem = true, PreserveGrade = true, 
+InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變"}}, 
 [1829] = {BaseItem = "S_NW_MS_Earring", 
 Material = {S_Enchant_Essence = 2}, ResultItem = "S_NW_MS_Earring", NeedRefineMin = 0, NeedRefineMax = 10, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 0, RandomOptionCode = "NSU", PreserveSocketItem = true, PreserveGrade = true, 
 InformationString = {"<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變"}}, 
@@ -4213,7 +4225,10 @@ Material = {Armor_Stone_2 = 300, Pocket_Watch = 50, Broken_Steel_Piece = 100, Ba
 InformationString = {"<B>改造資訊說明</B>", "1) 精煉值 : ^FF0000-1^000000", "2) 附加能力 : 保留", "3) 卡片及附魔 : 保留", "4) 評價階級 : 保留"}}, 
 [10200] = {BaseItem = "Devil_Flame_Manteau_TW", 
 Material = {Armor_Stone_3 = 200, Scale_Of_Red_Dragon = 300, Sin_Fragment = 300, Zelunium = 1000, Energy_Xtal_DFM_TW = 1}, ResultItem = "Devil_F_Manteau_UPD", NeedRefineMin = 9, NeedRefineMax = 20, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = -5, RandomOptionCode = "", PreserveSocketItem = true, PreserveGrade = true, 
-InformationString = {"<B>組合成果資訊說明</B>", "1) 精練值 : ^FF0000-5^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留"}}}
+InformationString = {"<B>組合成果資訊說明</B>", "1) 精練值 : ^FF0000-5^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留"}}, 
+[10201] = {BaseItem = "Caesar_Boots_LT", 
+Material = {Blacksmith_Blessing = 14}, ResultItem = "Caesar_Boots_LT", NeedRefineMin = 9, NeedRefineMax = 11, NeedOptionNumMin = 0, IsEmptySocket = false, ChangeRefineValue = 1, RandomOptionCode = "", PreserveSocketItem = true, PreserveGrade = true, 
+InformationString = {"<B>改造資訊說明</B>", "1) 精煉值 : ^4D4DFF+1^000000", "2) 附加能力 : 保留", "3) 卡片及附魔 : 保留", "4) 評價階級 : 保留"}}}
 ReformItemList = {
 Thanos_W_Reform_1 = {12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24}, 
 Thanos_W_Reform_2 = {25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}, 
@@ -4304,5 +4319,6 @@ Gaebolg_A_Hammer_3 = {1160, 1161, 1162, 1163, 1164, 1165},
 Four_S_Scroll_TW = {10174, 10175, 10176, 10177}, 
 Yorscalp_Refin_Hammer = {1292, 1293, 1294, 1295, 1296, 1297, 1298, 1299}, 
 Yorscalp_Scroll_A = {1300, 1301, 1302, 1303, 1304, 1305, 1306, 1307, 1308, 1309}, 
-Reform_4th_Skill_Shadow = {1261, 1262, 1263, 1264, 1265, 1266, 1267, 1268, 1669, 1670, 1671, 1672, 1724, 1725, 1726, 1727, 1743, 1744, 1745, 1746, 1747, 1748, 1749, 1750, 1763, 1764, 1765, 1766, 1280, 1281, 1282, 1283, 1751, 1752, 1753, 1754, 1798, 1799, 1800, 1801, 1794, 1795, 1796, 1797, 1688, 1689, 1690, 1691, 1829, 1830, 1831, 1832}}
+Reform_4th_Skill_Shadow = {1261, 1262, 1263, 1264, 1265, 1266, 1267, 1268, 1669, 1670, 1671, 1672, 1724, 1725, 1726, 1727, 1743, 1744, 1745, 1746, 1747, 1748, 1749, 1750, 1763, 1764, 1765, 1766, 1280, 1281, 1282, 1283, 1751, 1752, 1753, 1754, 1798, 1799, 1800, 1801, 1794, 1795, 1796, 1797, 1688, 1689, 1690, 1691, 1829, 1830, 1831, 1832, 1825, 1826, 1827, 1828}, 
+C_Boots_LT_Hammer = {10201}}
 

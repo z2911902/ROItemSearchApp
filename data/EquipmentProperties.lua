@@ -6392,7 +6392,7 @@ Item = {
   [5104] = {
     Type = "armor",
     Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-    Combiitem = {2000005175}
+    Combiitem = {2000005176}
   },
   [5105] = {
     Type = "armor",
@@ -8985,7 +8985,7 @@ Item = {
         AddExtParam(0, 110, 60)
       end
     end,
-    Combiitem = {2000005178}
+    Combiitem = {2000005179}
   },
   [5594] = {
     Type = "armor",
@@ -15752,7 +15752,7 @@ Item = {
   [18609] = {
     Type = "armor",
     Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-    Combiitem = {2000005169, 2000005176}
+    Combiitem = {2000005170, 2000005177}
   },
   [18610] = {
     Type = "armor",
@@ -19017,7 +19017,7 @@ Item = {
   [19241] = {
     Type = "armor",
     Stat = { 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-    Combiitem = {2000005167, 2000005177}
+    Combiitem = {2000005168, 2000005178}
   },
   [19242] = {
     Type = "armor",
@@ -19062,7 +19062,7 @@ Item = {
   [19245] = {
     Type = "armor",
     Stat = { 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-    Combiitem = {2000005168, 2000005174}
+    Combiitem = {2000005169, 2000005175}
   },
   [19246] = {
     Type = "armor",
@@ -41698,7 +41698,7 @@ Item = {
     OnStartEquip = function()
       AddSkillMDamage(10, 5)
     end,
-    Combiitem = { 2000002113, 2000005172, 2000005173 }
+    Combiitem = { 2000002113, 2000005173, 2000005174 }
   },
   [420014] = {
     Type = "armor",
@@ -60953,12 +60953,9 @@ Item = {
     OnStartEquip = function()
       AddExtParam(0, 207, 5)
       AddExtParam(0, 140, 5)
-      AddExtParam(0, 52, 150)
-      AddExtParam(0, 167, 15)
-      SubSpellCastTime(15)
-      AddExtParam(0, 41, 20)
-      AddExtParam(0, 200, 20)
-      AddEXPPercent_KillRace(9999, 15)
+      AddExtParam(0, 52, 50)
+      AddExtParam(0, 167, 5)
+      SubSpellCastTime(5)
     end,
     Combiitem = {2000003434}
   },
@@ -63128,7 +63125,7 @@ Item = {
         AddExtParam(0, 243, 2)
       end
     end,
-    Combiitem = { 2000003593, 2000003595, 2000003612, 2000003616, 2000003617, 2000003618, 2000003650, 2000003654, 2000003655, 2000003656, 2000003661, 2000003665, 2000003666, 2000003667, 2000003765, 2000003766, 2000003767, 2000003768, 2000003778, 2000003779, 2000003780, 2000003781, 2000003878, 2000003882, 2000003883, 2000003884, 2000003928, 2000003932, 2000003933, 2000003934, 2000003941, 2000003945, 2000003946, 2000003947, 2000003954, 2000003958, 2000003959, 2000003960, 2000003977, 2000003981, 2000003982, 2000003983, 2000003993, 2000003997, 2000003998, 2000003999, 2000004012, 2000004013, 2000004014, 2000004015, 2000004065, 2000004069, 2000004070, 2000004071, 2000004142, 2000004143, 2000004144, 2000004145, 2000004155, 2000004159, 2000004160, 2000004161, 2000004346, 2000004347, 2000004348, 2000004349, 2000004366, 2000004367, 2000004368, 2000004369, 2000004379, 2000004383, 2000004384, 2000004385, 2000004832, 2000004841, 2000004865, 2000004903, 2000004922, 2000004925, 2000004937, 2000004945, 2000004985, 2000005001, 2000005068, 2000005105, 2000005163 }
+    Combiitem = { 2000003593, 2000003595, 2000003612, 2000003616, 2000003617, 2000003618, 2000003650, 2000003654, 2000003655, 2000003656, 2000003661, 2000003665, 2000003666, 2000003667, 2000003765, 2000003766, 2000003767, 2000003768, 2000003778, 2000003779, 2000003780, 2000003781, 2000003878, 2000003882, 2000003883, 2000003884, 2000003928, 2000003932, 2000003933, 2000003934, 2000003941, 2000003945, 2000003946, 2000003947, 2000003954, 2000003958, 2000003959, 2000003960, 2000003977, 2000003981, 2000003982, 2000003983, 2000003993, 2000003997, 2000003998, 2000003999, 2000004012, 2000004013, 2000004014, 2000004015, 2000004065, 2000004069, 2000004070, 2000004071, 2000004142, 2000004143, 2000004144, 2000004145, 2000004155, 2000004159, 2000004160, 2000004161, 2000004346, 2000004347, 2000004348, 2000004349, 2000004366, 2000004367, 2000004368, 2000004369, 2000004379, 2000004383, 2000004384, 2000004385, 2000004832, 2000004841, 2000004865, 2000004903, 2000004922, 2000004925, 2000004937, 2000004945, 2000004985, 2000005001, 2000005068, 2000005105, 2000005164, 2000005181 }
   },
   [24793] = {
     Type = "armor",
@@ -63151,7 +63148,7 @@ Item = {
         AddExtParam(0, 243, 2)
       end
     end,
-    Combiitem = { 2000003594, 2000003595, 2000003612, 2000003613, 2000003614, 2000003615, 2000003650, 2000003651, 2000003652, 2000003653, 2000003661, 2000003662, 2000003663, 2000003664, 2000003762, 2000003763, 2000003764, 2000003768, 2000003775, 2000003776, 2000003777, 2000003778, 2000003878, 2000003879, 2000003880, 2000003881, 2000003928, 2000003929, 2000003930, 2000003931, 2000003941, 2000003942, 2000003943, 2000003944, 2000003954, 2000003955, 2000003956, 2000003957, 2000003977, 2000003978, 2000003979, 2000003980, 2000003993, 2000003994, 2000003995, 2000003996, 2000004009, 2000004010, 2000004011, 2000004012, 2000004065, 2000004066, 2000004067, 2000004068, 2000004139, 2000004140, 2000004141, 2000004142, 2000004155, 2000004156, 2000004157, 2000004158, 2000004343, 2000004344, 2000004345, 2000004346, 2000004363, 2000004364, 2000004365, 2000004366, 2000004379, 2000004380, 2000004381, 2000004382, 2000004834, 2000004839, 2000004867, 2000004905, 2000004920, 2000004927, 2000004935, 2000004943, 2000004983, 2000004999, 2000005070, 2000005107, 2000005165 }
+    Combiitem = { 2000003594, 2000003595, 2000003612, 2000003613, 2000003614, 2000003615, 2000003650, 2000003651, 2000003652, 2000003653, 2000003661, 2000003662, 2000003663, 2000003664, 2000003762, 2000003763, 2000003764, 2000003768, 2000003775, 2000003776, 2000003777, 2000003778, 2000003878, 2000003879, 2000003880, 2000003881, 2000003928, 2000003929, 2000003930, 2000003931, 2000003941, 2000003942, 2000003943, 2000003944, 2000003954, 2000003955, 2000003956, 2000003957, 2000003977, 2000003978, 2000003979, 2000003980, 2000003993, 2000003994, 2000003995, 2000003996, 2000004009, 2000004010, 2000004011, 2000004012, 2000004065, 2000004066, 2000004067, 2000004068, 2000004139, 2000004140, 2000004141, 2000004142, 2000004155, 2000004156, 2000004157, 2000004158, 2000004343, 2000004344, 2000004345, 2000004346, 2000004363, 2000004364, 2000004365, 2000004366, 2000004379, 2000004380, 2000004381, 2000004382, 2000004834, 2000004839, 2000004867, 2000004905, 2000004920, 2000004927, 2000004935, 2000004943, 2000004983, 2000004999, 2000005070, 2000005107, 2000005166, 2000005183 }
   },
   [400565] = {
     Type = "armor",
@@ -70218,7 +70215,7 @@ Item = {
         AddDamage_Size(1, 2, 15)
       end
     end,
-    Combiitem = { 2000004410, 2000004411, 2000004869, 2000005166 }
+    Combiitem = { 2000004410, 2000004411, 2000004869, 2000005167 }
   },
   [400533] = {
     Type = "armor",
@@ -80297,20 +80294,7 @@ Item = {
   },
   [410609] = {
     Type = "armor",
-    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-    OnStartEquip = function()
-      AddDamage_Size(1, 0, 5)
-      AddDamage_Size(1, 1, 5)
-      AddDamage_Size(1, 2, 5)
-      AddMDamage_Size(1, 0, 5)
-      AddMDamage_Size(1, 1, 5)
-      AddMDamage_Size(1, 2, 5)
-      RaceAddDamage(9999, 5)
-      AddMdamage_Race(9999, 5)
-      AddMDamage_Property(1, 10, 5)
-      AddDamage_Property(1, 10, 5)
-      AddEXPPercent_KillRace(9999, 10)
-    end
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
   },
   [401478] = {
     Type = "armor",
@@ -82251,7 +82235,7 @@ Item = {
       AddRangeAttackDamage(1, 10)
       SubSpellDelay(5)
     end,
-    Combiitem = { 2000005153, 2000005154, 2000005155, 2000005156, 2000005157, 2000005158, 2000005159, 2000005160, 2000005161 }
+    Combiitem = { 2000005153, 2000005154, 2000005155, 2000005156, 2000005157, 2000005158, 2000005159, 2000005160, 2000005161, 2000005162 }
   },
   [1270138] = {
     Type = "armor",
@@ -82267,7 +82251,7 @@ Item = {
       AddExtParam(0, 41, temp2 * 10)
       AddDamage_SKID(1, 5407, 8 + temp3 * 2)
     end,
-    Combiitem = {2000005162, 2000005163}
+    Combiitem = {2000005163, 2000005164}
   },
   [1270139] = {
     Type = "armor",
@@ -82283,7 +82267,7 @@ Item = {
       AddExtParam(0, 41, temp2 * 10)
       AddDamage_SKID(1, 5501, 8 + temp3 * 2)
     end,
-    Combiitem = {2000005162, 2000005163}
+    Combiitem = {2000005163, 2000005164}
   },
   [1270140] = {
     Type = "armor",
@@ -82299,7 +82283,7 @@ Item = {
       AddExtParam(0, 41, temp2 * 10)
       AddDamage_SKID(1, 5405, 8 + temp3 * 2)
     end,
-    Combiitem = {2000005164, 2000005165}
+    Combiitem = {2000005165, 2000005166}
   },
   [1270141] = {
     Type = "armor",
@@ -82315,7 +82299,7 @@ Item = {
       AddExtParam(0, 41, temp2 * 10)
       AddDamage_SKID(1, 5409, 8 + temp3 * 2)
     end,
-    Combiitem = {2000005164, 2000005165}
+    Combiitem = {2000005165, 2000005166}
   },
   [410665] = {
     Type = "armor",
@@ -82381,7 +82365,7 @@ Item = {
         SubSpellDelay(4)
       end
     end,
-    Combiitem = { 2000005167, 2000005168, 2000005169, 2000005174, 2000005175, 2000005176, 2000005177, 2000005178 }
+    Combiitem = { 2000005168, 2000005169, 2000005170, 2000005175, 2000005176, 2000005177, 2000005178, 2000005179 }
   },
   [400001] = {
     Type = "armor",
@@ -82407,7 +82391,7 @@ Item = {
       SubSpellDelay(8)
       SubSpellCastTime(8)
     end,
-    Combiitem = {2000005172}
+    Combiitem = {2000005173}
   },
   [410092] = {
     Type = "armor",
@@ -82416,7 +82400,7 @@ Item = {
       SubSpellDelay(5)
       SubSpellCastTime(5)
     end,
-    Combiitem = {2000005173}
+    Combiitem = {2000005174}
   },
   [410093] = {
     Type = "armor",
@@ -82426,7 +82410,7 @@ Item = {
       AddRangeAttackDamage(1, 8)
       AddMeleeAttackDamage(1, 8)
     end,
-    Combiitem = {2000005170}
+    Combiitem = {2000005171}
   },
   [410094] = {
     Type = "armor",
@@ -82436,7 +82420,7 @@ Item = {
       AddRangeAttackDamage(1, 5)
       AddMeleeAttackDamage(1, 5)
     end,
-    Combiitem = {2000005171}
+    Combiitem = {2000005172}
   },
   [420076] = {
     Type = "armor",
@@ -82445,7 +82429,7 @@ Item = {
       AddExtParam(0, 52, 30)
       AddDamage_CRI(1, 5)
     end,
-    Combiitem = {2000005170, 2000005171}
+    Combiitem = {2000005171, 2000005172}
   },
   [490159] = {
     Type = "armor",
@@ -82455,7 +82439,7 @@ Item = {
       AddExtParam(0, 52, 100)
       SubSpellCastTime(10)
     end,
-    Combiitem = { 2000005167, 2000005168, 2000005169 }
+    Combiitem = { 2000005168, 2000005169, 2000005170 }
   },
   [401367] = {
     Type = "armor",
@@ -82548,6 +82532,140 @@ Item = {
       end
     end,
     OnStartPretendEquip = true
+  },
+  [20503] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
+  },
+  [400794] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
+  },
+  [480648] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
+  },
+  [480968] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      local temp = 0
+      local tempGrade = 0
+      local temp_S1 = 0
+      temp = GetRefineLevel(5)
+      temp_S1 = GetSkillLevel(5449)
+      AddExtParam(0, 41, 15 * math.floor(temp / 2))
+      AddExtParam(0, 234, 2 * math.floor(temp / 2))
+      AddRangeAttackDamage(1, 8 * math.floor(temp / 3))
+      AddExtParam(0, 167, 5 * math.floor(temp / 4))
+      if 6 < temp then
+        SubSFCTEquipAmount(480968, 200, 0)
+      end
+      if 8 < temp then
+        AddExtParam(0, 41, 70)
+        AddDamage_SKID(1, 5453, 20)
+        AddDamage_SKID(1, 5454, 20)
+      end
+      if 10 < temp then
+        AddDamage_HIT(1, 12)
+      end
+      if 12 < temp then
+        RaceAddDamage(9999, 12)
+      end
+      tempGrade = GetEquipGradeLevel(5)
+      if 0 < tempGrade then
+        AddDamage_Property(1, 10, 12)
+      end
+      if 1 < tempGrade then
+        AddIgnore_RES_RacePercent(6, 10)
+        AddIgnore_RES_RacePercent(8, 10)
+        AddIgnore_RES_RacePercent(0, 10)
+        AddIgnore_RES_RacePercent(9, 10)
+        AddIgnore_RES_RacePercent(3, 10)
+        AddIgnore_RES_RacePercent(2, 10)
+        AddIgnore_RES_RacePercent(5, 10)
+        AddIgnore_RES_RacePercent(4, 10)
+        AddIgnore_RES_RacePercent(7, 10)
+        AddIgnore_RES_RacePercent(1, 10)
+      end
+      if 2 < tempGrade then
+        AddDamage_Size(1, 0, 12)
+        AddDamage_Size(1, 1, 12)
+        AddDamage_Size(1, 2, 12)
+      end
+      if 3 < tempGrade and temp_S1 == 10 then
+        EnableSkill(150, 1)
+        EnableSkill(5241, 5)
+        SubSkillDelay(5453, 100)
+        SubSkillDelay(5454, 100)
+      end
+    end
+  },
+  [1270134] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      local temp = 0
+      local temp2 = 0
+      local temp3 = 0
+      temp = GetRefineLevel(GetLocation())
+      AddExtParam(0, 109, temp * 10)
+      temp2 = math.floor(temp / 2)
+      temp3 = math.floor(temp / 3)
+      AddExtParam(0, 41, temp2 * 10)
+      AddDamage_SKID(1, 5355, 5 + temp3)
+    end,
+    Combiitem = {2000005180, 2000005181}
+  },
+  [1270135] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      local temp = 0
+      local temp2 = 0
+      local temp3 = 0
+      temp = GetRefineLevel(GetLocation())
+      AddExtParam(0, 109, temp * 10)
+      temp2 = math.floor(temp / 2)
+      temp3 = math.floor(temp / 3)
+      AddExtParam(0, 41, temp2 * 10)
+      AddDamage_SKID(1, 5355, 5 + temp3)
+    end,
+    Combiitem = {2000005180, 2000005181}
+  },
+  [1270136] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      local temp = 0
+      local temp2 = 0
+      local temp3 = 0
+      temp = GetRefineLevel(GetLocation())
+      AddExtParam(0, 109, temp * 10)
+      temp2 = math.floor(temp / 2)
+      temp3 = math.floor(temp / 3)
+      AddExtParam(0, 41, temp2 * 10)
+      AddDamage_SKID(1, 5353, 5 + temp3)
+      AddDamage_SKID(1, 5354, 5 + temp3)
+    end,
+    Combiitem = {2000005182, 2000005183}
+  },
+  [1270137] = {
+    Type = "armor",
+    Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+    OnStartEquip = function()
+      local temp = 0
+      local temp2 = 0
+      local temp3 = 0
+      temp = GetRefineLevel(GetLocation())
+      AddExtParam(0, 109, temp * 10)
+      temp2 = math.floor(temp / 2)
+      temp3 = math.floor(temp / 3)
+      AddExtParam(0, 41, temp2 * 10)
+      AddDamage_SKID(1, 5353, 5 + temp3)
+      AddDamage_SKID(1, 5354, 5 + temp3)
+    end,
+    Combiitem = {2000005182, 2000005183}
   },
   [2278] = {
     Type = "armor",
@@ -115683,7 +115801,7 @@ Item = {
     OnStartEquip = function()
       AddMeleeAttackDamage(1, 6)
     end,
-    Combiitem = {2000002628}
+    Combiitem = {2000002628, 2000005162}
   },
   [300227] = {
     Type = "card",
@@ -170899,7 +171017,7 @@ Item = {
         AddExtParam(0, 242, 3 * temp2)
       end
     end,
-    Combiitem = {2000005166}
+    Combiitem = {2000005167}
   }
 }
 Combiitem = {
@@ -209680,34 +209798,6 @@ Combiitem = {
   [2000003434] = {
     Item = {490557, 300549},
     OnStartEquip = function()
-      RaceAddDamage(0, 10)
-      RaceAddDamage(1, 10)
-      RaceAddDamage(2, 10)
-      RaceAddDamage(3, 10)
-      RaceAddDamage(4, 10)
-      RaceAddDamage(5, 10)
-      RaceAddDamage(6, 10)
-      RaceAddDamage(7, 10)
-      RaceAddDamage(8, 10)
-      RaceAddDamage(9, 10)
-      AddMdamage_Race(3, 10)
-      AddMdamage_Race(1, 10)
-      AddMdamage_Race(0, 10)
-      AddMdamage_Race(8, 10)
-      AddMdamage_Race(9, 10)
-      AddMdamage_Race(5, 10)
-      AddMdamage_Race(4, 10)
-      AddMdamage_Race(2, 10)
-      AddMdamage_Race(6, 10)
-      AddMdamage_Race(7, 10)
-      AddDamage_Size(1, 0, 10)
-      AddDamage_Size(1, 1, 10)
-      AddDamage_Size(1, 2, 10)
-      AddMDamage_Size(1, 0, 10)
-      AddMDamage_Size(1, 1, 10)
-      AddMDamage_Size(1, 2, 10)
-      AddDamage_Property(1, 10, 10)
-      AddMDamage_Property(1, 10, 10)
       AddMeleeAttackDamage(1, 7)
       AddRangeAttackDamage(1, 7)
       AddSkillMDamage(10, 7)
@@ -232013,9 +232103,19 @@ Combiitem = {
   [2000005153] = {
     Item = {491101, 300220},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
+      ClassAddDamage(0, 1, 15)
+      ClassAddDamage(1, 1, 15)
+    end
+  },
+  [2000005162] = {
+    Item = {491101, 300223},
+    OnStartEquip = function()
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232023,9 +232123,9 @@ Combiitem = {
   [2000005154] = {
     Item = {491101, 300447},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232033,9 +232133,9 @@ Combiitem = {
   [2000005155] = {
     Item = {491101, 300449},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232043,9 +232143,9 @@ Combiitem = {
   [2000005156] = {
     Item = {491101, 300366},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232053,9 +232153,9 @@ Combiitem = {
   [2000005157] = {
     Item = {491101, 300368},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232063,9 +232163,9 @@ Combiitem = {
   [2000005158] = {
     Item = {491101, 300467},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232073,9 +232173,9 @@ Combiitem = {
   [2000005159] = {
     Item = {491101, 300468},
     OnStartEquip = function()
-      AddExtParam(0, 234, 8)
-      AddExtParam(0, 238, 8)
-      AddExtParam(0, 239, 8)
+      AddExtParam(0, 234, 5)
+      AddExtParam(0, 238, 5)
+      AddExtParam(0, 239, 5)
       ClassAddDamage(0, 1, 15)
       ClassAddDamage(1, 1, 15)
     end
@@ -232118,7 +232218,7 @@ Combiitem = {
       end
     end
   },
-  [2000005162] = {
+  [2000005163] = {
     Item = {1270138, 1270139},
     OnStartEquip = function()
       local temp = 0
@@ -232144,7 +232244,7 @@ Combiitem = {
       end
     end
   },
-  [2000005163] = {
+  [2000005164] = {
     Item = { 1270138, 1270139, 24792 },
     OnStartEquip = function()
       local temp = 0
@@ -232165,7 +232265,7 @@ Combiitem = {
       end
     end
   },
-  [2000005164] = {
+  [2000005165] = {
     Item = {1270140, 1270141},
     OnStartEquip = function()
       local temp = 0
@@ -232191,7 +232291,7 @@ Combiitem = {
       end
     end
   },
-  [2000005165] = {
+  [2000005166] = {
     Item = { 1270140, 1270141, 24793 },
     OnStartEquip = function()
       local temp = 0
@@ -232212,7 +232312,7 @@ Combiitem = {
       end
     end
   },
-  [2000005166] = {
+  [2000005167] = {
     Item = {500107, 400532},
     OnStartEquip = function()
       local tempGradeH = 0
@@ -232231,7 +232331,7 @@ Combiitem = {
       end
     end
   },
-  [2000005167] = {
+  [2000005168] = {
     Item = { 490159, 20940, 19241 },
     OnStartEquip = function()
       local temp = 0
@@ -232245,7 +232345,7 @@ Combiitem = {
       end
     end
   },
-  [2000005168] = {
+  [2000005169] = {
     Item = { 490159, 20940, 19245 },
     OnStartEquip = function()
       local temp = 0
@@ -232259,7 +232359,7 @@ Combiitem = {
       end
     end
   },
-  [2000005169] = {
+  [2000005170] = {
     Item = { 490159, 20940, 18609 },
     OnStartEquip = function()
       local temp = 0
@@ -232269,62 +232369,156 @@ Combiitem = {
         ClassAddDamage(1, 1, 15)
       end
       if 8 < temp then
-        SubSFCTEquipAmount(2000005169, 200, 0)
+        SubSFCTEquipAmount(2000005170, 200, 0)
       end
     end
   },
-  [2000005170] = {
+  [2000005171] = {
     Item = {420076, 410093},
     OnStartEquip = function()
       AddDamage_CRI(1, 7)
     end
   },
-  [2000005171] = {
+  [2000005172] = {
     Item = {420076, 410094},
     OnStartEquip = function()
       AddDamage_CRI(1, 5)
     end
   },
-  [2000005172] = {
+  [2000005173] = {
     Item = {420003, 410091},
     OnStartEquip = function()
       AddSkillMDamage(10, 7)
     end
   },
-  [2000005173] = {
+  [2000005174] = {
     Item = {420003, 410092},
     OnStartEquip = function()
       AddSkillMDamage(10, 5)
     end
   },
-  [2000005174] = {
+  [2000005175] = {
     Item = {20940, 19245},
     OnStartEquip = function()
       AddRangeAttackDamage(1, 14)
     end
   },
-  [2000005175] = {
+  [2000005176] = {
     Item = {20940, 5104},
     OnStartEquip = function()
       SubSpellDelay(6)
     end
   },
-  [2000005176] = {
+  [2000005177] = {
     Item = {20940, 18609},
     OnStartEquip = function()
       SubSpellDelay(6)
     end
   },
-  [2000005177] = {
+  [2000005178] = {
     Item = {20940, 19241},
     OnStartEquip = function()
       SubSpellCastTime(30)
     end
   },
-  [2000005178] = {
+  [2000005179] = {
     Item = {20940, 5592},
     OnStartEquip = function()
       AddDamage_CRI(1, 14)
+    end
+  },
+  [2000005180] = {
+    Item = {1270134, 1270135},
+    OnStartEquip = function()
+      local temp = 0
+      AddExtParam(0, 242, 2)
+      AddExtParam(0, 207, 2)
+      temp = GetRefineLevel(34) + GetRefineLevel(35)
+      if 14 < temp then
+        AddDamage_Size(1, 0, 7)
+        AddDamage_Size(1, 1, 7)
+        AddDamage_Size(1, 2, 7)
+      end
+      if 17 < temp then
+        SetIgnoreDefRace_Percent(6, 50)
+        SetIgnoreDefRace_Percent(8, 50)
+        SetIgnoreDefRace_Percent(0, 50)
+        SetIgnoreDefRace_Percent(9, 50)
+        SetIgnoreDefRace_Percent(3, 50)
+        SetIgnoreDefRace_Percent(2, 50)
+        SetIgnoreDefRace_Percent(5, 50)
+        SetIgnoreDefRace_Percent(4, 50)
+        SetIgnoreDefRace_Percent(7, 50)
+        SetIgnoreDefRace_Percent(1, 50)
+      end
+    end
+  },
+  [2000005181] = {
+    Item = { 1270134, 1270135, 24792 },
+    OnStartEquip = function()
+      local temp = 0
+      AddDamage_Property(1, 10, 3)
+      AddExtParam(0, 242, 2)
+      temp = GetRefineLevel(34) + GetRefineLevel(35) + GetRefineLevel(31)
+      if 26 < temp then
+        AddIgnore_RES_RacePercent(6, 10)
+        AddIgnore_RES_RacePercent(8, 10)
+        AddIgnore_RES_RacePercent(0, 10)
+        AddIgnore_RES_RacePercent(9, 10)
+        AddIgnore_RES_RacePercent(3, 10)
+        AddIgnore_RES_RacePercent(2, 10)
+        AddIgnore_RES_RacePercent(5, 10)
+        AddIgnore_RES_RacePercent(4, 10)
+        AddIgnore_RES_RacePercent(7, 10)
+        AddIgnore_RES_RacePercent(1, 10)
+      end
+    end
+  },
+  [2000005182] = {
+    Item = {1270136, 1270137},
+    OnStartEquip = function()
+      local temp = 0
+      AddExtParam(0, 242, 2)
+      AddExtParam(0, 207, 2)
+      temp = GetRefineLevel(33) + GetRefineLevel(30)
+      if 14 < temp then
+        AddDamage_Size(1, 0, 7)
+        AddDamage_Size(1, 1, 7)
+        AddDamage_Size(1, 2, 7)
+      end
+      if 17 < temp then
+        SetIgnoreDefRace_Percent(6, 50)
+        SetIgnoreDefRace_Percent(8, 50)
+        SetIgnoreDefRace_Percent(0, 50)
+        SetIgnoreDefRace_Percent(9, 50)
+        SetIgnoreDefRace_Percent(3, 50)
+        SetIgnoreDefRace_Percent(2, 50)
+        SetIgnoreDefRace_Percent(5, 50)
+        SetIgnoreDefRace_Percent(4, 50)
+        SetIgnoreDefRace_Percent(7, 50)
+        SetIgnoreDefRace_Percent(1, 50)
+      end
+    end
+  },
+  [2000005183] = {
+    Item = { 1270136, 1270137, 24793 },
+    OnStartEquip = function()
+      local temp = 0
+      AddDamage_Property(1, 10, 3)
+      AddExtParam(0, 242, 2)
+      temp = GetRefineLevel(33) + GetRefineLevel(30) + GetRefineLevel(32)
+      if 26 < temp then
+        AddIgnore_RES_RacePercent(6, 10)
+        AddIgnore_RES_RacePercent(8, 10)
+        AddIgnore_RES_RacePercent(0, 10)
+        AddIgnore_RES_RacePercent(9, 10)
+        AddIgnore_RES_RacePercent(3, 10)
+        AddIgnore_RES_RacePercent(2, 10)
+        AddIgnore_RES_RacePercent(5, 10)
+        AddIgnore_RES_RacePercent(4, 10)
+        AddIgnore_RES_RacePercent(7, 10)
+        AddIgnore_RES_RacePercent(1, 10)
+      end
     end
   }
 }

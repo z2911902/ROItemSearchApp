@@ -5305,7 +5305,14 @@ ItemDBNameTbl = {
   Energy_Xtal_DFM_TW = 1003222,
   Devil_F_Manteau_UPD = 480945,
   Kyel_hyre_Ulti_TW = 480341,
-  Kyel_hyre_Ulti_LT = 480939
+  Kyel_hyre_Ulti_LT = 480939,
+  Rising_Druid = 315717,
+  S_TR_MS_Earring = 1270134,
+  S_TR_MS_Pendant = 1270135,
+  S_TR_RB_Armor = 1270136,
+  S_TR_RB_Shoes = 1270137,
+  C_Boots_LT_Hammer = 108286,
+  Ulti_Strategy_Robe = 480968
 }
 
 function ItemDB_To_ItemID(in_ItemDB)
