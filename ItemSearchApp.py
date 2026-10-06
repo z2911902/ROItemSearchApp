@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.21-261006"
+Version = "v0.8.22-261007"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -4022,30 +4022,78 @@ def convert_description_to_html(description_lines):#視覺化說明欄
 
     return "<br>".join(html_lines)
 
-def decompile_lub(lub_path, output_path):
-    """使用 luadec.exe 反編譯 LUB → LUA"""
+def _run_grfcl_lub_decompile(lub_path, output_path, *, encoding=None):
+    """使用 GrfCL.exe 將 LUB 反編譯成 LUA。
+
+    encoding=None: 一般 LUB，直接使用 -lubDecompile。
+    encoding="65001": iteminfo_new.lub 專用，先設定 UTF-8 code page。
+    """
     if not os.path.exists(lub_path):
         QMessageBox.critical(None, tr("message.title.error"), tr("message.lub_file_not_found", path=lub_path))
         return False
 
+    grfcl_exe = os.path.join(get_app_base_dir(), "APP", "GrfCL.exe")
+    if not os.path.exists(grfcl_exe):
+        QMessageBox.critical(None, tr("message.title.error"), f"找不到 GrfCL.exe：{grfcl_exe}")
+        return False
+
+    lub_path = os.path.abspath(lub_path)
+    output_path = os.path.abspath(output_path)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    args = [grfcl_exe]
+    if encoding is not None:
+        args += ["-encoding", str(encoding)]
+    args += ["-lubDecompile", lub_path, output_path]
+
     try:
-        with open(output_path, "w", encoding="utf-8") as out_file:
-            subprocess.run(
-                [r"APP\luadec.exe", lub_path],
-                stdout=out_file,
-                stderr=subprocess.PIPE,
-                check=True
+        # iteminfo_new 需要 -encoding 65001。GrfCL 的 -encoding 在 GUI 程式
+        # 沒有 console 時可能報「控制代碼無效」，Windows 下給它獨立 console。
+        creationflags = 0
+        if encoding is not None and sys.platform == "win32":
+            creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+
+        result = subprocess.run(
+            args,
+            cwd=get_app_base_dir(),
+            check=False,
+            creationflags=creationflags,
+        )
+
+        if result.returncode != 0:
+            mode = f"-encoding {encoding} " if encoding is not None else ""
+            QMessageBox.critical(
+                None,
+                tr("message.title.decompile_failed"),
+                f"GrfCL {mode}-lubDecompile 失敗，exit code: {result.returncode}\n{lub_path}",
             )
-        print(f"✨ LUB 已反編譯 -> {output_path}")
+            return False
+
+        if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            QMessageBox.critical(
+                None,
+                tr("message.title.decompile_failed"),
+                f"GrfCL 未產生有效的 LUA：{output_path}",
+            )
+            return False
+
+        mode = f"(-encoding {encoding})" if encoding is not None else ""
+        print(f"✨ LUB 已由 GrfCL{mode} 反編譯 -> {output_path}")
         return True
 
-    except subprocess.CalledProcessError as e:
-        QMessageBox.critical(None, tr("message.title.decompile_failed"), e.stderr.decode("utf-8", errors="ignore"))
+    except OSError as e:
+        QMessageBox.critical(None, tr("message.title.decompile_failed"), str(e))
         return False
 
-    except FileNotFoundError:
-        QMessageBox.critical(None, tr("message.title.error"), tr("message.luadec_not_found"))
-        return False
+
+def decompile_lub(lub_path, output_path):
+    """一般 LUB：只使用 GrfCL.exe -lubDecompile，不指定 encoding。"""
+    return _run_grfcl_lub_decompile(lub_path, output_path, encoding=None)
+
+
+def decompile_iteminfo_with_grfcl(lub_path, output_path):
+    """iteminfo_new.lub：使用 GrfCL.exe -encoding 65001 -lubDecompile。"""
+    return _run_grfcl_lub_decompile(lub_path, output_path, encoding="65001")
 
 
 def parse_lub_file(filename, existing_items=None, duplicate_mode="skip"):  # Desktop 相容 wrapper
@@ -9989,8 +10037,6 @@ class ItemSearchApp(QWidget):
         # === 本地（GRF 解出/反編譯/整理）流程子函式（供回退/重建用） ===
         GRFCL_EXE    = os.path.join(BASE_DIR, "APP", "GrfCL.exe")
         GRF_PATH     = r"C:\Program Files (x86)\Gravity\RagnarokOnline\data.grf"
-        UNLUAC_JAR   = os.path.join(BASE_DIR, "APP", "unluac.jar")        
-        
 
         def extract_lub_from_grf(relative_path: str) -> bool:
             """從 GRF 解出指定 LUB 檔案。relative_path 必須像：
@@ -10017,12 +10063,6 @@ class ItemSearchApp(QWidget):
 
             print("✅ 解壓完成")
             return True
-
-
-        def run_unluac(lub_file, lua_file):
-            os.makedirs(data_dir, exist_ok=True)
-            with open(lua_file, "w", encoding="utf-8") as out:
-                subprocess.run(["java", "-jar", UNLUAC_JAR, lub_file], stdout=out, stderr=subprocess.DEVNULL)
 
         def split_local_variables(code: str) -> str:
             pattern = re.compile(r'^(\s*)local\s+([\w\s,]+?)\s*=\s*([^\n]+)$', re.MULTILINE)
@@ -10064,17 +10104,17 @@ class ItemSearchApp(QWidget):
         def local_fill_missing():
             """本地方式補齊缺檔（有就不動）。"""
 
-            # --- iteminfo_new.lub（使用 decompile_lub） ---
+            # --- iteminfo_new.lub（GrfCL + encoding 65001） ---
             if not os.path.exists(iteminfo_path):
                 lub_path = r"C:\Program Files (x86)\Gravity\RagnarokOnline\System\iteminfo_new.lub"
                 print(f"⚙️ 反編譯 {lub_path} → {iteminfo_path}")
-                if not decompile_lub(lub_path, iteminfo_path):
+                if not decompile_iteminfo_with_grfcl(lub_path, iteminfo_path):
                     print("❌ 反編譯 iteminfo 失敗")
                     return False
             else:
                 print("✅ iteminfo_new.lua 已存在，略過反編譯")
 
-            # --- EquipmentProperties.lub（使用 unluac） ---
+            # --- EquipmentProperties.lub（使用 GrfCL） ---
             if not os.path.exists(equipment_lua_path):
                 print("📦 解出 EquipmentProperties.lub...")
                 equip_lub_rel = r"data\LuaFiles514\Lua Files\EquipmentProperties\EquipmentProperties.lub"
@@ -10085,71 +10125,75 @@ class ItemSearchApp(QWidget):
                 # GRF 解出後實際 LUB 檔案位置
                 equip_lub_src = os.path.join(BASE_DIR, equip_lub_rel)
 
-                print("🧩 正在反編譯 unluac...")
-                run_unluac(equip_lub_src, equipment_lua_path)
+                print("🧩 使用 GrfCL 反編譯 EquipmentProperties...")
+                if not decompile_lub(equip_lub_src, equipment_lua_path):
+                    print("❌ 反編譯 EquipmentProperties 失敗")
+                    return False
 
                 print("🧹 正在整理 Lua 格式...")
                 clean_lua_format(equipment_lua_path)
             else:
                 print("✅ EquipmentProperties.lua 已存在")
 
-            # --- EnchantList.lub（使用 decompile_lub） ---
+            # --- EnchantList.lub（使用 GrfCL） ---
             if not os.path.exists(EnchantList_path):
                 print("📦 解出 EnchantList.lub...")
                 ench_rel = r"data\LuaFiles514\Lua Files\Enchant\EnchantList.lub"
                 if extract_lub_from_grf(ench_rel):
                     ench_src = os.path.join(BASE_DIR, ench_rel)
-                    print("🧩 使用 luadec 反編譯 EnchantList...")
+                    print("🧩 使用 GrfCL 反編譯 EnchantList...")
                     if not decompile_lub(ench_src, EnchantList_path):
                         print("❌ 反編譯 EnchantList 失敗")
                         return False
             else:
                 print("✅ EnchantList.lua 已存在")
 
-            # --- ItemReformSystem.lub（使用 decompile_lub） ---
+            # --- ItemReformSystem.lub（使用 GrfCL） ---
             if not os.path.exists(ItemReformSystem_path):
                 print("📦 解出 ItemReformSystem.lub...")
                 ench_rel = r"data\LuaFiles514\Lua Files\ItemReform\ItemReformSystem.lub"
                 if extract_lub_from_grf(ench_rel):
                     ench_src = os.path.join(BASE_DIR, ench_rel)
-                    print("🧩 使用 luadec 反編譯 ItemReformSystem...")
+                    print("🧩 使用 GrfCL 反編譯 ItemReformSystem...")
                     if not decompile_lub(ench_src, ItemReformSystem_path):
                         print("❌ 反編譯 ItemReformSystem 失敗")
                         return False
             else:
                 print("✅ ItemReformSystem.lua 已存在")
 
-            # --- ItemDBNameTbl.lub（使用 unluac） ---
+            # --- ItemDBNameTbl.lub（使用 GrfCL） ---
             if not os.path.exists(ItemDBNameTbl_path):
                 print("📦 解出 ItemDBNameTbl.lub...")
                 db_rel = r"data\LuaFiles514\Lua Files\ItemDBNameTbl.lub"
                 if extract_lub_from_grf(db_rel):
                     db_src = os.path.join(BASE_DIR, db_rel)
-                    print("🧩 使用 unluac 反編譯 ItemDBNameTbl...")
-                    run_unluac(db_src, ItemDBNameTbl_path)
+                    print("🧩 使用 GrfCL 反編譯 ItemDBNameTbl...")
+                    if not decompile_lub(db_src, ItemDBNameTbl_path):
+                        print("❌ 反編譯 ItemDBNameTbl 失敗")
+                        return False
             else:
                 print("✅ ItemDBNameTbl.lua 已存在")
 
-            # --- stateiconinfo.lub（使用 decompile_lub） ---
+            # --- stateiconinfo.lub（使用 GrfCL） ---
             if not os.path.exists(stateiconinfo_path):
                 print("📦 解出 stateiconinfo.lub...")
                 ench_rel = r"data\LuaFiles514\Lua Files\stateicon\stateiconinfo.lub"
                 if extract_lub_from_grf(ench_rel):
                     ench_src = os.path.join(BASE_DIR, ench_rel)
-                    print("🧩 使用 luadec 反編譯 stateiconinfo...")
+                    print("🧩 使用 GrfCL 反編譯 stateiconinfo...")
                     if not decompile_lub(ench_src, stateiconinfo_path):
                         print("❌ 反編譯 stateiconinfo 失敗")
                         return False
             else:
                 print("✅ stateiconinfo.lua 已存在")
 
-            # --- EFSTIDs.lub（使用 decompile_lub） ---
+            # --- EFSTIDs.lub（使用 GrfCL） ---
             if not os.path.exists(EFSTIDs_path):
                 print("📦 解出 EFSTIDs.lub...")
                 ench_rel = r"data\LuaFiles514\Lua Files\stateicon\EFSTIDs.lub"
                 if extract_lub_from_grf(ench_rel):
                     ench_src = os.path.join(BASE_DIR, ench_rel)
-                    print("🧩 使用 luadec 反編譯 EFSTIDs...")
+                    print("🧩 使用 GrfCL 反編譯 EFSTIDs...")
                     if not decompile_lub(ench_src, EFSTIDs_path):
                         print("❌ 反編譯 EFSTIDs 失敗")
                         return False
