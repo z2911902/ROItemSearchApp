@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.20-261002"
+Version = "v0.8.21-261006"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -3209,8 +3209,9 @@ GITHUB_LATEST_RELEASE_API = (
     f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
 )
 
-ZIP_URL_TEMPLATE = (
-    "https://github.com/z2911902/ROItemSearchApp/releases/download/{ver}/ROItemSearchApp.zip"
+ZIP_URL_TEMPLATE = (#使用https://download.githubcdn.com/?url= 代理
+    # "https://github.com/z2911902/ROItemSearchApp/releases/download/{ver}/ROItemSearchApp.zip" 
+    "https://download.githubcdn.com/?url=https://github.com/z2911902/ROItemSearchApp/releases/download/{ver}/ROItemSearchApp.zip"
 )
 
 
