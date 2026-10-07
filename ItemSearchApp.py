@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.22-261007"
+Version = "v0.8.23-261007"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -8006,6 +8006,7 @@ class ItemSearchApp(QWidget):
             ("ItemReformSystem.lua",    "data/ItemReformSystem.lua"),
             ("stateiconinfo.lua",         "data/stateiconinfo.lua"),
             ("EFSTIDs.lua",             "data/EFSTIDs.lua"),
+            ("lapineupgradebox.lub",       "data/lapineupgradebox.lub"),
             ("User_iteminfo_new.lua",        "data/USER_iteminfo_new.lua"),
             ("User_EquipmentProperties.lua","data/USER_EquipmentProperties.lua"),
             ("skill_tree.yml",          "data/skill_tree.yml"),
@@ -8016,7 +8017,6 @@ class ItemSearchApp(QWidget):
             ("job_dict.py",             "data/job_dict.py"),
             ("EnchantName.lua",         "data/EnchantName.lua"),
             ("lapine_random_options.json", "data/lapine_random_options.json"),
-            ("lapineupgradebox.lub",       "data/lapineupgradebox.lub"),
 
         ]
 
@@ -10200,6 +10200,18 @@ class ItemSearchApp(QWidget):
             else:
                 print("✅ EFSTIDs.lua 已存在")
 
+            # --- LapineUpgradeBox.lub（使用 GrfCL） ---
+            if not os.path.exists(lapineupgradebox_path):
+                print("📦 解出 LapineUpgradeBox.lub...")
+                ench_rel = r"data\LuaFiles514\Lua Files\Datainfo\LapineUpgradeBox.lub"
+                if extract_lub_from_grf(ench_rel):
+                    ench_src = os.path.join(BASE_DIR, ench_rel)
+                    print("🧩 使用 GrfCL 反編譯 LapineUpgradeBox...")
+                    if not decompile_lub(ench_src, lapineupgradebox_path):
+                        print("❌ 反編譯 LapineUpgradeBox 失敗")
+                        return False
+            else:
+                print("✅ LapineUpgradeBox.lua 已存在")
             # --- 全部完成後刪除 GRF 解出來的暫存 LuaFiles514 ---
             temp_folder = os.path.join(BASE_DIR, "data", "LuaFiles514")
             if os.path.exists(temp_folder):
@@ -10249,6 +10261,7 @@ class ItemSearchApp(QWidget):
                 ItemReformSystem_path,
                 EFSTIDs_path,
                 stateiconinfo_path,
+                lapineupgradebox_path,
             ]
             if not all(os.path.exists(path) for path in local_required_files):
                 if not local_fill_missing():

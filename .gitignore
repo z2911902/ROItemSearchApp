@@ -223,5 +223,7 @@ __marimo__/
 /frontend
 *.bat
 /backup
-/deploy_backend_nas_github_v7.py
 /map
+/github部署
+
+/deploy_backend_nas_github_cloudflare_v9.1_manualpush.py
