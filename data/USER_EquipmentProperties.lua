@@ -283,8 +283,7 @@
         AddMdamage_Class(1, 8)
         AddMdamage_Class(2, 8)
       end
-    end,
-    Combiitem = {},
+    end
   },
   [9999999999] = {},
 }
