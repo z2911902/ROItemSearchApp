@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>ROItemSearchApp 更新紀錄</title>
+  <style>
+    :root { color-scheme: dark; --bg:#202124; --fg:#e8eaed; --muted:#aab1b8; --line:#41464d; --link:#80b9ff; --code:#30343a; }
+    @media(prefers-color-scheme:light){ :root{color-scheme:light; --bg:#fafbfc;--fg:#252830;--muted:#555;--line:#d9dfe6;--link:#1665c1;--code:#f1f3f6;} }
+    * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.7 system-ui,"Microsoft JhengHei","Noto Sans TC",sans-serif; }
+    main { padding:16px 24px 48px; max-width:1050px; margin:auto; overflow-wrap:anywhere; }
+    h1,h2,h3 { line-height:1.35; margin:1.2em 0 .55em; } h1 {font-size:1.8rem;border-bottom:1px solid var(--line);padding-bottom:.4em;margin-top:.35em} h2 {font-size:1.35rem;border-bottom:1px solid var(--line);padding-bottom:.25em} h3 {font-size:1.1rem;color:var(--link)}
+    ul,ol {padding-left:1.6rem; margin:.5em 0 1em} li {margin:.2em 0} p{margin:.65em 0} a{color:var(--link)} a:hover{text-decoration:none}
+    img {max-width:100%;height:auto;vertical-align:middle} pre {overflow:auto;background:var(--code);padding:14px;border-radius:6px} code{background:var(--code);padding:2px 4px;border-radius:3px}pre code{padding:0}
+    blockquote{border-left:3px solid var(--link);margin:1em 0;padding:.2em 1em;color:var(--muted)}
+    table{border-collapse:collapse;display:block;overflow:auto}th,td{border:1px solid var(--line);padding:6px 10px}
+    #status {color:var(--muted);font-size:.9rem;margin:1rem 0} @media(max-width:560px){main{padding:12px 14px} h1{font-size:1.5rem}}
+  </style>
+  <!-- Cloudflare Web Analytics: page view, not a desktop-app active-user counter -->
+  <script type="text/javascript" nonce="91c6e836df064c1f97b9d8f8315" src="//local.adguard.org?ts=1792018973263&amp;type=content-script&amp;dmn=chatgpt.com&amp;url=https%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_000000005f548209a210f416587f9363%26ts%3D497783%26p%3Dfs%26cid%3D1%26sig%3D452590d19d9763b6e4ae332aed7353235137e1dacab261482931ea38a9c7709a%26v%3D0&amp;app=chrome.exe&amp;css=2&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-dnt"></script><script type="text/javascript" nonce="91c6e836df064c1f97b9d8f8315" src="//local.adguard.org?ts=1792018973263&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script>
+</head>
+<body>
+  <main><div id="status" role="status">正在載入更新紀錄…</div><article id="changelog" aria-label="更新紀錄"></article></main>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js" defer></script>
+  <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "e9ce82bbdef14e86b5cc4393a2a23241"}'></script><!-- End Cloudflare Web Analytics -->
+  <script>
+    window.addEventListener('DOMContentLoaded', async () => {
+      const status = document.getElementById('status');
+      const article = document.getElementById('changelog');
+      try {
+        const response = await fetch('./CHANGELOG.md', {cache:'no-cache'});
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const source = await response.text();
+        if (!source.trim()) throw new Error('檔案內容為空');
+        // Wait for the deferred scripts when DOMContentLoaded arrives.
+        if (!window.marked || !window.DOMPurify) throw new Error('Markdown 渲染程式無法載入');
+        const html = marked.parse(source, {gfm:true, breaks:false});
+        article.innerHTML = DOMPurify.sanitize(html);
+        for (const link of article.querySelectorAll('a[href]')) {
+          const target = new URL(link.getAttribute('href'), location.href);
+          if (target.protocol === 'https:' || target.protocol === 'http:') {
+            link.target = '_blank';link.rel = 'noopener noreferrer';
+          }
+        }
+        status.remove();
+      } catch (error) {
+        status.textContent = '更新紀錄暫時無法載入。';
+        console.warn('[CHANGELOG]', error);
+      }
+    });
+  </script>
+</body>
+</html>

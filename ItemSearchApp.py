@@ -1,5 +1,6 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.0-2610015"
+Version = "v0.9.15-261015"
+UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -10,6 +11,72 @@ import hashlib
 from PySide6.QtCore import QThread, Signal, Qt, QMetaObject, QTimer
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPlainTextEdit, QLabel
+
+# Early launch acknowledgement: display a small Qt window BEFORE importing the
+# heavier application modules, so users can see that the process has started.
+# Keep this block light and avoid touching application data or project files.
+_EARLY_STARTUP_APP = None
+_EARLY_STARTUP_WINDOW = None
+if __name__ == "__main__" and (len(sys.argv) <= 1 or sys.argv[1] != "rrf"):
+    # Required before GUI startup in a frozen multiprocessing entry point.
+    mp.freeze_support()
+    try:
+        _early_cfg_path = os.path.join(
+            os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
+            else os.path.dirname(os.path.abspath(__file__)),
+            "data", "config.json",
+        )
+        _early_cfg = {}
+        if os.path.isfile(_early_cfg_path):
+            with open(_early_cfg_path, "r", encoding="utf-8") as _cfg_file:
+                _early_cfg = json.load(_cfg_file)
+            if not isinstance(_early_cfg, dict):
+                _early_cfg = {}
+        _early_scale = _early_cfg.get("ui_scale_factor", 1.0)
+        for _arg in sys.argv[1:]:
+            if isinstance(_arg, str) and _arg.lower().startswith("x"):
+                try:
+                    _early_scale = float(_arg[1:])
+                    break
+                except ValueError:
+                    pass
+        _early_scale = float(_early_scale)
+        if 0.5 <= _early_scale <= 3.0:
+            os.environ["QT_SCALE_FACTOR"] = f"{_early_scale:g}"
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        pass  # Broken config must not prevent the startup indicator.
+
+    _EARLY_STARTUP_APP = QApplication.instance() or QApplication(sys.argv)
+
+    # Make the earliest window identical in structure to LoadingDialog.
+    # Reuse this instance later so the user sees one continuous progress window.
+    class _EarlyLoadingDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("載入中")
+            self.resize(500, 200)
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+            layout = QVBoxLayout(self)
+            self.label = QLabel("正在載入程式模組...")
+            self.text = QPlainTextEdit()
+            self.text.setReadOnly(True)
+            layout.addWidget(self.label)
+            layout.addWidget(self.text)
+            self.append_text("正在載入程式模組，請稍候...")
+
+        def append_text(self, msg: str):
+            self.text.appendPlainText(msg)
+            bar = self.text.verticalScrollBar()
+            bar.setValue(bar.maximum())
+
+        def update_progress(self, msg: str):
+            self.label.setText(msg)
+
+    _EARLY_STARTUP_WINDOW = _EarlyLoadingDialog()
+    _EARLY_STARTUP_WINDOW.show()
+    _EARLY_STARTUP_WINDOW.raise_()
+    _EARLY_STARTUP_APP.processEvents()
+
 import enchant #載入附魔工具
 import lapine_upgrade #載入 LapineUpgradeBox 附魔工具
 import skill_tree #載入技能樹
@@ -663,7 +730,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
     QComboBox, QTextEdit, QMessageBox, QHBoxLayout, QScrollArea, QCheckBox, QMenuBar, QFileDialog,
     QPushButton, QTabWidget, QFormLayout, QSpinBox  ,QDoubleSpinBox  ,QFrame , QGridLayout,QDialog, QListWidget, QButtonGroup,QSlider,
-    QCompleter, QTableWidget, QTableWidgetItem, QSplitter, QTabBar,
+    QCompleter, QTableWidget, QTableWidgetItem, QSplitter, QTabBar, QMenu,
 )
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -7318,7 +7385,7 @@ class ItemSearchApp(QWidget):
         row.setSpacing(8)
         self._next_quick_buttons = {}
 
-        title = QLabel("工作空間", toolbar)
+        title = QLabel("清單", toolbar)
         title.setObjectName("nextQuickTitle")
         row.addWidget(title)
 
@@ -7352,19 +7419,7 @@ class ItemSearchApp(QWidget):
         row.addWidget(duplicate_button)
         self._initialize_workspace_projects()
 
-        # 快捷鍵與操作紀錄位於工作空間列；不影響三欄內按鈕位置。
-        undo_button = QToolButton(toolbar)
-        undo_button.setText("↶ 復原 0")
-        undo_button.setToolTip("回復上一個配置狀態 (Ctrl+Z)")
-        undo_button.clicked.connect(self._workspace_undo)
-        row.addWidget(undo_button)
-        redo_button = QToolButton(toolbar)
-        redo_button.setText("↷ 重做 0")
-        redo_button.setToolTip("重做配置狀態 (Ctrl+Y)")
-        redo_button.clicked.connect(self._workspace_redo)
-        row.addWidget(redo_button)
-        self._undo_button = undo_button
-        self._redo_button = redo_button
+        # 復原／重做已移至上方主選單列右側，不佔用專案清單空間。
 
         reset_button = QToolButton(toolbar)
         reset_button.setObjectName("nextLayoutResetButton")
@@ -7591,9 +7646,15 @@ class ItemSearchApp(QWidget):
             return
         if 0 <= previous < len(self._project_records):
             try:
-                self._project_records[previous]["data"] = self._project_snapshot()
-                self._project_records[previous]["file"] = self.current_file
+                snapshot = self._project_snapshot()
                 record = self._project_records[previous]
+                prior = record.get("data")
+                if prior is not None and prior != snapshot and not self._history_lock:
+                    record.setdefault("undo", []).append(prior)
+                    record["undo"] = record["undo"][-40:]
+                    record["redo"] = []
+                record["data"] = snapshot
+                record["file"] = self.current_file
                 self._refresh_workspace_tab_label(previous)
             except Exception as exc:
                 QMessageBox.warning(self, "無法切換專案", f"目前專案無法保存：{exc}")
@@ -7620,19 +7681,46 @@ class ItemSearchApp(QWidget):
             self._project_switching = False
 
     def _close_workspace_project(self, index):
-        if len(self._project_records) <= 1:
-            QMessageBox.information(self, "工作空間", "至少需要保留一個專案分頁。")
+        """關閉指定分頁；最後一個分頁改由全新預設專案接替。"""
+        if not (0 <= index < len(self._project_records)):
             return
         if QMessageBox.question(self, "關閉專案", "關閉此工作空間分頁？此分頁的未儲存修改將不再保留於下次啟動的工作階段。",
                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No) != QMessageBox.Yes:
             return
+        if len(self._project_records) == 1:
+            # 不複製舊專案；與「＋」使用同一份空白配置建構規則。
+            # 先建立並套用新資料，確認成功後才取代舊分頁紀錄。
+            try:
+                if not getattr(self, "_workspace_startup_ready", False):
+                    raise RuntimeError("資料尚未完成初始化，無法建立預設專案。")
+                snapshot = self._blank_workspace_snapshot()
+                new_record = {
+                    "data": snapshot, "file": None, "name": "專案 1",
+                    "undo": [], "redo": [], "saved_hash": None,
+                }
+                self._project_switching = True
+                try:
+                    self._load_workspace_record(new_record)
+                    self._project_records[0] = new_record
+                    self.project_tabs.setTabText(0, "專案 1")
+                    self._active_project_index = 0
+                    self._refresh_workspace_tab_label(0)
+                finally:
+                    self._project_switching = False
+                self._update_history_controls()
+                self._persist_workspace_session()
+            except Exception as exc:
+                QMessageBox.warning(self, "建立預設專案失敗", str(exc))
+            return
         active = self.project_tabs.currentIndex()
         if index != active:
             self._project_switching = True
-            self.project_tabs.removeTab(index)
-            del self._project_records[index]
-            self._active_project_index = active - (1 if index < active else 0)
-            self._project_switching = False
+            try:
+                self.project_tabs.removeTab(index)
+                del self._project_records[index]
+                self._active_project_index = active - (1 if index < active else 0)
+            finally:
+                self._project_switching = False
         else:
             target = 0 if index != 0 else 1
             self.project_tabs.setCurrentIndex(target)
@@ -7640,10 +7728,18 @@ class ItemSearchApp(QWidget):
             if self.project_tabs.currentIndex() != target:
                 return
             self._project_switching = True
-            self.project_tabs.removeTab(index)
-            del self._project_records[index]
-            self._active_project_index = target - (1 if index < target else 0)
-            self._project_switching = False
+            try:
+                self.project_tabs.removeTab(index)
+                del self._project_records[index]
+                self._active_project_index = target - (1 if index < target else 0)
+            finally:
+                self._project_switching = False
+        self._update_history_controls()
+        if getattr(self, "_workspace_startup_ready", False):
+            try:
+                self._persist_workspace_session()
+            except Exception as exc:
+                QMessageBox.warning(self, "暫存工作空間失敗", str(exc))
 
     def _sync_current_workspace_tab(self):
         tabs = getattr(self, "project_tabs", None)
@@ -7679,12 +7775,17 @@ class ItemSearchApp(QWidget):
         if not getattr(self, "_workspace_startup_ready", False):
             # 啟動失敗或讀取未完成時，絕不以半初始化 UI 覆蓋先前暫存。
             raise RuntimeError("資料仍在初始化，為避免遺失職業與配置，暫不允許覆寫工作階段暫存。")
+        # 關閉前先把計時器尚未捕捉的最後一次編輯寫入目前分頁的復原歷史。
+        # 不呼叫一般專案儲存，不寫入任何原始 JSON。
+        self._track_workspace_history()
         self._capture_workspace_project()
         records = [{"name": r.get("name", "專案"), "file": r.get("file"),
-                    "data": r.get("data"), "saved_hash": r.get("saved_hash")}
+                    "data": r.get("data"), "saved_hash": r.get("saved_hash"),
+                    "undo": list(r.get("undo", []))[-40:],
+                    "redo": list(r.get("redo", []))[-40:]}
                    for r in self._project_records]
         self._atomic_json_write(self._workspace_session_path(), {
-            "version": 2, "active": self.project_tabs.currentIndex(), "projects": records
+            "version": 3, "active": self.project_tabs.currentIndex(), "projects": records
         })
 
     def _restore_workspace_session(self):
@@ -7716,9 +7817,17 @@ class ItemSearchApp(QWidget):
                             saved_hash = self._workspace_fingerprint(json.load(original))
                     except (OSError, ValueError):
                         saved_hash = None
+                # 相容 v2 暫存（沒有歷史陣列）。各步必須是有效配置快照。
+                def valid_history(key):
+                    values = item.get(key, [])
+                    if not isinstance(values, list):
+                        return []
+                    return [v for v in values[-40:] if isinstance(v, dict)]
+
                 restored.append({"name": str(item.get("name") or f"專案 {i+1}"),
                                  "file": file_path if isinstance(file_path, str) else None,
-                                 "data": data, "undo": [], "redo": [],
+                                 "data": data, "undo": valid_history("undo"),
+                                 "redo": valid_history("redo"),
                                  "saved_hash": saved_hash})
             if not restored:
                 return
@@ -7780,10 +7889,13 @@ class ItemSearchApp(QWidget):
         self._update_history_controls()
 
     def _update_history_controls(self):
-        if not hasattr(self, "_undo_button"):
+        """更新歷史控制；選單列先於工作空間分頁建立，需支援啟動期間呼叫。"""
+        if not hasattr(self, "_undo_button") or not hasattr(self, "_redo_button"):
             return
-        idx = self.project_tabs.currentIndex()
-        record = self._project_records[idx] if 0 <= idx < len(self._project_records) else {}
+        tabs = getattr(self, "project_tabs", None)
+        records = getattr(self, "_project_records", None) or []
+        idx = tabs.currentIndex() if tabs is not None else -1
+        record = records[idx] if 0 <= idx < len(records) else {}
         undo = len(record.get("undo", []))
         redo = len(record.get("redo", []))
         self._undo_button.setText(f"↶ 復原 {undo}")
@@ -7959,7 +8071,7 @@ class ItemSearchApp(QWidget):
             /* V4: distinct but compact editing and result surfaces. */
             QSplitter#workspaceSplitter QScrollArea {
                 border: none;
-                background: palette(window);
+                background: palette(alternate-base);
             }
             QSplitter#workspaceSplitter QTextEdit,
             QSplitter#workspaceSplitter QPlainTextEdit,
@@ -8029,10 +8141,13 @@ class ItemSearchApp(QWidget):
             tabs.setDocumentMode(True)
             tabs.setStyleSheet("""
                 QTabWidget::pane {
-                    background: palette(window);
+                    background: palette(alternate-base);
                     border: 1px solid palette(mid);
                     border-radius: 5px;
                     padding: 1px;
+                }
+                QWidget[nextUiPageSurface="true"] {
+                    background: palette(alternate-base);
                 }
                 QTabBar::tab {
                     background: palette(window);
@@ -8057,6 +8172,14 @@ class ItemSearchApp(QWidget):
                 }
                 QTabBar::scroller { width: 22px; }
             """)
+        # Use palette-based grey surfaces for the three work panes only.
+        # Avoid changing nested input fields or widget geometry.
+        for tabs in (self.left_tabs, self.center_tabs, self.sim_tabs):
+            for index in range(tabs.count()):
+                page = tabs.widget(index)
+                if page is not None:
+                    page.setProperty("nextUiPageSurface", True)
+                    page.setAttribute(Qt.WA_StyledBackground, True)
         # V19: popup-only width correction and colored scrollbar. Existing combo
         # widths, sizing policies and widget placement are deliberately unchanged.
         self._combo_popup_filters = []
@@ -8154,6 +8277,7 @@ class ItemSearchApp(QWidget):
         self.ui_font_point_size = dlg.selected_font_point_size()
         self.ui_theme = dlg.selected_ui_theme()
         self.save_config()
+        self._refresh_quick_theme_button()
 
         # 文字大小可即時套用；介面縮放（QT_SCALE_FACTOR）仍需下次啟動。
         if self.ui_font_point_size != previous_font_point_size:
@@ -13843,6 +13967,10 @@ class ItemSearchApp(QWidget):
         self.action_do_update.setEnabled(False)  # 預設不能按
 
         menu_update.addAction(self.action_check_update)
+        # 允許隨時由頂部「更新」選單重新檢視公告。
+        show_notes_action = QAction("顯示更新內容", self)
+        show_notes_action.triggered.connect(self.show_update_notes)
+        menu_update.addAction(show_notes_action)
         #menu_update.addAction(self.action_do_update)
 
         self.action_check_update.triggered.connect(self.check_update)
@@ -13870,10 +13998,165 @@ class ItemSearchApp(QWidget):
         # about_action.triggered.connect#(self.show_about)
         # help_menu.addAction(about_action)
         
+        # 復原／重做快捷控制置於最上方主選單列右側。
+        # QWidget 使用 QMenuBar.setCornerWidget，不改動專案列或三欄布局。
+        history_panel = QWidget(menubar)
+        history_panel.setObjectName("historyMenuControls")
+        history_row = QHBoxLayout(history_panel)
+        history_row.setContentsMargins(2, 0, 7, 0)
+        history_row.setSpacing(5)
+
+        # 主題切換位於復原／重做左側，沿用 UI 設定與 config.json。
+        theme_button = QToolButton(history_panel)
+        theme_button.setObjectName("quickThemeButton")
+        theme_button.setCursor(Qt.PointingHandCursor)
+        theme_button.setPopupMode(QToolButton.InstantPopup)
+        theme_menu = QMenu(theme_button)
+        theme_actions = {}
+        for theme_value, label in (
+            (UI_THEME_AUTO, "自動（跟隨系統）"),
+            (UI_THEME_LIGHT, "明亮"),
+            (UI_THEME_DARK, "暗黑"),
+        ):
+            action = theme_menu.addAction(label)
+            action.setCheckable(True)
+            action.triggered.connect(
+                lambda checked=False, value=theme_value: self._set_quick_ui_theme(value)
+            )
+            theme_actions[theme_value] = action
+        theme_button.setMenu(theme_menu)
+        history_row.addWidget(theme_button)
+        self._quick_theme_button = theme_button
+        self._quick_theme_actions = theme_actions
+        self._refresh_quick_theme_button()
+
+        undo_button = QToolButton(history_panel)
+        undo_button.setObjectName("historyUndoButton")
+        undo_button.setText("↶ 復原 0")
+        undo_button.setToolTip("回復上一個配置狀態 (Ctrl+Z)")
+        undo_button.clicked.connect(self._workspace_undo)
+        history_row.addWidget(undo_button)
+
+        redo_button = QToolButton(history_panel)
+        redo_button.setObjectName("historyRedoButton")
+        redo_button.setText("↷ 重做 0")
+        redo_button.setToolTip("重做配置狀態 (Ctrl+Y / Ctrl+Shift+Z)")
+        redo_button.clicked.connect(self._workspace_redo)
+        history_row.addWidget(redo_button)
+
+        history_panel.setStyleSheet("""
+            QToolButton#quickThemeButton, QToolButton#historyUndoButton, QToolButton#historyRedoButton {
+                color: palette(button-text);
+                background: palette(button);
+                border: 1px solid palette(mid);
+                border-radius: 5px;
+                padding: 2px 7px;
+            }
+            QToolButton#quickThemeButton {
+                background: palette(alternate-base);
+                border: 1px solid palette(mid);
+                border-radius: 6px;
+                padding: 3px 10px;
+                font-weight: 600;
+            }
+            QToolButton#quickThemeButton:pressed {
+                background: palette(midlight);
+                border-color: palette(highlight);
+            }
+            QToolButton#quickThemeButton:hover:!disabled,
+            QToolButton#historyUndoButton:hover:!disabled,
+            QToolButton#historyRedoButton:hover:!disabled {
+                background: palette(alternate-base);
+                border-color: palette(highlight);
+            }
+            QToolButton#historyUndoButton:disabled,
+            QToolButton#historyRedoButton:disabled {
+                color: palette(mid);
+            }
+        """)
+        menubar.setCornerWidget(history_panel, Qt.TopRightCorner)
+        self._history_menu_controls = history_panel
+        self._undo_button = undo_button
+        self._redo_button = redo_button
+        self._update_history_controls()
+
         # === 加入選單到主 layout ===
         self.layout().setMenuBar(menubar)
         
 
+
+    def _refresh_quick_theme_button(self):
+        """讓主題快捷按鈕與 UI 設定視窗顯示相同狀態。"""
+        button = getattr(self, "_quick_theme_button", None)
+        if button is None:
+            return
+        theme = normalize_ui_theme(getattr(self, "ui_theme", UI_THEME_AUTO))
+        labels = {
+            UI_THEME_AUTO: "◐ 自動 ▾",
+            UI_THEME_LIGHT: "☀ 明亮 ▾",
+            UI_THEME_DARK: "☾ 暗黑 ▾",
+        }
+        button.setText(labels[theme])
+        button.setToolTip("切換介面主題：自動／明亮／暗黑")
+        for value, action in getattr(self, "_quick_theme_actions", {}).items():
+            action.setChecked(value == theme)
+
+    def _set_quick_ui_theme(self, theme):
+        """切換並保存主題，沿用既有的 Qt 主題套用流程。"""
+        theme = normalize_ui_theme(theme)
+        previous = normalize_ui_theme(getattr(self, "ui_theme", UI_THEME_AUTO))
+        self.ui_theme = theme
+        self.save_config()
+        self._refresh_quick_theme_button()
+        if theme != previous:
+            apply_ui_theme(QApplication.instance(), theme, refresh=True)
+            QTimer.singleShot(0, self.trigger_total_effect_update)
+
+    def show_update_notes(self):
+        """手動開啟遠端更新公告；連線失敗不干擾主視窗。"""
+        url = UPDATE_NOTES_HTML_URL.strip()
+        if not url:
+            return
+
+        existing = getattr(self, "_manual_notes_dialog", None)
+        if existing is not None:
+            try:
+                if existing.isVisible():
+                    existing.raise_()
+                    existing.activateWindow()
+                    return
+            except RuntimeError:
+                pass
+
+        if getattr(self, "_manual_notes_loading", False):
+            return
+        worker = getattr(self, "_manual_notes_worker", None)
+        if worker is not None and worker.isRunning():
+            return  # 避免連點建立多個下載執行緒
+
+        self._manual_notes_dialog = None
+        self._manual_notes_loading = True
+        worker = UpdateNotesPageCheckWorker(url, self)
+        self._manual_notes_worker = worker
+
+        def on_page_ready(page_url):
+            def on_dialog_ready(dialog):
+                self._manual_notes_loading = False
+                if dialog is None:
+                    return
+                self._manual_notes_dialog = dialog
+                dialog.finished.connect(lambda _result: setattr(self, "_manual_notes_dialog", None))
+                dialog.show()
+                dialog.raise_()
+                dialog.activateWindow()
+            prepare_update_notes_dialog(self, page_url, on_dialog_ready)
+
+        worker.page_ready.connect(on_page_ready)
+        worker.finished.connect(lambda: QTimer.singleShot(0, lambda: setattr(self, "_manual_notes_loading", False)) if not getattr(self, "_manual_notes_page_found", False) else None)
+        worker.page_ready.connect(lambda _: setattr(self, "_manual_notes_page_found", True))
+        worker.finished.connect(worker.deleteLater)
+        self._manual_notes_page_found = False
+        worker.start()
 
     def add_effects_from_variables(self, template_path, equipid_mapping, status_mapping):  # 直接輸出 .ROC
         import json, copy, os, base64
@@ -15157,6 +15440,134 @@ class ItemSearchApp(QWidget):
             self.sim_effect_text.setPlainText("（無可解析效果）")
             
 
+
+class UpdateNotesPageCheckWorker(QThread):
+    """Verify the announcement page exists before opening a WebEngine dialog."""
+    page_ready = Signal(str)
+
+    def __init__(self, url, parent=None):
+        super().__init__(parent)
+        self.url = url
+
+    def run(self):
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(self.url)
+            if parsed.scheme != "https" or not parsed.netloc or not parsed.path.lower().endswith(".html"):
+                return
+            # Verify the actual HTML page is reachable; do not use HEAD because some servers deny it.
+            with requests.get(self.url, timeout=(4, 7), allow_redirects=True, stream=True,
+                              headers={"Accept": "text/html"}) as response:
+                response.raise_for_status()
+                content_type = response.headers.get("Content-Type", "").lower()
+                if content_type and not ("text/html" in content_type or "application/xhtml+xml" in content_type):
+                    return
+                preview = next(response.iter_content(chunk_size=4096), b"")
+                if not preview.strip():
+                    return
+                self.page_ready.emit(response.url)
+        except Exception:
+            # Optional release notes must never prevent startup.
+            return
+
+
+def prepare_update_notes_dialog(parent, url, on_finished):
+    """Load notes invisibly, then report a ready dialog or None (Qt GUI thread).
+
+    Do not display the main window until this callback returns: this prevents
+    the main window flashing before an announcement is ready.
+    """
+    try:
+        from PySide6.QtWebEngineWidgets import QWebEngineView
+        from PySide6.QtWebEngineCore import QWebEnginePage
+        from PySide6.QtCore import QUrl
+        from PySide6.QtWidgets import QPushButton, QHBoxLayout
+    except ImportError as exc:
+        print(f"[更新公告] QtWebEngine 無法載入，略過：{exc}")
+        on_finished(None)
+        return None
+
+    dialog = QDialog(parent)
+    dialog.setWindowTitle("更新內容")
+    dialog.resize(760, 580)
+    dialog.setModal(False)
+    layout = QVBoxLayout(dialog)
+    # Only user-clicked links open in the OS browser. The announcement itself,
+    # Markdown fetch, scripts and other page resources remain inside WebEngine.
+    # Also handle target="_blank" / window.open without creating empty Qt windows.
+    class AnnouncementPage(QWebEnginePage):
+        def _open_external(self, target):
+            if target.scheme().lower() in ("http", "https") and target.host():
+                QDesktopServices.openUrl(target)
+
+        def acceptNavigationRequest(self, target, nav_type, is_main_frame):
+            if nav_type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
+                # In-document anchors should still scroll inside the release notes.
+                current = self.url()
+                same_document = (
+                    target.hasFragment()
+                    and target.adjusted(QUrl.UrlFormattingOption.RemoveFragment)
+                    == current.adjusted(QUrl.UrlFormattingOption.RemoveFragment)
+                )
+                if not same_document:
+                    self._open_external(target)
+                    return False
+            return super().acceptNavigationRequest(target, nav_type, is_main_frame)
+
+        def createWindow(self, window_type):
+            # WebEngine requests a new page for target=_blank links.
+            popup = QWebEnginePage(self.profile(), self)
+            handled = {"done": False}
+
+            def redirect(target):
+                if handled["done"] or target.isEmpty():
+                    return
+                handled["done"] = True
+                self._open_external(target)
+                QTimer.singleShot(0, popup.deleteLater)
+
+            popup.urlChanged.connect(redirect)
+            return popup
+
+    browser = QWebEngineView(dialog)
+    browser.setPage(AnnouncementPage(browser))
+    layout.addWidget(browser)
+    bottom = QHBoxLayout()
+    bottom.addStretch()
+    acknowledge = QPushButton("我知道了！", dialog)
+    acknowledge.clicked.connect(dialog.accept)
+    bottom.addWidget(acknowledge)
+    layout.addLayout(bottom)
+    dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+
+    state = {"finished": False}
+    load_timeout = QTimer(dialog)
+    load_timeout.setSingleShot(True)
+
+    def finish(ok=False):
+        if state["finished"]:
+            return
+        state["finished"] = True
+        load_timeout.stop()
+        try:
+            browser.loadFinished.disconnect(finish)
+        except (RuntimeError, TypeError):
+            pass
+        if ok:
+            on_finished(dialog)
+        else:
+            # Cancel loading before deleting WebEngine objects.
+            browser.stop()
+            dialog.close()
+            on_finished(None)
+
+    browser.loadFinished.connect(finish)
+    load_timeout.timeout.connect(lambda: finish(False))
+    load_timeout.start(9000)
+    browser.load(QUrl(url))
+    return dialog
+
+
 if __name__ == "__main__":
     # Windows frozen executable + multiprocessing(spawn) 必須先攔截 worker 啟動。
     # 否則 PyInstaller/Nuitka 打包後建立 child process 時，可能重新進入完整主程式 UI。
@@ -15166,7 +15577,7 @@ if __name__ == "__main__":
     startup_ui_scale = get_startup_ui_scale_factor(sys.argv)
     os.environ["QT_SCALE_FACTOR"] = format_ui_scale_factor(startup_ui_scale)
 
-    app = QApplication(sys.argv)
+    app = QApplication.instance() or QApplication(sys.argv)
 
     # QApplication 建立後、任何視窗建立前套用程式自己的字體大小與主題。
     # 如此可忽略 Windows「文字大小」的額外放大，同時保留 Windows DPI 與 UI 縮放。
@@ -15185,12 +15596,15 @@ if __name__ == "__main__":
         sys.exit(app.exec())
 
 
-    # 保留參考，避免被 Python 回收
-    loading = LoadingDialog()
+    # 保留參考，避免被 Python 回收。使用最早顯示的同一個進度視窗，
+    # 避免模組匯入後再產生第二個視窗造成閃爍。
+    loading = _EARLY_STARTUP_WINDOW if _EARLY_STARTUP_WINDOW is not None else LoadingDialog()
+    loading.setWindowTitle(tr("window.loading"))
     window = None
     worker = None
+    notes_worker = None
+    notes_dialog = None
 
-    # 先顯示小視窗
     loading.show()
     loading.raise_()
     loading.activateWindow()
@@ -15247,11 +15661,48 @@ if __name__ == "__main__":
         window.trigger_total_effect_update()
 
         window.resize(1650, 900)
-        window.show()
-        window.raise_()
-        window.activateWindow()
+        # Keep the original progress window visible while checking/loading
+        # optional release notes. Only show main + notes together (or main
+        # alone on failure), so users don't see the main window flash.
+        loading.update_progress("正在完成啟動...")
+        notes_url = UPDATE_NOTES_HTML_URL.strip()
+        finish_state = {"done": False}
 
-        QTimer.singleShot(1000, loading.close)
+        def finish_startup(ready_dialog=None):
+            global notes_dialog
+            if finish_state["done"]:
+                return
+            finish_state["done"] = True
+            window.show()
+            if ready_dialog is not None:
+                notes_dialog = ready_dialog
+                ready_dialog.show()
+                ready_dialog.raise_()
+                ready_dialog.activateWindow()
+            else:
+                window.raise_()
+                window.activateWindow()
+            loading.close()
+
+        if not notes_url:
+            finish_startup()
+            return
+
+        def begin_notes_check():
+            global notes_worker
+            notes_worker = UpdateNotesPageCheckWorker(notes_url)
+            notes_worker.page_ready.connect(
+                lambda page_url: prepare_update_notes_dialog(window, page_url, finish_startup)
+            )
+            # QThread.finished fires even if no page_ready signal was emitted.
+            # Queue fallback to let an already-queued page_ready run first.
+            notes_worker.finished.connect(
+                lambda: QTimer.singleShot(0, lambda: finish_startup() if notes_dialog is None and not finish_state["done"] and not getattr(window, "_notes_loading", False) else None)
+            )
+            notes_worker.page_ready.connect(lambda _: setattr(window, "_notes_loading", True))
+            notes_worker.start()
+
+        begin_notes_check()
 
     # 先讓 Qt 事件迴圈開始，再執行後續初始化
     QTimer.singleShot(0, start_initialization)
