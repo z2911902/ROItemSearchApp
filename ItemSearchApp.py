@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.8.23-261007"
+Version = "v0.9.0-2610015"
 Server_area = "TwRO"
 
 import sys, builtins, time
@@ -100,6 +100,11 @@ def refresh_ui_theme(app) -> None:
             # Widget 若剛好在切換期間被 Qt 刪除，直接略過。
             continue
 
+    # Refresh custom SVG colors when the application's palette changes.
+    for widget in app.topLevelWidgets():
+        icon_refresh = getattr(widget, "_refresh_next_ui_icons", None)
+        if callable(icon_refresh):
+            icon_refresh()
     app.processEvents()
 
 
@@ -614,11 +619,51 @@ import pandas as pd
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve, QUrl
 from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices, QPainter, QPen
 from sympy import sympify, symbols, Symbol
+# Next UI v3: self-contained scalable vector icons (no external asset folder).
+from PySide6.QtCore import QByteArray, QSize
+from PySide6.QtGui import QIcon, QPixmap
+try:
+    from PySide6.QtSvg import QSvgRenderer
+except ImportError:
+    QSvgRenderer = None
+
+_NEXT_ICON_PATHS = {
+    "character": '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
+    "equipment": '<path d="M12 2 20 5v6c0 5-3.4 8.5-8 11-4.6-2.5-8-6-8-11V5Z"/><path d="m9 12 2 2 4-4"/>',
+    "buff": '<path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7Z"/><path d="m19 17 .7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7Z"/>',
+    "search": '<circle cx="10.8" cy="10.8" r="7.2"/><path d="m16 16 5 5"/>',
+    "function": '<path d="M5 5h6M8 5c-1 4-1 10-4 14M5 13h7M15 6l6 6-6 6M20 6l-6 6 6 6"/>',
+    "effect": '<path d="m12 3 2.8 6.2L21 12l-6.2 2.8L12 21l-2.8-6.2L3 12l6.2-2.8Z"/>',
+    "combo": '<rect x="3" y="4" width="8" height="8" rx="2"/><rect x="13" y="12" width="8" height="8" rx="2"/><path d="m11 8 3 3"/>',
+    "total": '<path d="M5 4h14v16H5zM8 9h8M8 13h8M8 17h5"/>',
+    "damage": '<path d="m4 20 16-16M14 4l6 6M3 14l7 7M5 12l7 7"/>',
+    "defense": '<path d="M12 2 20 5v6c0 5-3.4 8.5-8 11-4.6-2.5-8-6-8-11V5Z"/><path d="M8 12h8"/>',
+    "compare": '<rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/><path d="M6 9h2m9 4h2"/>',
+}
+
+def _next_vector_icon(key, color="#718096", size=22):
+    """Render outline SVG to a Qt icon; safely degrade when QtSvg is absent."""
+    if QSvgRenderer is None or key not in _NEXT_ICON_PATHS:
+        return QIcon()
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" '
+           f'viewBox="0 0 24 24" fill="none" stroke="{color}" '
+           f'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+           f'{_NEXT_ICON_PATHS[key]}</svg>')
+    renderer = QSvgRenderer(QByteArray(svg.encode("utf-8")))
+    if not renderer.isValid():
+        return QIcon()
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.transparent)
+    painter = QPainter(pixmap)
+    renderer.render(painter)
+    painter.end()
+    return QIcon(pixmap)
+
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
     QComboBox, QTextEdit, QMessageBox, QHBoxLayout, QScrollArea, QCheckBox, QMenuBar, QFileDialog,
     QPushButton, QTabWidget, QFormLayout, QSpinBox  ,QDoubleSpinBox  ,QFrame , QGridLayout,QDialog, QListWidget, QButtonGroup,QSlider,
-    QCompleter, QTableWidget, QTableWidgetItem, QSplitter,
+    QCompleter, QTableWidget, QTableWidgetItem, QSplitter, QTabBar,
 )
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -4485,6 +4530,142 @@ class InternalDataInspectorDialog(QDialog):
         return str(obj)
 
 
+class AdaptiveWorkspaceTabBar(QTabBar):
+    """工作空間分頁固定字級；空間不足時左右捲動，不縮小專案名稱。"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setElideMode(Qt.TextElideMode.ElideNone)
+        self.setUsesScrollButtons(True)
+        self.setExpanding(False)
+        font = self.font()
+        font.setPointSizeF(11.0)
+        self.setFont(font)
+
+    def setTabText(self, index, text):
+        super().setTabText(index, text)
+        self.setTabToolTip(index, text)
+
+
+class AdaptiveLeftTabBar(QTabBar):
+    """左欄功能分頁依欄寬調整文字；不出現左右捲動按鈕。"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setElideMode(Qt.TextElideMode.ElideNone)
+        self.setUsesScrollButtons(False)
+        self.setExpanding(False)
+        self.setIconSize(QSize(12, 12))
+        self._base_point_size = max(9.0, self.font().pointSizeF())
+        self._fit_pending = False
+
+    def schedule_fit(self):
+        if not self._fit_pending:
+            self._fit_pending = True
+            QTimer.singleShot(0, self._fit_labels)
+
+    def _fit_labels(self):
+        self._fit_pending = False
+        if self.count() == 0 or self.width() < 50:
+            return
+        from PySide6.QtGui import QFontMetricsF
+        # 每個標籤預留圖標、QSS padding、margin；縮小字級後仍放不下就捲動。
+        space = max(0, self.width() - 4)
+        upper = min(12.0, self._base_point_size)
+        chosen = 6.0
+        for half_points in range(round(upper * 2), 11, -1):
+            points = half_points / 2.0
+            candidate = self.font()
+            candidate.setPointSizeF(points)
+            metrics = QFontMetricsF(candidate)
+            total = 0.0
+            for index in range(self.count()):
+                icon_size = self.iconSize().width() + 3 if not self.tabIcon(index).isNull() else 0
+                total += metrics.horizontalAdvance(self.tabText(index)) + icon_size + 12
+            if total <= space:
+                chosen = points
+                break
+        if abs(self.font().pointSizeF() - chosen) > 0.1:
+            f = self.font()
+            f.setPointSizeF(chosen)
+            self.setFont(f)
+        # 極窄欄位不強行溢出至鄰欄：必要時由 Qt 尾端省略，完整名稱見 tooltip。
+        if chosen <= 6.0:
+            metrics = QFontMetricsF(self.font())
+            needed = sum(metrics.horizontalAdvance(self.tabText(i)) +
+                         (self.iconSize().width() + 3 if not self.tabIcon(i).isNull() else 0) + 12
+                         for i in range(self.count()))
+            self.setElideMode(Qt.TextElideMode.ElideRight if needed > space else Qt.TextElideMode.ElideNone)
+        else:
+            self.setElideMode(Qt.TextElideMode.ElideNone)
+        self.updateGeometry()
+        self.update()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.schedule_fit()
+
+    def tabInserted(self, index):
+        super().tabInserted(index)
+        self.schedule_fit()
+
+    def tabRemoved(self, index):
+        super().tabRemoved(index)
+        self.schedule_fit()
+
+    def setTabText(self, index, text):
+        super().setTabText(index, text)
+        if index >= 0:
+            self.setTabToolTip(index, text)
+        self.schedule_fit()
+
+
+# V19: only the popup is widened; the form's QComboBox geometry remains unchanged.
+from PySide6.QtCore import QObject
+
+class ComboPopupWidthFilter(QObject):
+    """Fit a QComboBox popup to its item text without changing the parent layout."""
+    def __init__(self, combo, parent=None):
+        super().__init__(parent or combo)
+        self.combo = combo
+        self.popup = combo.view().window()
+        self.popup.installEventFilter(self)
+
+    def eventFilter(self, watched, event):
+        if watched is self.popup and event.type() == QEvent.Show:
+            QTimer.singleShot(0, self._resize_popup)
+        return False
+
+    def _resize_popup(self):
+        combo = self.combo
+        popup = self.popup
+        if not popup.isVisible() or combo.count() == 0:
+            return
+        try:
+            fm = combo.view().fontMetrics()
+            # Limit work for very large search result lists; sample beginning/end.
+            n = combo.count()
+            indexes = range(n) if n <= 1200 else list(range(600)) + list(range(n - 600, n))
+            label_width = max((fm.horizontalAdvance(combo.itemText(i)) for i in indexes), default=0)
+            # Text padding, item decoration, list inset and possible scroll bar.
+            desired = max(combo.width(), label_width + 64)
+            screen = combo.screen()
+            available = screen.availableGeometry() if screen else None
+            if available is None:
+                return
+            desired = min(desired, max(combo.width(), available.width() - 24))
+            if popup.width() >= desired:
+                return
+            pos = popup.pos()
+            x = min(pos.x(), available.right() - desired + 1)
+            x = max(available.left(), x)
+            popup.setGeometry(x, pos.y(), desired, popup.height())
+            # QListView should use the enlarged popup width for item painting.
+            combo.view().setMinimumWidth(desired - 4)
+        except RuntimeError:
+            pass  # The combo may have been deleted during page switching.
+
+
 class ItemSearchApp(QWidget):
 
     def get_internal_data_snapshot(self):
@@ -4629,18 +4810,7 @@ class ItemSearchApp(QWidget):
         self.part_nav_popup.hide()
         self.part_nav_popup.setObjectName("partNavPopup")
         self.part_nav_popup.setAttribute(Qt.WA_ShowWithoutActivating, True)
-        self.part_nav_popup.setStyleSheet("""
-            QFrame#partNavPopup {
-                background: #2b2b2b;
-                border: 1px solid #666;
-                border-radius: 8px;
-            }
-            QFrame#partNavPopup QPushButton {
-                padding: 6px 10px;
-                text-align: center;
-                min-width: 90px;
-            }
-        """)
+        self._style_part_nav_popup()
 
         outer = QVBoxLayout(self.part_nav_popup)
         outer.setContentsMargins(8, 8, 8, 8)
@@ -4693,6 +4863,39 @@ class ItemSearchApp(QWidget):
 
         self.part_nav_popup.installEventFilter(self)
 
+    def _style_part_nav_popup(self):
+        """使用目前 QApplication 主題調整快速定位彈出視窗。"""
+        popup = getattr(self, "part_nav_popup", None)
+        if popup is None:
+            return
+        palette = QApplication.palette()
+        bg = palette.color(QPalette.ColorRole.Window)
+        button_bg = palette.color(QPalette.ColorRole.Button)
+        fg = palette.color(QPalette.ColorRole.WindowText)
+        border = palette.color(QPalette.ColorRole.Mid)
+        hover = palette.color(QPalette.ColorRole.Highlight)
+        popup.setPalette(palette)
+        popup.setStyleSheet(f"""
+            QFrame#partNavPopup {{
+                background-color: {bg.name()};
+                color: {fg.name()};
+                border: 1px solid {border.name()};
+                border-radius: 8px;
+            }}
+            QFrame#partNavPopup QPushButton {{
+                background-color: {button_bg.name()};
+                color: {fg.name()};
+                border: 1px solid {border.name()};
+                border-radius: 5px;
+                padding: 5px 7px;
+                text-align: center;
+                min-width: 90px;
+            }}
+            QFrame#partNavPopup QPushButton:hover {{
+                border: 1px solid {hover.name()};
+            }}
+        """)
+
     def _show_part_nav_popup(self):
         if not getattr(self, "part_nav_button", None):
             return
@@ -4700,6 +4903,7 @@ class ItemSearchApp(QWidget):
             return
 
         self.part_nav_hide_timer.stop()
+        self._style_part_nav_popup()
         self.part_nav_popup.adjustSize()
 
         pos = self.part_nav_button.mapToGlobal(
@@ -4737,8 +4941,14 @@ class ItemSearchApp(QWidget):
         # 稍微留一點上邊距，避免貼太死
         target_y = max(0, y - 8)
 
-        self._animate_scroll_to(target_y)
-        self._flash_part_target(target)
+        duration = self._animate_scroll_to(target_y)
+        # 捲動動畫結束後才顯示外框，否則目標移入視野前提示就消失。
+        self._part_nav_flash_serial = getattr(self, "_part_nav_flash_serial", 0) + 1
+        serial = self._part_nav_flash_serial
+        def show_after_scroll():
+            if serial == getattr(self, "_part_nav_flash_serial", None):
+                self._flash_part_target(target)
+        QTimer.singleShot(duration + 50, show_after_scroll)
 
         self.part_nav_popup.hide()
 
@@ -4777,33 +4987,57 @@ class ItemSearchApp(QWidget):
         self.part_scroll_anim.setDuration(duration)
         self.part_scroll_anim.setEasingCurve(QEasingCurve.OutCubic)
         self.part_scroll_anim.start()
+        return duration
 
 
     def _flash_part_target(self, widget):
-        old_style = widget.property("_old_style")
-        if old_style is None:
-            old_style = widget.styleSheet()
-            widget.setProperty("_old_style", old_style)
-
-        token = time.time_ns()
-        widget.setProperty("_flash_token", token)
-
-        flash_style = (old_style or "") + """
-        background-color: rgba(100, 180, 255, 50);
-        border: 2px solid #5aa9ff;
-        border-radius: 8px;
-        """
-
-        widget.setStyleSheet(flash_style)
-
-        def restore():
+        """以半透明藍色覆蓋層標示唯一的指定部位，不透過 QSS 影響其他元件。"""
+        previous = getattr(self, "_part_flash_overlay", None)
+        if previous is not None:
             try:
-                if widget.property("_flash_token") == token:
-                    widget.setStyleSheet(widget.property("_old_style") or "")
+                previous.hide()
+                previous.deleteLater()
+            except RuntimeError:
+                pass
+        if widget is None or not widget.isVisible():
+            return
+
+        class PartHighlightOverlay(QWidget):
+            def __init__(self, parent):
+                super().__init__(parent)
+                self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+                self.setAttribute(Qt.WA_NoSystemBackground, True)
+                self.setAttribute(Qt.WA_TranslucentBackground, True)
+
+            def paintEvent(self, event):
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.Antialiasing, True)
+                # 只在快速定位選定的部位，疊加淡藍色半透明遮罩。
+                # 使用固定藍色色相，確保深色與淺色主題都有一致的定位提示。
+                fill_color = QColor(48, 140, 245, 65)  # 約 25% 不透明度
+                border_color = QColor(65, 155, 255, 190)
+                painter.setPen(QPen(border_color, 2))
+                painter.setBrush(fill_color)
+                painter.drawRoundedRect(self.rect().adjusted(2, 2, -2, -2), 6, 6)
+                painter.end()
+
+        outline = PartHighlightOverlay(widget)
+        outline.setGeometry(widget.rect())
+        outline.raise_()
+        outline.show()
+        outline.update()
+        self._part_flash_overlay = outline
+
+        def clear_outline():
+            try:
+                if getattr(self, "_part_flash_overlay", None) is outline:
+                    self._part_flash_overlay = None
+                outline.hide()
+                outline.deleteLater()
             except RuntimeError:
                 pass
 
-        QTimer.singleShot(1000, restore)
+        QTimer.singleShot(1700, clear_outline)
 
 
     def apply_buff_to_skill_checkboxes(self, raw_buff):
@@ -5206,9 +5440,8 @@ class ItemSearchApp(QWidget):
         button.setVisible(visible)
         button.setEnabled(visible)
 
-        # 右側固定保留 40px 按鈕欄，因此紅色詞條 BOX 維持 255px。
-        if note_ui is not None:
-            note_ui.setFixedWidth(255)
+        # 詞條輸入框寬度交由水平 Layout 分配，與上方卡片輸入列一致。
+        # 附魔按鈕的顯示與隱藏只改變操作入口，不再強制修改詞條寬度。
 
     def _activate_equipment_edit_for_lapine(self, part_name):
         """由詞條列按鈕鎖定目前裝備，並準備開啟 Lapine 檢視器。"""
@@ -5612,6 +5845,7 @@ class ItemSearchApp(QWidget):
     def update_window_title(self):
         filename = os.path.basename(self.current_file) if self.current_file else "未命名"
         self.setWindowTitle(tr("window.main_with_file", version=Version, filename=filename, Server_area=Server_area))
+        self._sync_current_workspace_tab()
     
     def replace_custom_calc_content(self, *_args, render_output=True, force_recalc=False):
         # 特殊 CheckBox 狀態
@@ -6983,6 +7217,7 @@ class ItemSearchApp(QWidget):
             cfg.get("ui_font_point_size", self.ui_font_point_size)
         )
         self.ui_theme = normalize_ui_theme(cfg.get("ui_theme", self.ui_theme))
+        self.workspace_splitter_sizes = cfg.get("workspace_splitter_sizes", [330, 577, 715])
 
         kro_setting = cfg.get(
             "load_kro_equipment_data", self.load_kro_equipment_data
@@ -6995,7 +7230,9 @@ class ItemSearchApp(QWidget):
             self.load_kro_equipment_data = bool(kro_setting)
 
     def save_config(self):
-        cfg = {
+        # 保留其它功能或未來版本寫入的設定欄位。
+        cfg = load_config_data()
+        cfg.update({
             "update_mode": getattr(self, "update_mode", "online_only"),
             "api_key": getattr(self, "api_key", ""),
             "ui_scale_factor": normalize_ui_scale_factor(
@@ -7008,13 +7245,853 @@ class ItemSearchApp(QWidget):
             "load_kro_equipment_data": bool(
                 getattr(self, "load_kro_equipment_data", False)
             ),
-        }
+        })
+        sizes = self._current_workspace_sizes()
+        if sizes:
+            cfg["workspace_splitter_sizes"] = sizes
         try:
             with open(self._config_path(), "w", encoding="utf-8") as f:
                 json.dump(cfg, f, ensure_ascii=False, indent=2)
         except Exception as e:
             print(f"儲存設定失敗：{e}")
 
+
+    def _current_workspace_sizes(self):
+        splitter = getattr(self, "workspace_splitter", None)
+        if splitter is None:
+            return None
+        sizes = splitter.sizes()
+        return sizes if len(sizes) == 3 and all(x > 0 for x in sizes) else None
+
+    def _restore_workspace_sizes(self):
+        splitter = getattr(self, "workspace_splitter", None)
+        if splitter is None:
+            return
+        saved = getattr(self, "workspace_splitter_sizes", None)
+        if (isinstance(saved, list) and len(saved) == 3
+                and all(type(value) is int and value >= 100 for value in saved)):
+            splitter.setSizes(saved)
+        else:
+            # 以 1650px 工作視窗為基準；不受使用者 DPI 比例直接約束。
+            splitter.setSizes([330, 577, 715])
+
+    def _refresh_next_ui_icons(self):
+        """Apply theme-aware outline icons to existing tabs and quick tools."""
+        palette = self.palette()
+        color = palette.color(QPalette.WindowText).name()
+        tab_icons = (
+            (getattr(self, "left_tabs", None),
+             ("character", "equipment", "buff")),
+            (getattr(self, "center_tabs", None),
+             ("search", "function")),
+            (getattr(self, "sim_tabs", None),
+             ("effect", "combo", "total", "damage", "defense")),
+        )
+        for tabs, icon_keys in tab_icons:
+            if tabs is None:
+                continue
+            for index, key in enumerate(icon_keys):
+                if index < tabs.count():
+                    tabs.setTabIcon(index, _next_vector_icon(key, color))
+            tabs.setIconSize(QSize(15, 15))
+        for key, button in getattr(self, "_next_quick_buttons", {}).items():
+            button.setIcon(_next_vector_icon(key, color))
+
+    def _reset_next_workspace_layout(self):
+        """Restore practical three-column proportions without changing content."""
+        splitter = getattr(self, "workspace_splitter", None)
+        if splitter is None:
+            return
+        total = max(sum(splitter.sizes()), splitter.width(), 900)
+        splitter.setSizes([round(total * 330 / 1622), round(total * 577 / 1622), round(total * 715 / 1622)])
+        self.workspace_splitter_sizes = splitter.sizes()
+        self.save_config()
+
+    def _create_next_quick_toolbar(self):
+        """V5: one compact utility strip; navigation remains on original tab bars."""
+        toolbar = QFrame(self)
+        toolbar.setObjectName("nextQuickToolbar")
+        toolbar.setFixedHeight(42)  # avoid vertically expanding into a large empty band
+        toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        row = QHBoxLayout(toolbar)
+        row.setContentsMargins(11, 3, 9, 3)
+        row.setSpacing(8)
+        self._next_quick_buttons = {}
+
+        title = QLabel("工作空間", toolbar)
+        title.setObjectName("nextQuickTitle")
+        row.addWidget(title)
+
+        # 這是工作空間的「標籤列」，不是 QTabWidget；原本三欄仍只有一套。
+        # 切換時序列化／還原不同人物配置，不重建既有 GUI 與 signal。
+        self.project_tabs = AdaptiveWorkspaceTabBar(toolbar)
+        self.project_tabs.setObjectName("projectWorkspaceTabs")
+        self.project_tabs.setExpanding(False)
+        self.project_tabs.setUsesScrollButtons(True)
+        self.project_tabs.setTabsClosable(True)
+        self.project_tabs.setMovable(False)
+        self._project_switching = False
+        self._project_records = []
+        self._history_lock = False
+        row.addWidget(self.project_tabs, 1)
+        self.project_tabs.currentChanged.connect(self._switch_workspace_project)
+        self.project_tabs.tabCloseRequested.connect(self._close_workspace_project)
+
+        new_button = QToolButton(toolbar)
+        new_button.setObjectName("nextWorkspaceNewButton")
+        new_button.setText("＋")
+        new_button.setToolTip("新增初始化的空白專案（保留預設等級與素質）")
+        new_button.clicked.connect(self._new_workspace_project)
+        row.addWidget(new_button)
+
+        duplicate_button = QToolButton(toolbar)
+        duplicate_button.setObjectName("nextWorkspaceDuplicateButton")
+        duplicate_button.setText("複製")
+        duplicate_button.setToolTip("複製目前選定的工作空間到獨立的新分頁，不修改原專案")
+        duplicate_button.clicked.connect(self._duplicate_workspace_project)
+        row.addWidget(duplicate_button)
+        self._initialize_workspace_projects()
+
+        # 快捷鍵與操作紀錄位於工作空間列；不影響三欄內按鈕位置。
+        undo_button = QToolButton(toolbar)
+        undo_button.setText("↶ 復原 0")
+        undo_button.setToolTip("回復上一個配置狀態 (Ctrl+Z)")
+        undo_button.clicked.connect(self._workspace_undo)
+        row.addWidget(undo_button)
+        redo_button = QToolButton(toolbar)
+        redo_button.setText("↷ 重做 0")
+        redo_button.setToolTip("重做配置狀態 (Ctrl+Y)")
+        redo_button.clicked.connect(self._workspace_redo)
+        row.addWidget(redo_button)
+        self._undo_button = undo_button
+        self._redo_button = redo_button
+
+        reset_button = QToolButton(toolbar)
+        reset_button.setObjectName("nextLayoutResetButton")
+        reset_button.setText("重設欄寬")
+        reset_button.setToolTip("還原預設三欄寬度：330／577／715")
+        reset_button.clicked.connect(self._reset_next_workspace_layout)
+        row.addWidget(reset_button)
+
+        toolbar.setStyleSheet("""
+            QFrame#nextQuickToolbar {
+                background: palette(window);
+                border: 1px solid palette(mid);
+                border-radius: 6px;
+            }
+            QLabel#nextQuickTitle {
+                border: none; font-weight: 600;
+                color: palette(window-text);
+            }
+            QTabBar#projectWorkspaceTabs { background: transparent; border: none; }
+            QTabBar#projectWorkspaceTabs::tab {
+                background: palette(base); color: palette(window-text);
+                border: 1px solid palette(mid); border-radius: 5px;
+                padding: 5px 6px; margin-right: 3px; min-width: 45px;
+            }
+            QTabBar#projectWorkspaceTabs::tab:selected {
+                background: palette(alternate-base);
+                border-color: palette(highlight); font-weight: 600;
+            }
+            QTabBar#projectWorkspaceTabs::tab:hover:!selected {
+                background: palette(alternate-base);
+            }
+            QToolButton#nextWorkspaceNewButton,
+            QToolButton#nextWorkspaceDuplicateButton,
+            QToolButton#nextLayoutResetButton {
+                background: palette(base);
+                color: palette(button-text);
+                border: 1px solid palette(mid);
+                border-radius: 5px;
+                padding: 4px 9px;
+                min-height: 22px;
+            }
+            QToolButton#nextWorkspaceNewButton:hover,
+            QToolButton#nextWorkspaceDuplicateButton:hover,
+            QToolButton#nextLayoutResetButton:hover {
+                border-color: palette(highlight);
+                background: palette(alternate-base);
+            }
+        """)
+        self.layout().insertWidget(0, toolbar)
+        self._refresh_next_ui_icons()
+        # v14: 尚未載入 equipment_data / DataRegistry，延後至 on_done 還原。
+        self._workspace_startup_ready = False
+        # 為各工作空間紀錄修改歷程。以節流快照避免逐字輸入生成大量步驟。
+        self._history_timer = QTimer(self)
+        self._history_timer.setInterval(500)
+        self._history_timer.timeout.connect(self._track_workspace_history)
+        self._history_timer.start()
+        self._update_history_controls()
+
+    # --- 多專案工作空間：每個分頁有獨立的角色配置與儲存路徑 ---
+    def _project_label(self, file_path, fallback):
+        return os.path.basename(file_path) if file_path else fallback
+
+    def _project_snapshot(self):
+        build = self.collect_character_build()
+        return build.to_dict(include_metadata=True)
+
+    @staticmethod
+    def _workspace_fingerprint(data):
+        """Compare snapshots consistently, independently of dict key ordering."""
+        if data is None:
+            return None
+        return hashlib.sha256(json.dumps(data, ensure_ascii=False, sort_keys=True,
+                                         separators=(",", ":"), default=str).encode("utf-8")).hexdigest()
+
+    def _refresh_workspace_tab_label(self, index):
+        if not (0 <= index < len(self._project_records)):
+            return
+        record = self._project_records[index]
+        title = self._project_label(record.get("file"), record.get("name", "未命名"))
+        if self._workspace_fingerprint(record.get("data")) != record.get("saved_hash"):
+            title += " *"
+        self.project_tabs.setTabText(index, title)
+        self.project_tabs.setTabToolTip(index, title)
+
+    def _workspace_mark_saved(self, file_path):
+        """Called ONLY after a successful explicit user save."""
+        if not hasattr(self, "project_tabs"):
+            return
+        index = self.project_tabs.currentIndex()
+        if not (0 <= index < len(self._project_records)):
+            return
+        snapshot = self._project_snapshot()
+        record = self._project_records[index]
+        record.update(file=file_path, data=snapshot,
+                      saved_hash=self._workspace_fingerprint(snapshot))
+        self._refresh_workspace_tab_label(index)
+
+    def _initialize_workspace_projects(self):
+        # 初次建立工作列時，人物配置已初始化；不改變目前狀態。
+        path = getattr(self, "current_file", None)
+        self._project_records.append({
+            "data": None, "file": path, "name": "專案 1", "undo": [], "redo": [], "saved_hash": None
+        })
+        self._project_switching = True
+        self.project_tabs.addTab(self._project_label(path, "專案 1"))
+        self.project_tabs.setTabToolTip(0, self._project_label(path, "專案 1"))
+        self._project_switching = False
+        self._active_project_index = 0
+
+    def _capture_workspace_project(self):
+        if not hasattr(self, "project_tabs") or self._project_switching:
+            return
+        index = self.project_tabs.currentIndex()
+        if not (0 <= index < len(self._project_records)):
+            return
+        self._project_records[index]["data"] = self._project_snapshot()
+        self._project_records[index]["file"] = getattr(self, "current_file", None)
+        self._refresh_workspace_tab_label(index)
+
+    def _unique_workspace_name(self, proposed):
+        """Avoid indistinguishable duplicated tab names."""
+        existing = {str(r.get("name", "")) for r in self._project_records if not r.get("file")}
+        existing.update(os.path.basename(r["file"]) for r in self._project_records if r.get("file"))
+        if proposed not in existing:
+            return proposed
+        suffix = 2
+        while f"{proposed} ({suffix})" in existing:
+            suffix += 1
+        return f"{proposed} ({suffix})"
+
+    def _append_workspace_project(self, snapshot, title):
+        """Create an unsaved tab without changing any original project JSON."""
+        self._capture_workspace_project()
+        self._project_records.append({
+            "data": snapshot, "file": None, "name": title,
+            "undo": [], "redo": [], "saved_hash": None,
+        })
+        self._project_switching = True
+        try:
+            index = self.project_tabs.addTab(title)
+            self._refresh_workspace_tab_label(index)
+        finally:
+            self._project_switching = False
+        self.project_tabs.setCurrentIndex(index)
+        if getattr(self, "_workspace_startup_ready", False):
+            try:
+                self._persist_workspace_session()
+            except Exception as exc:
+                QMessageBox.warning(self, "暫存工作空間失敗", str(exc))
+
+    def _blank_workspace_snapshot(self):
+        """Build a clean project without inheriting equipment, cards, buffs or skills.
+
+        Explicitly include fields because apply_character_build() only updates
+        keys present in the payload. Never reset shared UI before capturing
+        the previous tab: doing so would destroy unsaved edits.
+        """
+        data = {}
+        for key, field in self.input_fields.items():
+            if key == "JOB" and isinstance(field, QComboBox):
+                data[key] = field.itemText(0) if field.count() else ""
+            elif key in default_values:
+                data[key] = str(default_values[key])
+            elif isinstance(field, QComboBox):
+                data[key] = field.itemText(0) if field.count() else ""
+            else:
+                data[key] = "0" if key in self.refine_inputs_ui or key.endswith("_階級") else ""
+
+        for part, info in self.refine_inputs_ui.items():
+            data[f"{part}_equip"] = ""
+            for i in range(4):
+                data[f"{part}_card{i + 1}"] = ""
+            data[f"{part}_note"] = ""
+            data[part] = "0"                  # equipment refinement
+            data[f"{part}_階級"] = info["grade"].itemText(0) if info["grade"].count() else ""
+
+        data.update({
+            "buff": "", "skill_name": "", "size": 0, "element": 0,
+            "race": 0, "class": 0, "def": "0", "defc": "0",
+            "res": "0", "mdef": "0", "mdefc": "0", "mres": "0",
+            "element_lv": "1",
+        })
+        return CoreCharacterBuild.from_dict(data).to_dict(include_metadata=True)
+
+    def _new_workspace_project(self):
+        """＋: start with default levels/stats and no equipment or buffs."""
+        if not getattr(self, "_workspace_startup_ready", False):
+            QMessageBox.information(self, "工作空間", "資料載入完成後才能新增專案。")
+            return
+        try:
+            snapshot = self._blank_workspace_snapshot()
+            number = 1
+            existing = {r.get("name") for r in self._project_records}
+            while f"專案 {number}" in existing:
+                number += 1
+            self._append_workspace_project(snapshot, f"專案 {number}")
+        except Exception as exc:
+            QMessageBox.warning(self, "新增專案失敗", str(exc))
+
+    def _duplicate_workspace_project(self):
+        """複製: independent copy of the *selected* project's live state."""
+        if not getattr(self, "_workspace_startup_ready", False):
+            QMessageBox.information(self, "工作空間", "資料載入完成後才能複製專案。")
+            return
+        index = self.project_tabs.currentIndex()
+        if not (0 <= index < len(self._project_records)):
+            return
+        try:
+            snapshot = self._project_snapshot()
+            source = self._project_records[index]
+            original_name = self._project_label(source.get("file"), source.get("name", "專案"))
+            title = self._unique_workspace_name(f"{original_name}複製")
+            self._append_workspace_project(snapshot, title)
+        except Exception as exc:
+            QMessageBox.warning(self, "複製專案失敗", str(exc))
+
+    def _switch_workspace_project(self, index):
+        if self._project_switching or not (0 <= index < len(self._project_records)):
+            return
+        # currentChanged 發生時舊索引已不在 currentIndex，另行追蹤。
+        previous = getattr(self, "_active_project_index", 0)
+        if index == previous:
+            return
+        if 0 <= previous < len(self._project_records):
+            try:
+                self._project_records[previous]["data"] = self._project_snapshot()
+                self._project_records[previous]["file"] = self.current_file
+                record = self._project_records[previous]
+                self._refresh_workspace_tab_label(previous)
+            except Exception as exc:
+                QMessageBox.warning(self, "無法切換專案", f"目前專案無法保存：{exc}")
+                self._project_switching = True
+                self.project_tabs.setCurrentIndex(previous)
+                self._project_switching = False
+                return
+        record = self._project_records[index]
+        try:
+            if record["data"] is not None:
+                self.apply_character_build(CoreCharacterBuild.from_dict(record["data"]))
+                self.refresh_skill_list()
+                if getattr(self, "last_character_build", None) is not None:
+                    self.apply_character_combat_state(self.last_character_build)
+                self.trigger_total_effect_update()
+            self.current_file = record["file"]
+            self._active_project_index = index
+            self.update_window_title()
+            self._update_history_controls()
+        except Exception as exc:
+            QMessageBox.critical(self, "切換專案失敗", str(exc))
+            self._project_switching = True
+            self.project_tabs.setCurrentIndex(previous)
+            self._project_switching = False
+
+    def _close_workspace_project(self, index):
+        if len(self._project_records) <= 1:
+            QMessageBox.information(self, "工作空間", "至少需要保留一個專案分頁。")
+            return
+        if QMessageBox.question(self, "關閉專案", "關閉此工作空間分頁？此分頁的未儲存修改將不再保留於下次啟動的工作階段。",
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No) != QMessageBox.Yes:
+            return
+        active = self.project_tabs.currentIndex()
+        if index != active:
+            self._project_switching = True
+            self.project_tabs.removeTab(index)
+            del self._project_records[index]
+            self._active_project_index = active - (1 if index < active else 0)
+            self._project_switching = False
+        else:
+            target = 0 if index != 0 else 1
+            self.project_tabs.setCurrentIndex(target)
+            # 切換成功後才移除，避免失去原本的編輯狀態。
+            if self.project_tabs.currentIndex() != target:
+                return
+            self._project_switching = True
+            self.project_tabs.removeTab(index)
+            del self._project_records[index]
+            self._active_project_index = target - (1 if index < target else 0)
+            self._project_switching = False
+
+    def _sync_current_workspace_tab(self):
+        tabs = getattr(self, "project_tabs", None)
+        if tabs is None:
+            return
+        index = tabs.currentIndex()
+        if 0 <= index < len(self._project_records):
+            record = self._project_records[index]
+            record["file"] = self.current_file
+            self._refresh_workspace_tab_label(index)
+
+    def _workspace_session_path(self):
+        return os.path.join(get_app_base_dir(), "data", "workspace_session.json")
+
+    @staticmethod
+    def _atomic_json_write(path, data):
+        import tempfile
+        directory = os.path.dirname(os.path.abspath(path))
+        os.makedirs(directory, exist_ok=True)
+        fd, temp = tempfile.mkstemp(prefix=".workspace_", suffix=".tmp", dir=directory)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temp, path)
+        finally:
+            if os.path.exists(temp):
+                os.unlink(temp)
+
+    def _persist_workspace_session(self):
+        """Save tabs and unsaved edits to SESSION ONLY. Never write project JSONs."""
+        if not getattr(self, "_workspace_startup_ready", False):
+            # 啟動失敗或讀取未完成時，絕不以半初始化 UI 覆蓋先前暫存。
+            raise RuntimeError("資料仍在初始化，為避免遺失職業與配置，暫不允許覆寫工作階段暫存。")
+        self._capture_workspace_project()
+        records = [{"name": r.get("name", "專案"), "file": r.get("file"),
+                    "data": r.get("data"), "saved_hash": r.get("saved_hash")}
+                   for r in self._project_records]
+        self._atomic_json_write(self._workspace_session_path(), {
+            "version": 2, "active": self.project_tabs.currentIndex(), "projects": records
+        })
+
+    def _restore_workspace_session(self):
+        path = self._workspace_session_path()
+        if not os.path.isfile(path):
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                session = json.load(f)
+            projects = session.get("projects")
+            if not isinstance(projects, list) or not projects or len(projects) > 40:
+                return
+            restored = []
+            for i, item in enumerate(projects):
+                if not isinstance(item, dict):
+                    continue
+                data = item.get("data")
+                file_path = item.get("file")
+                # 無快照時可由原 JSON 還原；原 JSON 缺失則不建立空白分頁。
+                if not isinstance(data, dict) and file_path and os.path.isfile(file_path):
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                if not isinstance(data, dict):
+                    continue
+                saved_hash = item.get("saved_hash")
+                if "saved_hash" not in item and file_path and os.path.isfile(file_path):
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as original:
+                            saved_hash = self._workspace_fingerprint(json.load(original))
+                    except (OSError, ValueError):
+                        saved_hash = None
+                restored.append({"name": str(item.get("name") or f"專案 {i+1}"),
+                                 "file": file_path if isinstance(file_path, str) else None,
+                                 "data": data, "undo": [], "redo": [],
+                                 "saved_hash": saved_hash})
+            if not restored:
+                return
+            active = min(max(int(session.get("active", 0)), 0), len(restored)-1)
+            self._project_switching = True
+            self.project_tabs.blockSignals(True)
+            try:
+                while self.project_tabs.count():
+                    self.project_tabs.removeTab(0)
+                self._project_records = restored
+                for item in restored:
+                    tab_index = self.project_tabs.addTab(self._project_label(item["file"], item["name"]))
+                    self._refresh_workspace_tab_label(tab_index)
+                self.project_tabs.setCurrentIndex(active)
+            finally:
+                self.project_tabs.blockSignals(False)
+                self._project_switching = False
+            self._active_project_index = active
+            self._load_workspace_record(restored[active])
+            self._update_history_controls()
+        except Exception as exc:
+            print(f"恢復工作空間失敗：{exc}")
+
+    def _load_workspace_record(self, record):
+        self._history_lock = True
+        try:
+            self.apply_character_build(CoreCharacterBuild.from_dict(record["data"]))
+            self.refresh_skill_list()
+            if getattr(self, "last_character_build", None) is not None:
+                self.apply_character_combat_state(self.last_character_build)
+            self.trigger_total_effect_update()
+            self.current_file = record.get("file")
+            self.update_window_title()
+        finally:
+            self._history_lock = False
+
+    def _track_workspace_history(self):
+        if not getattr(self, "_workspace_startup_ready", False):
+            return
+        if self._history_lock or getattr(self, "_project_switching", False):
+            return
+        idx = self.project_tabs.currentIndex()
+        if not (0 <= idx < len(self._project_records)):
+            return
+        try:
+            snapshot = self._project_snapshot()
+        except Exception:
+            return
+        record = self._project_records[idx]
+        previous = record.get("data")
+        if previous is None:
+            record["data"] = snapshot
+        elif previous != snapshot:
+            record.setdefault("undo", []).append(previous)
+            record["undo"] = record["undo"][-40:]
+            record["redo"] = []
+            record["data"] = snapshot
+        self._refresh_workspace_tab_label(idx)
+        self._update_history_controls()
+
+    def _update_history_controls(self):
+        if not hasattr(self, "_undo_button"):
+            return
+        idx = self.project_tabs.currentIndex()
+        record = self._project_records[idx] if 0 <= idx < len(self._project_records) else {}
+        undo = len(record.get("undo", []))
+        redo = len(record.get("redo", []))
+        self._undo_button.setText(f"↶ 復原 {undo}")
+        self._redo_button.setText(f"↷ 重做 {redo}")
+        self._undo_button.setEnabled(undo > 0)
+        self._redo_button.setEnabled(redo > 0)
+
+    def _workspace_undo(self):
+        self._step_workspace_history("undo", "redo")
+
+    def _workspace_redo(self):
+        self._step_workspace_history("redo", "undo")
+
+    def _step_workspace_history(self, source, destination):
+        idx = self.project_tabs.currentIndex()
+        if not (0 <= idx < len(self._project_records)):
+            return
+        # 先收集未被定時器捕捉的最新修改。
+        self._track_workspace_history()
+        record = self._project_records[idx]
+        if not record.get(source):
+            return
+        target = record[source].pop()
+        record.setdefault(destination, []).append(record["data"])
+        try:
+            self._load_workspace_record({**record, "data": target})
+            record["data"] = target
+        except Exception as exc:
+            record[source].append(target)
+            record[destination].pop()
+            QMessageBox.warning(self, "回復失敗", str(exc))
+        self._refresh_workspace_tab_label(idx)
+        self._update_history_controls()
+
+    def _apply_workspace_style(self):
+        """Next UI v4: palette-aware styling, limited to the main workspace.
+
+        Preserve widget-local styles (including red edit warnings), existing
+        widgets/signals, calculations, theme settings, and Windows DPI behavior.
+        """
+        self.workspace_splitter.setStyleSheet("""
+            QSplitter#workspaceSplitter { background: palette(window); }
+            QSplitter#workspaceSplitter::handle:horizontal {
+                background: palette(mid); margin: 2px 2px; border-radius: 3px;
+            }
+            QSplitter#workspaceSplitter::handle:horizontal:hover {
+                background: palette(highlight);
+            }
+            QSplitter#workspaceSplitter QGroupBox {
+                border: 1px solid palette(mid);
+                border-radius: 7px;
+                margin-top: 11px;
+                padding-top: 9px;
+                font-weight: 600;
+            }
+            QSplitter#workspaceSplitter QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                left: 10px;
+                padding: 0px 5px;
+                color: palette(window-text);
+            }
+            /* V8: compact cosmetic styling only.  Many original equipment
+               buttons have fixed widths of 28-40 px; horizontal padding of
+               10 px on each side clips their Chinese labels.  Do not impose
+               min-height or change their layout/geometry. */
+            QSplitter#workspaceSplitter QPushButton {
+                background: palette(button);
+                color: palette(button-text);
+                border: 1px solid palette(mid);
+                border-radius: 5px;
+                padding: 1px 2px;
+            }
+            QSplitter#workspaceSplitter QPushButton:hover:!disabled {
+                background: palette(alternate-base);
+                border: 1px solid palette(highlight);
+            }
+            QSplitter#workspaceSplitter QPushButton:pressed:!disabled {
+                background: palette(midlight);
+                border: 1px solid palette(highlight);
+            }
+            QSplitter#workspaceSplitter QPushButton:focus {
+                border: 1px solid palette(highlight);
+            }
+            QSplitter#workspaceSplitter QPushButton:disabled {
+                color: palette(mid);
+                background: palette(window);
+                border: 1px solid palette(mid);
+            }
+            /* V18: input / numeric controls only.  Keep all widget geometry,
+               labels and signal wiring unchanged.  No min-height or min-width:
+               RO's compact equipment rows must remain intact. */
+            QSplitter#workspaceSplitter QLineEdit,
+            QSplitter#workspaceSplitter QSpinBox,
+            QSplitter#workspaceSplitter QDoubleSpinBox {
+                background: palette(base);
+                color: palette(text);
+                border: 1px solid palette(mid);
+                border-radius: 5px;
+                padding: 1px 3px;
+                selection-background-color: palette(highlight);
+                selection-color: palette(highlighted-text);
+            }
+            QSplitter#workspaceSplitter QLineEdit:hover:!disabled,
+            QSplitter#workspaceSplitter QSpinBox:hover:!disabled,
+            QSplitter#workspaceSplitter QDoubleSpinBox:hover:!disabled {
+                border-color: palette(highlight);
+            }
+            QSplitter#workspaceSplitter QLineEdit:focus,
+            QSplitter#workspaceSplitter QSpinBox:focus,
+            QSplitter#workspaceSplitter QDoubleSpinBox:focus {
+                border: 1px solid palette(highlight);
+                background: palette(base);
+            }
+            QSplitter#workspaceSplitter QLineEdit:disabled,
+            QSplitter#workspaceSplitter QSpinBox:disabled,
+            QSplitter#workspaceSplitter QDoubleSpinBox:disabled {
+                color: palette(mid);
+                background: palette(window);
+            }
+            /* Keep Qt's native spin arrows and existing numeric column widths. */
+            QSplitter#workspaceSplitter QComboBox {
+                background: palette(base);
+                color: palette(text);
+                border: 1px solid palette(mid);
+                border-radius: 5px;
+                padding: 1px 2px;
+                selection-background-color: palette(highlight);
+                selection-color: palette(highlighted-text);
+            }
+            QSplitter#workspaceSplitter QComboBox:hover:!disabled {
+                border: 1px solid palette(highlight);
+                background: palette(alternate-base);
+            }
+            QSplitter#workspaceSplitter QComboBox:focus,
+            QSplitter#workspaceSplitter QComboBox:on {
+                border: 1px solid palette(highlight);
+            }
+            QSplitter#workspaceSplitter QComboBox:disabled {
+                color: palette(mid);
+                background: palette(window);
+            }
+            /* Avoid styling ::drop-down/::down-arrow: preserves existing
+               native arrows and prevents text/arrow clipping on small combos. */
+            QSplitter#workspaceSplitter QComboBox QAbstractItemView {
+                background: palette(base);
+                color: palette(text);
+                border: 1px solid palette(mid);
+                selection-background-color: palette(highlight);
+                selection-color: palette(highlighted-text);
+                outline: none;
+            }
+            QSplitter#workspaceSplitter QComboBox QAbstractItemView::item:selected {
+                background: palette(highlight);
+                color: palette(highlighted-text);
+            }
+            QSplitter#workspaceSplitter QTableWidget {
+                gridline-color: palette(mid);
+                selection-background-color: palette(highlight);
+                selection-color: palette(highlighted-text);
+                border: 1px solid palette(mid);
+                border-radius: 5px;
+            }
+            QSplitter#workspaceSplitter QHeaderView::section {
+                background: palette(alternate-base);
+                color: palette(window-text);
+                padding: 5px 7px;
+                border: none;
+                border-bottom: 1px solid palette(mid);
+                border-right: 1px solid palette(mid);
+                font-weight: 600;
+            }
+            /* V4: distinct but compact editing and result surfaces. */
+            QSplitter#workspaceSplitter QScrollArea {
+                border: none;
+                background: palette(window);
+            }
+            QSplitter#workspaceSplitter QTextEdit,
+            QSplitter#workspaceSplitter QPlainTextEdit,
+            QSplitter#workspaceSplitter QListWidget {
+                border: 1px solid palette(mid);
+                border-radius: 6px;
+                background: palette(base);
+                color: palette(text);
+                selection-background-color: palette(highlight);
+                selection-color: palette(highlighted-text);
+            }
+            QSplitter#workspaceSplitter QTextEdit:focus,
+            QSplitter#workspaceSplitter QPlainTextEdit:focus,
+            QSplitter#workspaceSplitter QListWidget:focus {
+                border-color: palette(highlight);
+            }
+            QSplitter#workspaceSplitter QListWidget::item {
+                padding: 4px 7px;
+                border-radius: 4px;
+            }
+            QSplitter#workspaceSplitter QListWidget::item:selected {
+                background: palette(highlight);
+                color: palette(highlighted-text);
+            }
+            QSplitter#workspaceSplitter QCheckBox {
+                spacing: 6px;
+            }
+            QSplitter#workspaceSplitter QCheckBox::indicator {
+                width: 15px; height: 15px;
+            }
+            QSplitter#workspaceSplitter QScrollBar:vertical {
+                width: 10px; background: transparent; margin: 0;
+            }
+            QSplitter#workspaceSplitter QScrollBar::handle:vertical {
+                background: #647D98; border-radius: 5px; min-height: 28px;
+                margin: 2px;
+            }
+            QSplitter#workspaceSplitter QScrollBar::handle:vertical:hover {
+                background: #38A6E0;
+            }
+            QSplitter#workspaceSplitter QScrollBar::add-line:vertical,
+            QSplitter#workspaceSplitter QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+            QSplitter#workspaceSplitter QScrollBar:horizontal {
+                height: 10px; background: transparent; margin: 0;
+            }
+            QSplitter#workspaceSplitter QScrollBar::handle:horizontal {
+                background: #647D98; border-radius: 5px; min-width: 28px;
+                margin: 2px;
+            }
+            QSplitter#workspaceSplitter QScrollBar::handle:horizontal:hover {
+                background: #38A6E0;
+            }
+            QSplitter#workspaceSplitter QScrollBar::add-line:horizontal,
+            QSplitter#workspaceSplitter QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+            QSplitter#workspaceSplitter QToolTip {
+                color: palette(tooltip-text);
+                background: palette(tooltip-base);
+                border: 1px solid palette(mid);
+                padding: 5px;
+            }
+        """)
+        for tabs in (self.left_tabs, self.center_tabs, self.sim_tabs):
+            tabs.setDocumentMode(True)
+            tabs.setStyleSheet("""
+                QTabWidget::pane {
+                    background: palette(window);
+                    border: 1px solid palette(mid);
+                    border-radius: 5px;
+                    padding: 1px;
+                }
+                QTabBar::tab {
+                    background: palette(window);
+                    color: palette(window-text);
+                    padding: 5px 8px;
+                    margin-right: 2px;
+                    border: 1px solid transparent;
+                    border-bottom: 2px solid transparent;
+                    border-top-left-radius: 7px;
+                    border-top-right-radius: 7px;
+                }
+                QTabBar::tab:selected {
+                    background: palette(base);
+                    color: palette(window-text);
+                    border: 1px solid palette(mid);
+                    border-bottom: 2px solid palette(highlight);
+                    font-weight: 600;
+                }
+                QTabBar::tab:hover:!selected {
+                    background: palette(alternate-base);
+                    border-bottom: 2px solid palette(mid);
+                }
+                QTabBar::scroller { width: 22px; }
+            """)
+        # V19: popup-only width correction and colored scrollbar. Existing combo
+        # widths, sizing policies and widget placement are deliberately unchanged.
+        self._combo_popup_filters = []
+        for combo in self.findChildren(QComboBox):
+            if not combo.isEditable():
+                watcher = ComboPopupWidthFilter(combo, combo)
+                self._combo_popup_filters.append(watcher)
+            view = combo.view()
+            view.setStyleSheet(view.styleSheet() + """
+                QScrollBar:vertical { width: 11px; background: palette(base); margin: 0; }
+                QScrollBar::handle:vertical { background: #647D98; border-radius: 5px; min-height: 26px; margin: 1px; }
+                QScrollBar::handle:vertical:hover { background: #38A6E0; }
+                QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+                QScrollBar:horizontal { height: 11px; background: palette(base); margin: 0; }
+                QScrollBar::handle:horizontal { background: #647D98; border-radius: 5px; min-width: 26px; margin: 1px; }
+                QScrollBar::handle:horizontal:hover { background: #38A6E0; }
+                QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }
+            """)
+        # 左側功能分頁是固定三個，不使用左右捲動箭頭；只縮小本列的 padding。
+        # 上方多專案工作空間的 AdaptiveWorkspaceTabBar 仍保留捲動按鈕。
+        self.left_tabs.setStyleSheet(self.left_tabs.styleSheet() + """
+            QTabBar::tab { padding: 5px 3px; margin-right: 0px; }
+        """)
+
+    def _save_workspace_sizes(self):
+        sizes = self._current_workspace_sizes()
+        if not sizes:
+            return
+        try:
+            config = load_config_data()
+            config["workspace_splitter_sizes"] = sizes
+            with open(self._config_path(), "w", encoding="utf-8") as handle:
+                json.dump(config, handle, ensure_ascii=False, indent=2)
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"儲存三欄寬度失敗：{exc}")
 
     def get_update_mode(self) -> str:
         if not hasattr(self, "update_mode"):
@@ -8727,6 +9804,9 @@ class ItemSearchApp(QWidget):
 
 
     def _perform_total_effect_update(self):
+        # 背景載入未完成時，不允許計算依賴的 equipment_data 被讀取。
+        if not getattr(self, "_workspace_startup_ready", False) or not hasattr(self, "equipment_data"):
+            return
         if getattr(self, "_calc_running", False):
             return
 
@@ -8950,13 +10030,20 @@ class ItemSearchApp(QWidget):
 
     def closeEvent(self, event):
         if getattr(self, "_skip_close_confirm", False):
+            try:
+                self._persist_workspace_session()
+            except Exception as exc:
+                QMessageBox.warning(self, "工作空間儲存失敗", str(exc))
+                event.ignore()
+                return
+            self._save_workspace_sizes()
             event.accept()
             return
 
         reply = QMessageBox.question(
             self,
             "確認關閉",
-            "確定要關閉應用程式嗎？未儲存的變更將會遺失。",
+            "確定要關閉應用程式嗎？工作空間與未儲存修改會保存至暫存，下次啟動時還原；不會覆寫原始專案 JSON。",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -8968,6 +10055,13 @@ class ItemSearchApp(QWidget):
                     compare_window.close()
                 except Exception:
                     pass
+            try:
+                self._persist_workspace_session()
+            except Exception as exc:
+                QMessageBox.warning(self, "工作空間儲存失敗", str(exc))
+                event.ignore()
+                return
+            self._save_workspace_sizes()
             event.accept()
         else:
             event.ignore()
@@ -8976,6 +10070,16 @@ class ItemSearchApp(QWidget):
         if not isinstance(build, CoreCharacterBuild):
             build = CoreCharacterBuild.from_dict(build)
         saved_data = build.to_legacy_dict()
+        # 先驗證職業，避免復原失敗後所有 widget signal 被永久封鎖。
+        job_value = saved_data.get("JOB")
+        if job_value is not None and str(job_value).strip() and "JOB" in self.input_fields:
+            job_combo = self.input_fields["JOB"]
+            found = job_combo.findText(str(job_value)) >= 0 or any(
+                str(job_combo.itemData(i)) == str(job_value)
+                for i in range(job_combo.count())
+            )
+            if not found:
+                raise ValueError(f"專案職業無法對應已載入職業清單：{job_value!r}")
         self.last_character_build = build
         # 🔹 暫停所有 widget 的 signal
         for widget in self.findChildren(QWidget):
@@ -8987,8 +10091,14 @@ class ItemSearchApp(QWidget):
             if key in self.input_fields:
                 field = self.input_fields[key]
                 if isinstance(field, QComboBox):
-                    index = field.findText(val)
-                    if index != -1:
+                    index = field.findText(str(val))
+                    if index < 0 and key == "JOB":
+                        # 兼容舊專案以職業 ID 儲存的情況。
+                        for job_index in range(field.count()):
+                            if str(field.itemData(job_index)) == str(val):
+                                index = job_index
+                                break
+                    if index >= 0:
                         field.setCurrentIndex(index)
                 else:
                     field.setText(val)
@@ -10687,14 +11797,21 @@ class ItemSearchApp(QWidget):
         # 建立輸入欄位
         self.input_fields = {}
 
-        # 三欄主視窗布局
-        main_layout = QHBoxLayout()
+        # 三欄主視窗：外層只管理一個可拖曳分隔器。
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(7, 6, 7, 7)
+        main_layout.setSpacing(5)
+        self.workspace_splitter = QSplitter(Qt.Horizontal, self)
+        self.workspace_splitter.setObjectName("workspaceSplitter")
+        self.workspace_splitter.setChildrenCollapsible(False)
+        self.workspace_splitter.setHandleWidth(7)
+        main_layout.addWidget(self.workspace_splitter)
         
         # ===== 左側：角色能力與裝備分頁 =====
         # 1. 建立分頁元件
         tab_widget = QTabWidget()
-        tab_widget.setFixedWidth(340)
-        tab_widget.tabBar().setUsesScrollButtons(False)
+        tab_widget.setObjectName("leftWorkspaceTabs")
+        tab_widget.setTabBar(AdaptiveLeftTabBar(tab_widget))
         # 2. 為每個分頁建立 ScrollArea → 放內容
         # === 分頁1：角色能力值 ===
         char_scroll = QScrollArea()
@@ -11371,8 +12488,10 @@ class ItemSearchApp(QWidget):
             note_text_ui = QTextEdit()
             note_text_ui.setPlaceholderText(tr("placeholder.custom_option_effect"))
             note_text_ui.setObjectName(f"{part_name}-詞條")
-            # 詞條列總寬固定為 300px；Lapine 按鈕顯示時只縮小詞條 box。
-            note_text_ui.setFixedSize(255, 20)
+            # 高度保留原有設定；寬度跟隨卡片列伸縮，緊貼右側操作按鈕。
+            note_text_ui.setFixedHeight(20)
+            note_text_ui.setMinimumWidth(0)
+            note_text_ui.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             note_text_ui.setContentsMargins(0, 0, 0, 0)
             note_text_ui.setReadOnly(True)
             note_text_ui.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -11395,10 +12514,10 @@ class ItemSearchApp(QWidget):
             note_container = QWidget()
             note_container_layout = QHBoxLayout(note_container)
             note_container_layout.setContentsMargins(0, 0, 0, 0)
-            note_container_layout.setSpacing(5)
+            note_container_layout.setSpacing(0)
 
             # 真正 Lua 文字欄仍保留，但本來就是隱藏的，不需要佔 layout 空間。
-            note_container_layout.addWidget(note_text_ui)
+            note_container_layout.addWidget(note_text_ui, 1)
 
             note_button_column = QWidget()
             note_button_column.setFixedWidth(40)
@@ -11410,8 +12529,8 @@ class ItemSearchApp(QWidget):
             note_button_layout.addStretch(1)
             note_button_layout.addWidget(clear_note_btn, 0, Qt.AlignBottom)
 
-            note_container_layout.addWidget(note_button_column)
-            note_container.setFixedWidth(300)
+            note_container_layout.addWidget(note_button_column, 0)
+            note_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
             part_layout.addWidget(note_container)
 
@@ -11539,21 +12658,23 @@ class ItemSearchApp(QWidget):
 
 
         # 先把 tab_widget 存起來（可選）
-        self.tab_widget = tab_widget
+        self.left_tabs = tab_widget
 
         # ✅ 用一個容器把「tab + 狀態」上下包在一起
         left_panel = QWidget()
-        left_panel.setFixedWidth(340)  
+        left_panel.setObjectName("leftWorkspacePanel")
+        left_panel.setMinimumWidth(290)
 
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.setSpacing(6)
+        left_layout.setSpacing(8)
 
         # 上：三個分頁
-        left_layout.addWidget(self.tab_widget, stretch=1)
+        left_layout.addWidget(self.left_tabs, stretch=1)
 
         # 下：狀態區
-        self.status_box = QGroupBox("攻速/詠唱顯示 [括弧內為技能需求秒數]")
+        self.status_box = QGroupBox("攻速／詠唱資訊 [括弧內為技能需求秒數]")
+        self.status_box.setObjectName("nextStatusSummary")
         self.status_box.setMinimumHeight(100)  
         status_layout = QVBoxLayout(self.status_box)
 
@@ -11575,14 +12696,16 @@ class ItemSearchApp(QWidget):
         left_layout.addWidget(self.status_box, stretch=0)
 
         # ✅ 只加 left_panel 進去
-        main_layout.addWidget(left_panel, 2)
+        self.workspace_splitter.addWidget(left_panel)
 
 
         
 
         # ===== 中間：裝備查詢區塊 =====
         # 建立 TabWidget
-        self.tab_widget = QTabWidget()
+        self.tab_widget = QTabWidget()  # 保留既有程式中對中欄分頁的引用
+        self.center_tabs = self.tab_widget
+        self.center_tabs.setObjectName("centerWorkspaceTabs")
 
         # ====== 原本裝備查詢頁 ======
         middle_widget = QWidget()
@@ -11591,7 +12714,7 @@ class ItemSearchApp(QWidget):
         middle_scroll = QScrollArea()
         middle_scroll.setWidgetResizable(True)
         middle_scroll.setWidget(middle_widget)
-        middle_scroll.setFixedWidth(500)
+        middle_scroll.setMinimumWidth(300)
 
         equip_tab = QWidget()
         equip_layout = QVBoxLayout(equip_tab)
@@ -11832,7 +12955,7 @@ class ItemSearchApp(QWidget):
 
         # 分頁加入
         self.function_tab_index = self.tab_widget.addTab(function_tab, tr("tab.function_commands"))
-        main_layout.addWidget(self.tab_widget)
+        self.workspace_splitter.addWidget(self.center_tabs)
 
         # 預先初始化一次
 
@@ -11846,6 +12969,8 @@ class ItemSearchApp(QWidget):
         right_scroll = QScrollArea()
         right_scroll.setWidgetResizable(True)
         right_scroll.setWidget(right_widget)
+        right_scroll.setObjectName("rightWorkspacePanel")
+        right_scroll.setMinimumWidth(300)
 
 
         # ===== Timer =====
@@ -12556,8 +13681,26 @@ class ItemSearchApp(QWidget):
         # ===== 合併三欄 =====
         #main_layout.addWidget(left_scroll, 2)#已分頁取代
         #main_layout.addWidget(middle_scroll, 3)
-        main_layout.addWidget(right_scroll, 3)
+        self.workspace_splitter.addWidget(right_scroll)
+        self.workspace_splitter.setStretchFactor(0, 27)
+        self.workspace_splitter.setStretchFactor(1, 38)
+        self.workspace_splitter.setStretchFactor(2, 35)
         self.setLayout(main_layout)
+        self._apply_workspace_style()
+        self.left_tabs.tabBar().schedule_fit()
+        # V4: explanatory tooltips preserve tab labels and existing connections.
+        tab_hints = (
+            (self.left_tabs, ("角色屬性及狀態設定", "裝備與卡片配置", "技能、料理與輔助效果")),
+            (self.center_tabs, ("查找與檢視裝備資料", "函數語法與效果編輯")),
+            (self.sim_tabs, ("檢視效果解析", "檢視套裝效果", "檢視總效果", "傷害試算", "減傷試算")),
+        )
+        for tabs, hints in tab_hints:
+            for index, hint in enumerate(hints):
+                if index < tabs.count():
+                    tabs.setTabToolTip(index, hint)
+        # 介面初次完成佈局後再還原大小，避免早期 resize 覆蓋分隔設定。
+        QTimer.singleShot(0, self._restore_workspace_sizes)
+
 
 
         # 初始化下拉選單
@@ -12606,6 +13749,15 @@ class ItemSearchApp(QWidget):
         #開啟選單欄 
         self.update_window_title()
         self.setup_menu()
+        self._create_next_quick_toolbar()
+        # 視窗層快捷鍵：操作與上方復原／重做按鈕相同。
+        from PySide6.QtGui import QShortcut, QKeySequence
+        self._workspace_shortcuts = []
+        for sequence, callback in (("Ctrl+Z", self._workspace_undo), ("Ctrl+Y", self._workspace_redo),
+                                   ("Ctrl+Shift+Z", self._workspace_redo)):
+            shortcut = QShortcut(QKeySequence(sequence), self)
+            shortcut.activated.connect(callback)
+            self._workspace_shortcuts.append(shortcut)
         
     
     def setup_menu(self):
@@ -12615,6 +13767,7 @@ class ItemSearchApp(QWidget):
         file_menu = menubar.addMenu(tr("menu.file"))
 
         open_action = QAction(tr("menu.open"), self)
+        open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(self.open_project_file)
         file_menu.addAction(open_action)        
 
@@ -12623,10 +13776,12 @@ class ItemSearchApp(QWidget):
         file_menu.addAction(open_rrf_action)        
 
         save_action = QAction(tr("menu.save"), self)
+        save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.save_file)
         file_menu.addAction(save_action)
 
         save_as_action = QAction(tr("menu.save_as"), self)
+        save_as_action.setShortcut("Ctrl+Shift+S")
         save_as_action.triggered.connect(self.save_as_file)
         file_menu.addAction(save_as_action)
 
@@ -12994,6 +14149,7 @@ class ItemSearchApp(QWidget):
                 json.dump(data, f, ensure_ascii=False, indent=2)
             self.current_file = file_path
             self.update_window_title()
+            self._workspace_mark_saved(file_path)
         except Exception as e:
             QMessageBox.critical(self, tr("message.title.save_failed"), tr("message.file_save_failed", error=e))
 
@@ -13056,37 +14212,90 @@ class ItemSearchApp(QWidget):
 
 
     def open_project_file(self):
-        # 設定預設資料夾
-        default_dir = os.path.join(os.getcwd(),"裝備")
-    
-        file_path, _ = QFileDialog.getOpenFileName(
+        """一次開啟多份角色 JSON；每份對應一個獨立工作空間。
+
+        不覆寫任何既有分頁或原始專案檔案。已開啟的路徑直接沿用。
+        """
+        default_dir = os.path.join(os.getcwd(), "裝備")
+        file_paths, _ = QFileDialog.getOpenFileNames(
             self,
             tr("dialog.select_project_file"),
-            default_dir,  # ✅ 預設資料夾
-            "JSON Files (*.json)"
+            default_dir,
+            "JSON Files (*.json)",
         )
-        if not file_path:
+        if not file_paths:
             return
 
-        try:
+        def normalized_path(path):
+            return os.path.normcase(os.path.realpath(os.path.abspath(path)))
 
-            #self.skill_filter_input.clear()
-            #self.clear_global_state()
-            self.load_saved_inputs(file_path)
-            self.current_file = file_path
-            self.update_window_title()
-            # self.display_all_effects()
-            # self.replace_custom_calc_content()
-            # self.update_dex_int_half_note()
-            # self.jobsphp_display()
-            self.refresh_skill_list()
-            if getattr(self, "last_character_build", None) is not None:
-                self.apply_character_combat_state(self.last_character_build)
-            self.trigger_total_effect_update()
+        # 先讀取及驗證，失敗的檔案不建立分頁，其他檔案繼續處理。
+        opened_paths = {
+            normalized_path(record["file"]): index
+            for index, record in enumerate(self._project_records)
+            if record.get("file")
+        }
+        pending = []
+        failures = []
+        seen = set()
+        last_existing_index = None
+        for path in file_paths:
+            key = normalized_path(path)
+            if key in seen:
+                continue
+            seen.add(key)
+            if key in opened_paths:
+                last_existing_index = opened_paths[key]
+                continue
+            try:
+                with open(path, "r", encoding="utf-8-sig") as source:
+                    raw_data = json.load(source)
+                if not isinstance(raw_data, dict):
+                    raise ValueError("JSON 根節點必須是物件")
+                build = CoreCharacterBuild.from_dict(raw_data)
+                snapshot = build.to_dict(include_metadata=True)
+                if not isinstance(snapshot, dict):
+                    raise ValueError("專案內容無法轉換為角色配置")
+                pending.append((os.path.abspath(path), snapshot))
+            except Exception as exc:
+                failures.append(f"{os.path.basename(path)}：{exc}")
 
+        if pending:
+            # 建立分頁前保存當前尚未存檔的狀態，避免分頁切換遺失修改。
+            try:
+                self._capture_workspace_project()
+            except Exception as exc:
+                QMessageBox.warning(self, "開啟專案失敗", f"目前工作空間無法暫存：{exc}")
+                return
 
-        except Exception as e:
-            QMessageBox.critical(self, tr("message.title.error"), tr("message.load_failed", error=str(e)))
+            first_new_index = len(self._project_records)
+            self._project_switching = True
+            try:
+                for path, snapshot in pending:
+                    self._project_records.append({
+                        "data": snapshot,
+                        "file": path,
+                        "name": os.path.basename(path),
+                        "undo": [], "redo": [],
+                        "saved_hash": self._workspace_fingerprint(snapshot),
+                    })
+                    index = self.project_tabs.addTab(self._project_label(path, os.path.basename(path)))
+                    self._refresh_workspace_tab_label(index)
+            finally:
+                self._project_switching = False
+            # 切換至第一個新專案；其餘已全部開在工作空間分頁。
+            self.project_tabs.setCurrentIndex(first_new_index)
+        elif last_existing_index is not None:
+            self.project_tabs.setCurrentIndex(last_existing_index)
+
+        # 同步暫存工作階段，下次重新開啟程式仍可恢復分頁。
+        if pending:
+            try:
+                self._persist_workspace_session()
+            except Exception as exc:
+                QMessageBox.warning(self, "暫存工作空間失敗", str(exc))
+        if failures:
+            QMessageBox.warning(self, "部分專案無法開啟", "以下檔案未開啟：\n" + "\n".join(failures))
 
 
     def clear_current_edit(self):
@@ -14030,6 +15239,12 @@ if __name__ == "__main__":
         # 資料載入完成後在 GUI thread 建立一次搜尋索引，再強制刷新初始清單。
         window.rebuild_item_search_index()
         window.update_combobox(initial=True)
+
+        # v14: 所有資料與裝備效果完成載入後，才還原工作階段。
+        # 優先使用 session 快照，不會寫回原專案 JSON。
+        window._restore_workspace_session()
+        window._workspace_startup_ready = True
+        window.trigger_total_effect_update()
 
         window.resize(1650, 900)
         window.show()
