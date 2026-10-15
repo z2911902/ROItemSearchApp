@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.15-261015"
+Version = "v0.9.21-261015"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -7472,11 +7472,9 @@ class ItemSearchApp(QWidget):
         self._refresh_next_ui_icons()
         # v14: 尚未載入 equipment_data / DataRegistry，延後至 on_done 還原。
         self._workspace_startup_ready = False
-        # 為各工作空間紀錄修改歷程。以節流快照避免逐字輸入生成大量步驟。
-        self._history_timer = QTimer(self)
-        self._history_timer.setInterval(500)
-        self._history_timer.timeout.connect(self._track_workspace_history)
-        self._history_timer.start()
+        # v51：復原歷史只在完整計算成功後建立，不再以 500ms 定時器記錄輸入操作。
+        # 程式套用儲存配置（切換分頁、復原／重做）後的重算不應產生新歷史。
+        self._skip_next_history_commit = False
         self._update_history_controls()
 
     # --- 多專案工作空間：每個分頁有獨立的角色配置與儲存路徑 ---
@@ -7649,10 +7647,8 @@ class ItemSearchApp(QWidget):
                 snapshot = self._project_snapshot()
                 record = self._project_records[previous]
                 prior = record.get("data")
-                if prior is not None and prior != snapshot and not self._history_lock:
-                    record.setdefault("undo", []).append(prior)
-                    record["undo"] = record["undo"][-40:]
-                    record["redo"] = []
+                # 切換分頁只保存目前工作階段，不建立復原步驟；
+                # 有效的歷史節點已由成功的計算提交。
                 record["data"] = snapshot
                 record["file"] = self.current_file
                 self._refresh_workspace_tab_label(previous)
@@ -7669,6 +7665,7 @@ class ItemSearchApp(QWidget):
                 self.refresh_skill_list()
                 if getattr(self, "last_character_build", None) is not None:
                     self.apply_character_combat_state(self.last_character_build)
+                self._skip_next_history_commit = True
                 self.trigger_total_effect_update()
             self.current_file = record["file"]
             self._active_project_index = index
@@ -7775,9 +7772,8 @@ class ItemSearchApp(QWidget):
         if not getattr(self, "_workspace_startup_ready", False):
             # 啟動失敗或讀取未完成時，絕不以半初始化 UI 覆蓋先前暫存。
             raise RuntimeError("資料仍在初始化，為避免遺失職業與配置，暫不允許覆寫工作階段暫存。")
-        # 關閉前先把計時器尚未捕捉的最後一次編輯寫入目前分頁的復原歷史。
-        # 不呼叫一般專案儲存，不寫入任何原始 JSON。
-        self._track_workspace_history()
+        # 結束時仍保存未提交的編輯到工作階段（不寫回原始 JSON），
+        # 但未成功計算的編輯不新增復原歷史。
         self._capture_workspace_project()
         records = [{"name": r.get("name", "專案"), "file": r.get("file"),
                     "data": r.get("data"), "saved_hash": r.get("saved_hash"),
@@ -7858,6 +7854,7 @@ class ItemSearchApp(QWidget):
             self.refresh_skill_list()
             if getattr(self, "last_character_build", None) is not None:
                 self.apply_character_combat_state(self.last_character_build)
+            self._skip_next_history_commit = True
             self.trigger_total_effect_update()
             self.current_file = record.get("file")
             self.update_window_title()
@@ -7865,6 +7862,7 @@ class ItemSearchApp(QWidget):
             self._history_lock = False
 
     def _track_workspace_history(self):
+        """Commit exactly one snapshot after a successful full calculation."""
         if not getattr(self, "_workspace_startup_ready", False):
             return
         if self._history_lock or getattr(self, "_project_switching", False):
@@ -7913,8 +7911,7 @@ class ItemSearchApp(QWidget):
         idx = self.project_tabs.currentIndex()
         if not (0 <= idx < len(self._project_records)):
             return
-        # 先收集未被定時器捕捉的最新修改。
-        self._track_workspace_history()
+        # 只使用已成功計算並提交的歷史，不把尚未計算的 UI 編輯當成一步。
         record = self._project_records[idx]
         if not record.get(source):
             return
@@ -9961,6 +9958,13 @@ class ItemSearchApp(QWidget):
 
             self.update_total_effect_display()
 
+            # v51：所有效果與輸出均完成後，才記錄一次可復原的配置。
+            # 切換專案、復原／重做所觸發的重算不應自行新增歷史。
+            if getattr(self, "_skip_next_history_commit", False):
+                self._skip_next_history_commit = False
+            else:
+                self._track_workspace_history()
+
             if hasattr(self, "calc_status_label"):
                 self.calc_status_label.setText("✓ 已更新")
 
@@ -9973,6 +9977,7 @@ class ItemSearchApp(QWidget):
             if hasattr(self, "calc_status_label"):
                 self.calc_status_label.setText("⚠ 計算失敗")
             self._pending_save_compare_base = False
+            self._skip_next_history_commit = False
             raise
         finally:
             self._calc_running = False
@@ -14113,7 +14118,7 @@ class ItemSearchApp(QWidget):
             QTimer.singleShot(0, self.trigger_total_effect_update)
 
     def show_update_notes(self):
-        """手動開啟遠端更新公告；連線失敗不干擾主視窗。"""
+        """手動開啟更新內容；安全處理重複點擊與已釋放的 Qt worker。"""
         url = UPDATE_NOTES_HTML_URL.strip()
         if not url:
             return
@@ -14126,36 +14131,58 @@ class ItemSearchApp(QWidget):
                     existing.activateWindow()
                     return
             except RuntimeError:
-                pass
+                # Python wrapper 尚在，但 Qt C++ 視窗已被刪除。
+                self._manual_notes_dialog = None
 
+        # 網頁探測或 WebEngine 準備階段，都不允許再建立第二組工作。
         if getattr(self, "_manual_notes_loading", False):
             return
-        worker = getattr(self, "_manual_notes_worker", None)
-        if worker is not None and worker.isRunning():
-            return  # 避免連點建立多個下載執行緒
 
-        self._manual_notes_dialog = None
+        # 工作執行緒可能已完成並由 deleteLater() 刪除；不能直接 isRunning()。
+        previous_worker = getattr(self, "_manual_notes_worker", None)
+        if previous_worker is not None:
+            try:
+                if previous_worker.isRunning():
+                    return
+            except RuntimeError:
+                pass
+            self._manual_notes_worker = None
+
         self._manual_notes_loading = True
+        self._manual_notes_page_found = False
         worker = UpdateNotesPageCheckWorker(url, self)
         self._manual_notes_worker = worker
 
         def on_page_ready(page_url):
+            self._manual_notes_page_found = True
+
             def on_dialog_ready(dialog):
                 self._manual_notes_loading = False
                 if dialog is None:
                     return
                 self._manual_notes_dialog = dialog
-                dialog.finished.connect(lambda _result: setattr(self, "_manual_notes_dialog", None))
+
+                def on_dialog_closed(_result):
+                    if getattr(self, "_manual_notes_dialog", None) is dialog:
+                        self._manual_notes_dialog = None
+
+                dialog.finished.connect(on_dialog_closed)
                 dialog.show()
                 dialog.raise_()
                 dialog.activateWindow()
+
             prepare_update_notes_dialog(self, page_url, on_dialog_ready)
 
+        def on_worker_finished():
+            # 先解除 Python 參照，再排入 C++ 物件刪除，避免下次開啟時碰到已刪除物件。
+            if getattr(self, "_manual_notes_worker", None) is worker:
+                self._manual_notes_worker = None
+            if not self._manual_notes_page_found:
+                self._manual_notes_loading = False
+            worker.deleteLater()
+
         worker.page_ready.connect(on_page_ready)
-        worker.finished.connect(lambda: QTimer.singleShot(0, lambda: setattr(self, "_manual_notes_loading", False)) if not getattr(self, "_manual_notes_page_found", False) else None)
-        worker.page_ready.connect(lambda _: setattr(self, "_manual_notes_page_found", True))
-        worker.finished.connect(worker.deleteLater)
-        self._manual_notes_page_found = False
+        worker.finished.connect(on_worker_finished)
         worker.start()
 
     def add_effects_from_variables(self, template_path, equipid_mapping, status_mapping):  # 直接輸出 .ROC
@@ -15471,6 +15498,27 @@ class UpdateNotesPageCheckWorker(QThread):
             return
 
 
+class UpdateNotesVersionWorker(QThread):
+    """背景檢查正式 GitHub Release；失敗時不影響公告顯示。"""
+    newer_version = Signal(str)
+
+    def run(self):
+        try:
+            remote_version = read_remote_version_github(timeout=6)
+            if remote_version and compare_versions(remote_version, Version) > 0:
+                self.newer_version.emit("有新版本主程式，請檢查更新。")
+        except Exception as exc:
+            print(f"[更新公告] 版本檢查略過：{exc}")
+
+
+class UpdateNotesVersionLabel(QLabel):
+    """只有確實偵測到新版本才顯示提示。"""
+
+    def show_notice(self, message):
+        self.setText(message)
+        self.show()
+
+
 def prepare_update_notes_dialog(parent, url, on_finished):
     """Load notes invisibly, then report a ready dialog or None (Qt GUI thread).
 
@@ -15487,7 +15535,15 @@ def prepare_update_notes_dialog(parent, url, on_finished):
         on_finished(None)
         return None
 
-    dialog = QDialog(parent)
+    class UpdateNotesDialog(QDialog):
+        """版本檢查僅在公告實際顯示後開始，不阻塞公告載入。"""
+        def showEvent(self, event):
+            super().showEvent(event)
+            if not getattr(self, "_version_check_started", False):
+                self._version_check_started = True
+                QTimer.singleShot(0, start_version_check)
+
+    dialog = UpdateNotesDialog(parent)
     dialog.setWindowTitle("更新內容")
     dialog.resize(760, 580)
     dialog.setModal(False)
@@ -15533,12 +15589,29 @@ def prepare_update_notes_dialog(parent, url, on_finished):
     browser.setPage(AnnouncementPage(browser))
     layout.addWidget(browser)
     bottom = QHBoxLayout()
+    update_notice = UpdateNotesVersionLabel(dialog)
+    update_notice.setObjectName("updateNotesVersionNotice")
+    update_notice.setWordWrap(True)
+    update_notice.setStyleSheet("QLabel#updateNotesVersionNotice { color: #e2a04b; font-weight: 600; padding: 3px 4px; }")
+    update_notice.hide()
+    bottom.addWidget(update_notice, 1)
     bottom.addStretch()
     acknowledge = QPushButton("我知道了！", dialog)
     acknowledge.clicked.connect(dialog.accept)
     bottom.addWidget(acknowledge)
     layout.addLayout(bottom)
     dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+
+    # 公告已成功載入、且視窗實際顯示後，才在背景檢查 GitHub Release。
+    # 沒有新版本或查詢失敗時，底部提示維持隱藏。
+    def start_version_check():
+        if not dialog.isVisible():
+            return
+        # QApplication 作為執行緒 parent，公告提前關閉亦不會銷毀執行中的 QThread。
+        version_worker = UpdateNotesVersionWorker(QApplication.instance())
+        version_worker.newer_version.connect(update_notice.show_notice)
+        version_worker.finished.connect(version_worker.deleteLater)
+        version_worker.start()
 
     state = {"finished": False}
     load_timeout = QTimer(dialog)
