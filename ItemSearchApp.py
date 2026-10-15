@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.21-261015"
+Version = "v0.9.28-261015"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -683,7 +683,7 @@ from ro_core import (
 )
 
 import pandas as pd
-from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QPropertyAnimation, QEasingCurve, QUrl
+from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPoint, QEvent, QObject, QPropertyAnimation, QEasingCurve, QUrl
 from PySide6.QtGui import QFont ,QAction,QIntValidator,QPalette, QColor, QTextCursor, QDesktopServices, QPainter, QPen
 from sympy import sympify, symbols, Symbol
 # Next UI v3: self-contained scalable vector icons (no external asset folder).
@@ -7472,9 +7472,8 @@ class ItemSearchApp(QWidget):
         self._refresh_next_ui_icons()
         # v14: 尚未載入 equipment_data / DataRegistry，延後至 on_done 還原。
         self._workspace_startup_ready = False
-        # v51：復原歷史只在完整計算成功後建立，不再以 500ms 定時器記錄輸入操作。
-        # 程式套用儲存配置（切換分頁、復原／重做）後的重算不應產生新歷史。
-        self._skip_next_history_commit = False
+        # 復原歷史採「成功完成一次計算」為交易邊界，不使用時間輪詢。
+        # 編輯中的配置仍由工作階段保存，但尚未計算成功前不增加復原步數。
         self._update_history_controls()
 
     # --- 多專案工作空間：每個分頁有獨立的角色配置與儲存路徑 ---
@@ -7647,8 +7646,8 @@ class ItemSearchApp(QWidget):
                 snapshot = self._project_snapshot()
                 record = self._project_records[previous]
                 prior = record.get("data")
-                # 切換分頁只保存目前工作階段，不建立復原步驟；
-                # 有效的歷史節點已由成功的計算提交。
+                # 切換分頁要保留目前編輯內容，但不把尚未計算成功的操作
+                # 當作一個獨立的復原步驟。
                 record["data"] = snapshot
                 record["file"] = self.current_file
                 self._refresh_workspace_tab_label(previous)
@@ -7665,7 +7664,6 @@ class ItemSearchApp(QWidget):
                 self.refresh_skill_list()
                 if getattr(self, "last_character_build", None) is not None:
                     self.apply_character_combat_state(self.last_character_build)
-                self._skip_next_history_commit = True
                 self.trigger_total_effect_update()
             self.current_file = record["file"]
             self._active_project_index = index
@@ -7772,8 +7770,8 @@ class ItemSearchApp(QWidget):
         if not getattr(self, "_workspace_startup_ready", False):
             # 啟動失敗或讀取未完成時，絕不以半初始化 UI 覆蓋先前暫存。
             raise RuntimeError("資料仍在初始化，為避免遺失職業與配置，暫不允許覆寫工作階段暫存。")
-        # 結束時仍保存未提交的編輯到工作階段（不寫回原始 JSON），
-        # 但未成功計算的編輯不新增復原歷史。
+        # 工作階段保存最新編輯內容，但不額外建立復原歷史。
+        # 不呼叫一般專案儲存，不寫入任何原始 JSON。
         self._capture_workspace_project()
         records = [{"name": r.get("name", "專案"), "file": r.get("file"),
                     "data": r.get("data"), "saved_hash": r.get("saved_hash"),
@@ -7854,7 +7852,6 @@ class ItemSearchApp(QWidget):
             self.refresh_skill_list()
             if getattr(self, "last_character_build", None) is not None:
                 self.apply_character_combat_state(self.last_character_build)
-            self._skip_next_history_commit = True
             self.trigger_total_effect_update()
             self.current_file = record.get("file")
             self.update_window_title()
@@ -7862,7 +7859,6 @@ class ItemSearchApp(QWidget):
             self._history_lock = False
 
     def _track_workspace_history(self):
-        """Commit exactly one snapshot after a successful full calculation."""
         if not getattr(self, "_workspace_startup_ready", False):
             return
         if self._history_lock or getattr(self, "_project_switching", False):
@@ -7911,7 +7907,7 @@ class ItemSearchApp(QWidget):
         idx = self.project_tabs.currentIndex()
         if not (0 <= idx < len(self._project_records)):
             return
-        # 只使用已成功計算並提交的歷史，不把尚未計算的 UI 編輯當成一步。
+        # 復原只針對已成功計算、已提交的歷史狀態，不納入計算中的變更。
         record = self._project_records[idx]
         if not record.get(source):
             return
@@ -9958,13 +9954,6 @@ class ItemSearchApp(QWidget):
 
             self.update_total_effect_display()
 
-            # v51：所有效果與輸出均完成後，才記錄一次可復原的配置。
-            # 切換專案、復原／重做所觸發的重算不應自行新增歷史。
-            if getattr(self, "_skip_next_history_commit", False):
-                self._skip_next_history_commit = False
-            else:
-                self._track_workspace_history()
-
             if hasattr(self, "calc_status_label"):
                 self.calc_status_label.setText("✓ 已更新")
 
@@ -9973,11 +9962,13 @@ class ItemSearchApp(QWidget):
                 self._pending_save_compare_base = False
                 self._save_compare_base_after_calc()
 
+            # 只有完整計算順利結束後才提交一次復原歷史。
+            self._track_workspace_history()
+
         except Exception:
             if hasattr(self, "calc_status_label"):
                 self.calc_status_label.setText("⚠ 計算失敗")
             self._pending_save_compare_base = False
-            self._skip_next_history_commit = False
             raise
         finally:
             self._calc_running = False
@@ -14134,7 +14125,7 @@ class ItemSearchApp(QWidget):
                 # Python wrapper 尚在，但 Qt C++ 視窗已被刪除。
                 self._manual_notes_dialog = None
 
-        # 網頁探測或 WebEngine 準備階段，都不允許再建立第二組工作。
+        # 網頁探測或 Qt WebEngine 準備階段，都不允許再建立第二組工作。
         if getattr(self, "_manual_notes_loading", False):
             return
 
@@ -14158,6 +14149,7 @@ class ItemSearchApp(QWidget):
 
             def on_dialog_ready(dialog):
                 self._manual_notes_loading = False
+                self._manual_pending_notes_dialog = None
                 if dialog is None:
                     return
                 self._manual_notes_dialog = dialog
@@ -14171,7 +14163,7 @@ class ItemSearchApp(QWidget):
                 dialog.raise_()
                 dialog.activateWindow()
 
-            prepare_update_notes_dialog(self, page_url, on_dialog_ready)
+            self._manual_pending_notes_dialog = prepare_update_notes_dialog(self, page_url, on_dialog_ready)
 
         def on_worker_finished():
             # 先解除 Python 參照，再排入 C++ 物件刪除，避免下次開啟時碰到已刪除物件。
@@ -15469,7 +15461,7 @@ class ItemSearchApp(QWidget):
 
 
 class UpdateNotesPageCheckWorker(QThread):
-    """Verify the announcement page exists before opening a WebEngine dialog."""
+    """Verify the HTML page exists before loading it with Qt WebEngine."""
     page_ready = Signal(str)
 
     def __init__(self, url, parent=None):
@@ -15522,8 +15514,8 @@ class UpdateNotesVersionLabel(QLabel):
 def prepare_update_notes_dialog(parent, url, on_finished):
     """Load notes invisibly, then report a ready dialog or None (Qt GUI thread).
 
-    Do not display the main window until this callback returns: this prevents
-    the main window flashing before an announcement is ready.
+    Main window is displayed independently; only show the notes dialog after
+    QWebEngineView reports a successful load.
     """
     try:
         from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -15543,7 +15535,14 @@ def prepare_update_notes_dialog(parent, url, on_finished):
                 self._version_check_started = True
                 QTimer.singleShot(0, start_version_check)
 
-    dialog = UpdateNotesDialog(parent)
+    # v58: Keep the announcement as an independent top-level window.
+    # Parenting QDialog to the main window can trigger a native parent-window
+    # hide/show transition when WebEngine creates or exposes its own window.
+    # Both startup and manual flows retain a strong Python reference until closed.
+    dialog = UpdateNotesDialog(None)
+    # v57: loading the hidden browser must not activate the announcement window.
+    # The user may still click the dialog normally after it appears.
+    dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
     dialog.setWindowTitle("更新內容")
     dialog.resize(760, 580)
     dialog.setModal(False)
@@ -15611,6 +15610,7 @@ def prepare_update_notes_dialog(parent, url, on_finished):
         version_worker = UpdateNotesVersionWorker(QApplication.instance())
         version_worker.newer_version.connect(update_notice.show_notice)
         version_worker.finished.connect(version_worker.deleteLater)
+        dialog._version_worker = version_worker
         version_worker.start()
 
     state = {"finished": False}
@@ -15634,11 +15634,25 @@ def prepare_update_notes_dialog(parent, url, on_finished):
             dialog.close()
             on_finished(None)
 
+    dialog._browser = browser
     browser.loadFinished.connect(finish)
     load_timeout.timeout.connect(lambda: finish(False))
     load_timeout.start(9000)
     browser.load(QUrl(url))
     return dialog
+
+
+class _NextUIWindowVisibilityTrace(QObject):
+    """Log real main-window show/hide transitions without changing their behavior."""
+
+    def eventFilter(self, watched, event):
+        kind = event.type()
+        if kind in (QEvent.Type.Show, QEvent.Type.Hide, QEvent.Type.WindowStateChange):
+            name = {QEvent.Type.Show: "SHOW", QEvent.Type.Hide: "HIDE",
+                    QEvent.Type.WindowStateChange: "WINDOW_STATE"}.get(kind)
+            print(f"[NextUI window trace] main {name}; visible={watched.isVisible()} "
+                  f"state={int(watched.windowState().value)}")
+        return False
 
 
 if __name__ == "__main__":
@@ -15677,6 +15691,7 @@ if __name__ == "__main__":
     worker = None
     notes_worker = None
     notes_dialog = None
+    startup_display_state = {"shown": False}
 
     loading.show()
     loading.raise_()
@@ -15695,6 +15710,9 @@ if __name__ == "__main__":
 
         # QWidget 必須在主執行緒建立
         window = ItemSearchApp()
+        # Retain trace observer for diagnosing OS/Qt hide/show transitions.
+        window._visibility_trace = _NextUIWindowVisibilityTrace(window)
+        window.installEventFilter(window._visibility_trace)
         DataRegistry.window = window
 
         loading.update_progress("正在載入資料...")
@@ -15711,6 +15729,11 @@ if __name__ == "__main__":
 
     def on_done(data):
         global window
+        # Initialization may emit completion more than once through queued signals.
+        # Never enter the final startup flow or show the main window twice.
+        if startup_display_state["shown"]:
+            return
+        startup_display_state["shown"] = True
 
         loading.update_progress("正在更新外部資料...")
         loading.append_text("載入外部 MAP...")
@@ -15734,48 +15757,64 @@ if __name__ == "__main__":
         window.trigger_total_effect_update()
 
         window.resize(1650, 900)
-        # Keep the original progress window visible while checking/loading
-        # optional release notes. Only show main + notes together (or main
-        # alone on failure), so users don't see the main window flash.
-        loading.update_progress("正在完成啟動...")
+        # Keep a visible top-level window throughout the handoff. Closing the
+        # loading window first can briefly expose the desktop and fire Qt's
+        # lastWindowClosed signal before the main window appears.
+        # Show the main window just once, then hide the loading window without
+        # introducing an event-loop gap or changing focus a second time.
+        window.show()
+        loading.hide()
+
         notes_url = UPDATE_NOTES_HTML_URL.strip()
-        finish_state = {"done": False}
-
-        def finish_startup(ready_dialog=None):
-            global notes_dialog
-            if finish_state["done"]:
-                return
-            finish_state["done"] = True
-            window.show()
-            if ready_dialog is not None:
-                notes_dialog = ready_dialog
-                ready_dialog.show()
-                ready_dialog.raise_()
-                ready_dialog.activateWindow()
-            else:
-                window.raise_()
-                window.activateWindow()
-            loading.close()
-
         if not notes_url:
-            finish_startup()
             return
 
+        # Schedule the optional release notes AFTER the main window has had
+        # an opportunity to paint. Neither HTTP nor the browser's DOM load
+        # may block the main-window startup path.
         def begin_notes_check():
-            global notes_worker
-            notes_worker = UpdateNotesPageCheckWorker(notes_url)
-            notes_worker.page_ready.connect(
-                lambda page_url: prepare_update_notes_dialog(window, page_url, finish_startup)
-            )
-            # QThread.finished fires even if no page_ready signal was emitted.
-            # Queue fallback to let an already-queued page_ready run first.
-            notes_worker.finished.connect(
-                lambda: QTimer.singleShot(0, lambda: finish_startup() if notes_dialog is None and not finish_state["done"] and not getattr(window, "_notes_loading", False) else None)
-            )
-            notes_worker.page_ready.connect(lambda _: setattr(window, "_notes_loading", True))
-            notes_worker.start()
+            global notes_worker, notes_dialog
+            if window is None or not window.isVisible():
+                return
+            worker_for_page = UpdateNotesPageCheckWorker(notes_url, window)
+            notes_worker = worker_for_page
+            page_state = {"ready": False}
 
-        begin_notes_check()
+            def on_page_ready(page_url):
+                global notes_dialog
+                if page_state["ready"]:
+                    return
+                page_state["ready"] = True
+
+                def on_dialog_loaded(dialog):
+                    global notes_dialog
+                    if window is not None:
+                        window._startup_pending_notes_dialog = None
+                    if dialog is None or window is None or not window.isVisible():
+                        return
+                    notes_dialog = dialog
+                    # prepare_update_notes_dialog invokes this callback only
+                    # once the document has emitted domContentLoaded.
+                    # Show only the separate announcement dialog. Avoid
+                    # raising/activating the main window again during the handoff.
+                    # Show as a non-activating top-level dialog: no second foreground
+                    # transition / focus jump away from the already-visible main UI.
+                    dialog.show()
+
+                pending_dialog = prepare_update_notes_dialog(window, page_url, on_dialog_loaded)
+                window._startup_pending_notes_dialog = pending_dialog
+
+            def on_check_finished():
+                global notes_worker
+                if notes_worker is worker_for_page:
+                    notes_worker = None
+                worker_for_page.deleteLater()
+
+            worker_for_page.page_ready.connect(on_page_ready)
+            worker_for_page.finished.connect(on_check_finished)
+            worker_for_page.start()
+
+        QTimer.singleShot(150, begin_notes_check)
 
     # 先讓 Qt 事件迴圈開始，再執行後續初始化
     QTimer.singleShot(0, start_initialization)
