@@ -1,10 +1,18 @@
-﻿# ROItemSearchApp 更新紀錄
+﻿
 
-- [專案首頁](https://github.com/z2911902/ROItemSearchApp)
-- [GitHub Releases](https://github.com/z2911902/ROItemSearchApp/releases)
-- [BUG回報/建議提供](https://forum.gamer.com.tw/C.php?bsn=4212&snA=439281) 巴哈文章內留言/站內信/NOW
+- [專案首頁](https://github.com/z2911902/ROItemSearchApp) / [GitHub Releases](https://github.com/z2911902/ROItemSearchApp/releases) / [BUG回報/建議提供](https://forum.gamer.com.tw/C.php?bsn=4212&snA=439281) 巴哈文章內留言/站內信/NOW
+# ROItemSearchApp 更新紀錄
 
 ## 正式發布紀錄（最新至最早）
+
+### [v0.9.36-261015](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.9.36-261015)
+
+- 修改反編譯流程。
+- 新增多個專案檔切換空間，回復重做功能，關閉時儲存目前專案供下次啟動時自動載入。
+- 新增更新紀錄提示視窗。
+- 修正combiitem無資料時跳出計算錯誤。
+- 增加skin風格切換，內建六種，可自訂整體視窗顏色。
+
 
 ### [v0.8.21-261006](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.8.21-261006)
 
@@ -285,5 +293,5 @@
 
 ### [v0.0.1-251028](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.0.1-251028)
 
-- 專案初次發布；提供初期打包版本（當時不含自動編譯資料）。
+- 專案初次發布；提供初期打包版本。
 
