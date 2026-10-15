@@ -1,0 +1,32 @@
+{
+  "id": "material3",
+  "name": "Material Design 3",
+  "light": {
+    "window": "#f7f2fa",
+    "base": "#fffbfe",
+    "alternate": "#eee8f2",
+    "button": "#e8def8",
+    "text": "#1d1b20",
+    "muted": "#625b71",
+    "border": "#cac4d0",
+    "highlight": "#6750a4",
+    "highlighted": "#ffffff",
+    "tooltip": "#fffbfe",
+    "light": "#ffffff",
+    "shadow": "#ded8e3"
+  },
+  "dark": {
+    "window": "#141218",
+    "base": "#211f26",
+    "alternate": "#292630",
+    "button": "#36313e",
+    "text": "#e6e0e9",
+    "muted": "#cac4d0",
+    "border": "#49454f",
+    "highlight": "#d0bcff",
+    "highlighted": "#381e72",
+    "tooltip": "#2b2930",
+    "light": "#49454f",
+    "shadow": "#0f0d13"
+  }
+}

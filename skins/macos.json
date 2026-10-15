@@ -1,0 +1,32 @@
+{
+  "id": "macos",
+  "name": "macOS Inspired",
+  "light": {
+    "window": "#f5f5f7",
+    "base": "#ffffff",
+    "alternate": "#f0f0f2",
+    "button": "#ffffff",
+    "text": "#1d1d1f",
+    "muted": "#6e6e73",
+    "border": "#d2d2d7",
+    "highlight": "#007aff",
+    "highlighted": "#ffffff",
+    "tooltip": "#ffffff",
+    "light": "#ffffff",
+    "shadow": "#e5e5ea"
+  },
+  "dark": {
+    "window": "#1c1c1e",
+    "base": "#2c2c2e",
+    "alternate": "#363638",
+    "button": "#3a3a3c",
+    "text": "#f5f5f7",
+    "muted": "#a1a1a6",
+    "border": "#48484a",
+    "highlight": "#0a84ff",
+    "highlighted": "#ffffff",
+    "tooltip": "#303032",
+    "light": "#48484a",
+    "shadow": "#141416"
+  }
+}

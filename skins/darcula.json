@@ -1,0 +1,32 @@
+{
+  "id": "darcula",
+  "name": "Darcula",
+  "light": {
+    "window": "#f2f2f2",
+    "base": "#ffffff",
+    "alternate": "#e9eaec",
+    "button": "#e5e7ea",
+    "text": "#252629",
+    "muted": "#62666e",
+    "border": "#c5c8ce",
+    "highlight": "#347dbb",
+    "highlighted": "#ffffff",
+    "tooltip": "#fffce8",
+    "light": "#ffffff",
+    "shadow": "#bfc2c8"
+  },
+  "dark": {
+    "window": "#2b2b2b",
+    "base": "#313335",
+    "alternate": "#3c3f41",
+    "button": "#3c3f41",
+    "text": "#a9b7c6",
+    "muted": "#80858c",
+    "border": "#51545a",
+    "highlight": "#4b6eaf",
+    "highlighted": "#ffffff",
+    "tooltip": "#3c3f41",
+    "light": "#484b4f",
+    "shadow": "#202123"
+  }
+}

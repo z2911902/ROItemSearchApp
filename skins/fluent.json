@@ -1,0 +1,32 @@
+{
+  "id": "fluent",
+  "name": "Fluent UI",
+  "light": {
+    "window": "#f3f3f3",
+    "base": "#ffffff",
+    "alternate": "#f8f8f8",
+    "button": "#ffffff",
+    "text": "#202020",
+    "muted": "#686868",
+    "border": "#d5d5d5",
+    "highlight": "#0067c0",
+    "highlighted": "#ffffff",
+    "tooltip": "#ffffff",
+    "light": "#ffffff",
+    "shadow": "#e5e5e5"
+  },
+  "dark": {
+    "window": "#202124",
+    "base": "#292a2d",
+    "alternate": "#303135",
+    "button": "#343539",
+    "text": "#f0f0f0",
+    "muted": "#aaaaaf",
+    "border": "#505157",
+    "highlight": "#60a5fa",
+    "highlighted": "#0b1b32",
+    "tooltip": "#343539",
+    "light": "#3c3d42",
+    "shadow": "#17181a"
+  }
+}

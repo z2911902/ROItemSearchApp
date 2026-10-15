@@ -1,0 +1,32 @@
+{
+  "id": "dark-dimmed",
+  "name": "Dark Dimmed",
+  "light": {
+    "window": "#f6f8fa",
+    "base": "#ffffff",
+    "alternate": "#eef1f4",
+    "button": "#f3f4f6",
+    "text": "#24292f",
+    "muted": "#57606a",
+    "border": "#d0d7de",
+    "highlight": "#0969da",
+    "highlighted": "#ffffff",
+    "tooltip": "#ffffff",
+    "light": "#eaeef2",
+    "shadow": "#d0d7de"
+  },
+  "dark": {
+    "window": "#22272e",
+    "base": "#2d333b",
+    "alternate": "#343b44",
+    "button": "#373e47",
+    "text": "#d1d9e0",
+    "muted": "#9caab8",
+    "border": "#444c56",
+    "highlight": "#539bf5",
+    "highlighted": "#ffffff",
+    "tooltip": "#373e47",
+    "light": "#444c56",
+    "shadow": "#1c2128"
+  }
+}

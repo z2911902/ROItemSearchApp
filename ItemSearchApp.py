@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.28-261015"
+Version = "v0.9.36-261015"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -134,6 +134,123 @@ UI_THEME_VALUES = {UI_THEME_AUTO, UI_THEME_LIGHT, UI_THEME_DARK}
 def normalize_ui_theme(value, default=UI_THEME_AUTO) -> str:
     theme = str(value or "").strip().lower()
     return theme if theme in UI_THEME_VALUES else default
+
+# Next UI v61: Skin 定義由 skins/*.json 載入，程式不再寫死每套配色。
+UI_SKIN_FLUENT = "fluent"
+UI_SKIN_CLASSIC = "classic"  # 舊設定的相容別名
+SKINS_DIR_NAME = "skins"
+
+
+def _skins_directory():
+    # 一般執行與 PyInstaller onedir/onefile：優先使用 exe/py 同目錄，
+    # 方便使用者直接編輯、新增 JSON Skin，不需重新打包。
+    return os.path.join(get_app_base_dir(), SKINS_DIR_NAME)
+
+
+def available_ui_skins() -> dict:
+    """掃描外部 Skin；跳過格式不正確檔案，不執行檔案內任何程式碼。"""
+    found = {}
+    folder = _skins_directory()
+    if not os.path.isdir(folder):
+        return found
+    for filename in sorted(os.listdir(folder)):
+        if not filename.lower().endswith(".json"):
+            continue
+        path = os.path.join(folder, filename)
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8-sig") as stream:
+                config = json.load(stream)
+            if not isinstance(config, dict):
+                continue
+            ident = str(config.get("id", "")).strip().lower()
+            if not re.fullmatch(r"[a-z][a-z0-9_-]{0,49}", ident):
+                continue
+            for mode in ("light", "dark"):
+                values = config.get(mode)
+                if not isinstance(values, dict):
+                    raise ValueError("missing palette: " + mode)
+                for key in ("window", "base", "alternate", "button", "text", "muted", "border", "highlight", "highlighted", "tooltip", "light", "shadow"):
+                    value = values.get(key)
+                    if not isinstance(value, str) or not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+                        raise ValueError("invalid color: " + mode + "." + key)
+            found[ident] = config
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            print(f"[Skin] 略過無效檔案 {filename}: {exc}")
+    return found
+
+
+def normalize_ui_skin(value, default=UI_SKIN_FLUENT) -> str:
+    skins = available_ui_skins()
+    name = str(value or "").strip().lower()
+    # 舊版 Classic 設定轉向可用的外部 Skin，避免啟動後顯示錯誤。
+    if name in skins:
+        return name
+    if default in skins:
+        return default
+    return next(iter(skins), default)
+
+
+def _external_skin_palette(colors: dict) -> QPalette:
+    palette = QPalette()
+    role_map = {
+        QPalette.ColorRole.Window: "window",
+        QPalette.ColorRole.WindowText: "text",
+        QPalette.ColorRole.Base: "base",
+        QPalette.ColorRole.AlternateBase: "alternate",
+        QPalette.ColorRole.Button: "button",
+        QPalette.ColorRole.ButtonText: "text",
+        QPalette.ColorRole.Text: "text",
+        QPalette.ColorRole.Highlight: "highlight",
+        QPalette.ColorRole.HighlightedText: "highlighted",
+        QPalette.ColorRole.Link: "highlight",
+        QPalette.ColorRole.Mid: "border",
+        QPalette.ColorRole.Midlight: "light",
+        QPalette.ColorRole.Light: "light",
+        QPalette.ColorRole.Dark: "shadow",
+        QPalette.ColorRole.Shadow: "shadow",
+        QPalette.ColorRole.ToolTipBase: "tooltip",
+        QPalette.ColorRole.ToolTipText: "text",
+    }
+    for role, key in role_map.items():
+        palette.setColor(role, QColor(colors[key]))
+    for role in (QPalette.ColorRole.WindowText, QPalette.ColorRole.ButtonText, QPalette.ColorRole.Text):
+        palette.setColor(QPalette.ColorGroup.Disabled, role, QColor(colors["muted"]))
+    if hasattr(QPalette.ColorRole, "PlaceholderText"):
+        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(colors["muted"]))
+    return palette
+
+
+def apply_ui_appearance(app, theme: str, skin: str, *, refresh: bool = False) -> None:
+    """從外部 JSON 套用 Skin；保留 Widget 原有佈局及功能。"""
+    if app is None:
+        return
+    theme = normalize_ui_theme(theme)
+    skins = available_ui_skins()
+    skin = normalize_ui_skin(skin)
+    spec = skins.get(skin)
+    hints = app.styleHints()
+    if theme == UI_THEME_AUTO:
+        scheme = hints.colorScheme() if hasattr(hints, "colorScheme") else Qt.ColorScheme.Light
+        dark = scheme == Qt.ColorScheme.Dark
+        if hasattr(hints, "unsetColorScheme"):
+            hints.unsetColorScheme()
+    else:
+        dark = theme == UI_THEME_DARK
+        if hasattr(hints, "setColorScheme"):
+            hints.setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+    if spec:
+        # 統一風格由通用 Fusion 控制項＋JSON QPalette 構成。
+        app.setStyle("Fusion")
+        app.setPalette(_external_skin_palette(spec["dark" if dark else "light"]))
+    else:
+        # skins/ 不存在時，以原生 Qt 外觀安全啟動，不使整個程式失效。
+        print("[Skin] 未找到有效 skins/*.json，使用 Qt 原生介面。")
+        apply_ui_theme(app, theme, refresh=False)
+    if refresh:
+        QTimer.singleShot(0, lambda: refresh_ui_theme(app))
+
 
 def refresh_ui_theme(app) -> None:
     """主題切換後強制既有 Widget 重新 polish / repaint 一次。
@@ -730,7 +847,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QLabel,QGroupBox, QToolButton,QSizePolicy,
     QComboBox, QTextEdit, QMessageBox, QHBoxLayout, QScrollArea, QCheckBox, QMenuBar, QFileDialog,
     QPushButton, QTabWidget, QFormLayout, QSpinBox  ,QDoubleSpinBox  ,QFrame , QGridLayout,QDialog, QListWidget, QButtonGroup,QSlider,
-    QCompleter, QTableWidget, QTableWidgetItem, QSplitter, QTabBar, QMenu,
+    QCompleter, QTableWidget, QTableWidgetItem, QSplitter, QTabBar, QMenu, QColorDialog,
 )
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -4330,6 +4447,405 @@ class PreferencesDialog(QDialog):
         return self.load_kro_cb.isChecked()
 
 
+# Next UI v62: External Skin editor; writes user-owned skins/*.json only.
+SKIN_COLOR_FIELDS = (
+    ("window", "視窗與主背景"),
+    ("base", "輸入框／內容底色"),
+    ("alternate", "交錯區塊／次要底色"),
+    ("button", "按鈕／Box 底色"),
+    ("text", "主要文字"),
+    ("muted", "次要／停用文字"),
+    ("border", "邊框與分隔線"),
+    ("highlight", "選取／重點色"),
+    ("highlighted", "選取文字"),
+    ("tooltip", "提示框底色"),
+    ("light", "高光／淺色邊緣"),
+    ("shadow", "陰影／深色邊緣"),
+)
+
+
+class SkinEditorDialog(QDialog):
+    """Edit both palette modes; non-destructive preview and save-as-new JSON."""
+
+    def __init__(self, selected_skin=UI_SKIN_FLUENT, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("自訂 Skin 編輯器")
+        self.resize(710, 660)
+        self.saved_skin_id = None
+        self.deleted_skin_ids = []
+        self._available = available_ui_skins()
+        self._colors = {mode: {} for mode in ("light", "dark")}
+        self._color_buttons = {mode: {} for mode in ("light", "dark")}
+        layout = QVBoxLayout(self)
+
+        intro = QLabel("選擇範本後，可分別修改明亮與暗黑模式。預覽不影響主程式；可選擇覆寫已存檔的自訂 Skin，或另存為新 Skin。")
+        intro.setWordWrap(True)
+        layout.addWidget(intro)
+
+        top = QHBoxLayout()
+        top.addWidget(QLabel("基礎 Skin"))
+        self.source_combo = QComboBox()
+        for skin_id, spec in self._available.items():
+            self.source_combo.addItem(spec.get("name", skin_id), skin_id)
+        top.addWidget(self.source_combo, 1)
+        self.delete_button = QPushButton("刪除自訂 Skin")
+        self.delete_button.clicked.connect(self._delete_skin)
+        top.addWidget(self.delete_button)
+        layout.addLayout(top)
+        name_row = QHBoxLayout()
+        name_row.addWidget(QLabel("自訂名稱"))
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("例如：我的藍灰色")
+        name_row.addWidget(self.name_input, 1)
+        layout.addLayout(name_row)
+
+        self.tabs = QTabWidget()
+        for mode, label in (("light", "明亮配色"), ("dark", "暗黑配色")):
+            page = QWidget()
+            page_layout = QVBoxLayout(page)
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            content = QWidget()
+            grid = QGridLayout(content)
+            for row, (key, title) in enumerate(SKIN_COLOR_FIELDS):
+                grid.addWidget(QLabel(title), row, 0)
+                button = QPushButton()
+                button.setMinimumWidth(190)
+                button.clicked.connect(lambda checked=False, m=mode, k=key: self._choose_color(m, k))
+                grid.addWidget(button, row, 1)
+                self._color_buttons[mode][key] = button
+            grid.setColumnStretch(1, 1)
+            scroll.setWidget(content)
+            page_layout.addWidget(scroll)
+            self.tabs.addTab(page, label)
+        layout.addWidget(self.tabs, 1)
+
+        layout.addWidget(QLabel("即時預覽（會展示背景、外框、焦點、選取與停用狀態）："))
+        self.preview = QFrame()
+        self.preview.setObjectName("skinPreviewRoot")
+        preview_layout = QVBoxLayout(self.preview)
+        preview_layout.setSpacing(7)
+        preview_layout.setContentsMargins(12, 10, 12, 10)
+        header = QHBoxLayout()
+        self.preview_title = QLabel("ROItemSearchApp  ·  裝備查詢")
+        self.preview_muted = QLabel("次要文字 / 停用說明")
+        header.addWidget(self.preview_title)
+        header.addStretch()
+        header.addWidget(self.preview_muted)
+        preview_layout.addLayout(header)
+        tab_row = QHBoxLayout()
+        self.preview_tab_active = QLabel("角色能力值")
+        self.preview_tab_inactive = QLabel("裝備設定")
+        self.preview_tab_alt = QLabel("效果解析")
+        for tab in (self.preview_tab_active, self.preview_tab_inactive, self.preview_tab_alt):
+            tab_row.addWidget(tab)
+        tab_row.addStretch()
+        preview_layout.addLayout(tab_row)
+        field_row = QHBoxLayout()
+        self.preview_input = QLineEdit("示範輸入 / 背景顏色")
+        self.preview_button = QPushButton("一般按鈕")
+        self.preview_selected_button = QPushButton("選取狀態")
+        field_row.addWidget(self.preview_input, 1)
+        field_row.addWidget(self.preview_button)
+        field_row.addWidget(self.preview_selected_button)
+        preview_layout.addLayout(field_row)
+        bottom_row = QHBoxLayout()
+        self.preview_selected = QLabel("✓ 已選取的項目")
+        self.preview_alternate = QLabel("次要背景 / Box")
+        self.preview_disabled = QPushButton("停用按鈕")
+        self.preview_disabled.setEnabled(False)
+        bottom_row.addWidget(self.preview_selected)
+        bottom_row.addWidget(self.preview_alternate)
+        bottom_row.addWidget(self.preview_disabled)
+        preview_layout.addLayout(bottom_row)
+        self.preview_hint = QLabel("提示框色彩 · 高光和陰影邊緣也會反映在預覽中")
+        preview_layout.addWidget(self.preview_hint)
+        layout.addWidget(self.preview)
+
+        controls = QHBoxLayout()
+        reset_btn = QPushButton("重載範本")
+        reset_btn.clicked.connect(self._load_source)
+        controls.addWidget(reset_btn)
+        controls.addStretch(1)
+        cancel_btn = QPushButton("取消")
+        cancel_btn.clicked.connect(self.reject)
+        controls.addWidget(cancel_btn)
+        self.overwrite_button = QPushButton("儲存目前 Skin")
+        self.overwrite_button.setToolTip("覆寫目前選取的自訂 Skin；儲存前會再次確認")
+        self.overwrite_button.clicked.connect(self._overwrite_skin)
+        controls.addWidget(self.overwrite_button)
+        save_btn = QPushButton("儲存為新 Skin 並套用")
+        save_btn.clicked.connect(self._save_skin)
+        controls.addWidget(save_btn)
+        layout.addLayout(controls)
+
+        self.source_combo.currentIndexChanged.connect(self._load_source)
+        self.tabs.currentChanged.connect(lambda _index: self._update_preview())
+        index = self.source_combo.findData(normalize_ui_skin(selected_skin))
+        if index >= 0:
+            self.source_combo.setCurrentIndex(index)
+        self._load_source()
+
+    def _load_source(self, *_args):
+        source_id = self.source_combo.currentData()
+        is_custom = self._is_custom_skin(source_id)
+        self.delete_button.setEnabled(is_custom)
+        self.overwrite_button.setEnabled(is_custom)
+        spec = self._available.get(source_id)
+        if not spec:
+            return
+        self.name_input.setText(spec.get("name", "") if is_custom else "")
+        self._colors = {mode: dict(spec[mode]) for mode in ("light", "dark")}
+        for mode in ("light", "dark"):
+            for key, _label in SKIN_COLOR_FIELDS:
+                self._refresh_swatch(mode, key)
+        self._update_preview()
+
+    def _refresh_swatch(self, mode, key):
+        color = self._colors[mode][key]
+        button = self._color_buttons[mode][key]
+        luminance = QColor(color).lightness()
+        fg = "#ffffff" if luminance < 130 else "#171717"
+        button.setText(color.upper())
+        button.setStyleSheet(
+            f"QPushButton {{ background-color: {color}; color: {fg}; "
+            "border: 1px solid palette(mid); border-radius: 5px; padding: 4px; }"
+        )
+
+    def _choose_color(self, mode, key):
+        current = QColor(self._colors[mode][key])
+        picked = QColorDialog.getColor(current, self, "選擇顏色")
+        if not picked.isValid():
+            return
+        self._colors[mode][key] = picked.name(QColor.NameFormat.HexRgb)
+        self._refresh_swatch(mode, key)
+        self._update_preview()
+
+    @staticmethod
+    def _is_custom_skin(skin_id):
+        return isinstance(skin_id, str) and bool(re.fullmatch(r"custom-[a-z0-9_-]{1,43}", skin_id))
+
+    def _delete_skin(self):
+        skin_id = self.source_combo.currentData()
+        if not self._is_custom_skin(skin_id):
+            QMessageBox.warning(self, "無法刪除", "僅允許刪除由編輯器建立的 custom-*.json；內建 Skin 不可刪除。")
+            return
+        folder = os.path.realpath(_skins_directory())
+        target = os.path.join(folder, skin_id + ".json")
+        # Only delete real, direct children of skins/, never symlinks or external files.
+        if (os.path.dirname(os.path.abspath(target)) != folder
+                or os.path.islink(target) or not os.path.isfile(target)):
+            QMessageBox.warning(self, "無法刪除", "找不到安全且有效的自訂 Skin 檔案。")
+            return
+        answer = QMessageBox.question(
+            self, "確認刪除自訂 Skin",
+            f"確定永久刪除「{self._available.get(skin_id, {}).get('name', skin_id)}」？\n"
+            "刪除後無法復原，其他內建 Skin 不會受到影響。",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        )
+        if answer != QMessageBox.Yes:
+            return
+        try:
+            # Check contents match selected ID before deleting.
+            with open(target, "r", encoding="utf-8-sig") as stream:
+                payload = json.load(stream)
+            if payload.get("id") != skin_id:
+                raise ValueError("檔案 ID 與選取 Skin 不符，已停止刪除。")
+            os.remove(target)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            QMessageBox.critical(self, "刪除失敗", str(exc))
+            return
+        self.deleted_skin_ids.append(skin_id)
+        self._available = available_ui_skins()
+        self.source_combo.blockSignals(True)
+        self.source_combo.clear()
+        for name, spec in self._available.items():
+            self.source_combo.addItem(spec.get("name", name), name)
+        self.source_combo.blockSignals(False)
+        fallback = self.source_combo.findData(UI_SKIN_FLUENT)
+        if fallback >= 0:
+            self.source_combo.setCurrentIndex(fallback)
+        self._load_source()
+
+    def _update_preview(self):
+        mode = "light" if self.tabs.currentIndex() == 0 else "dark"
+        c = self._colors.get(mode, {})
+        if not all(key in c for key, _ in SKIN_COLOR_FIELDS):
+            return
+        # Explicit QSS rules make every editable field visible in the sample,
+        # without touching the application's stylesheet or widget geometry.
+        self.preview.setStyleSheet(f"""
+            QFrame#skinPreviewRoot {{
+                background-color: {c['window']};
+                border: 2px solid {c['shadow']}; border-top: 2px solid {c['light']};
+                border-left: 2px solid {c['light']}; border-radius: 7px;
+            }}
+            QFrame#skinPreviewRoot QLabel {{
+                color: {c['text']}; background: transparent; border: none;
+                padding: 5px 8px;
+            }}
+            QFrame#skinPreviewRoot QLabel#previewMuted {{ color: {c['muted']}; }}
+            QFrame#skinPreviewRoot QLabel#previewTabActive {{
+                background: {c['button']}; border: 2px solid {c['highlight']};
+                border-bottom: 3px solid {c['highlight']}; border-radius: 4px;
+            }}
+            QFrame#skinPreviewRoot QLabel#previewTabInactive {{
+                background: {c['alternate']}; border: 1px solid {c['border']};
+                border-radius: 4px;
+            }}
+            QFrame#skinPreviewRoot QLabel#previewTabAlt {{
+                background: {c['base']}; border: 1px solid {c['border']};
+                border-radius: 4px;
+            }}
+            QFrame#skinPreviewRoot QLineEdit {{
+                background: {c['base']}; color: {c['text']};
+                selection-background-color: {c['highlight']};
+                selection-color: {c['highlighted']};
+                border: 2px solid {c['highlight']}; border-radius: 5px; padding: 6px;
+            }}
+            QFrame#skinPreviewRoot QPushButton {{
+                background: {c['button']}; color: {c['text']};
+                border: 1px solid {c['border']}; border-radius: 5px; padding: 6px 10px;
+            }}
+            QFrame#skinPreviewRoot QPushButton#previewSelectedButton {{
+                background: {c['highlight']}; color: {c['highlighted']};
+                border: 2px solid {c['light']};
+            }}
+            QFrame#skinPreviewRoot QPushButton:disabled {{
+                background: {c['alternate']}; color: {c['muted']};
+                border: 1px solid {c['shadow']};
+            }}
+            QFrame#skinPreviewRoot QLabel#previewSelected {{
+                background: {c['highlight']}; color: {c['highlighted']};
+                border: 1px solid {c['light']}; border-radius: 4px;
+            }}
+            QFrame#skinPreviewRoot QLabel#previewAlternate {{
+                background: {c['alternate']}; color: {c['text']};
+                border: 1px solid {c['border']}; border-radius: 4px;
+            }}
+            QFrame#skinPreviewRoot QLabel#previewHint {{
+                background: {c['tooltip']}; color: {c['text']};
+                border: 1px solid {c['shadow']}; border-top: 1px solid {c['light']};
+                border-radius: 4px;
+            }}
+        """)
+        self.preview_muted.setObjectName("previewMuted")
+        self.preview_tab_active.setObjectName("previewTabActive")
+        self.preview_tab_inactive.setObjectName("previewTabInactive")
+        self.preview_tab_alt.setObjectName("previewTabAlt")
+        self.preview_selected_button.setObjectName("previewSelectedButton")
+        self.preview_selected.setObjectName("previewSelected")
+        self.preview_alternate.setObjectName("previewAlternate")
+        self.preview_hint.setObjectName("previewHint")
+        # Force styles to update after setting object names on first render.
+        for widget in (self.preview_muted, self.preview_tab_active, self.preview_tab_inactive,
+                       self.preview_tab_alt, self.preview_selected_button, self.preview_selected,
+                       self.preview_alternate, self.preview_hint):
+            widget.style().unpolish(widget)
+            widget.style().polish(widget)
+            widget.update()
+
+    def _overwrite_skin(self):
+        """覆寫目前選取的自訂 Skin；內建檔案絕不允許覆寫。"""
+        skin_id = self.source_combo.currentData()
+        if not self._is_custom_skin(skin_id):
+            QMessageBox.warning(self, "不可覆寫", "內建 Skin 不允許修改原檔，請使用「儲存為新 Skin」。")
+            return
+        display_name = self.name_input.text().strip()
+        if not display_name or len(display_name) > 80:
+            QMessageBox.warning(self, "名稱無效", "自訂 Skin 名稱須為 1～80 個字元。")
+            return
+        folder = os.path.realpath(_skins_directory())
+        target = os.path.join(folder, skin_id + ".json")
+        if (os.path.dirname(os.path.abspath(target)) != folder
+                or os.path.islink(target) or not os.path.isfile(target)):
+            QMessageBox.warning(self, "無法儲存", "目前 Skin 檔案不存在或路徑不安全，無法覆寫。")
+            return
+        try:
+            with open(target, "r", encoding="utf-8-sig") as stream:
+                original = json.load(stream)
+            if not isinstance(original, dict) or original.get("id") != skin_id:
+                raise ValueError("Skin ID 與檔案內容不相符，已取消覆寫。")
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            QMessageBox.critical(self, "無法讀取原 Skin", str(exc))
+            return
+        answer = QMessageBox.warning(
+            self, "確認修改已存檔的 Skin",
+            f"你正在修改已儲存的自訂 Skin：\n「{original.get('name', skin_id)}」\n\n"
+            f"將覆寫檔案：skins/{skin_id}.json\n"
+            "原本的配色會被取代，無法從編輯器復原。\n\n確定要儲存修改嗎？",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        )
+        if answer != QMessageBox.Yes:
+            return
+        payload = {
+            "id": skin_id, "name": display_name,
+            "light": dict(self._colors["light"]),
+            "dark": dict(self._colors["dark"]),
+        }
+        # 避免寫到一半破壞原檔：先建立同目錄暫存檔，再原子置換。
+        import tempfile
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".tmp",
+                                             prefix=".skin-", dir=folder, delete=False) as stream:
+                temp_path = stream.name
+                json.dump(payload, stream, ensure_ascii=False, indent=2)
+                stream.write("\n")
+            os.replace(temp_path, target)
+            temp_path = None
+        except (OSError, ValueError, TypeError) as exc:
+            QMessageBox.critical(self, "覆寫失敗", str(exc))
+            return
+        finally:
+            if temp_path is not None:
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass
+        self.saved_skin_id = skin_id
+        self.accept()
+
+    def _save_skin(self):
+        display_name = self.name_input.text().strip()
+        if not display_name:
+            QMessageBox.warning(self, "需要名稱", "請輸入自訂 Skin 名稱。")
+            return
+        if len(display_name) > 80:
+            QMessageBox.warning(self, "名稱太長", "Skin 名稱請控制在 80 個字元以內。")
+            return
+        # Derive an ASCII identifier and filename, compatible with v61 scanner.
+        stem = re.sub(r"[^a-z0-9_-]+", "-", display_name.lower()).strip("-_")[:35]
+        if not stem or not stem[0].isalpha():
+            stem = "custom"
+        if not stem.startswith("custom-"):
+            stem = "custom-" + stem
+        folder = _skins_directory()
+        try:
+            os.makedirs(folder, exist_ok=True)
+            skin_id = stem
+            index = 2
+            while os.path.exists(os.path.join(folder, skin_id + ".json")) or skin_id in available_ui_skins():
+                skin_id = f"{stem[:40]}-{index}"
+                index += 1
+            payload = {
+                "id": skin_id,
+                "name": display_name,
+                "light": dict(self._colors["light"]),
+                "dark": dict(self._colors["dark"]),
+            }
+            target = os.path.join(folder, skin_id + ".json")
+            # Exclusive create ensures even pre-existing/invalid skins aren't overwritten.
+            with open(target, "x", encoding="utf-8") as output:
+                json.dump(payload, output, ensure_ascii=False, indent=2)
+                output.write("\n")
+        except (OSError, ValueError) as exc:
+            QMessageBox.critical(self, "無法儲存 Skin", str(exc))
+            return
+        self.saved_skin_id = skin_id
+        self.accept()
+
+
 class UISettingsDialog(QDialog):
     """獨立的 UI 設定：介面縮放、文字大小與主題，不混在偏好設定。"""
     def __init__(
@@ -4337,6 +4853,7 @@ class UISettingsDialog(QDialog):
         current_ui_scale: float = DEFAULT_UI_SCALE_FACTOR,
         current_font_point_size: float = DEFAULT_APP_FONT_POINT_SIZE,
         current_ui_theme: str = UI_THEME_AUTO,
+        current_ui_skin: str = UI_SKIN_FLUENT,
         parent=None,
     ):
         super().__init__(parent)
@@ -4406,6 +4923,21 @@ class UISettingsDialog(QDialog):
         theme_row.addWidget(self.ui_theme_combo)
         layout.addLayout(theme_row)
 
+        skin_row = QHBoxLayout()
+        skin_row.addWidget(QLabel("介面 Skin"))
+        self.ui_skin_combo = QComboBox()
+        for skin_id, spec in available_ui_skins().items():
+            self.ui_skin_combo.addItem(str(spec.get("name") or skin_id), skin_id)
+        if self.ui_skin_combo.count() == 0:
+            self.ui_skin_combo.addItem("預設 Qt（請安裝 skins/ 檔案）", UI_SKIN_FLUENT)
+        skin_idx = self.ui_skin_combo.findData(normalize_ui_skin(current_ui_skin))
+        self.ui_skin_combo.setCurrentIndex(skin_idx if skin_idx >= 0 else 0)
+        skin_row.addWidget(self.ui_skin_combo)
+        layout.addLayout(skin_row)
+        skin_note = QLabel("建立新 Skin：請使用主畫面上方的 Skin 選單 → 自訂 Skin／另存新檔。")
+        skin_note.setWordWrap(True)
+        layout.addWidget(skin_note)
+
         btns = QHBoxLayout()
         ok_btn = QPushButton(tr("button.ok"))
         cancel_btn = QPushButton(tr("button.cancel"))
@@ -4424,6 +4956,9 @@ class UISettingsDialog(QDialog):
 
     def selected_ui_theme(self) -> str:
         return normalize_ui_theme(self.ui_theme_combo.currentData())
+
+    def selected_ui_skin(self) -> str:
+        return normalize_ui_skin(self.ui_skin_combo.currentData())
 
 
 class InternalDataInspectorDialog(QDialog):
@@ -7272,6 +7807,7 @@ class ItemSearchApp(QWidget):
         self.ui_scale_factor = DEFAULT_UI_SCALE_FACTOR
         self.ui_font_point_size = DEFAULT_APP_FONT_POINT_SIZE
         self.ui_theme = UI_THEME_AUTO
+        self.ui_skin = UI_SKIN_FLUENT
         self.load_kro_equipment_data = False
 
         cfg = load_config_data()
@@ -7284,6 +7820,7 @@ class ItemSearchApp(QWidget):
             cfg.get("ui_font_point_size", self.ui_font_point_size)
         )
         self.ui_theme = normalize_ui_theme(cfg.get("ui_theme", self.ui_theme))
+        self.ui_skin = normalize_ui_skin(cfg.get("ui_skin", self.ui_skin))
         self.workspace_splitter_sizes = cfg.get("workspace_splitter_sizes", [330, 577, 715])
 
         kro_setting = cfg.get(
@@ -7309,6 +7846,7 @@ class ItemSearchApp(QWidget):
                 getattr(self, "ui_font_point_size", DEFAULT_APP_FONT_POINT_SIZE)
             ),
             "ui_theme": normalize_ui_theme(getattr(self, "ui_theme", UI_THEME_AUTO)),
+            "ui_skin": normalize_ui_skin(getattr(self, "ui_skin", UI_SKIN_FLUENT)),
             "load_kro_equipment_data": bool(
                 getattr(self, "load_kro_equipment_data", False)
             ),
@@ -8256,11 +8794,13 @@ class ItemSearchApp(QWidget):
         previous_ui_theme = normalize_ui_theme(
             getattr(self, "ui_theme", UI_THEME_AUTO)
         )
+        previous_ui_skin = normalize_ui_skin(getattr(self, "ui_skin", UI_SKIN_FLUENT))
 
         dlg = UISettingsDialog(
             current_ui_scale=previous_ui_scale,
             current_font_point_size=previous_font_point_size,
             current_ui_theme=previous_ui_theme,
+            current_ui_skin=previous_ui_skin,
             parent=self,
         )
         if dlg.exec() != QDialog.Accepted:
@@ -8269,7 +8809,9 @@ class ItemSearchApp(QWidget):
         self.ui_scale_factor = dlg.selected_ui_scale()
         self.ui_font_point_size = dlg.selected_font_point_size()
         self.ui_theme = dlg.selected_ui_theme()
+        self.ui_skin = dlg.selected_ui_skin()
         self.save_config()
+        self._refresh_quick_skin_button()
         self._refresh_quick_theme_button()
 
         # 文字大小可即時套用；介面縮放（QT_SCALE_FACTOR）仍需下次啟動。
@@ -8278,8 +8820,8 @@ class ItemSearchApp(QWidget):
             QTimer.singleShot(0, lambda: refresh_ui_theme(QApplication.instance()))
 
         # 主題即時套用；縮放仍需下次啟動。
-        if self.ui_theme != previous_ui_theme:
-            apply_ui_theme(QApplication.instance(), self.ui_theme, refresh=True)
+        if self.ui_theme != previous_ui_theme or self.ui_skin != previous_ui_skin:
+            apply_ui_appearance(QApplication.instance(), self.ui_theme, self.ui_skin, refresh=True)
 
             # apply_ui_theme(refresh=True) 會把 UI refresh 排到下一輪 Qt event loop。
             # 這裡再排一次既有的總計算入口，確保順序為：
@@ -14002,6 +14544,41 @@ class ItemSearchApp(QWidget):
         history_row.setContentsMargins(2, 0, 7, 0)
         history_row.setSpacing(5)
 
+        # Skin 與色彩模式各自獨立，且不改動原本三欄布局。
+        skin_button = QToolButton(history_panel)
+        skin_button.setObjectName("quickSkinButton")
+        skin_button.setCursor(Qt.PointingHandCursor)
+        skin_button.setPopupMode(QToolButton.InstantPopup)
+        skin_menu = QMenu(skin_button)
+        skin_actions = {}
+        for skin_value, spec in available_ui_skins().items():
+            action = skin_menu.addAction(str(spec.get("name") or skin_value))
+            action.setCheckable(True)
+            action.triggered.connect(
+                lambda checked=False, value=skin_value: self._set_quick_ui_skin(value)
+            )
+            skin_actions[skin_value] = action
+        def _reload_skin_menu():
+            skin_menu.clear()
+            skin_actions.clear()
+            for skin_value, spec in available_ui_skins().items():
+                action = skin_menu.addAction(str(spec.get("name") or skin_value))
+                action.setCheckable(True)
+                action.setChecked(skin_value == normalize_ui_skin(getattr(self, "ui_skin", UI_SKIN_FLUENT)))
+                action.triggered.connect(
+                    lambda checked=False, value=skin_value: self._set_quick_ui_skin(value)
+                )
+                skin_actions[skin_value] = action
+            skin_menu.addSeparator()
+            editor_action = skin_menu.addAction("🎨 自訂 Skin／另存新檔...")
+            editor_action.triggered.connect(self._open_skin_editor)
+        skin_menu.aboutToShow.connect(_reload_skin_menu)
+        skin_button.setMenu(skin_menu)
+        history_row.addWidget(skin_button)
+        self._quick_skin_button = skin_button
+        self._quick_skin_actions = skin_actions
+        self._refresh_quick_skin_button()
+
         # 主題切換位於復原／重做左側，沿用 UI 設定與 config.json。
         theme_button = QToolButton(history_panel)
         theme_button.setObjectName("quickThemeButton")
@@ -14041,24 +14618,25 @@ class ItemSearchApp(QWidget):
         history_row.addWidget(redo_button)
 
         history_panel.setStyleSheet("""
-            QToolButton#quickThemeButton, QToolButton#historyUndoButton, QToolButton#historyRedoButton {
+            QToolButton#quickSkinButton, QToolButton#quickThemeButton, QToolButton#historyUndoButton, QToolButton#historyRedoButton {
                 color: palette(button-text);
                 background: palette(button);
                 border: 1px solid palette(mid);
                 border-radius: 5px;
                 padding: 2px 7px;
             }
-            QToolButton#quickThemeButton {
+            QToolButton#quickSkinButton, QToolButton#quickThemeButton {
                 background: palette(alternate-base);
                 border: 1px solid palette(mid);
                 border-radius: 6px;
                 padding: 3px 10px;
                 font-weight: 600;
             }
-            QToolButton#quickThemeButton:pressed {
+            QToolButton#quickSkinButton:pressed, QToolButton#quickThemeButton:pressed {
                 background: palette(midlight);
                 border-color: palette(highlight);
             }
+            QToolButton#quickSkinButton:hover:!disabled,
             QToolButton#quickThemeButton:hover:!disabled,
             QToolButton#historyUndoButton:hover:!disabled,
             QToolButton#historyRedoButton:hover:!disabled {
@@ -14080,6 +14658,50 @@ class ItemSearchApp(QWidget):
         self.layout().setMenuBar(menubar)
         
 
+
+    def _open_skin_editor(self):
+        dialog = SkinEditorDialog(getattr(self, "ui_skin", UI_SKIN_FLUENT), self)
+        result = dialog.exec()
+        deleted = getattr(dialog, "deleted_skin_ids", [])
+        if deleted and getattr(self, "ui_skin", None) in deleted:
+            self._set_quick_ui_skin(UI_SKIN_FLUENT)
+        if result == QDialog.Accepted and dialog.saved_skin_id:
+            # A saved custom skin may keep the same ID while its palette changed.
+            # Force repaint even when the selection did not change.
+            self._set_quick_ui_skin(dialog.saved_skin_id)
+            apply_ui_appearance(QApplication.instance(), self.ui_theme, self.ui_skin, refresh=True)
+        elif deleted:
+            self._refresh_quick_skin_button()
+
+    def _refresh_quick_skin_button(self):
+        button = getattr(self, "_quick_skin_button", None)
+        if button is None:
+            return
+        skin = normalize_ui_skin(getattr(self, "ui_skin", UI_SKIN_FLUENT))
+        spec = available_ui_skins().get(skin, {})
+        full_name = str(spec.get("name") or skin)
+        label = f"◈ {full_name} ▾"
+        button.setText(label)
+        # Qt can otherwise elide the text because the menu bar's corner widget
+        # is initially measured using the previous shorter skin name.
+        button.setMinimumWidth(button.fontMetrics().horizontalAdvance(label) + 34)
+        button.setToolTip(f"目前 Skin：{full_name}\n點擊切換介面 Skin")
+        container = getattr(self, "_history_menu_controls", None)
+        if container is not None:
+            container.layout().invalidate()
+            container.adjustSize()
+            container.updateGeometry()
+        for value, action in getattr(self, "_quick_skin_actions", {}).items():
+            action.setChecked(value == skin)
+
+    def _set_quick_ui_skin(self, skin):
+        skin = normalize_ui_skin(skin)
+        previous = normalize_ui_skin(getattr(self, "ui_skin", UI_SKIN_FLUENT))
+        self.ui_skin = skin
+        self.save_config()
+        self._refresh_quick_skin_button()
+        if skin != previous:
+            apply_ui_appearance(QApplication.instance(), self.ui_theme, skin, refresh=True)
 
     def _refresh_quick_theme_button(self):
         """讓主題快捷按鈕與 UI 設定視窗顯示相同狀態。"""
@@ -14105,7 +14727,7 @@ class ItemSearchApp(QWidget):
         self.save_config()
         self._refresh_quick_theme_button()
         if theme != previous:
-            apply_ui_theme(QApplication.instance(), theme, refresh=True)
+            apply_ui_appearance(QApplication.instance(), theme, self.ui_skin, refresh=True)
             QTimer.singleShot(0, self.trigger_total_effect_update)
 
     def show_update_notes(self):
@@ -15673,7 +16295,8 @@ if __name__ == "__main__":
         app,
         startup_cfg.get("ui_font_point_size", DEFAULT_APP_FONT_POINT_SIZE),
     )
-    apply_ui_theme(app, startup_cfg.get("ui_theme", UI_THEME_AUTO))
+    apply_ui_appearance(app, startup_cfg.get("ui_theme", UI_THEME_AUTO),
+                        startup_cfg.get("ui_skin", UI_SKIN_FLUENT))
 
     if len(sys.argv) > 1 and sys.argv[1] == "rrf":
         from RRF_compile_damage_view_raw_v4 import MainUI
