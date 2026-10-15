@@ -35,7 +35,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.86"
+RO_CORE_VERSION = "v0.21.87"
 
 from dataclasses import dataclass, field
 import ast
@@ -2812,12 +2812,19 @@ def add_effect_lines(
 
 
 def extract_combi_ids(block_text: str) -> list[int]:
-    """依舊版 Desktop 語意抽出 Combiitem ID。"""
+    """解析 Combiitem ID，允許空集合及多餘逗號。"""
     match = re.search(r"Combiitem\s*=\s*\{([^}]*)}", str(block_text))
-    if match:
-        # 刻意保留舊行為：格式錯誤的非整數資料會直接拋出例外。
-        return [int(item.strip()) for item in match.group(1).split(",")]
-    return []
+    if not match:
+        return []
+
+    result = []
+    for item in match.group(1).split(","):
+        item = item.strip()
+        if not item:
+            continue
+        result.append(int(item))
+
+    return result
 
 
 def extract_combo_items(combo_text: str) -> set[int]:
