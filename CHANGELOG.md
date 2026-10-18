@@ -4,6 +4,9 @@
 # ROItemSearchApp 更新紀錄
 
 ## 正式發布紀錄（最新至最早）
+### [v0.9.37-261018](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.9.37-261018)
+
+- 修正 Windows10 閃退問題。
 
 ### [v0.9.36-261015](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.9.36-261015)
 
