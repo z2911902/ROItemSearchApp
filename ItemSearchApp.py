@@ -1,7 +1,25 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.36-261015"
+Version = "v0.9.37-261018"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
+
+import os
+
+# Windows / Qt WebEngine GPU compatibility: set BEFORE importing PySide6 or
+# creating QApplication. Chromium shared-image/context-loss errors may otherwise
+# interrupt the optional release-notes dialog.
+# Preserve custom flags supplied by the user/launcher.
+_WEBENGINE_SAFE_FLAGS = (
+    "--disable-gpu",
+    "--disable-gpu-compositing",
+    "--disable-gpu-rasterization",
+    "--disable-accelerated-2d-canvas",
+)
+_existing_webengine_flags = os.environ.get("QTWEBENGINE_CHROMIUM_FLAGS", "")
+for _webengine_flag in _WEBENGINE_SAFE_FLAGS:
+    if _webengine_flag not in _existing_webengine_flags.split():
+        _existing_webengine_flags = (_existing_webengine_flags + " " + _webengine_flag).strip()
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = _existing_webengine_flags
 
 import sys, builtins, time
 import multiprocessing as mp
@@ -16437,7 +16455,8 @@ if __name__ == "__main__":
             worker_for_page.finished.connect(on_check_finished)
             worker_for_page.start()
 
-        QTimer.singleShot(150, begin_notes_check)
+        # Give the main UI time to paint before starting Chromium/WebEngine.
+        QTimer.singleShot(1500, begin_notes_check)
 
     # 先讓 Qt 事件迴圈開始，再執行後續初始化
     QTimer.singleShot(0, start_initialization)
