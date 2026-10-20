@@ -103,7 +103,7 @@
         ClassAddDamage(2, 1, 10)
       end
     end,
-    Combiitem = {2500001, 2500004},
+    Combiitem = {},
   },
   [5000002] = {
     Type = "armor",
@@ -150,7 +150,7 @@
         ClassAddDamage(2, 1, 10)
       end
     end,
-    Combiitem = {2500005, 2500002},
+    Combiitem = {},
   },
   [5000003] = {
     Type = "armor",
@@ -197,7 +197,7 @@
         AddMdamage_Class(2, 10)
       end
     end,
-    Combiitem = {2500003, 2500006},
+    Combiitem = {},
   },
   [5000004] = {
     Type = "armor",
@@ -235,7 +235,7 @@
         AddIgnore_MRES_RacePercent(9999, 10)
       end
     end,
-    Combiitem = {2500004, 2500005, 2500006},
+    Combiitem = {},
   },
   [5000006] = {
     Type = "armor",
@@ -283,115 +283,9 @@
         AddMdamage_Class(1, 8)
         AddMdamage_Class(2, 8)
       end
-    end
+    end,
   },
   [9999999999] = {},
 }
 Combiitem = {
-  [2500001] = {
-    Item = {5000001, 4174},
-    OnStartEquip = function()
-      SubAttrTolerace(0, 20)
-      AddAttrTolerace(1, 30)
-      AddAttrTolerace(2, 30)
-      AddAttrTolerace(3, 30)
-      AddAttrTolerace(4, 30)
-      AddAttrTolerace(5, 30)
-      AddAttrTolerace(6, 30)
-      AddAttrTolerace(7, 30)
-      AddAttrTolerace(8, 30)
-      AddAttrTolerace(9, 30)
-      AddExtParam(0, 52, 200)
-      AddDamage_CRI(1, 50)
-    end,
-  },
-  [2500002] = {
-    Item = {5000002, 4174},
-    OnStartEquip = function()
-      SubAttrTolerace(0, 20)
-      AddAttrTolerace(1, 30)
-      AddAttrTolerace(2, 30)
-      AddAttrTolerace(3, 30)
-      AddAttrTolerace(4, 30)
-      AddAttrTolerace(5, 30)
-      AddAttrTolerace(6, 30)
-      AddAttrTolerace(7, 30)
-      AddAttrTolerace(8, 30)
-      AddAttrTolerace(9, 30)
-      AddDamage_HIT(1, 25)
-      AddGuideAttack(20)
-    end,
-  },
-  [2500003] = {
-    Item = {5000003, 4174},
-    OnStartEquip = function()
-      SubAttrTolerace(0, 20)
-      AddAttrTolerace(1, 30)
-      AddAttrTolerace(2, 30)
-      AddAttrTolerace(3, 30)
-      AddAttrTolerace(4, 30)
-      AddAttrTolerace(5, 30)
-      AddAttrTolerace(6, 30)
-      AddAttrTolerace(7, 30)
-      AddAttrTolerace(8, 30)
-      AddAttrTolerace(9, 30)
-      AddExtParam(0, 140, 25)
-      SubSpellCastTime(20)
-    end,
-  },
-  [2500004] = {
-    Item = {5000004, 5000001},
-    OnStartEquip = function()
-      local temp_G = 0
-      temp_G = GetEquipGradeLevel(5)
-      ClassAddDamage(0, 1, 10)
-      ClassAddDamage(1, 1, 10)
-      ClassAddDamage(2, 1, 10)
-      AddExtParam(0, 234, 1 * math.floor(GetRefineLevel(5) / 2))
-      AddExtParam(0, 238, 1 * math.floor(GetRefineLevel(5) / 2))
-      AddExtParam(0, 239, 1 * math.floor(GetRefineLevel(5) / 2))
-      AddExtParam(0, 242, 2 * math.floor(GetRefineLevel(5) / 3))
-      AddExtParam(0, 253, 1 * math.floor(GetRefineLevel(5) / 3))
-      if temp_G >= 4 then
-        ClassAddDamage(0, 1, 10)
-        ClassAddDamage(1, 1, 10)
-        ClassAddDamage(2, 1, 10)
-      end
-    end,
-  },
-  [2500005] = {
-    Item = {5000004, 5000002},
-    OnStartEquip = function()
-      local temp_G = 0
-      temp_G = GetEquipGradeLevel(5)
-      ClassAddDamage(0, 1, 10)
-      ClassAddDamage(1, 1, 10)
-      ClassAddDamage(2, 1, 10)
-      AddExtParam(0, 234, 2 * math.floor(GetRefineLevel(5) / 2))
-      AddExtParam(0, 238, 2 * math.floor(GetRefineLevel(5) / 2))
-      AddExtParam(0, 242, 3 * math.floor(GetRefineLevel(5) / 3))
-      if temp_G >= 4 then
-        ClassAddDamage(0, 1, 10)
-        ClassAddDamage(1, 1, 10)
-        ClassAddDamage(2, 1, 10)
-      end
-    end,
-  },
-  [2500006] = {
-    Item = {5000004, 5000003},
-    OnStartEquip = function()
-      local temp_G = 0
-      temp_G = GetEquipGradeLevel(5)
-      AddMdamage_Class(0, 10)
-      AddMdamage_Class(1, 10)
-      AddMdamage_Class(2, 10)
-      AddExtParam(0, 237, 3 * math.floor(GetRefineLevel(5) / 2))
-      AddExtParam(0, 243, 3 * math.floor(GetRefineLevel(5) / 3))
-      if temp_G >= 4 then
-        AddMdamage_Class(0, 10)
-        AddMdamage_Class(1, 10)
-        AddMdamage_Class(2, 10)
-      end
-    end,
-  },
 }
