@@ -5163,7 +5163,12 @@ ItemDBNameTbl = {
 	["S_TR_RB_Armor"] = 1270136,
 	["S_TR_RB_Shoes"] = 1270137,
 	["C_Boots_LT_Hammer"] = 108286,
-	["Ulti_Strategy_Robe"] = 480968
+	["Ulti_Strategy_Robe"] = 480968,
+	["Blue_Feather"] = 7441,
+	["Red_Feather"] = 7440,
+	["FA_Feather_TW"] = 1003333,
+	["Fallen_Seraphim_ring"] = 490466,
+	["F_Seraphim_ring_LT"] = 491123
 }
 
 -- Function #0

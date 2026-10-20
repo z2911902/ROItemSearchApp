@@ -1072,29 +1072,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[100297] = {
-		unidentifiedDisplayName = "練功寶盒(100)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、高級飛行魔書帽子 1個、練功寶盒(110)。",
-			"Base Lv以上100可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(100)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、高級飛行魔書帽子 1個、練功寶盒(110)。",
-			"Base Lv以上100可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[29428] = {
 		unidentifiedDisplayName = "神射手石(頭上)",
 		unidentifiedResourceName = "궁수피규어",
@@ -1802,29 +1779,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[100301] = {
-		unidentifiedDisplayName = "練功寶盒(140)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 高級經驗值倍增書箱子 1個、小型魔力藥水 [活動專用] 15個、萬能年糕[活動專用] 15個、魔幻香水 15個、練功寶盒(150)。",
-			"Base Lv140可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(140)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 高級經驗值倍增書箱子 1個、小型魔力藥水 [活動專用] 15個、萬能年糕[活動專用] 15個、魔幻香水 15個、練功寶盒(150)。",
-			"Base Lv140可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[14715] = {
 		unidentifiedDisplayName = "天翔轉蛋2",
 		unidentifiedResourceName = "천상스크롤",
@@ -2222,29 +2176,6 @@ tbl = {
 		},
 		slotCount = 0,
 		ClassNum = 234
-	},
-	[100303] = {
-		unidentifiedDisplayName = "練功寶盒(160)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 高級經驗值倍增書箱子 1個、力量防護卷軸 30個、萬能年糕[活動專用] 15個、魔幻香水 15個、武器精煉能力+8券 1個、練功寶盒(175)。",
-			"Base Lv160可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(160)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 高級經驗值倍增書箱子 1個、力量防護卷軸 30個、萬能年糕[活動專用] 15個、魔幻香水 15個、武器精煉能力+8券 1個、練功寶盒(175)。",
-			"Base Lv160可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
 	},
 	[5310] = {
 		unidentifiedDisplayName = "髮圈",
@@ -3614,32 +3545,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[22521] = {
-		unidentifiedDisplayName = "練功寶盒(80)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"雖然效果沒有很強, 但內含可放在特殊裝備欄上的影子激發裝備6種。",
-			"現在開封還有機會獲得練功寶盒(90)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777780^000000",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(80)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"雖然效果沒有很強, 但內含可放在特殊裝備欄上的影子激發裝備6種。",
-			"現在開封還有機會獲得練功寶盒(90)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777780^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[11517] = {
 		unidentifiedDisplayName = "淨化藥水",
 		unidentifiedResourceName = "용병용파란포션",
@@ -4406,32 +4311,6 @@ tbl = {
 		},
 		slotCount = 1,
 		ClassNum = 548
-	},
-	[22522] = {
-		unidentifiedDisplayName = "練功寶盒(100)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含: 高級時間守護者箱子和職業經驗值倍增書[活動專用]3個。",
-			"現在開封還有機會獲得真萬能年糕2個和練功寶盒(120)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777100^000000",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(100)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含: 高級時間守護者箱子和職業經驗值倍增書[活動專用]3個。",
-			"現在開封還有機會獲得真萬能年糕2個和練功寶盒(120)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777100^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
 	},
 	[5759] = {
 		unidentifiedDisplayName = "帽子",
@@ -7009,32 +6888,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[22525] = {
-		unidentifiedDisplayName = "練功寶盒(140)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為快速升等玩家而準備的升級箱。",
-			"內含: 小型生命水[活動專用]3個、中型生命水[活動專用]3個、影子職業套裝箱 1個。",
-			"現在開封還有機會獲得白色纖細藥水200入箱子[活動專用]2個和練功寶盒(160)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777140^000000",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(140)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為快速升等玩家而準備的升級箱。",
-			"內含: 小型生命水[活動專用]3個、中型生命水[活動專用]3個、影子職業套裝箱 1個。",
-			"現在開封還有機會獲得白色纖細藥水200入箱子[活動專用]2個和練功寶盒(160)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777140^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[11519] = {
 		unidentifiedDisplayName = "雙層牛肉堡",
 		unidentifiedResourceName = "비프토스트",
@@ -8567,32 +8420,6 @@ tbl = {
 		identifiedDisplayName = "人名大字典的考貝版",
 		identifiedResourceName = "양장본",
 		identifiedDescriptionName = { "把巨大的人名大字典一部份所抄寫下來的便條紙堆", "^ffffff_^000000", "重量 : ^7777771^000000" },
-		slotCount = 0,
-		ClassNum = 0
-	},
-	[22527] = {
-		unidentifiedDisplayName = "練功寶盒(160)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為快速升等玩家而準備的升級箱。",
-			"內含: 經驗值&掉寶率倍增組[活動專用]5個、小型生命水[活動專用]3個和中型生命水[活動專用]3個。",
-			"現在開封還有機會獲得練功寶盒(175)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777160^000000",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(160)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為快速升等玩家而準備的升級箱。",
-			"內含: 經驗值&掉寶率倍增組[活動專用]5個、小型生命水[活動專用]3個和中型生命水[活動專用]3個。",
-			"現在開封還有機會獲得練功寶盒(175)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777160^000000",
-			"重量 : ^7777770^000000"
-		},
 		slotCount = 0,
 		ClassNum = 0
 	},
@@ -75613,31 +75440,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[101873] = {
-		unidentifiedDisplayName = "仙境傳說衝等寶箱",
-		unidentifiedResourceName = "다이아보물상자",
-		unidentifiedDescriptionName = { "感謝全體愛護仙境傳說的你我他，特別製作的衝等寶箱。" },
-		identifiedDisplayName = "仙境傳說衝等寶箱",
-		identifiedResourceName = "다이아보물상자",
-		identifiedDescriptionName = {
-			"感謝全體愛護仙境傳說的你我他，特別製作的衝等寶箱。",
-			"開啟後可以獲得下列物品:",
-			"練功寶盒(1)1個",
-			"坐騎用韁繩箱子(體驗版)5個",
-			"世界地圖移動券30個",
-			"加速術10等級卷軸50個",
-			"天使之賜福10等級卷軸50個",
-			"影子時間超越者套裝箱1個",
-			"仙境遊玩進階武器箱1個",
-			"仙境遊玩進階武器精煉+9箱1個",
-			"仙境遊玩進階武器精煉+11箱1個",
-			"仙境遊玩進階武器精煉+13箱1個",
-			"^ff0000該道具無法存倉以及無法與其他帳號進行交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[12843] = {
 		unidentifiedDisplayName = "珍珠寶箱",
 		unidentifiedResourceName = "진주보물상자",
@@ -91874,29 +91676,6 @@ tbl = {
 		},
 		slotCount = 0,
 		ClassNum = 1675,
-		costume = true
-	},
-	[31587] = {
-		unidentifiedDisplayName = "飾品",
-		unidentifiedResourceName = "헬름",
-		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
-		identifiedDisplayName = "(服飾)雙十國慶帽",
-		identifiedResourceName = "C_NationalDay_helmet_TW",
-		identifiedDescriptionName = {
-			"慶祝雙十國慶日的特殊活動服飾。",
-			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
-			"^CC3D3D[活動期間能力]^000000",
-			"近/遠物理傷害+10%、暴擊傷害+20%、命中物理傷害+10%。 ",
-			"當搭配「(服飾)雙十守護者之盾、(服飾)雙十國慶紀念圍巾」時，",
-			"P.ATK+10、對全屬性對象的物理傷害+10%、無視全種族(玩家除外)對象的物理防禦30%，擊殺魔物獲得的經驗值再+10%。",
-			"^ff0000(該道具活動期間能力將於2026/10/20維護刪除)^000000",
-			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
-			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
-			"要求等級 : ^7777771^000000",
-			"裝備 : ^777777全職業^000000"
-		},
-		slotCount = 0,
-		ClassNum = 1798,
 		costume = true
 	},
 	[31290] = {
@@ -128845,27 +128624,6 @@ tbl = {
 		slotCount = 2,
 		ClassNum = 15
 	},
-	[20612] = {
-		unidentifiedDisplayName = "披肩",
-		unidentifiedResourceName = "후드",
-		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
-		identifiedDisplayName = "(服飾)雙十守護者之盾",
-		identifiedResourceName = "Ten_G_Shield_TW",
-		identifiedDescriptionName = {
-			"慶祝雙十國慶日的特殊服飾,象徵著堅忍不拔及守護之意的盾牌。",
-			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
-			"^CC3D3D[活動期間能力]^000000",
-			"ASPD+1、MHP+15%。",
-			"^ff0000(該道具活動期間能力將於2026/10/20維護刪除)^000000",
-			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
-			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
-			"要求等級 : ^7777771^000000",
-			"裝備 : ^777777全職業^000000"
-		},
-		slotCount = 0,
-		ClassNum = 90,
-		costume = true
-	},
 	[28706] = {
 		unidentifiedDisplayName = "短劍",
 		unidentifiedResourceName = "나이프",
@@ -151556,29 +151314,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[31127] = {
-		unidentifiedDisplayName = "帽子",
-		unidentifiedResourceName = "캡",
-		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
-		identifiedDisplayName = "(服飾)國旗帽",
-		identifiedResourceName = "대만국기모자",
-		identifiedDescriptionName = {
-			"慶祝雙十國慶日的特殊活動服飾。",
-			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
-			"^CC3D3D[活動期間能力]^000000",
-			"MATK+20%、變動詠唱-10%。",
-			"當搭配「(服飾)雙十守護者之盾、(服飾)雙十國慶紀念圍巾」時，",
-			"S.MATK+10、對全屬性對象的魔法傷害+10%、無視全種族(玩家除外)對象的魔法防禦30%，擊殺魔物獲得的經驗值再+10%。",
-			"^ff0000(該道具活動期間能力將於2026/10/20維護刪除)^000000",
-			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
-			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
-			"要求等級 : ^7777771^000000",
-			"裝備 : ^777777全職業^000000"
-		},
-		slotCount = 0,
-		ClassNum = 482,
-		costume = true
-	},
 	[31383] = {
 		unidentifiedDisplayName = "帽子",
 		unidentifiedResourceName = "리본",
@@ -164168,31 +163903,6 @@ tbl = {
 		slotCount = 1,
 		ClassNum = 0
 	},
-	[100298] = {
-		unidentifiedDisplayName = "練功寶盒(110)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
-			"中型生命水[活動專用] 30個、練功寶盒(120)。",
-			"Base Lv110可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(110)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
-			"中型生命水[活動專用] 30個、練功寶盒(120)。",
-			"Base Lv110可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[400021] = {
 		unidentifiedDisplayName = "帽子",
 		unidentifiedResourceName = "리본",
@@ -172223,27 +171933,6 @@ tbl = {
 		ClassNum = 1810,
 		costume = true
 	},
-	[31835] = {
-		unidentifiedDisplayName = "飾品",
-		unidentifiedResourceName = "리본",
-		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
-		identifiedDisplayName = "(服飾)雙十國慶紀念圍巾",
-		identifiedResourceName = "C_2019_D10_Muffler_TW",
-		identifiedDescriptionName = {
-			"為慶祝雙十國慶特別製作的紀念圍巾。",
-			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
-			"^CC3D3D[活動期間能力]^000000",
-			"擊殺魔物獲得的經驗值+10%、技能後延遲-10%。",
-			"^ff0000(該道具活動期間能力將於2026/10/20維護刪除)^000000",
-			"系列 : ^777777服飾裝備^000000 防禦 :  ^7777770^000000",
-			"位置 : ^777777頭下 ^000000 重量 : ^7777770^000000",
-			"要求等級 : ^7777771^000000",
-			"裝備 : ^777777全職業^000000"
-		},
-		slotCount = 0,
-		ClassNum = 1941,
-		costume = true
-	},
 	[16341] = {
 		unidentifiedDisplayName = "貪婪髮夾箱子",
 		unidentifiedResourceName = "캐시상자_노랑",
@@ -174160,100 +173849,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0,
 		EffectID = 1186
-	},
-	[100304] = {
-		unidentifiedDisplayName = "練功寶盒(175)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 力量防護卷軸 30個、萬能年糕[活動專用] 20個、魔幻香水20個、封印古代武器兌換券 1個。",
-			"Base Lv175可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(175)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 力量防護卷軸 30個、萬能年糕[活動專用] 20個、魔幻香水20個、封印古代武器兌換券 1個。",
-			"Base Lv175可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
-	[100302] = {
-		unidentifiedDisplayName = "練功寶盒(150)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 3個、力量防護卷軸 30個、小型魔力藥水 [活動專用] 15個、小型生命水 [活動專用] 30個、中型生命水 [活動專用] 30個、波利圖騰戰鬥盾牌 1個、練功寶盒(160)。",
-			"Base Lv150可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(150)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 3個、力量防護卷軸 30個、小型魔力藥水 [活動專用] 15個、小型生命水 [活動專用] 30個、中型生命水 [活動專用] 30個、波利圖騰戰鬥盾牌 1個、練功寶盒(160)。",
-			"Base Lv150可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
-	[100300] = {
-		unidentifiedDisplayName = "練功寶盒(130)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
-			"中型生命水[活動專用] 30個、練功寶盒(140)。",
-			"Base Lv130可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(130)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
-			"中型生命水[活動專用] 30個、練功寶盒(140)。",
-			"Base Lv130可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
-	[100299] = {
-		unidentifiedDisplayName = "練功寶盒(120)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、無限蒼蠅翅膀箱子_7日 1個、萬能年糕[活動專用] 10個、魔幻香水 10個、練功寶盒(130)。",
-			"Base Lv120可開啟。",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"(該道具將於活動結束後刪除。)"
-		},
-		identifiedDisplayName = "練功寶盒(120)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、無限蒼蠅翅膀箱子_7日 1個、萬能年糕[活動專用] 10個、魔幻香水 10個、練功寶盒(130)。",
-			"Base Lv120可開啟。",
-			"(該道具將於活動結束後刪除。)",
-			"^ff0000該物品不可與其它帳號交易。^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
 	},
 	[490094] = {
 		unidentifiedDisplayName = "飾品",
@@ -189425,32 +189020,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 23,
 		costume = true
-	},
-	[22523] = {
-		unidentifiedDisplayName = "練功寶盒(120)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為快速升等玩家而準備的升級箱。",
-			"內含: 經驗值&掉寶率倍增組[活動專用]2個、白色纖細藥水[活動專用]200入箱子 1個。",
-			"現在開封還有機會獲得真萬能年糕 1個和練功寶盒(140)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777120^000000",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(120)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為快速升等玩家而準備的升級箱。",
-			"內含: 經驗值&掉寶率倍增組[活動專用]2個、白色纖細藥水[活動專用]200入箱子 1個。",
-			"現在開封還有機會獲得真萬能年糕 1個和練功寶盒(140)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^777777120^000000",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
 	},
 	[28600] = {
 		unidentifiedDisplayName = "書籍",
@@ -236640,30 +236209,6 @@ tbl = {
 		slotCount = 1,
 		ClassNum = 0
 	},
-	[23267] = {
-		unidentifiedDisplayName = "練功寶盒(1)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間守護者箱子。",
-			"現在開封還有機會獲得練功寶盒(10)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"重量 : ^7777771^000000"
-		},
-		identifiedDisplayName = "練功寶盒(1)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間守護者箱子。",
-			"現在開封還有機會獲得練功寶盒(10)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"重量 : ^7777771^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[23523] = {
 		unidentifiedDisplayName = "影子魔法精靈屬性箱",
 		unidentifiedResourceName = "라피네뚝딱상자",
@@ -237890,32 +237435,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[23268] = {
-		unidentifiedDisplayName = "練功寶盒(10)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、時間的守護者戒指。",
-			"現在開封還有機會獲得練功寶盒(20)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777710^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(10)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、時間的守護者戒指。",
-			"現在開封還有機會獲得練功寶盒(20)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777710^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[23524] = {
 		unidentifiedDisplayName = "(服飾)強化石箱子13",
 		unidentifiedResourceName = "초록상자",
@@ -239106,32 +238625,6 @@ tbl = {
 		slotCount = 1,
 		ClassNum = 0
 	},
-	[23269] = {
-		unidentifiedDisplayName = "練功寶盒(20)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀 10個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和真萬能年糕 1個。",
-			"現在開封還有機會獲得練功寶盒(30)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777720^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(20)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀 10個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和真萬能年糕 1個。",
-			"現在開封還有機會獲得練功寶盒(30)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777720^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[2941] = {
 		unidentifiedDisplayName = "書",
 		unidentifiedResourceName = "북",
@@ -240301,32 +239794,6 @@ tbl = {
 		slotCount = 1,
 		ClassNum = 631
 	},
-	[23270] = {
-		unidentifiedDisplayName = "練功寶盒(30)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間的守護者眼鏡。",
-			"現在開封還有機會獲得練功寶盒(40)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777730^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(30)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間的守護者眼鏡。",
-			"現在開封還有機會獲得練功寶盒(40)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777730^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[19292] = {
 		unidentifiedDisplayName = "帽子",
 		unidentifiedResourceName = "캡",
@@ -241450,32 +240917,6 @@ tbl = {
 			"裝備 : ^777777遊俠系列^000000"
 		},
 		slotCount = 1,
-		ClassNum = 0
-	},
-	[23271] = {
-		unidentifiedDisplayName = "練功寶盒(40)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]200個、赤色藥水[活動專用]30個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和馬牌 10個。",
-			"現在開封還有機會獲得練功寶盒(50)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777740^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(40)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用]200個、赤色藥水[活動專用]30個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和馬牌 10個。",
-			"現在開封還有機會獲得練功寶盒(50)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777740^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
 		ClassNum = 0
 	},
 	[19003] = {
@@ -242625,32 +242066,6 @@ tbl = {
 		},
 		slotCount = 1,
 		ClassNum = 1015
-	},
-	[23272] = {
-		unidentifiedDisplayName = "練功寶盒(50)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用] 100個、黃色藥水[活動專用]30個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個。",
-			"現在開封還有機會獲得練功寶盒(60)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777750^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(50)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 初學者專用藥水[活動專用] 100個、黃色藥水[活動專用]30個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個。",
-			"現在開封還有機會獲得練功寶盒(60)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777750^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
 	},
 	[310852] = {
 		unidentifiedDisplayName = "技能後延遲Lv.2",
@@ -243885,32 +243300,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 0
 	},
-	[23273] = {
-		unidentifiedDisplayName = "練功寶盒(60)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 黃色纖細藥水[活動專用] 100個、恢復力提升藥水      [活動專用]2個、馬牌 10個、經驗值倍增書      [活動專用]5個。",
-			"現在開封還有機會獲得練功寶盒(70)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777760^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(60)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為新手練功而準備的升級箱。",
-			"內含: 黃色纖細藥水[活動專用] 100個、恢復力提升藥水      [活動專用]2個、馬牌 10個、經驗值倍增書      [活動專用]5個。",
-			"現在開封還有機會獲得練功寶盒(70)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777760^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[310868] = {
 		unidentifiedDisplayName = "遠距離Lv.2",
 		unidentifiedResourceName = "용의보주_황",
@@ -245010,32 +244399,6 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 632
 	},
-	[23274] = {
-		unidentifiedDisplayName = "練功寶盒(70)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含: 黃色纖細藥水[活動專用] 100個、小型魔力水      [活動專用]3個、恢復力提升藥水      [活動專用]4個、掉寶率倍增糖5個和免掉啪證書[活動專用]5個。",
-			"現在開封還有機會獲得練功寶盒(80)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777770^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(70)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含: 黃色纖細藥水[活動專用] 100個、小型魔力水      [活動專用]3個、恢復力提升藥水      [活動專用]4個、掉寶率倍增糖5個和免掉啪證書[活動專用]5個。",
-			"現在開封還有機會獲得練功寶盒(80)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777770^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0
-	},
 	[18645] = {
 		unidentifiedDisplayName = "帽",
 		unidentifiedResourceName = "캡",
@@ -246035,32 +245398,6 @@ tbl = {
 		identifiedDisplayName = "七夕轉蛋",
 		identifiedResourceName = "대만7월7석스크롤",
 		identifiedDescriptionName = { " 情牽鵲橋, 在七夕夜晚, 落上重逢的淚水。", "重量 : ^7777771^000000" },
-		slotCount = 0,
-		ClassNum = 0
-	},
-	[23275] = {
-		unidentifiedDisplayName = "練功寶盒(90)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含: 黃色纖細藥水[活動專用] 150個、新手專用蒼蠅翅膀 100個、恢復力提升藥水      [活動專用]4個、馬牌 10個、經驗值倍增書      [活動專用]5個和研磨劑[活動專用]5個。",
-			"現在開封還有機會獲得練功寶盒(100)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777790^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(90)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"專門為熟練玩家而準備的升級箱。",
-			"內含: 黃色纖細藥水[活動專用] 150個、新手專用蒼蠅翅膀 100個、恢復力提升藥水      [活動專用]4個、馬牌 10個、經驗值倍增書      [活動專用]5個和研磨劑[活動專用]5個。",
-			"現在開封還有機會獲得練功寶盒(100)喔!",
-			"",
-			"(^ff0000該道具將於活動結束後刪除。^000000) ",
-			"要求等級 : ^77777790^000000 ",
-			"重量 : ^7777770^000000"
-		},
 		slotCount = 0,
 		ClassNum = 0
 	},
@@ -269806,121 +269143,6 @@ tbl = {
 		ClassNum = 0,
 		costume = false
 	},
-	[23276] = {
-		unidentifiedDisplayName = "練功寶盒(175)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、影子精靈合成箱1個、真萬能年糕5個。",
-			"現在開封還有機會獲得練功寶盒(180)喔!",
-			"",
-			"^ff0000(該道具於活動結束後刪除。)^000000",
-			"要求等級 : ^777777175^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		identifiedDisplayName = "練功寶盒(175)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、影子精靈合成箱1個、真萬能年糕5個。",
-			"現在開封還有機會獲得練功寶盒(185)喔!",
-			"",
-			"^ff0000(該道具於活動結束後刪除。)^000000",
-			"要求等級 : ^777777175^000000 ",
-			"重量 : ^7777770^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0,
-		costume = false
-	},
-	[102406] = {
-		unidentifiedDisplayName = "練功寶盒(185)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、水靈鎧甲卷軸10個、天雪花[活動專用]100個、世界地圖移動券10個。",
-			"現在開封還有機會獲得練功寶盒(185)喔!",
-			"",
-			"^ff0000(該道具於活動結束後刪除。)^000000"
-		},
-		identifiedDisplayName = "練功寶盒(185)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、水靈鎧甲卷軸10個、天雪花[活動專用]100個、世界地圖移動券10個。",
-			"現在開封還有機會獲得練功寶盒(190)喔!",
-			"",
-			"^ff0000(該道具於活動結束後刪除。)^000000",
-			"重量 : ^7777770^000000",
-			"要求等級 : ^777777185^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0,
-		costume = false
-	},
-	[102407] = {
-		unidentifiedDisplayName = "練功寶盒(190)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、神聖鎧甲卷軸10個、陰暗鎧甲卷軸10個、世界地圖移動券10個。",
-			"現在開封還有機會獲得練功寶盒(200)喔!",
-			"",
-			"^ff0000(該道具於活動結束後刪除。)^000000"
-		},
-		identifiedDisplayName = "練功寶盒(190)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、神聖鎧甲卷軸10個、陰暗鎧甲卷軸10個、世界地圖移動券10個。",
-			"現在開封還有機會獲得練功寶盒(200)喔!",
-			"",
-			"^ff0000(該道具於活動結束後刪除。)^000000",
-			"重量 : ^7777770^000000",
-			"要求等級 : ^777777190^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0,
-		costume = false
-	},
-	[102408] = {
-		unidentifiedDisplayName = "練功寶盒(200)",
-		unidentifiedResourceName = "번호상자05",
-		unidentifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: ",
-			"提要經驗值倍增書5個、",
-			"超黏掉寶率倍增糖5個、",
-			"背包擴充券[活動專用]3個、",
-			"真力量防護卷軸[活動專用]10個、",
-			"世界地圖移動券10個。"
-		},
-		identifiedDisplayName = "練功寶盒(200)",
-		identifiedResourceName = "번호상자05",
-		identifiedDescriptionName = {
-			"^ff0000不可與其它帳號交易的道具。^000000",
-			"裝有快速升級必須物品的寶盒。 ",
-			"內含: ",
-			"提要經驗值倍增書5個、",
-			"超黏掉寶率倍增糖5個、",
-			"背包擴充券[活動專用]3個、",
-			"真力量防護卷軸[活動專用]10個、",
-			"世界地圖移動券10個。",
-			"^ff0000(該道具於活動結束後刪除。)^000000",
-			"重量 : ^7777770^000000",
-			"要求等級 : ^777777200^000000"
-		},
-		slotCount = 0,
-		ClassNum = 0,
-		costume = false
-	},
 	[400198] = {
 		unidentifiedDisplayName = "頭具",
 		unidentifiedResourceName = "캡",
@@ -275418,7 +274640,7 @@ tbl = {
 			"ATK、MATK+150。",
 			"精煉每+2時，ATK、MATK+15。",
 			"精煉每+3時，ATK+2%、MATK+2%。",
-			"精煉+7時，無視全種族的物理和魔法防禦30%,",
+			"精煉+7時，無視全種族對象的物理/魔法防禦30%,",
 			"精煉+9時，技能後延遲-10%。",
 			"精煉+11時，近距離/遠距離物理傷害、全屬性魔法傷害+10%。",
 			"精煉+12時，鎧甲不會受到損壞。",
@@ -275431,7 +274653,7 @@ tbl = {
 			"搭配時光超越者之靴-LT時，",
 			"ATK、MATK+80,",
 			"靴子與鎧甲精煉度總合為22以上時，",
-			"對全種族對象的物理和魔法傷害+10%。",
+			"對全階級對象的物理/魔法傷害+10%。",
 			"",
 			"搭配時光超越者斗篷-LT、時光超越者之靴-LT時，",
 			"靴子、斗篷與鎧甲精煉度總合為37以上時，",
@@ -275442,7 +274664,7 @@ tbl = {
 			"[D階級] 精煉每+2時，ATK、MATK+3%。",
 			"[C階級] 精煉每+2時，近/遠距離物理傷害、全屬性魔法傷害+3%。",
 			"[B階級] 精煉每+2時，P.ATK、S.MATK+1。",
-			"[A階級] 精煉每+2時，對全種族對象的物理和魔法傷害+2%。",
+			"[A階級] 精煉每+2時，對全種族對象的物理/魔法傷害+2%。",
 			"系列 : ^777777鎧甲^000000  防禦 : ^777777120^000000",
 			"重量 : ^777777200^000000",
 			"防具等級 : ^7777772^000000",
@@ -395134,6 +394356,78 @@ tbl = {
 		ClassNum = 0,
 		costume = false
 	},
+	[31587] = {
+		unidentifiedDisplayName = "飾品",
+		unidentifiedResourceName = "헬름",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)雙十國慶帽",
+		identifiedResourceName = "C_NationalDay_helmet_TW",
+		identifiedDescriptionName = {
+			"慶祝雙十國慶日的特殊活動服飾。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 1798,
+		costume = true
+	},
+	[31127] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "캡",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)國旗帽",
+		identifiedResourceName = "대만국기모자",
+		identifiedDescriptionName = {
+			"慶祝雙十國慶日的特殊活動服飾。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 482,
+		costume = true
+	},
+	[20612] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)雙十守護者之盾",
+		identifiedResourceName = "Ten_G_Shield_TW",
+		identifiedDescriptionName = {
+			"慶祝雙十國慶日的特殊服飾,象徵著堅忍不拔及守護之意的盾牌。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 90,
+		costume = true
+	},
+	[31835] = {
+		unidentifiedDisplayName = "飾品",
+		unidentifiedResourceName = "리본",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)雙十國慶紀念圍巾",
+		identifiedResourceName = "C_2019_D10_Muffler_TW",
+		identifiedDescriptionName = {
+			"為慶祝雙十國慶特別製作的紀念圍巾。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 :  ^7777770^000000",
+			"位置 : ^777777頭下 ^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 1941,
+		costume = true
+	},
 	[410491] = {
 		unidentifiedDisplayName = "飾品",
 		unidentifiedResourceName = "리본",
@@ -395143,10 +394437,6 @@ tbl = {
 		identifiedDescriptionName = {
 			"展現閃耀紫色星光的裝飾。",
 			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
-			"^CC3D3D[活動期間能力]^000000",
-			"固定詠唱-0.5秒，變動詠唱-10%，誘導攻擊+10%、CRI+10。",
-			"無視全種族(玩家除外)對象的物理、魔法抵抗力10%。",
-			"^ff0000(該道具活動期間能力將於2026/10/20維護刪除)^000000",
 			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
 			"位置 : ^777777頭中^000000 重量 : ^7777770^000000",
 			"要求等級 : ^7777771^000000",
@@ -396120,7 +395410,7 @@ tbl = {
 			"精煉+12時，暴擊傷害+25%、命中物理傷害+12%、MATK+12%。",
 			"",
 			"搭配「21週年回憶錄」時，",
-			"對全種族對象的物理/魔法傷害+15%。",
+			"對全種族對象的物理/魔法傷害+15%，",
 			"飾品(左)精煉每+2時，擊殺魔物獲得的經驗值、掉寶率+2%。",
 			"",
 			"^CC3D3D[各階級追加能力]^000000",
@@ -396227,6 +395517,46 @@ tbl = {
 		identifiedDisplayName = "熊貓繽紛腳印石",
 		identifiedResourceName = "발자국이펙트",
 		identifiedDescriptionName = { "熊貓繽紛特效" },
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[1001908] = {
+		unidentifiedDisplayName = "熊貓腳印石(披肩)",
+		unidentifiedResourceName = "발자국이펙트",
+		unidentifiedDescriptionName = {
+			"在披肩服飾裝備的第4欄位上附魔及附加特效。",
+			"^ff0000熊貓特效^000000",
+			"^ffffff<NAVI>^4D4DFF[雷斯．查德]^000000<INFO>mal_in01,20,107,0,100,0,0</INFO></NAVI>^000000"
+		},
+		identifiedDisplayName = "熊貓腳印石(披肩)",
+		identifiedResourceName = "발자국이펙트",
+		identifiedDescriptionName = {
+			"在披肩服飾裝備的第4欄位上附魔及附加特效。",
+			"^ff0000熊貓特效^000000",
+			"^ffffff<NAVI>^4D4DFF[雷斯．查德]^000000<INFO>mal_in01,20,107,0,100,0,0</INFO></NAVI>^000000",
+			"重量 : ^77777710^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[1001909] = {
+		unidentifiedDisplayName = "熊貓繽紛腳印石(披肩)",
+		unidentifiedResourceName = "발자국이펙트",
+		unidentifiedDescriptionName = {
+			"在披肩服飾裝備的第4欄位上附魔及附加特效。",
+			"^ff0000熊貓繽紛特效^000000",
+			"^ffffff<NAVI>^4D4DFF[雷斯．查德]^000000<INFO>mal_in01,20,107,0,100,0,0</INFO></NAVI>^000000"
+		},
+		identifiedDisplayName = "熊貓繽紛腳印石(披肩)",
+		identifiedResourceName = "발자국이펙트",
+		identifiedDescriptionName = {
+			"在披肩服飾裝備的第4欄位上附魔及附加特效。",
+			"^ff0000熊貓繽紛特效^000000",
+			"^ffffff<NAVI>^4D4DFF[雷斯．查德]^000000<INFO>mal_in01,20,107,0,100,0,0</INFO></NAVI>^000000",
+			"重量 : ^77777710^000000"
+		},
 		slotCount = 0,
 		ClassNum = 0,
 		costume = false
@@ -396491,10 +395821,10 @@ tbl = {
 	[104462] = {
 		unidentifiedDisplayName = "雪原完成獎勵",
 		unidentifiedResourceName = "Rt_Ep19_C",
-		unidentifiedDescriptionName = { "裝有完整的符文1個、不穩定的符文80個、原鑽2個的獎勵箱。" },
+		unidentifiedDescriptionName = { "裝有完整的符文1個、不穩定的符文90個、原鑽2個的獎勵箱。" },
 		identifiedDisplayName = "雪原完成獎勵",
 		identifiedResourceName = "Rt_Ep19_C",
-		identifiedDescriptionName = { "裝有完整的符文1個、不穩定的符文80個、原鑽2個的獎勵箱。", "重量：^7777770^000000" },
+		identifiedDescriptionName = { "裝有完整的符文1個、不穩定的符文90個、原鑽2個的獎勵箱。", "重量：^7777770^000000" },
 		slotCount = 0,
 		ClassNum = 0,
 		costume = false
@@ -397591,5 +396921,1350 @@ tbl = {
 		slotCount = 0,
 		ClassNum = 2315,
 		costume = true
+	},
+	[101873] = {
+		unidentifiedDisplayName = "仙境傳說衝等寶箱",
+		unidentifiedResourceName = "다이아보물상자",
+		unidentifiedDescriptionName = { "感謝全體愛護仙境傳說的你我他，特別製作的衝等寶箱。" },
+		identifiedDisplayName = "仙境傳說衝等寶箱",
+		identifiedResourceName = "다이아보물상자",
+		identifiedDescriptionName = {
+			"感謝全體愛護仙境傳說的你我他，特別製作的衝等寶箱。",
+			"開啟後可以獲得下列物品:",
+			"練功寶盒(1)1個",
+			"坐騎用韁繩箱子(體驗版)5個",
+			"世界地圖移動券30個",
+			"加速術10等級卷軸50個",
+			"天使之賜福10等級卷軸50個",
+			"影子時間超越者套裝箱1個",
+			"仙境遊玩進階武器箱1個",
+			"仙境遊玩進階武器精煉+9箱1個",
+			"仙境遊玩進階武器精煉+11箱1個",
+			"仙境遊玩進階武器精煉+13箱1個",
+			"^ff0000該道具無法存倉以及無法與其他帳號進行交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23267] = {
+		unidentifiedDisplayName = "練功寶盒(1)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間守護者箱子。",
+			"現在開封還有機會獲得練功寶盒(10)喔!",
+			"",
+			"重量 : ^7777771^000000"
+		},
+		identifiedDisplayName = "練功寶盒(1)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間守護者箱子。",
+			"現在開封還有機會獲得練功寶盒(10)喔!",
+			"",
+			"重量 : ^7777771^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23268] = {
+		unidentifiedDisplayName = "練功寶盒(10)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、時間的守護者戒指。",
+			"現在開封還有機會獲得練功寶盒(20)喔!",
+			"",
+			"要求等級 : ^77777710^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(10)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、時間的守護者戒指。",
+			"現在開封還有機會獲得練功寶盒(20)喔!",
+			"",
+			"要求等級 : ^77777710^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23269] = {
+		unidentifiedDisplayName = "練功寶盒(20)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀 10個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和真萬能年糕 1個。",
+			"現在開封還有機會獲得練功寶盒(30)喔!",
+			"",
+			"要求等級 : ^77777720^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(20)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀 10個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和真萬能年糕 1個。",
+			"現在開封還有機會獲得練功寶盒(30)喔!",
+			"",
+			"要求等級 : ^77777720^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23270] = {
+		unidentifiedDisplayName = "練功寶盒(30)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間的守護者眼鏡。",
+			"現在開封還有機會獲得練功寶盒(40)喔!",
+			"",
+			"要求等級 : ^77777730^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(30)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]300個、新手專用蒼蠅翅膀 150個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個、馬牌 10個和時間的守護者眼鏡。",
+			"現在開封還有機會獲得練功寶盒(40)喔!",
+			"",
+			"要求等級 : ^77777730^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23271] = {
+		unidentifiedDisplayName = "練功寶盒(40)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]200個、赤色藥水[活動專用]30個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和馬牌 10個。",
+			"現在開封還有機會獲得練功寶盒(50)喔!",
+			"",
+			"要求等級 : ^77777740^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(40)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用]200個、赤色藥水[活動專用]30個、新手專用蒼蠅翅膀 100個、新手專用蝴蝶翅膀20個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個和馬牌 10個。",
+			"現在開封還有機會獲得練功寶盒(50)喔!",
+			"",
+			"要求等級 : ^77777740^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23272] = {
+		unidentifiedDisplayName = "練功寶盒(50)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用] 100個、黃色藥水[活動專用]30個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個。",
+			"現在開封還有機會獲得練功寶盒(60)喔!",
+			"",
+			"要求等級 : ^77777750^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(50)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 初學者專用藥水[活動專用] 100個、黃色藥水[活動專用]30個、新手專用蒼蠅翅膀 150個、新手專用放大鏡 10個和箭矢筒5個、彈藥桶5個。",
+			"現在開封還有機會獲得練功寶盒(60)喔!",
+			"",
+			"要求等級 : ^77777750^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23273] = {
+		unidentifiedDisplayName = "練功寶盒(60)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 黃色纖細藥水[活動專用] 100個、恢復力提升藥水      [活動專用]2個、馬牌 10個、經驗值倍增書      [活動專用]5個。",
+			"現在開封還有機會獲得練功寶盒(70)喔!",
+			"",
+			"要求等級 : ^77777760^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(60)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為新手練功而準備的升級箱。",
+			"內含: 黃色纖細藥水[活動專用] 100個、恢復力提升藥水      [活動專用]2個、馬牌 10個、經驗值倍增書      [活動專用]5個。",
+			"現在開封還有機會獲得練功寶盒(70)喔!",
+			"",
+			"要求等級 : ^77777760^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23274] = {
+		unidentifiedDisplayName = "練功寶盒(70)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含: 黃色纖細藥水[活動專用] 100個、小型魔力水      [活動專用]3個、恢復力提升藥水      [活動專用]4個、掉寶率倍增糖5個和免掉啪證書[活動專用]5個。",
+			"現在開封還有機會獲得練功寶盒(80)喔!",
+			"",
+			"要求等級 : ^77777770^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(70)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含: 黃色纖細藥水[活動專用] 100個、小型魔力水      [活動專用]3個、恢復力提升藥水      [活動專用]4個、掉寶率倍增糖5個和免掉啪證書[活動專用]5個。",
+			"現在開封還有機會獲得練功寶盒(80)喔!",
+			"",
+			"要求等級 : ^77777770^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[22521] = {
+		unidentifiedDisplayName = "練功寶盒(80)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"雖然效果沒有很強, 但內含可放在特殊裝備欄上的影子激發裝備6種。",
+			"現在開封還有機會獲得練功寶盒(90)喔!",
+			"",
+			"要求等級 : ^77777780^000000",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(80)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"雖然效果沒有很強, 但內含可放在特殊裝備欄上的影子激發裝備6種。",
+			"現在開封還有機會獲得練功寶盒(90)喔!",
+			"",
+			"要求等級 : ^77777780^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23275] = {
+		unidentifiedDisplayName = "練功寶盒(90)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含: 黃色纖細藥水[活動專用] 150個、新手專用蒼蠅翅膀 100個、恢復力提升藥水      [活動專用]4個、馬牌 10個、經驗值倍增書      [活動專用]5個和研磨劑[活動專用]5個。",
+			"現在開封還有機會獲得練功寶盒(100)喔!",
+			"",
+			"要求等級 : ^77777790^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(90)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含: 黃色纖細藥水[活動專用] 150個、新手專用蒼蠅翅膀 100個、恢復力提升藥水      [活動專用]4個、馬牌 10個、經驗值倍增書      [活動專用]5個和研磨劑[活動專用]5個。",
+			"現在開封還有機會獲得練功寶盒(100)喔!",
+			"",
+			"要求等級 : ^77777790^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[22522] = {
+		unidentifiedDisplayName = "練功寶盒(100)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含: 高級時間守護者箱子和職業經驗值倍增書[活動專用]3個。",
+			"現在開封還有機會獲得真萬能年糕2個和練功寶盒(120)喔!",
+			"",
+			"要求等級 : ^777777100^000000",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(100)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含: 高級時間守護者箱子和職業經驗值倍增書[活動專用]3個。",
+			"現在開封還有機會獲得真萬能年糕2個和練功寶盒(120)喔!",
+			"",
+			"要求等級 : ^777777100^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[22523] = {
+		unidentifiedDisplayName = "練功寶盒(120)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為快速升等玩家而準備的升級箱。",
+			"內含: 經驗值&掉寶率倍增組[活動專用]2個、白色纖細藥水[活動專用]200入箱子 1個。",
+			"現在開封還有機會獲得真萬能年糕 1個和練功寶盒(140)喔!",
+			"",
+			"要求等級 : ^777777120^000000",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(120)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為快速升等玩家而準備的升級箱。",
+			"內含: 經驗值&掉寶率倍增組[活動專用]2個、白色纖細藥水[活動專用]200入箱子 1個。",
+			"現在開封還有機會獲得真萬能年糕 1個和練功寶盒(140)喔!",
+			"",
+			"要求等級 : ^777777120^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[22525] = {
+		unidentifiedDisplayName = "練功寶盒(140)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為快速升等玩家而準備的升級箱。",
+			"內含: 小型生命水[活動專用]3個、中型生命水[活動專用]3個、影子職業套裝箱 1個。",
+			"現在開封還有機會獲得白色纖細藥水200入箱子[活動專用]2個和練功寶盒(160)喔!",
+			"",
+			"要求等級 : ^777777140^000000",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(140)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為快速升等玩家而準備的升級箱。",
+			"內含: 小型生命水[活動專用]3個、中型生命水[活動專用]3個、影子職業套裝箱 1個。",
+			"現在開封還有機會獲得白色纖細藥水200入箱子[活動專用]2個和練功寶盒(160)喔!",
+			"",
+			"要求等級 : ^777777140^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[22527] = {
+		unidentifiedDisplayName = "練功寶盒(160)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為快速升等玩家而準備的升級箱。",
+			"內含: 經驗值&掉寶率倍增組[活動專用]5個、小型生命水[活動專用]3個和中型生命水[活動專用]3個。",
+			"現在開封還有機會獲得練功寶盒(175)喔!",
+			"",
+			"要求等級 : ^777777160^000000",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(160)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為快速升等玩家而準備的升級箱。",
+			"內含: 經驗值&掉寶率倍增組[活動專用]5個、小型生命水[活動專用]3個和中型生命水[活動專用]3個。",
+			"現在開封還有機會獲得練功寶盒(175)喔!",
+			"",
+			"要求等級 : ^777777160^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[23276] = {
+		unidentifiedDisplayName = "練功寶盒(175)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、影子精靈合成箱1個、真萬能年糕5個。",
+			"現在開封還有機會獲得練功寶盒(180)喔!",
+			"",
+			"要求等級 : ^777777175^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		identifiedDisplayName = "練功寶盒(175)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、影子精靈合成箱1個、真萬能年糕5個。",
+			"現在開封還有機會獲得練功寶盒(185)喔!",
+			"",
+			"要求等級 : ^777777175^000000 ",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[102406] = {
+		unidentifiedDisplayName = "練功寶盒(185)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、水靈鎧甲卷軸10個、天雪花[活動專用]100個、世界地圖移動券10個。",
+			"現在開封還有機會獲得練功寶盒(185)喔!",
+			""
+		},
+		identifiedDisplayName = "練功寶盒(185)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、水靈鎧甲卷軸10個、天雪花[活動專用]100個、世界地圖移動券10個。",
+			"現在開封還有機會獲得練功寶盒(190)喔!",
+			"",
+			"重量 : ^7777770^000000",
+			"要求等級 : ^777777185^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[102407] = {
+		unidentifiedDisplayName = "練功寶盒(190)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、神聖鎧甲卷軸10個、陰暗鎧甲卷軸10個、世界地圖移動券10個。",
+			"現在開封還有機會獲得練功寶盒(200)喔!",
+			""
+		},
+		identifiedDisplayName = "練功寶盒(190)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: 提要經驗值倍增書5個、超黏掉寶率倍增糖5個、神聖鎧甲卷軸10個、陰暗鎧甲卷軸10個、世界地圖移動券10個。",
+			"現在開封還有機會獲得練功寶盒(200)喔!",
+			"",
+			"重量 : ^7777770^000000",
+			"要求等級 : ^777777190^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[102408] = {
+		unidentifiedDisplayName = "練功寶盒(200)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: ",
+			"提要經驗值倍增書5個、",
+			"超黏掉寶率倍增糖5個、",
+			"背包擴充券[活動專用]3個、",
+			"真力量防護卷軸[活動專用]10個、",
+			"世界地圖移動券10個。"
+		},
+		identifiedDisplayName = "練功寶盒(200)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"^ff0000不可與其它帳號交易的道具。^000000",
+			"裝有快速升級必須物品的寶盒。 ",
+			"內含: ",
+			"提要經驗值倍增書5個、",
+			"超黏掉寶率倍增糖5個、",
+			"背包擴充券[活動專用]3個、",
+			"真力量防護卷軸[活動專用]10個、",
+			"世界地圖移動券10個。",
+			"重量 : ^7777770^000000",
+			"要求等級 : ^777777200^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[100297] = {
+		unidentifiedDisplayName = "練功寶盒(100)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、高級飛行魔書帽子 1個、練功寶盒(110)。",
+			"Base Lv以上100可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(100)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、高級飛行魔書帽子 1個、練功寶盒(110)。",
+			"Base Lv以上100可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100298] = {
+		unidentifiedDisplayName = "練功寶盒(110)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
+			"中型生命水[活動專用] 30個、練功寶盒(120)。",
+			"Base Lv110可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(110)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
+			"中型生命水[活動專用] 30個、練功寶盒(120)。",
+			"Base Lv110可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100299] = {
+		unidentifiedDisplayName = "練功寶盒(120)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、無限蒼蠅翅膀箱子_7日 1個、萬能年糕[活動專用] 10個、魔幻香水 10個、練功寶盒(130)。",
+			"Base Lv120可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(120)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、無限蒼蠅翅膀箱子_7日 1個、萬能年糕[活動專用] 10個、魔幻香水 10個、練功寶盒(130)。",
+			"Base Lv120可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100300] = {
+		unidentifiedDisplayName = "練功寶盒(130)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
+			"中型生命水[活動專用] 30個、練功寶盒(140)。",
+			"Base Lv130可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(130)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 2個、職業經驗值倍增書[活動專用] 2個、小型生命水[活動專用] 30個、",
+			"中型生命水[活動專用] 30個、練功寶盒(140)。",
+			"Base Lv130可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100301] = {
+		unidentifiedDisplayName = "練功寶盒(140)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 高級經驗值倍增書箱子 1個、小型魔力藥水 [活動專用] 15個、萬能年糕[活動專用] 15個、魔幻香水 15個、練功寶盒(150)。",
+			"Base Lv140可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(140)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 高級經驗值倍增書箱子 1個、小型魔力藥水 [活動專用] 15個、萬能年糕[活動專用] 15個、魔幻香水 15個、練功寶盒(150)。",
+			"Base Lv140可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100302] = {
+		unidentifiedDisplayName = "練功寶盒(150)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 3個、力量防護卷軸 30個、小型魔力藥水 [活動專用] 15個、小型生命水 [活動專用] 30個、中型生命水 [活動專用] 30個、波利圖騰戰鬥盾牌 1個、練功寶盒(160)。",
+			"Base Lv150可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(150)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 經驗值&掉寶率倍增組[活動專用] 3個、力量防護卷軸 30個、小型魔力藥水 [活動專用] 15個、小型生命水 [活動專用] 30個、中型生命水 [活動專用] 30個、波利圖騰戰鬥盾牌 1個、練功寶盒(160)。",
+			"Base Lv150可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100303] = {
+		unidentifiedDisplayName = "練功寶盒(160)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 高級經驗值倍增書箱子 1個、力量防護卷軸 30個、萬能年糕[活動專用] 15個、魔幻香水 15個、武器精煉能力+8券 1個、練功寶盒(175)。",
+			"Base Lv160可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(160)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 高級經驗值倍增書箱子 1個、力量防護卷軸 30個、萬能年糕[活動專用] 15個、魔幻香水 15個、武器精煉能力+8券 1個、練功寶盒(175)。",
+			"Base Lv160可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[100304] = {
+		unidentifiedDisplayName = "練功寶盒(175)",
+		unidentifiedResourceName = "번호상자05",
+		unidentifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 力量防護卷軸 30個、萬能年糕[活動專用] 20個、魔幻香水20個、封印古代武器兌換券 1個。",
+			"Base Lv175可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000"
+		},
+		identifiedDisplayName = "練功寶盒(175)",
+		identifiedResourceName = "번호상자05",
+		identifiedDescriptionName = {
+			"專門為熟練玩家而準備的升級箱。",
+			"內含 : 力量防護卷軸 30個、萬能年糕[活動專用] 20個、魔幻香水20個、封印古代武器兌換券 1個。",
+			"Base Lv175可開啟。",
+			"^ff0000該物品不可與其它帳號交易。^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0
+	},
+	[300834] = {
+		unidentifiedDisplayName = "鯊魚寶寶卡片",
+		unidentifiedResourceName = "이름없는카드",
+		unidentifiedDescriptionName = {
+			"每Base Lv.10，ATK+10、DEF+3、MDEF+1。",
+			"(最多適用至Base Lv.200)。",
+			"^CC3D3D[活動限定能力]^000000.",
+			"對全種族對象(玩家除外)的物理/魔法傷害+10%。",
+			"對全體型對象的物理/魔法傷害+10%。",
+			"擊殺魔物獲得的經驗值+15%。",
+			"掉寶率+7%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000"
+		},
+		identifiedDisplayName = "鯊魚寶寶卡片",
+		identifiedResourceName = "이름없는카드",
+		identifiedDescriptionName = {
+			"每Base Lv.10，ATK+10、DEF+3、MDEF+1。",
+			"(最多適用至Base Lv.200)。",
+			"^CC3D3D[活動限定能力]^000000.",
+			"對全種族對象(玩家除外)的物理/魔法傷害+10%。",
+			"對全體型對象的物理/魔法傷害+10%。",
+			"擊殺魔物獲得的經驗值+15%。",
+			"掉寶率+7%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777卡片^000000",
+			"裝備 : ^777777披肩^000000",
+			"重量 : ^7777771^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false,
+		EffectID = 1186
+	},
+	[300835] = {
+		unidentifiedDisplayName = "鯊魚家族卡片",
+		unidentifiedResourceName = "이름없는카드",
+		unidentifiedDescriptionName = {
+			"每Base Lv.10，MATK+10、DEF+3、MDEF+1。",
+			"(最多適用至Base Lv.200)。",
+			"^CC3D3D[活動限定能力]^000000.",
+			"對全種族對象(玩家除外)的物理/魔法傷害+10%。",
+			"對全體型對象的物理/魔法傷害+10%。",
+			"擊殺魔物獲得的經驗值+15%。",
+			"掉寶率+7%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000"
+		},
+		identifiedDisplayName = "鯊魚家族卡片",
+		identifiedResourceName = "이름없는카드",
+		identifiedDescriptionName = {
+			"每Base Lv.10，MATK+10、DEF+3、MDEF+1。",
+			"(最多適用至Base Lv.200)。",
+			"^CC3D3D[活動限定能力]^000000.",
+			"對全種族對象(玩家除外)的物理/魔法傷害+10%。",
+			"對全體型對象的物理/魔法傷害+10%。",
+			"擊殺魔物獲得的經驗值+15%。",
+			"掉寶率+7%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777卡片^000000",
+			"裝備 : ^777777披肩^000000",
+			"重量 : ^7777771^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false,
+		EffectID = 1186
+	},
+	[1002959] = {
+		unidentifiedDisplayName = "鯊魚寶寶硬幣",
+		unidentifiedResourceName = "CLB_BS_Coin",
+		unidentifiedDescriptionName = { "鯊魚寶寶聯名紀念幣。" },
+		identifiedDisplayName = "鯊魚寶寶硬幣",
+		identifiedResourceName = "CLB_BS_Coin",
+		identifiedDescriptionName = {
+			"完成鯊魚寶寶請求領取的硬幣。",
+			"",
+			"^ffffff<NAVI>^4D4DFF[鯊魚寶寶]^000000<INFO>comodo,199,145,0,101,0</INFO></NAVI>^000000",
+			"^ff0000(活動結束後將刪除該道具。) ^000000",
+			"重量 : ^7777770^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[1100060] = {
+		unidentifiedDisplayName = "鯊魚寶寶鯛魚燒",
+		unidentifiedResourceName = "CLB_BS_Bread",
+		unidentifiedDescriptionName = {
+			"仿製鯊魚寶寶外表的美味麵包。",
+			"好可愛，熱呼呼的。",
+			"^000088恢復HP 3250^000000。",
+			"^ffffff_^000000",
+			"^ff0000(活動結束後將刪除該道具。)^000000"
+		},
+		identifiedDisplayName = "鯊魚寶寶鯛魚燒",
+		identifiedResourceName = "CLB_BS_Bread",
+		identifiedDescriptionName = {
+			"仿製鯊魚寶寶外表的美味麵包。",
+			"好可愛，熱呼呼的。",
+			"^000088恢復HP 3250^000000。",
+			"^ffffff_^000000",
+			"^ff0000(活動結束後將刪除該道具。)^000000",
+			"重量: ^7777770.1^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[1100061] = {
+		unidentifiedDisplayName = "鯊魚寶寶立麥",
+		unidentifiedResourceName = "CLB_BS_Candy",
+		unidentifiedDescriptionName = {
+			"仿製鯊魚寶寶臉部的可愛立麥。",
+			"莫名讓人想唱歌！",
+			"^000088恢復SP 420^000000。",
+			"^ffffff_^000000",
+			"^ff0000(活動結束後將刪除該道具。)^000000"
+		},
+		identifiedDisplayName = "鯊魚寶寶立麥",
+		identifiedResourceName = "CLB_BS_Candy",
+		identifiedDescriptionName = {
+			"仿製鯊魚寶寶臉部的可愛立麥。",
+			"莫名讓人想唱歌！",
+			"^000088恢復SP 420^000000。",
+			"^ffffff_^000000",
+			"^ff0000(活動結束後將刪除該道具。)^000000",
+			"重量: ^7777770.1^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[401367] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "캡",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚寶寶面具",
+		identifiedResourceName = "C_CLB_BS_head",
+		identifiedDescriptionName = {
+			"^ff0000該道具不可與其他帳號交易。^000000",
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製鯊魚寶寶，戴在頭上的面具。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"^ffffff_^000000",
+			"^CC3D3D[活動限定能力]^000000",
+			"ATK+50、MATK+50。",
+			"CRI+10、變動詠唱-10% 。",
+			"擊殺魔物獲得的經驗值+5%。",
+			"對全屬性、全體型對象的物理/魔法傷害+10%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"防具等級 : ^7777771^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2833,
+		costume = true
+	},
+	[401372] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚寶寶披肩",
+		identifiedResourceName = "C_CLB_BS_Hood_B",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製可愛鯊魚寶寶臉部的披肩。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對龍族型、魚貝型對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2834,
+		costume = true
+	},
+	[401373] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚媽媽披肩",
+		identifiedResourceName = "C_CLB_BS_Hood_M",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製親切鯊魚媽媽臉部的披肩。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對惡魔型、植物型對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2835,
+		costume = true
+	},
+	[401374] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚爸爸披肩",
+		identifiedResourceName = "C_CLB_BS_Hood_F",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製可靠鯊魚爸爸臉部的披肩。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對無型、天使型對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2836,
+		costume = true
+	},
+	[401375] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚奶奶披肩",
+		identifiedResourceName = "C_CLB_BS_Hood_GM",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製和藹鯊魚奶奶臉部的披肩。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對人類型、昆蟲型對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2837,
+		costume = true
+	},
+	[401376] = {
+		unidentifiedDisplayName = "帽子",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚爺爺披肩",
+		identifiedResourceName = "C_CLB_BS_Hood_GF",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製慈愛鯊魚爺爺臉部的披肩。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對動物型、不死型對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭上^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2838,
+		costume = true
+	},
+	[410636] = {
+		unidentifiedDisplayName = "飾品",
+		unidentifiedResourceName = "리본",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)威廉",
+		identifiedResourceName = "C_CLB_BS_Pilot_Fish",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"在沁涼的大海中，威廉邊跟著我邊跳舞。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"近距離/遠距離物理傷害+15%。",
+			"無視全種族的物理防禦力10%。",
+			"搭配「鯊魚寶寶卡片」時，無視全種族對象的物理抵抗力10%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭中^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2839,
+		costume = true
+	},
+	[410637] = {
+		unidentifiedDisplayName = "飾品",
+		unidentifiedResourceName = "리본",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚寶寶小娃娃",
+		identifiedResourceName = "C_CLB_BS_Mini",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"「嘟嚕嚕都嚕！」",
+			"仿製鯊魚寶寶可愛模樣的小娃娃機器人。",
+			"彷彿頭頂是一片海洋，悠然飄游。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"MATK+15%。",
+			"無視全種族的魔法防禦力10%。",
+			"搭配「鯊魚家族卡片」時，無視全種族對象的魔法抵抗力10%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777頭中^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 2840,
+		costume = true
+	},
+	[480818] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "머플러",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚寶寶背包",
+		identifiedResourceName = "C_CLB_BS_Bag_B",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製可愛鯊魚寶寶臉部的背包。",
+			"真想到處炫耀。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對火屬性、暗屬性對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 308,
+		costume = true
+	},
+	[480819] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "머플러",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚媽媽背包",
+		identifiedResourceName = "C_CLB_BS_Bag_M",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製親切鯊魚媽媽臉部的背包。",
+			"真想到處炫耀。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對水屬性、聖屬性對象的物理/防禦魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 309,
+		costume = true
+	},
+	[480820] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "머플러",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚爸爸背包",
+		identifiedResourceName = "C_CLB_BS_Bag_F",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製可靠鯊魚爸爸臉部的背包。",
+			"真想到處炫耀。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對風屬性、地屬性對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 310,
+		costume = true
+	},
+	[480821] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "머플러",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚奶奶背包",
+		identifiedResourceName = "C_CLB_BS_Bag_GM",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製和藹鯊魚奶奶臉部的背包。",
+			"真想到處炫耀。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對念屬性、不死屬性對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 311,
+		costume = true
+	},
+	[480822] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "머플러",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "(服飾)鯊魚爺爺背包",
+		identifiedResourceName = "C_CLB_BS_Bag_GF",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名。",
+			"仿製慈愛鯊魚爺爺臉部的背包。",
+			"真想到處炫耀。",
+			"^ffffff<NAVI>^4D4DFF[可至綿綿島附魔]^000000<INFO>mal_in01,19,110,0,100,0,0</INFO></NAVI>^000000",
+			"",
+			"^CC3D3D[活動限定能力]^000000",
+			"擊殺魔物獲得的經驗值+10%、掉寶率+5%。",
+			"對無屬性、毒屬性對象的物理/魔法傷害+30%。",
+			"^ff0000(活動限定能力預計於2026年11月17日維護後刪除。) ^000000",
+			"系列 : ^777777服飾裝備^000000 防禦 : ^7777770^000000",
+			"位置 : ^777777披肩^000000 重量 : ^7777770^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 312,
+		costume = true
+	},
+	[108357] = {
+		unidentifiedDisplayName = "鯊魚寶寶轉蛋",
+		unidentifiedResourceName = "찰랑스크롤",
+		unidentifiedDescriptionName = { "2026 RO仙境傳說 x BabyShark紀念轉蛋。", "販售期間:2026.10.20~2026.11.17" },
+		identifiedDisplayName = "鯊魚寶寶轉蛋",
+		identifiedResourceName = "찰랑스크롤",
+		identifiedDescriptionName = {
+			"2026 RO仙境傳說 x BabyShark紀念轉蛋。",
+			"販售期間:2026.10.20~2026.11.17",
+			"重量 : ^7777771^000000"
+		},
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
+	},
+	[480824] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "머플러",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "鯊魚寶寶背包",
+		identifiedResourceName = "C_CLB_BS_Bag_B",
+		identifiedDescriptionName = {
+			"Pinkfong鯊魚寶寶聯名，",
+			"仿製可愛鯊魚寶寶臉部的背包。",
+			"真想到處炫耀。",
+			" ",
+			"對無屬性攻擊抗性+20%。",
+			"擊殺魔物獲得的經驗值+10%。",
+			"可使用普隆德拉回城技能。",
+			" ",
+			"每Base Lv.1，ATK+1、MATK+1、MaxHP+20、MaxSP+2。",
+			"精煉+5時，對聖屬性攻擊抗性+80%。",
+			"精煉+7時，物理攻擊時，有2%機率吸收傷害的2%作為SP。",
+			"系列 : ^777777披肩^000000  防禦 : ^7777770^000000",
+			"重量 : ^77777730^000000",
+			"防具等級 : ^7777771^000000",
+			"要求等級 : ^7777771^000000",
+			"裝備 : ^777777全職業^000000"
+		},
+		slotCount = 0,
+		ClassNum = 308,
+		costume = false
+	},
+	[480988] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "惡波盛宴狂歡斗篷",
+		identifiedResourceName = "Noblesse_Magic_Manteau",
+		identifiedDescriptionName = {
+			"精煉每+2時，ATK+12、POW+1、CON+1。",
+			"精煉每+3時，MHP+2%。",
+			"精煉每+4時，近/遠距離物理傷害+4%。",
+			"精煉+9時，暴擊傷害+15%。",
+			"精煉+11時，技能後延遲-15%。",
+			"精煉+13時，對全體型對象的物理傷害+10%。",
+			"",
+			"搭配「惡魔波利卡片」時，",
+			"對無屬性的抗性-20%，對全屬性(無屬性除外)的抗性+30%，CRI+20，暴擊傷害+50%。",
+			"",
+			"搭配「雙手劍、雙手矛、雙手斧、雙手杖、拳刃、弓、風魔飛鏢、手槍、格林機槍、霰彈槍、來福槍、榴彈發射器」系列武器時，",
+			"對全種族的抗性+5%，",
+			"對無屬性的抗性+10%。",
+			"^ff0000(此武器系列搭配能力，需先穿戴武器，再穿戴披肩才能觸發此效果。) ^000000",
+			"",
+			"^CC3D3D[各階級追加能力]^000000",
+			"[D階級] DEF+200、MDEF+30，精煉+12時，無視全種族對象的物理防禦15%。",
+			"[C階級] 對全屬性對象的物理傷害+10%。",
+			"[B階級] 對全種族對象的物理傷害+10%。",
+			"[A階級] 對全階級對象的物理傷害+10%。",
+			"系列：^777777披肩^000000  防禦：^7777770^000000",
+			"重量：^77777710^000000",
+			"防具等級：^7777772^000000",
+			"要求等級：^777777150^000000",
+			"裝備：^777777全職業^000000"
+		},
+		slotCount = 1,
+		ClassNum = 0,
+		costume = false
+	},
+	[480989] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "惡波盛宴蠻力斗篷",
+		identifiedResourceName = "Noblesse_Magic_Manteau",
+		identifiedDescriptionName = {
+			"精煉每+2時，ATK+12、POW+1、CON+1。",
+			"精煉每+3時，MHP+2%。",
+			"精煉每+4時，近/遠距離物理傷害+4%。",
+			"精煉+9時，命中物理傷害+8%。",
+			"精煉+11時，技能後延遲-15%。",
+			"精煉+13時，對全體型對象的物理傷害+10%。",
+			"",
+			"搭配「惡魔波利卡片」時， ",
+			"對無屬性的抗性-20%，對全屬性(無屬性除外)的抗性+30%，",
+			"誘導攻擊機率+20%，命中物理傷害+25%。",
+			"",
+			"搭配「雙手劍、雙手矛、雙手斧、雙手杖、拳刃、弓、風魔飛鏢、手槍、格林機槍、霰彈槍、來福槍、榴彈發射器」系列武器時，",
+			"對全種族的抗性+5%， ",
+			"對無屬性的抗性+10%。",
+			"^ff0000(此武器系列搭配能力，需先穿戴武器，再穿戴披肩才能觸發此效果。) ^000000",
+			"",
+			"^CC3D3D[各階級追加能力]^000000",
+			"[D階級] DEF+200、MDEF+30，精煉+12時，無視全種族對象的物理防禦15%。",
+			"[C階級] 對全屬性對象的物理傷害+10%。",
+			"[B階級] 對全種族對象的物理傷害+10%。",
+			"[A階級] 對全階級對象的物理傷害+10%。",
+			"系列：^777777披肩^000000  防禦：^7777770^000000",
+			"重量：^77777710^000000",
+			"防具等級：^7777772^000000",
+			"要求等級：^777777150^000000",
+			"裝備：^777777全職業^000000"
+		},
+		slotCount = 1,
+		ClassNum = 0,
+		costume = false
+	},
+	[480990] = {
+		unidentifiedDisplayName = "披肩",
+		unidentifiedResourceName = "후드",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "惡波盛宴魔幻斗篷",
+		identifiedResourceName = "Noblesse_Magic_Manteau",
+		identifiedDescriptionName = {
+			"精煉每+2時，MATK+12、SPL+1、CON+1。",
+			"精煉每+3時，MHP+2%。",
+			"精煉每+4時，全屬性魔法傷害+4%。",
+			"精煉+9時，MATK+8%。",
+			"精煉+11時，技能後延遲-15%。",
+			"精煉+13時，對全體型對象的魔法傷害+10%。",
+			"",
+			"搭配「惡魔波利卡片」時， ",
+			"對無屬性的抗性-20%，對全屬性(無屬性除外)的抗性+30%，",
+			"變動詠唱-20%，MATK+25%。",
+			"",
+			"搭配「雙手劍、雙手矛、雙手斧、雙手杖、拳刃、弓、風魔飛鏢、手槍、格林機槍、霰彈槍、來福槍、榴彈發射器」系列武器時，",
+			"對全種族的抗性+5%， ",
+			"對無屬性的抗性+10%。",
+			"^ff0000(此武器系列搭配能力，需先穿戴武器，再穿戴披肩才能觸發此效果。) ^000000",
+			"",
+			"^CC3D3D[各階級追加能力]^000000",
+			"[D階級] DEF+200、MDEF+30，精煉+12時，無視全種族對象的魔法防禦15%。",
+			"[C階級] 對全屬性對象的魔法傷害+10%。",
+			"[B階級] 對全種族對象的魔法傷害+10%。",
+			"[A階級] 對全階級對象的魔法傷害+10%。",
+			"系列：^777777披肩^000000  防禦：^7777770^000000",
+			"重量：^77777710^000000",
+			"防具等級：^7777772^000000",
+			"要求等級：^777777150^000000",
+			"裝備：^777777全職業^000000"
+		},
+		slotCount = 1,
+		ClassNum = 0,
+		costume = false
+	},
+	[491122] = {
+		unidentifiedDisplayName = "髮夾",
+		unidentifiedResourceName = "클립",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "惡波盛宴勳章",
+		identifiedResourceName = "ZTW_Bd_Deviling",
+		identifiedDescriptionName = {
+			"MDEF+10。",
+			"命中物理傷害+15%、暴擊傷害+30%、 MATK+15%。",
+			"精煉每+4時，ATK、MATK+20。",
+			"精煉+9時，技能後延遲-8%。",
+			"精煉+13時，對全屬性對象的物理/魔法傷害+10%。",
+			"",
+			"搭配「惡波盛宴狂歡斗篷」時，",
+			"對全階級對象的物理傷害+10%，",
+			"披肩精煉每+2時，POW、CON、CRT+1，",
+			"披肩精煉每+3時，P.ATK+2、C.RATE+1，",
+			"當披肩階級為A時，對全階級對象的物理傷害再+10%。",
+			"",
+			"搭配「惡波盛宴蠻力斗篷」時，",
+			"對全階級對象的物理傷害+10%，",
+			"披肩精煉每+2時，POW、CON+2，",
+			"披肩精煉每+3時，P.ATK+3，",
+			"當披肩階級為A時，對全階級對象的物理傷害再+10%。",
+			"",
+			"搭配「惡波盛宴魔幻斗篷」時，",
+			"對全階級對象的魔法傷害+10%，",
+			"披肩精煉每+2時，SPL+2、CON+2，",
+			"披肩精煉每+3時，S.MATK+3，",
+			"當披肩階級為A時，對全階級對象的魔法傷害再+10%。",
+			"",
+			"^CC3D3D[各階級追加能力]^000000",
+			"[D階級] ATK、MATK+120.",
+			"[C階級] RES+80、MRES+50。",
+			"[B階級] 固定詠唱-0.3秒。",
+			"[A階級] 無視全種族(玩家除外)對象的物理/魔法抵抗力+10%。",
+			"系列：^777777飾品(左)^000000 防禦：^77777720^000000",
+			"重量：^77777710^000000",
+			"防具等級：^7777772^000000",
+			"要求等級：^777777150^000000",
+			"裝備：^777777全職業^000000"
+		},
+		slotCount = 1,
+		ClassNum = 0,
+		costume = false
+	},
+	[491123] = {
+		unidentifiedDisplayName = "髮夾",
+		unidentifiedResourceName = "클립",
+		unidentifiedDescriptionName = { "尚未鑑定；可用[放大鏡]來鑑定物品。" },
+		identifiedDisplayName = "墮落熾天使之戒-LT",
+		identifiedResourceName = "F_Seraphim_ring_LT",
+		identifiedDescriptionName = {
+			"MDEF+20，",
+			"ATK+120，",
+			"MATK+12%，",
+			"近/遠距離物理傷害+12%，",
+			"全屬性魔法傷害+12%，",
+			"變動詠唱-10%，CRI+12，誘導攻擊機率+8%，",
+			"技能後延遲-10%，",
+			"攻擊速度增加(攻擊後延遲-15%)，",
+			"無視全種族對象的物理和魔法防禦10%，",
+			"可使用「贖罪」Lv.3。",
+			"",
+			"精煉每+7時，對全種族對象的物理/魔法傷害+6%。",
+			"精煉+9時，MHP、MSP+12%。",
+			"精煉+13時，P.ATK、S.MATK+8。",
+			"",
+			"^CC3D3D[各階級追加能力]^000000",
+			"[D階級] 技能後延遲-5%，再無視全種族對象的物理/魔法防禦5%。",
+			"[C階級] 固定詠唱-0.2秒。",
+			"[B階級] 對全階級對象的物理/魔法傷害+8%。",
+			"[A階級] 可使用「贖罪」Lv.5。",
+			"系列：^777777飾品(右)^000000 防禦：^77777710^000000",
+			"重量：^77777710^000000",
+			"防具等級：^7777772^000000",
+			"要求等級：^777777100^000000",
+			"裝備：^777777全職業^000000"
+		},
+		slotCount = 1,
+		ClassNum = 0,
+		costume = false
+	},
+	[1003333] = {
+		unidentifiedDisplayName = "墮天使之羽",
+		unidentifiedResourceName = "까마귀의날개",
+		unidentifiedDescriptionName = { "可運用於改造系統來強化道具裝備。", "墮落熾天使之戒-LT" },
+		identifiedDisplayName = "墮天使之羽",
+		identifiedResourceName = "까마귀의날개",
+		identifiedDescriptionName = { "可運用於改造系統來強化道具裝備。", "墮落熾天使之戒-LT", "", "重量：^7777771^000000" },
+		slotCount = 0,
+		ClassNum = 0,
+		costume = false
 	}
 }

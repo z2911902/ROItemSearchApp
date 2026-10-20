@@ -28416,6 +28416,25 @@ ReformInfo = {
 			"3) 卡片與附魔情報 : 已刪除",
 			"4) 等級情報 : 已刪除"
 		}
+	},
+	[10202] = {
+		BaseItem = "Fallen_Seraphim_ring",
+		Material = {
+			Acc_Stone_3 = 100,
+			FA_Feather_TW = 1,
+			Blue_Feather = 100,
+			Red_Feather = 100
+		},
+		ResultItem = "F_Seraphim_ring_LT",
+		NeedRefineMin = 0,
+		NeedRefineMax = 20,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精練值 : ^FF00000^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
 	}
 }
 ReformItemList = {
@@ -28648,7 +28667,8 @@ ReformItemList = {
 		10195,
 		10196,
 		10197,
-		10200
+		10200,
+		10202
 	},
 	C_Weapon_Reform_1 = {
 		113,
