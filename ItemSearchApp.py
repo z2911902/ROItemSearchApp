@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.37-261018"
+Version = "v0.9.45-261021"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -105,6 +105,7 @@ from monster_lookup_dialog import MonsterLookupDialog#查詢怪物
 #from RRF_compile_damage_view import MainUI#載入RRF傷害計算器.
 from RRF_compile_damage_view_raw_v4 import MainUI#載入RRF傷害計算器 (使用rrf_reader轉換)
 from Damage_view import DamageCalculator
+#from ro_damage_visualizer import DamageVisualizer  # 中間分頁：本機 GRF 木樁 + RO 傷害數字 (試做品)
 from multi_compare import open_multi_compare_window
 from pathlib import Path
 from dotenv import load_dotenv
@@ -3046,158 +3047,382 @@ SkillOption_mapping = {#主程式Subweapon to ROCalculator 轉換
     "WeaponMasteryATK": "WeaponMasteryATKInput",
 }
 
-from PySide6.QtCore import Qt, QElapsedTimer, QTimer
+from PySide6.QtCore import Qt, QElapsedTimer, QTimer, QRectF
 from PySide6.QtWidgets import QWidget
 from PySide6 import QtGui
 
 class CastBarWidget(QWidget):
+    """動態四軌技能週期；零耗時項目不顯示，繪製長條模式專用。"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # durations
-        self._cast_ms = 1
+        self._cast_ms = 0
         self._gcd_ms = 0
         self._cd_ms = 0
+        self._aspd_value = None
+        self._aspd_ms = None
+        self._aspd_display = "—"
+        self._fixed_cast_text = "0s"
+        self._variable_cast_text = "0s"
+        self._fixed_cast_raw_text = "0s"
+        self._variable_cast_raw_text = "0s"
+        self._gcd_display_text = "0s"
+        self._gcd_raw_text = "0s"
+        self._cd_display_text = "0s"
+        self._cd_raw_text = "0s"
+        self._aspd_per_second = None
 
-        # timers
-        self._cast_elapsed = QElapsedTimer()
-        self._gcd_elapsed = QElapsedTimer()
-        self._cd_elapsed = QElapsedTimer()
-
-        # progress
+        # 單一單調計時器。完整週期：詠唱 -> GCD/CD/攻速同步 -> 重複。
+        self._cycle_elapsed = QElapsedTimer()
+        # QElapsedTimer 本身不支援 pause；使用累積毫秒保存失焦當下的時間。
+        self._elapsed_offset_ms = 0
+        self._paused_elapsed_ms = 0
+        self._paused = False
+        self._active = False
+        self._state = "idle"  # idle | cast | post
         self._cast_progress = 0.0
         self._gcd_progress = 0.0
         self._cd_progress = 0.0
-
-        # state
-        self._state = "idle"  # idle | cast | post
+        self._aspd_progress = 0.0
+        self._cast_remaining_ms = None
+        self._gcd_remaining_ms = None
+        self._cd_remaining_ms = None
+        self._aspd_remaining_ms = None
 
         self._timer = QTimer(self)
         self._timer.setInterval(16)
         self._timer.timeout.connect(self.update)
+        self.setMinimumWidth(200)
+        self.setMouseTracking(True)
+        self._sync_row_height()  # 初始全零，不佔用四條空白列
+        self.setToolTip("詠唱後 GCD、CD 與攻速同步開始，全部完成後重複；只顯示耗時大於 0 的項目。")
 
-        self.setFixedHeight(10)
+    def _visible_rows(self):
+        """時間為 0 的列連同標籤與佔位一起移除。"""
+        rows = []
+        if self._cast_ms > 0:
+            rows.append(("詠唱", self._cast_progress, self._cast_remaining_ms,
+                         self._cast_ms, "#22C55E"))
+        if self._gcd_ms > 0:
+            rows.append(("共通延遲", self._gcd_progress, self._gcd_remaining_ms,
+                         self._gcd_ms, "#22D3EE"))
+        if self._cd_ms > 0:
+            rows.append(("技能冷卻", self._cd_progress, self._cd_remaining_ms,
+                         self._cd_ms, "#94A3B8"))
+        if self._aspd_ms is not None and self._aspd_ms > 0:
+            rows.append(("攻速", self._aspd_progress, self._aspd_remaining_ms,
+                         self._aspd_ms, "#F59E0B"))
+        return rows
+
+    def _sync_row_height(self):
+        # 0 秒的進度條不佔版面；時間變化才通知左下角重新排版。
+        wanted = len(self._visible_rows()) * 30
+        if self.height() != wanted:
+            self.setFixedHeight(wanted)
+            self.updateGeometry()
+        # Qt layout reparents the bar into status_box. Keep the actual UI
+        # controller as a stable reference, so 0s -> nonzero updates show rows.
+        host = getattr(self, "_cast_info_host", None) or self.parent()
+        update_visibility = getattr(host, "_update_cast_info_visibility", None)
+        if callable(update_visibility):
+            update_visibility()
+        self.update()
+
+    def _restart_cycle(self):
+        """技能時間／ASPD 更新才重跑，不受重繪或切換外觀影響。"""
+        if not self._active:
+            return
+        self._elapsed_offset_ms = 0
+        self._paused_elapsed_ms = 0
+        self._cycle_elapsed.restart()
+        if self._paused:
+            self._timer.stop()
+        else:
+            self._timer.start()
+        self._advance_progress()
+        self.update()
+
+    def set_paused(self, paused: bool):
+        """主視窗失焦暫停動畫及倒數；重新聚焦後從原位置繼續。"""
+        paused = bool(paused)
+        if self._paused == paused:
+            return
+        if paused:
+            if self._active:
+                self._paused_elapsed_ms = self._elapsed_offset_ms + self._cycle_elapsed.elapsed()
+                self._advance_progress()
+            self._paused = True
+            self._timer.stop()
+        else:
+            self._elapsed_offset_ms = self._paused_elapsed_ms
+            self._cycle_elapsed.restart()
+            self._paused = False
+            if self._active:
+                self._timer.start()
+                self._advance_progress()
+        self.update()
 
     def start(self, cast_ms: int, gcd_ms: int = 0, cooldown_ms: int = 0):
-        self._cast_ms = max(1, int(cast_ms))
-        self._gcd_ms = max(0, int(gcd_ms))
-        self._cd_ms = max(0, int(cooldown_ms))
+        """原有三個參數的呼叫介面保持不變。"""
+        cast_ms = max(0, int(cast_ms))
+        gcd_ms = max(0, int(gcd_ms))
+        cd_ms = max(0, int(cooldown_ms))
+        if self._active and (cast_ms, gcd_ms, cd_ms) == (
+            self._cast_ms, self._gcd_ms, self._cd_ms
+        ):
+            return
 
-        self._cast_elapsed.restart()
-        self._cast_progress = 0.0
+        self._cast_ms = cast_ms
+        self._gcd_ms = gcd_ms
+        self._cd_ms = cd_ms
+        self._active = True
+        self._sync_row_height()
+        self._restart_cycle()
 
-        self._gcd_progress = 0.0
-        self._cd_progress = 0.0
+    @staticmethod
+    def _format_seconds(value):
+        """以原本技能計算結果顯示秒數，不重算固詠與變詠。"""
+        try:
+            value_float = float(value)
+            if math.isfinite(value_float):
+                return f"{value_float:g}s"
+        except (TypeError, ValueError, OverflowError):
+            pass
+        value_str = str(value or "0").strip()
+        if value_str.endswith("秒"):
+            return value_str[:-1] + "s"
+        return value_str if value_str.lower().endswith("s") else value_str + "s"
 
-        self._state = "cast"
-        self._timer.start()
-        self.update()
+    def set_cast_parts(self, fixed_seconds, variable_seconds,
+                       fixed_required=None, variable_required=None):
+        """固／變詠顯示秒數及原始技能需求秒數，純文字更新不重置時鐘。"""
+        parts = (
+            self._format_seconds(fixed_seconds),
+            self._format_seconds(variable_seconds),
+            self._format_seconds(fixed_seconds if fixed_required is None else fixed_required),
+            self._format_seconds(variable_seconds if variable_required is None else variable_required),
+        )
+        if parts != (self._fixed_cast_text, self._variable_cast_text,
+                     self._fixed_cast_raw_text, self._variable_cast_raw_text):
+            (self._fixed_cast_text, self._variable_cast_text,
+             self._fixed_cast_raw_text, self._variable_cast_raw_text) = parts
+            self.update()
+
+    def set_delay_parts(self, gcd_seconds, gcd_required,
+                        cooldown_seconds, cooldown_required):
+        """共延／冷卻的技能需求秒數直接沿用 timing engine 的 display。"""
+        parts = tuple(self._format_seconds(v) for v in (
+            gcd_seconds, gcd_required, cooldown_seconds, cooldown_required))
+        if parts != (self._gcd_display_text, self._gcd_raw_text,
+                     self._cd_display_text, self._cd_raw_text):
+            (self._gcd_display_text, self._gcd_raw_text,
+             self._cd_display_text, self._cd_raw_text) = parts
+            self.update()
+
+    def _bar_segments(self, label, remaining_ms, total_ms):
+        """左名稱、中目前秒數(技能需求)、右倒數秒數/顯示秒數。"""
+        if label == "詠唱":
+            name = "詠唱"
+            detail = (f"固詠:{self._fixed_cast_text}({self._fixed_cast_raw_text}) "
+                      f"變詠:{self._variable_cast_text}({self._variable_cast_raw_text})")
+        elif label == "共通延遲":
+            name = "共延"
+            detail = f"{self._gcd_display_text}({self._gcd_raw_text})"
+        elif label == "技能冷卻":
+            name = "冷卻"
+            detail = f"{self._cd_display_text}({self._cd_raw_text})"
+        elif label == "攻速":
+            name = "攻速"
+            attacks = (f"{self._aspd_per_second:.2f}下/秒"
+                       if self._aspd_per_second is not None else "—下/秒")
+            detail = f"{self._aspd_display} ({attacks})"
+        else:
+            name, detail = label, f"{total_ms / 1000:g}s"
+
+        right = self._seconds_text(remaining_ms, total_ms)
+        return name, detail, right
+
+    def set_aspd(self, aspd):
+        """ASPD -> 攻擊間隔：(200 - min(193, int(ASPD))) / 50 秒。"""
+        try:
+            value = float(aspd)
+            if not math.isfinite(value):
+                raise ValueError("invalid ASPD")
+            aspd_value = max(0, min(193, int(value)))
+            interval_ms = (200 - aspd_value) * 20
+            # 顯示原始 ASPD 小數，不要顯示用來換算的整數部分。
+            aspd_display = f"{value:.3f}".rstrip("0").rstrip(".")
+            attacks_per_second = 1000.0 / interval_ms
+        except (TypeError, ValueError, OverflowError):
+            aspd_value, interval_ms, aspd_display = None, None, "—"
+            attacks_per_second = None
+
+        if (self._aspd_value, self._aspd_ms) == (aspd_value, interval_ms):
+            if (self._aspd_display, self._aspd_per_second) != (aspd_display, attacks_per_second):
+                self._aspd_display = aspd_display
+                self._aspd_per_second = attacks_per_second
+                self.update()  # ASPD 小數變動但攻擊間隔沒變，不重啟週期
+            return
+        self._aspd_value, self._aspd_ms = aspd_value, interval_ms
+        self._aspd_display = aspd_display
+        self._aspd_per_second = attacks_per_second
+        self.setToolTip(
+            "詠唱結束後，GCD、CD、攻速同步開始；最長的後置時間結束後重播。"
+            + (f" ASPD {aspd_value}，攻擊間隔 {interval_ms / 1000:.2f} 秒。"
+               if interval_ms is not None else " 攻速資料目前不可用。")
+        )
+        self._sync_row_height()
+        if self._active:
+            self._restart_cycle()
 
     def stop(self):
         self._timer.stop()
+        self._active = False
         self._state = "idle"
-        self._cast_progress = 0.0
-        self._gcd_progress = 0.0
-        self._cd_progress = 0.0
-        self.update()
+        self._cast_ms = self._gcd_ms = self._cd_ms = 0
+        self._aspd_value = self._aspd_ms = None
+        self._aspd_display = "—"
+        self._fixed_cast_text = self._variable_cast_text = "0s"
+        self._fixed_cast_raw_text = self._variable_cast_raw_text = "0s"
+        self._gcd_display_text = self._gcd_raw_text = "0s"
+        self._cd_display_text = self._cd_raw_text = "0s"
+        self._aspd_per_second = None
+        self._elapsed_offset_ms = self._paused_elapsed_ms = 0
+        self._cast_progress = self._gcd_progress = 0.0
+        self._cd_progress = self._aspd_progress = 0.0
+        self._cast_remaining_ms = self._gcd_remaining_ms = None
+        self._cd_remaining_ms = self._aspd_remaining_ms = None
+        self._sync_row_height()
 
-    def _enter_post(self):
-        """詠唱結束後：綠色滿格，開始跑 GCD / CD（覆蓋都要留下）"""
-        self._state = "post"
-        self._cast_progress = 1.0  # 綠色滿格保留
+    def _advance_progress(self):
+        if not self._active:
+            return
 
-        # GCD：沒有時間也要直接蓋滿（照你「沒有就直接蓋上」的規則）
-        if self._gcd_ms > 0:
-            self._gcd_elapsed.restart()
-            self._gcd_progress = 0.0
+        # 一輪從詠唱開始；GCD／CD／ASPD 均以詠唱結束為同一起點。
+        post_ms = max(self._gcd_ms, self._cd_ms, self._aspd_ms or 0)
+        cycle_ms = self._cast_ms + post_ms
+        if cycle_ms <= 0:
+            self._state = "post"
+            self._cast_progress = self._gcd_progress = self._cd_progress = 1.0
+            self._aspd_progress = 0.0
+            self._cast_remaining_ms = self._gcd_remaining_ms = 0
+            self._cd_remaining_ms = 0
+            self._aspd_remaining_ms = None
+            self._timer.stop()
+            return
+
+        current_elapsed = (self._paused_elapsed_ms if self._paused else
+                           self._elapsed_offset_ms + self._cycle_elapsed.elapsed())
+        elapsed_ms = current_elapsed % cycle_ms
+        if self._cast_ms > 0 and elapsed_ms < self._cast_ms:
+            self._state = "cast"
+            self._cast_progress = elapsed_ms / self._cast_ms
+            self._cast_remaining_ms = self._cast_ms - elapsed_ms
+            self._gcd_progress = self._cd_progress = self._aspd_progress = 0.0
+            self._gcd_remaining_ms = self._cd_remaining_ms = None
+            self._aspd_remaining_ms = None
         else:
-            self._gcd_progress = 1.0  # 直接 100% 淺藍覆蓋
+            self._state = "post"
+            post_elapsed_ms = elapsed_ms - self._cast_ms
+            self._cast_progress = 1.0
+            self._cast_remaining_ms = 0
+            self._gcd_progress = (min(1.0, post_elapsed_ms / self._gcd_ms)
+                                  if self._gcd_ms else 1.0)
+            self._cd_progress = (min(1.0, post_elapsed_ms / self._cd_ms)
+                                 if self._cd_ms else 1.0)
+            self._gcd_remaining_ms = max(0, self._gcd_ms - post_elapsed_ms)
+            self._cd_remaining_ms = max(0, self._cd_ms - post_elapsed_ms)
+            if self._aspd_ms is not None:
+                self._aspd_progress = min(1.0, post_elapsed_ms / self._aspd_ms)
+                self._aspd_remaining_ms = max(0, self._aspd_ms - post_elapsed_ms)
+            else:
+                self._aspd_progress = 0.0
+                self._aspd_remaining_ms = None
 
-        # CD：沒有時間也直接蓋滿
-        if self._cd_ms > 0:
-            self._cd_elapsed.restart()
-            self._cd_progress = 0.0
-        else:
-            self._cd_progress = 1.0  # 直接 100% 灰色覆蓋
+    @staticmethod
+    def _seconds_text(remaining_ms, total_ms):
+        if remaining_ms is None:
+            return f"--/{total_ms / 1000:.2f}s"
+        return f"{remaining_ms / 1000:.2f}/{total_ms / 1000:.2f}s"
+
+    def mouseMoveEvent(self, event):
+        rows = self._visible_rows()
+        row_index = int(event.position().y()) // 30
+        if 0 <= row_index < len(rows):
+            label, _, remaining_ms, total_ms, _ = rows[row_index]
+            name, detail, right = self._bar_segments(label, remaining_ms, total_ms)
+            self.setToolTip(f"{name}　{detail}　{right}")
+        super().mouseMoveEvent(event)
 
     def paintEvent(self, event):
-        # ---------- update ----------
-        if self._timer.isActive():
-            if self._state == "cast":
-                t = self._cast_elapsed.elapsed()
-                self._cast_progress = min(1.0, t / self._cast_ms)
-                if self._cast_progress >= 1.0:
-                    self._enter_post()
+        self._advance_progress()
+        rows = self._visible_rows()
+        if not rows:
+            return
 
-            elif self._state == "post":
-                # GCD progress
-                if self._gcd_ms > 0 and self._gcd_progress < 1.0:
-                    t = self._gcd_elapsed.elapsed()
-                    self._gcd_progress = min(1.0, t / self._gcd_ms)
-                    if self._gcd_progress >= 1.0:
-                        self._gcd_progress = 1.0  # 跑完也留下
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        font = painter.font()
+        # 在左欄最小寬度 290px 的 UI 中確保三組文字可同列顯示。
+        if font.pointSizeF() > 9:
+            font.setPointSizeF(9)
+            painter.setFont(font)
 
-                # CD progress
-                if self._cd_ms > 0 and self._cd_progress < 1.0:
-                    t = self._cd_elapsed.elapsed()
-                    self._cd_progress = min(1.0, t / self._cd_ms)
-                    if self._cd_progress >= 1.0:
-                        self._cd_progress = 1.0  # 跑完也留下
+        palette = self.palette()
+        base_color = palette.color(QtGui.QPalette.ColorRole.Base)
+        border_color = palette.color(QtGui.QPalette.ColorRole.Mid)
+        row_height = 30
+        margin = 4
+        track_height = 24
+        track_width = max(1, self.width() - margin * 2)
 
-                # 都不動了就停 timer（覆蓋留著也不需要一直刷新）
-                animating = (
-                    (self._gcd_ms > 0 and self._gcd_progress < 1.0) or
-                    (self._cd_ms > 0 and self._cd_progress < 1.0)
-                )
-                if not animating:
-                    self._timer.stop()
+        for row, (label, fraction, remaining_ms, total_ms, color) in enumerate(rows):
+            y = row * row_height + (row_height - track_height) / 2
+            track_rect = QRectF(margin, y, track_width, track_height)
+            painter.setPen(QtGui.QPen(border_color, 1))
+            painter.setBrush(base_color)
+            painter.drawRoundedRect(track_rect, 5, 5)
 
-        # ---------- paint ----------
-        p = QtGui.QPainter(self)
-        p.setRenderHint(QtGui.QPainter.Antialiasing, False)
+            fraction = min(1.0, max(0.0, fraction))
+            fill_width = (track_width - 2) * fraction
+            if fill_width > 0:
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QtGui.QColor(color))
+                painter.drawRoundedRect(QRectF(margin + 1, y + 1, fill_width,
+                                                track_height - 2), 4, 4)
 
-        rect = self.rect().adjusted(0, 0, -1, -1)
+            name, detail, right = self._bar_segments(label, remaining_ms, total_ms)
+            metrics = painter.fontMetrics()
+            # 跨配色維持白字可讀性，同一條長條只加一層輕薄暗色蒙版。
+            text_bg = QRectF(margin + 1, y + 1, track_width - 2, track_height - 2)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QtGui.QColor(15, 23, 42, 92))
+            painter.drawRoundedRect(text_bg, 4, 4)
+            painter.setPen(QtGui.QColor(255, 255, 255))
 
-        # border
-        p.setPen(QtGui.QPen(QtGui.QColor(120, 120, 120)))
-        p.setBrush(Qt.NoBrush)
-        p.drawRect(rect)
+            left_pad, right_pad, gap = 8, 8, 5
+            left_w = max(metrics.horizontalAdvance(name) + 2, 30)
+            right_w = metrics.horizontalAdvance(right) + 2
+            left_x = margin + left_pad
+            right_x = margin + track_width - right_pad - right_w
+            # 中間文字在剩餘空間內置中；窄視窗時只省略中欄內容，
+            # 左側名稱與右側時間仍完整保留，絕不互相重疊。
+            mid_x = left_x + left_w + gap
+            mid_end = right_x - gap
+            mid_w = max(0, mid_end - mid_x)
+            # 中欄可放不下時才省略，需求秒數完整資訊可透過 tooltip 閱讀。
+            detail = metrics.elidedText(detail, Qt.ElideRight, int(mid_w)) if mid_w > 0 else ""
 
-        # green: cast grows, post stays full
-        if self._state == "cast":
-            green_ratio = self._cast_progress
-        elif self._state == "post":
-            green_ratio = 1.0
-        else:
-            green_ratio = 0.0
-
-        green_w = int(rect.width() * green_ratio)
-        if green_w > 0:
-            green_rect = rect.adjusted(1, 1, -(rect.width() - green_w) - 1, -1)
-            p.setPen(Qt.NoPen)
-            p.setBrush(QtGui.QColor(0, 200, 0))
-            p.drawRect(green_rect)
-
-        # GCD overlay: light-blue, LEFT -> RIGHT, stays when finished
-        if self._state == "post" and self._gcd_progress > 0.0:
-            w = int(rect.width() * self._gcd_progress)
-            if w > 0:
-                r = rect.adjusted(1, 1, -(rect.width() - w) - 1, -1)
-                p.setPen(Qt.NoPen)
-                p.setBrush(QtGui.QColor(0, 255, 255, 255))  # 淺藍半透明
-                p.drawRect(r)
-
-        # CD overlay: gray, LEFT -> RIGHT, stays when finished
-        if self._state == "post" and self._cd_progress > 0.0:
-            w = int(rect.width() * self._cd_progress)
-            if w > 0:
-                r = rect.adjusted(1, 1, -(rect.width() - w) - 1, -1)
-                p.setPen(Qt.NoPen)
-                p.setBrush(QtGui.QColor(0, 0, 0, 100))  # 灰色半透明
-                p.drawRect(r)
-
-        p.end()
-
+            text_height = track_height - 2
+            painter.drawText(QRectF(left_x, y + 1, left_w, text_height),
+                             Qt.AlignLeft | Qt.AlignVCenter, name)
+            if detail:
+                painter.drawText(QRectF(mid_x, y + 1, mid_w, text_height),
+                                 Qt.AlignCenter, detail)
+            painter.drawText(QRectF(right_x, y + 1, right_w, text_height),
+                             Qt.AlignRight | Qt.AlignVCenter, right)
+        painter.end()
 
 from PySide6.QtWidgets import QDialog
 from UI.ui_savemanager import Ui_SaveManagerDialog
@@ -3363,6 +3588,14 @@ def update_skill_delay_labels(#技能延遲標籤更新
         int(runtime["cast_total_ms"]),
         int(runtime["global_post_ms"]),
         int(runtime["cooldown_ms"]),
+    )
+    cast_bar.set_cast_parts(
+        display["fixed"], display["variable"],
+        display["fixed_raw"], display["variable_raw"],
+    )
+    cast_bar.set_delay_parts(
+        display["global_post"], display["global_post_raw"],
+        display["cooldown"], display["cooldown_raw"],
     )
     return max(0.0, float(runtime["global_post_raw_ms"])) / 1000.0
 
@@ -5572,6 +5805,22 @@ class ItemSearchApp(QWidget):
 
         self.part_nav_popup.hide()
 
+    def event(self, event):
+        """視窗離開焦點時暫停四條倒數，重新聚焦才恢復。"""
+        if event.type() in (QEvent.WindowDeactivate, QEvent.WindowActivate):
+            inactive = event.type() == QEvent.WindowDeactivate
+            bar = getattr(self, "cast_bar", None)
+            if bar is not None:
+                bar.set_paused(inactive)
+            viewer = getattr(self, "damage_visualizer", None)
+            tabs = getattr(self, "center_tabs", None)
+            if viewer is not None:
+                if inactive:
+                    viewer.deactivate()
+                elif tabs is not None and tabs.currentWidget() is getattr(self, "damage_visualizer_scroll", None):
+                    viewer.activate()
+        return super().event(event)
+
     def eventFilter(self, obj, event):
         watched = {getattr(self, "part_nav_button", None), getattr(self, "part_nav_popup", None)}
         for btn in getattr(self, "part_nav_buttons", []):
@@ -6345,6 +6594,16 @@ class ItemSearchApp(QWidget):
     def open_monster_lookup(self):
         dlg = MonsterLookupDialog(self)
         dlg.monsterSelected.connect(self.apply_monster_to_main_ui)
+
+        # Apply exactly the ID entered in the Monster Lookup dialog, not a
+        # sprite filename or monster name.  The visualizer also remembers the
+        # ID when GRFs are still being indexed / the tab has not been opened.
+        def _sync_visualizer_monster(_monster):
+            visualizer = getattr(self, "damage_visualizer", None)
+            if visualizer is not None:
+                visualizer.select_monster_by_id(dlg.id_input.text().strip())
+
+        dlg.monsterSelected.connect(_sync_visualizer_monster)
         dlg.monsterSelected.connect(lambda: (setattr(self, "_last_calc_state", None), self.trigger_total_effect_update()))
         dlg.exec()
 
@@ -6863,7 +7122,9 @@ class ItemSearchApp(QWidget):
             )
         
 
-        if isinstance(aspd, (int, float)):            
+        if isinstance(aspd, (int, float)):
+            # ASPD 對應每次攻擊的理論間隔，於第四軌持續循環顯示剩餘秒數。
+            self.cast_bar.set_aspd(aspd)
             aspds = 50/(200-min(193,int(aspd)))
             if gcdtotal_raw_s <= 0:
                 ASPD_GCD = 0
@@ -6872,6 +7133,7 @@ class ItemSearchApp(QWidget):
             if render_output:
                 self.ASPD_label.setText(tr("label.aspd_info", aspd=aspd, aspds=f"{aspds:.2f}", gcd=ASPD_GCD))
         else:
+            self.cast_bar.set_aspd(None)
             if render_output:
                 self.ASPD_label.setText(tr("label.aspd_weapon_not_supported"))
 
@@ -7305,6 +7567,9 @@ class ItemSearchApp(QWidget):
                 self.skill_formula_result_input.setText("0%")
                 error_text = self.last_core_damage_error or "Core Stage17 計算失敗"
                 self.custom_calc_box.setPlainText(f"錯誤：{error_text}")
+                viewer = getattr(self, "damage_visualizer", None)
+                if viewer is not None:
+                    viewer.clear_calculation(error_text)
             return
 
         core_payload = core_snapshot.to_dict() if hasattr(core_snapshot, "to_dict") else dict(core_snapshot or {})
@@ -7754,6 +8019,14 @@ class ItemSearchApp(QWidget):
             # Compatibility flag: Core owns values, not Desktop text rendering.
             self.stage17_core_render_active = False
             self.last_core_damage_error = None
+            # 同步給中間的傷害動畫；詠唱/共延/冷卻/ASPD 都讀取
+            # 本次 update_skill_delay_labels 更新完成的 cast_bar 結果。
+            viewer = getattr(self, "damage_visualizer", None)
+            if viewer is not None:
+                try:
+                    viewer.set_calculation(core_snapshot, self.cast_bar, selected_skill_name, skill_level=skill_lv)
+                except Exception as exc:
+                    print(f"[RO 傷害視覺化] 更新失敗：{exc}")
 
     def _set_combo_data_blocked(self, combo, data):
         idx = combo.findData(data)
@@ -7826,6 +8099,7 @@ class ItemSearchApp(QWidget):
         self.ui_font_point_size = DEFAULT_APP_FONT_POINT_SIZE
         self.ui_theme = UI_THEME_AUTO
         self.ui_skin = UI_SKIN_FLUENT
+        self.cast_bar_display_mode = "bar"
         self.load_kro_equipment_data = False
 
         cfg = load_config_data()
@@ -7839,6 +8113,8 @@ class ItemSearchApp(QWidget):
         )
         self.ui_theme = normalize_ui_theme(cfg.get("ui_theme", self.ui_theme))
         self.ui_skin = normalize_ui_skin(cfg.get("ui_skin", self.ui_skin))
+        mode = cfg.get("cast_bar_display_mode", "bar")
+        self.cast_bar_display_mode = mode if mode in ("bar", "text") else "bar"
         self.workspace_splitter_sizes = cfg.get("workspace_splitter_sizes", [330, 577, 715])
 
         kro_setting = cfg.get(
@@ -7865,6 +8141,9 @@ class ItemSearchApp(QWidget):
             ),
             "ui_theme": normalize_ui_theme(getattr(self, "ui_theme", UI_THEME_AUTO)),
             "ui_skin": normalize_ui_skin(getattr(self, "ui_skin", UI_SKIN_FLUENT)),
+            "cast_bar_display_mode": (
+                "text" if getattr(self, "cast_bar_display_mode", "bar") == "text" else "bar"
+            ),
             "load_kro_equipment_data": bool(
                 getattr(self, "load_kro_equipment_data", False)
             ),
@@ -7878,6 +8157,24 @@ class ItemSearchApp(QWidget):
         except Exception as e:
             print(f"儲存設定失敗：{e}")
 
+
+    def _update_cast_info_visibility(self):
+        """素質無詠固定顯示；其餘三項文字與四軌長條互斥。"""
+        if not hasattr(self, "cast_status_text") or not hasattr(self, "cast_bar"):
+            return
+        use_text = self.cast_bar_display_mode == "text"
+        self.cast_status_text.setVisible(use_text)
+        self.cast_bar.setVisible(not use_text and bool(self.cast_bar._visible_rows()))
+
+    def _on_cast_bar_mode_changed(self, mode):
+        """點按長條／文字按鈕，不改變計時與技能計算。"""
+        if mode not in ("bar", "text"):
+            return
+        self.cast_bar_display_mode = mode
+        self.cast_bar_mode_bar_button.setChecked(mode == "bar")
+        self.cast_bar_mode_text_button.setChecked(mode == "text")
+        self._update_cast_info_visibility()
+        self.save_config()
 
     def _current_workspace_sizes(self):
         splitter = getattr(self, "workspace_splitter", None)
@@ -7906,7 +8203,7 @@ class ItemSearchApp(QWidget):
             (getattr(self, "left_tabs", None),
              ("character", "equipment", "buff")),
             (getattr(self, "center_tabs", None),
-             ("search", "function")),
+             ("search", "function", "damage")),
             (getattr(self, "sim_tabs", None),
              ("effect", "combo", "total", "damage", "defense")),
         )
@@ -9140,6 +9437,21 @@ class ItemSearchApp(QWidget):
             self.on_function_changed()
 
             
+    def _on_damage_visualizer_tab_changed(self, index):
+        """切換中間分頁時只啟動可見的視覺化計時及 GRF 索引。"""
+        viewer = getattr(self, "damage_visualizer", None)
+        if viewer is None:
+            return
+        if index == getattr(self, "damage_visualizer_tab_index", -1):
+            viewer.activate()
+            # 延用現有 Core 計算快照，不額外重算角色或技能公式。
+            result = getattr(self, "last_core_damage_result", None)
+            if result is not None and hasattr(self, "cast_bar"):
+                name = self.skill_box.currentText() if hasattr(self, "skill_box") else ""
+                viewer.set_calculation(result, self.cast_bar, name)
+        else:
+            viewer.deactivate()
+
     def on_tab_changed(self, index):
         if index == self.function_tab_index:
             self.update_function_selector()
@@ -13355,24 +13667,54 @@ class ItemSearchApp(QWidget):
         # 下：狀態區
         self.status_box = QGroupBox("攻速／詠唱資訊 [括弧內為技能需求秒數]")
         self.status_box.setObjectName("nextStatusSummary")
-        self.status_box.setMinimumHeight(100)  
+        self.status_box.setMinimumHeight(0)
         status_layout = QVBoxLayout(self.status_box)
 
-        # self.status_label = QLabel("（狀態顯示區）")
-        # self.status_label.setWordWrap(True)
-        # status_layout.addWidget(self.status_label)
-        # === 計算素質無詠 ===
-        
+        # 素質無詠固定顯示，永遠不受「長條／文字」選單影響。
         self.DEX_INT_265_label = QLabel(tr("label.instant_cast_calc"))
         status_layout.addWidget(self.DEX_INT_265_label)
+
+        # 只有固／變詠、共通延遲／冷卻、ASPD 資訊參與模式切換。
+        cast_mode_row = QHBoxLayout()
+        cast_mode_row.setContentsMargins(0, 0, 0, 0)
+        cast_mode_row.addWidget(QLabel("資訊顯示："))
+        # 兩顆互斥切換按鈕；選中狀態會持續亮起，不使用下拉選單。
+        self.cast_bar_mode_bar_button = QPushButton("長條")
+        self.cast_bar_mode_text_button = QPushButton("文字")
+        self.cast_bar_mode_button_group = QButtonGroup(self.status_box)
+        self.cast_bar_mode_button_group.setExclusive(True)
+        for mode, button in (("bar", self.cast_bar_mode_bar_button),
+                             ("text", self.cast_bar_mode_text_button)):
+            button.setCheckable(True)
+            button.setMinimumWidth(55)
+            button.setToolTip("顯示進度條" if mode == "bar" else "顯示原本的固／變詠、延遲／冷卻、ASPD 文字")
+            self.cast_bar_mode_button_group.addButton(button)
+            button.clicked.connect(lambda checked=False, m=mode: self._on_cast_bar_mode_changed(m))
+            cast_mode_row.addWidget(button)
+        cast_mode_row.addStretch(1)
+        status_layout.addLayout(cast_mode_row)
+
+        # 文字模式：僅顯示固／變詠、延遲／冷卻、ASPD 原有數值。
+        # 保留 QLabel 參照，原本的計算／setText 更新入口不變。
+        self.cast_status_text = QWidget(self.status_box)
+        status_text_layout = QVBoxLayout(self.cast_status_text)
+        status_text_layout.setContentsMargins(0, 0, 0, 0)
+        status_text_layout.setSpacing(status_layout.spacing())
         self.fix_label = QLabel("fix")
-        status_layout.addWidget(self.fix_label)
+        status_text_layout.addWidget(self.fix_label)
         self.Delay_label = QLabel("Delay")
-        status_layout.addWidget(self.Delay_label)
+        status_text_layout.addWidget(self.Delay_label)
         self.ASPD_label = QLabel("ASPD")
-        status_layout.addWidget(self.ASPD_label)
-        self.cast_bar = CastBarWidget(self)#詠唱條
+        status_text_layout.addWidget(self.ASPD_label)
+        status_layout.addWidget(self.cast_status_text)
+
+        # 長條模式：只列出非 0 秒的詠唱、共通延遲、技能冷卻、攻速。
+        self.cast_bar = CastBarWidget(self)
+        self.cast_bar._cast_info_host = self
         status_layout.addWidget(self.cast_bar)
+        self.cast_bar_mode_bar_button.setChecked(self.cast_bar_display_mode == "bar")
+        self.cast_bar_mode_text_button.setChecked(self.cast_bar_display_mode == "text")
+        self._update_cast_info_visibility()
         left_layout.addWidget(self.status_box, stretch=0)
 
         # ✅ 只加 left_panel 進去
@@ -13635,6 +13977,18 @@ class ItemSearchApp(QWidget):
 
         # 分頁加入
         self.function_tab_index = self.tab_widget.addTab(function_tab, tr("tab.function_commands"))
+
+        # # ===== 中間：RO 傷害視覺化（本機 GRF，唯讀） =====
+        # # 僅在首次開啟分頁時建立 GRF 索引，避免拖慢主畫面初始化。
+        # self.damage_visualizer = DamageVisualizer(get_app_base_dir(), self)
+        # self.damage_visualizer_scroll = QScrollArea(self)
+        # self.damage_visualizer_scroll.setWidgetResizable(True)
+        # self.damage_visualizer_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        # self.damage_visualizer_scroll.setWidget(self.damage_visualizer)
+        # self.damage_visualizer_tab_index = self.tab_widget.addTab(
+        #     self.damage_visualizer_scroll, "傷害視覺化"
+        # )
+        # self.center_tabs.currentChanged.connect(self._on_damage_visualizer_tab_changed)
         self.workspace_splitter.addWidget(self.center_tabs)
 
         # 預先初始化一次
@@ -14371,7 +14725,7 @@ class ItemSearchApp(QWidget):
         # V4: explanatory tooltips preserve tab labels and existing connections.
         tab_hints = (
             (self.left_tabs, ("角色屬性及狀態設定", "裝備與卡片配置", "技能、料理與輔助效果")),
-            (self.center_tabs, ("查找與檢視裝備資料", "函數語法與效果編輯")),
+            (self.center_tabs, ("查找與檢視裝備資料", "函數語法與效果編輯", "本機 GRF 木樁與 RO 傷害數字，模擬詠唱／延遲／冷卻")),
             (self.sim_tabs, ("檢視效果解析", "檢視套裝效果", "檢視總效果", "傷害試算", "減傷試算")),
         )
         for tabs, hints in tab_hints:
@@ -16456,7 +16810,7 @@ if __name__ == "__main__":
             worker_for_page.start()
 
         # Give the main UI time to paint before starting Chromium/WebEngine.
-        QTimer.singleShot(1500, begin_notes_check)
+        QTimer.singleShot(0, begin_notes_check)
 
     # 先讓 Qt 事件迴圈開始，再執行後續初始化
     QTimer.singleShot(0, start_initialization)
