@@ -312922,6 +312922,7 @@ tbl = {
 		identifiedDescriptionName = { "可以強化在妙勒尼地下密穴發現的金屬探測器MK47魔力的設計圖。", "重量 : ^777777125^000000" },
 		slotCount = 0,
 		ClassNum = 0,
+		EffectID = 1869,
 		costume = false
 	},
 	[500056] = {
