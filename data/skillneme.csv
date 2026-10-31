@@ -939,7 +939,7 @@
 5212,DK_VIGOR,活力之源,,,,,,,,0,0,,,,,,,,,,,,,,,
 5213,DK_STORMSLASH,風暴斬擊,physical,0,,,,5,(300+Sklv*750+total_POW*5)*BaseLv/100,0,Sklv,0.5,,,,,,,,,,,,,,
 5214,AG_DEADLY_PROJECTION,致命放射,,,,,,,,0,0,,,,,,,,,,,,,,,
-5215,AG_DESTRUCTIVE_HURRICANE,毀滅颶風,magic,,,,,5,(600+Sklv*2850+total_SPL*5)*BaseLv/100,4,10,,,,,,,,,,,,,,,
+5215,AG_DESTRUCTIVE_HURRICANE,毀滅颶風,magic,0,0,0,,5,(600+Sklv*2850+total_SPL*5)*BaseLv/100,4,1,,,,,,,,,,,0,0,,,
 5216,AG_RAIN_OF_CRYSTAL,冰晶飛瀑,magic,,,,,5,(180+Sklv*760+total_SPL*5)*BaseLv/100,1,8,,,,,,,,,,,,,,,
 5217,AG_MYSTERY_ILLUSION,神秘幻滅,magic,,,,,5,(Sklv*950+total_SPL*5)*BaseLv/100,7,14,,,,,,,,,,,,,,,
 5218,AG_VIOLENT_QUAKE,震裂術,magic,0,,0,,5,(200+Sklv*1200+total_SPL*5)*BaseLv/100,2,Sklv*2,,,,,,,,,,,0,0,,,
