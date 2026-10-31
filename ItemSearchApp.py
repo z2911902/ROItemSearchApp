@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.45-261021"
+Version = "v0.9.48-261031"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -6571,6 +6571,9 @@ class ItemSearchApp(QWidget):
             combo.setCurrentIndex(idx)
 
     def apply_monster_to_main_ui(self, m: dict):
+        # 保留已解析的 API 怪物資料。專案只保存可 JSON 化的怪物欄位，
+        # 不保存 API Key / 網路回應 / 本機快取路徑。
+        self._monster_lookup_data = dict(m)
         self._set_combo_by_key(self.size_box, m["size_id"])
         self._set_combo_by_key(self.element_box, m["element_id"])
         self.element_lv_input.setText(str(m["element_lv"]))
@@ -6589,6 +6592,8 @@ class ItemSearchApp(QWidget):
         self.monster_c_atk = str(m["monster_c_atk"])
         self.monster_f_matk = str(m["monster_f_matk"])
         self.monster_c_matk = str(m["monster_c_matk"])
+
+        self.monster_LUK = (m["monster_LUK"])/10#luk計算過來前先*10跳過來再/10以保持int數值。
 
 
     def open_monster_lookup(self):
@@ -7069,6 +7074,7 @@ class ItemSearchApp(QWidget):
         globals()["Damage_HIT"] = sum(val for val, _ in effect_dict.get((f"物理命中傷害", "%"), []))
         globals()["BowAtk"] = sum(val for val, _ in effect_dict.get((f"弓攻擊力", "%"), []))
         globals()["CRATE"] = sum(val for val, _ in effect_dict.get((f"C.RATE", ""), []))   
+        globals()["eq_CRI"] = sum(val for val, _ in effect_dict.get((f"CRI", ""), []))
         Ignore_size = sum(val for val, _ in effect_dict.get((f"武器體型修正", "%"), []))   
         if any("武器浸透勁效果" in key for (key, unit) in effect_dict.keys()):
             print("有武器浸透勁效果")
@@ -7231,6 +7237,8 @@ class ItemSearchApp(QWidget):
         AKTC = ATK_Mweapon + ATK_armor + atk_refine_total + WPINVESTIGATEATK
         #C.RATE
         total_CRATE = CRATE + int(total_CRT/3)
+        # CRI計算爆擊率
+        stat_CRI = 1 + base_lv /100 + total_LUK * 0.3
 
 
         if weapon_class in (11,13,14,17,18,19,20,21):#DEX系
@@ -7811,6 +7819,10 @@ class ItemSearchApp(QWidget):
                 result.append(f"{pad_label('物理屬性敵人:')}{round(get_effect_multiplier('D_element', target_element) + get_effect_multiplier('D_element', 10))}%")
                 result.append(f"{pad_label('物理命中:')}{round(Damage_HIT)}%")
                 result.append(f"{pad_label('爆傷:')}{round(Damage_CRI)}%")
+                if weapon_class == 16:#CRI 拳刃兩倍判斷
+                    result.append(f"{pad_label('CRI:')}{round((stat_CRI + eq_CRI) * 2 - (self.monster_LUK * 0.2))}")
+                else:
+                    result.append(f"{pad_label('CRI:')}{round(stat_CRI + eq_CRI - (self.monster_LUK * 0.2))}")
 
                 if skill_Rangedamage == 1:#遠傷判斷
                     if weapon_class == 11:
@@ -7960,6 +7972,7 @@ class ItemSearchApp(QWidget):
         body_results.append(f"===========================怪物能力===========================")
         body_results.append(f"{pad_label('ATK:')}{self.monster_f_atk} + {self.monster_c_atk}")
         body_results.append(f"{pad_label('MATK:')}{self.monster_f_matk} + {self.monster_c_matk}")
+        body_results.append(f"{pad_label('LUK:')}{self.monster_LUK} (CRI-{self.monster_LUK * 0.2})")
         # body_results.append(f"===========================計算===========================")
         # excelmfatk = (int(self.monster_f_atk) * (fc_melee_akttotal))
         # excelrfatk = (int(self.monster_f_atk) * (fc_range_akttotal))
@@ -8415,6 +8428,9 @@ class ItemSearchApp(QWidget):
         finally:
             self._project_switching = False
         self.project_tabs.setCurrentIndex(index)
+        if getattr(self, "_active_project_index", None) != index:
+            # 不依賴 QTabBar 的 currentChanged 一定已發出。
+            self._switch_workspace_project(index)
         if getattr(self, "_workspace_startup_ready", False):
             try:
                 self._persist_workspace_session()
@@ -8453,7 +8469,11 @@ class ItemSearchApp(QWidget):
             "res": "0", "mdef": "0", "mdefc": "0", "mres": "0",
             "element_lv": "1",
         })
-        return CoreCharacterBuild.from_dict(data).to_dict(include_metadata=True)
+        blank_build = CoreCharacterBuild.from_dict(data).with_combat_state({
+            "monster": {},
+            "monster_attack_element": 0,
+        })
+        return blank_build.to_dict(include_metadata=True)
 
     def _new_workspace_project(self):
         """＋: start with default levels/stats and no equipment or buffs."""
@@ -8512,15 +8532,11 @@ class ItemSearchApp(QWidget):
                 return
         record = self._project_records[index]
         try:
-            if record["data"] is not None:
-                self.apply_character_build(CoreCharacterBuild.from_dict(record["data"]))
-                self.refresh_skill_list()
-                if getattr(self, "last_character_build", None) is not None:
-                    self.apply_character_combat_state(self.last_character_build)
-                self.trigger_total_effect_update()
-            self.current_file = record["file"]
+            # 即使記錄尚無快照，也要套用空白配置；不可保持前一分頁狀態。
+            if record.get("data") is None:
+                record["data"] = self._blank_workspace_snapshot()
+            self._load_workspace_record(record)
             self._active_project_index = index
-            self.update_window_title()
             self._update_history_controls()
         except Exception as exc:
             QMessageBox.critical(self, "切換專案失敗", str(exc))
@@ -8701,6 +8717,7 @@ class ItemSearchApp(QWidget):
     def _load_workspace_record(self, record):
         self._history_lock = True
         try:
+            self._last_calc_state = None
             self.apply_character_build(CoreCharacterBuild.from_dict(record["data"]))
             self.refresh_skill_list()
             if getattr(self, "last_character_build", None) is not None:
@@ -11427,14 +11444,67 @@ class ItemSearchApp(QWidget):
             data_dir=data_dir,
         )
 
+    # === 怪物 API 資料／試算數值：隨 CharacterBuild-v2 一同保存 ===
+    def _collect_monster_project_state(self) -> dict:
+        """儲存已套用的怪物資訊，以及減傷試算使用的即時攻擊數值。"""
+        monster = dict(getattr(self, "_monster_lookup_data", None) or {})
+        monster.update({
+            "monster_f_atk": str(getattr(self, "monster_f_atk", 0)),
+            "monster_c_atk": str(getattr(self, "monster_c_atk", 0)),
+            "monster_f_matk": str(getattr(self, "monster_f_matk", 0)),
+            "monster_c_matk": str(getattr(self, "monster_c_matk", 0)),
+            # stage18_parse_monster_payload 的原始規格為 LUK × 10，
+            # 主介面存放的是除以 10 後的實際 LUK。
+            "monster_LUK": float(getattr(self, "monster_LUK", 0) or 0) * 10,
+        })
+        return monster
+
+    def _restore_monster_project_state(self, monster) -> None:
+        """每次切換／讀取專案都先重設，避免沿用上一分頁怪物資料。"""
+        if not isinstance(monster, dict):
+            monster = {}
+        self._monster_lookup_data = dict(monster) if monster.get("monster_id") or monster.get("name") else None
+        self.monster_f_atk = str(monster.get("monster_f_atk", 0))
+        self.monster_c_atk = str(monster.get("monster_c_atk", 0))
+        self.monster_f_matk = str(monster.get("monster_f_matk", 0))
+        self.monster_c_matk = str(monster.get("monster_c_matk", 0))
+        try:
+            self.monster_LUK = float(monster.get("monster_LUK", 0) or 0) / 10
+        except (TypeError, ValueError):
+            self.monster_LUK = 0
+
+        # 減傷試算使用 debounce 重算；先清掉上一分頁的文字，避免短暫顯示舊怪物。
+        self._last_calc_state = None
+        output = getattr(self, "body_custom_calc_box", None)
+        if output is not None:
+            output.clear()
+
+        # 未啟用的視覺化分頁不影響載入，已啟用時則同步怪物 ID。
+        viewer = getattr(self, "damage_visualizer", None)
+        monster_id = monster.get("monster_id")
+        if viewer is not None:
+            try:
+                if monster_id:
+                    select_monster = getattr(viewer, "select_monster_by_id", None)
+                    if callable(select_monster):
+                        select_monster(str(monster_id))
+                else:
+                    # 僅使用 viewer 明確提供的清除介面，不任意改它的私有狀態。
+                    clear_monster = getattr(viewer, "clear_monster", None)
+                    if callable(clear_monster):
+                        clear_monster()
+            except Exception as exc:
+                # 可選視覺化工具失效不應阻止整份角色專案載入。
+                print(f"同步怪物視覺化失敗：{exc}")
+
     # === CORE DEDUP PHASE 16: CHARACTER BUILD SCHEMA V2 ===
     def apply_character_combat_state(self, build):
         """Restore CharacterBuild-v2 transient combat controls without changing legacy JSON fields."""
         if not isinstance(build, CoreCharacterBuild):
             build = CoreCharacterBuild.from_dict(build)
         state = dict(getattr(build, "combat_state", {}) or {})
-        if not state:
-            return
+        # 舊專案沒有 monster 欄位，應歸零而非殘留另一份專案的怪物。
+        self._restore_monster_project_state(state.get("monster"))
 
         def set_combo_data(widget, value):
             if widget is None or value is None:
@@ -11462,6 +11532,12 @@ class ItemSearchApp(QWidget):
                     widget.setCurrentIndex(index)
             finally:
                 widget.blockSignals(previous)
+
+        # 「受攻擊屬性」沒有包含在舊版的平面專案欄位裡；空白／舊專案回到無屬性。
+        set_combo_data(getattr(self, "monster_body_element_box", None),
+                       state.get("monster_attack_element", 0))
+        if not state:
+            return
 
         set_combo_data(getattr(self, "skill_box", None), state.get("skill_id"))
         if state.get("skill_level") is not None and getattr(self, "skill_LV_input", None) is not None:
@@ -11560,6 +11636,11 @@ class ItemSearchApp(QWidget):
             betelgeuse_soul = 0
 
         return {
+            "monster": self._collect_monster_project_state(),
+            "monster_attack_element": (
+                self.monster_body_element_box.currentData()
+                if getattr(self, "monster_body_element_box", None) is not None else 0
+            ),
             "skill_id": self.skill_box.currentData(),
             "skill_level": self._core_int_from_widget(self.skill_LV_input, 1),
             "formula_override": self.skill_formula_input.text().strip() or None,
@@ -14659,6 +14740,7 @@ class ItemSearchApp(QWidget):
         self.monster_c_atk = 0
         self.monster_f_matk = 0
         self.monster_c_matk = 0
+        self.monster_LUK = 0
 
         self.body_custom_calc_tab = QWidget()
         body_layout = QVBoxLayout(self.body_custom_calc_tab)

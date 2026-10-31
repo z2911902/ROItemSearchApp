@@ -7239,6 +7239,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     hit_damage = _stage17_sum_effect(effect_dict, "物理命中傷害", "%")
     bow_atk = _stage17_sum_effect(effect_dict, "弓攻擊力", "%")
     crate = _stage17_sum_effect(effect_dict, "C.RATE", "")
+    eq_CRI = _stage17_sum_effect(effect_dict, "CRI", "")
     ignore_size = _stage17_sum_effect(effect_dict, "武器體型修正", "%")
     target_monster_physical = _stage17_sum_effect(effect_dict, "特定魔物物理增傷", "%")
     target_monster_magic = _stage17_sum_effect(effect_dict, "特定魔物魔法增傷", "%")
@@ -7337,6 +7338,9 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     front_base = fatk if weapon_class in STAGE17_DEX_WEAPON_CLASSES else natk
     front_element = attack_element if sevenwind else 0
     front_atk = int(front_base * 2 * stage17_get_damage_multiplier(front_element, target_element, target_element_lv) / 100)
+    # CRI計算爆擊率
+    stat_CRI = 1 + base_lv /100 + total_luk * 0.3
+
 
     # ========================== MATK 基礎區 =========================
     matkf = int(base_lv / 4) + int(total_int * 1.5) + int(total_dex / 5) + int(total_luk / 3) + int(total_spl * 5)
@@ -7407,6 +7411,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
         "hit_damage": hit_damage,
         "bow_atk": bow_atk,
         "total_crate": crate + int(total_crt / 3),
+        "total_CRI": stat_CRI + eq_CRI,
         "target_monster_physical": target_monster_physical,
         "target_monster_magic": target_monster_magic,
         "melee_damage": melee_damage,
@@ -8525,6 +8530,7 @@ def stage18_parse_monster_payload(data):
     strength = as_int(stats.get("str"))
     vit = as_int(stats.get("vit"))
     intelligence = as_int(stats.get("int"))
+    luk = as_int(stats.get("luk"))
 
     if legacy:
         def_after = as_int(stats.get("defense"))
@@ -8597,6 +8603,7 @@ def stage18_parse_monster_payload(data):
         "monster_c_atk": int(combat_atk),
         "monster_f_matk": int(front_matk),
         "monster_c_matk": int(combat_matk),
+        "monster_LUK": int(luk*10),
     }
 
 # -----------------------------------------------------------------------------

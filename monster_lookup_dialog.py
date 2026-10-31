@@ -137,7 +137,20 @@ class MonsterLookupDialog(QDialog):
             # 顯示名稱，data 存 id
             self.preset_box.addItem(m["name"], m["id"])
 
+        # 從專案恢復已套用的怪物，不必再連線查詢才能看到 ID 與名稱。
+        project_monster = getattr(parent, "_monster_lookup_data", None)
+        if isinstance(project_monster, dict) and project_monster:
+            self._last_data = dict(project_monster)
+            monster_id = project_monster.get("monster_id")
+            if monster_id:
+                self.id_input.setText(str(monster_id))
+            self.name_preview.setText(str(project_monster.get("name") or ""))
+            self.status.setText("目前專案已儲存的怪物（可直接套用）")
+            self.btn_apply.setEnabled(True)
+
         self.preset_box.currentIndexChanged.connect(self.on_preset_changed)
+        # 改變怪物 ID 後不得繼續套用上一筆查詢／專案中的怪物。
+        self.id_input.textChanged.connect(self.on_monster_id_changed)
         form = QFormLayout()
         form.addRow("預設怪物", self.preset_box)
         form.addRow("怪物 ID", self.id_input)
@@ -159,6 +172,12 @@ class MonsterLookupDialog(QDialog):
             return
         self.id_input.setText(str(monster_id))
 
+    def on_monster_id_changed(self, _text: str):
+        self._last_data = None
+        self.btn_apply.setEnabled(False)
+        self.name_preview.clear()
+        self.status.setText("怪物 ID 已變更，請重新查詢")
+
     # -------- logic --------
     def on_query(self):
 
@@ -170,9 +189,12 @@ class MonsterLookupDialog(QDialog):
 
         api_key = self.key_input.text().strip()
 
+        self._query_monster_id = monster_id
         self.status.setText("查詢中...")
         self.btn_query.setEnabled(False)
         self.btn_apply.setEnabled(False)
+        self.id_input.setEnabled(False)
+        self.preset_box.setEnabled(False)
 
         self.thread = QThread(self)
         self.worker = MonsterFetchWorker(monster_id, api_key)
@@ -195,6 +217,8 @@ class MonsterLookupDialog(QDialog):
         self.thread.start()
 
     def on_error(self, msg: str):
+        self.id_input.setEnabled(True)
+        self.preset_box.setEnabled(True)
         self.btn_query.setEnabled(True)
         self.btn_apply.setEnabled(False)   # <<< 重要：錯誤就不允許套用
         self._last_data = None             # <<< 重要：清掉上一次成功資料，避免誤套用
@@ -205,9 +229,14 @@ class MonsterLookupDialog(QDialog):
 
 
     def on_fetched(self, data: dict):
+        self.id_input.setEnabled(True)
+        self.preset_box.setEnabled(True)
         self.btn_query.setEnabled(True)
 
         parsed = self.parse_monster(data)
+        # 部分 API 回應未包含 ID；使用者輸入的 ID 才是這次查詢的對象。
+        if not parsed.get("monster_id"):
+            parsed["monster_id"] = self._query_monster_id
         self._last_data = parsed
 
         self.name_preview.setText(parsed["name"])
