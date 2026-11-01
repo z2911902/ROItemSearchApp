@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.48-261031"
+Version = "v0.9.49-261102"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -10425,6 +10425,8 @@ class ItemSearchApp(QWidget):
                 "mdef": self._core_int_from_widget(self.mdef_input, 0),
                 "mdefc": self._core_int_from_widget(self.mdefc_input, 0),
                 "mres": self._core_int_from_widget(self.mres_input, 0),
+                # 共用 Core 的物理 CRI 明細必須使用原始怪物 LUK。
+                "luk": float(getattr(self, "monster_LUK", 0) or 0),
                 "damage_multiplier_percent": float(
                     str(self.damage_reduction_combobox.currentText()).replace("%", "") or 100
                 ),

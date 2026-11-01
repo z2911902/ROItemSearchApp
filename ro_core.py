@@ -35,7 +35,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.87"
+RO_CORE_VERSION = "v0.21.88"
 
 from dataclasses import dataclass, field
 import ast
@@ -7162,6 +7162,21 @@ def _stage17_calculate_one(*, formula, round_index, label, skill_hits, attack_el
     }
 
 
+def stage17_calculate_effective_cri(
+    base_cri: float,
+    equip_cri: float,
+    weapon_class: int,
+    monster_luk: float = 0,
+) -> int:
+    """與 Desktop 物理傷害明細的 CRI 計算完全一致。
+
+    拳刃（weapon_class == 16）先將角色 CRI 加倍，再扣怪物 LUK × 0.2。
+    保留 Desktop 的 Python round() 與負值行為，不額外截斷或限制上限。
+    """
+    cri_multiplier = 2 if weapon_class == 16 else 1
+    return round((base_cri + equip_cri) * cri_multiplier - monster_luk * 0.2)
+
+
 def calculate_stage17_damage(*, request, data, context, effect_result, data_dir, damage):
     """拆分前 Desktop 傷害計算的 Qt-free 核心。
 
@@ -7340,6 +7355,11 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
     front_atk = int(front_base * 2 * stage17_get_damage_multiplier(front_element, target_element, target_element_lv) / 100)
     # CRI計算爆擊率
     stat_CRI = 1 + base_lv /100 + total_luk * 0.3
+    # monster.luk 是原始 LUK；stage18 的 monster_LUK 欄位則是 LUK × 10，
+    # 需在 Web 選取怪物時先 / 10，切勿在此重複放大或縮小。
+    effective_cri = stage17_calculate_effective_cri(
+        stat_CRI, eq_CRI, weapon_class, _stage17_number(monster.get("luk", 0), 0)
+    )
 
 
     # ========================== MATK 基礎區 =========================
@@ -7757,6 +7777,7 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
                 },
                 {"key": "physical_hit", "label": "物理命中", "value": round(hit_damage), "unit": "%"},
                 {"key": "critical_damage", "label": "爆傷", "value": round(crit_damage), "unit": "%"},
+                {"key": "cri", "label": "CRI", "value": effective_cri, "unit": ""},
                 {
                     "key": "near_far",
                     "label": breakdown_range_label,
