@@ -1,9 +1,18 @@
 ﻿
 
 - [專案首頁](https://github.com/z2911902/ROItemSearchApp) / [GitHub Releases](https://github.com/z2911902/ROItemSearchApp/releases) / [BUG回報/建議提供](https://forum.gamer.com.tw/C.php?bsn=4212&snA=439281) 巴哈文章內留言/站內信/NOW
+
+# 注意事項: 
+- HPSP計算依賴基礎數值，主要以[小月鈴文章HPSP蒐集數值](https://ref.gamer.com.tw/redir.php?url=https%3A%2F%2Fforum.gamer.com.tw%2FCo.php%3Fbsn%3D4212%26sn%3D2911986)，如果計算時該等級沒有基礎值，會造成計算異常，可以使用登出畫面的角色HPSP基礎值輸入到計算機就可以正確計算，基礎數值一起回報到文章！感謝！
+
 # ROItemSearchApp 更新紀錄
 
-## 正式發布紀錄（最新至最早）
+## 正式發布紀錄
+### [v0.9.49-261102](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.9.49-261102)
+
+- 調整長條圖詠唱條UI，可顯示長條圖或文字。
+- 新增CRI顯示跟計算，會自動從選擇的怪物自動扣除CRI。
+
 ### [v0.9.37-261018](https://github.com/z2911902/ROItemSearchApp/releases/tag/v0.9.37-261018)
 
 - 修正 Windows10 閃退問題。

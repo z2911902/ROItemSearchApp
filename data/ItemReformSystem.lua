@@ -27370,6 +27370,70 @@ ReformInfo = {
 		PreserveGrade = true,
 		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
 	},
+	[1759] = {
+		BaseItem = "S_IQ_TP_Earring",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_IQ_TP_Earring",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
+	[1760] = {
+		BaseItem = "S_IQ_TP_Pendant",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_IQ_TP_Pendant",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
+	[1761] = {
+		BaseItem = "S_IQ_FB_Armor",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_IQ_FB_Armor",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
+	[1762] = {
+		BaseItem = "S_IQ_FB_Shoes",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_IQ_FB_Shoes",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
 	[1763] = {
 		BaseItem = "S_HN_MC_Earring",
 		Material = {
@@ -28435,6 +28499,383 @@ ReformInfo = {
 		PreserveSocketItem = true,
 		PreserveGrade = true,
 		InformationString = { "<B>組合成果資訊說明</B>", "1) 精練值 : ^FF00000^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[10203] = {
+		BaseItem = "Tele_WG_Cape",
+		Material = {
+			Armor_Stone_3 = 200,
+			Barmund_Plain_Essence = 80,
+			Pieces_Of_Sentiment = 2000,
+			Zelunium = 1000,
+			Energy_Xtal_TWC_TW = 1
+		},
+		ResultItem = "Tele_WG_Cape_UPD",
+		NeedRefineMin = 9,
+		NeedRefineMax = 20,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = -5,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000-5^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1273] = {
+		BaseItem = "Time_Gap_Spear_IG",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_Spear_IG",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1274] = {
+		BaseItem = "Time_Gap_Staff_AG",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_Staff_AG",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1275] = {
+		BaseItem = "Time_Gap_Revolver_NW",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_Revolver_NW",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1276] = {
+		BaseItem = "Time_Gap_MT_Axe",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_MT_Axe",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1277] = {
+		BaseItem = "Time_Gap_TR_Ribbon",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_TR_Ribbon",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1278] = {
+		BaseItem = "Time_Gap_TR_Vilolin",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_TR_Vilolin",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1279] = {
+		BaseItem = "Time_Gap_HN_Staff",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_HN_Staff",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1310] = {
+		BaseItem = "Time_Gap_BO_Blade",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_BO_Blade",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1311] = {
+		BaseItem = "Time_Gap_SHC_Dagger1",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SHC_Dagger1",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1312] = {
+		BaseItem = "Time_Gap_SHC_Dagger2",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SHC_Dagger2",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1313] = {
+		BaseItem = "Time_Gap_SOA_Rod",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SOA_Rod",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1650] = {
+		BaseItem = "Time_Gap_DK_Spear",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_DK_Spear",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1651] = {
+		BaseItem = "Time_Gap_CD_Staff",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_CD_Staff",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1652] = {
+		BaseItem = "Time_Gap_SKE_Book",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SKE_Book",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1677] = {
+		BaseItem = "Time_Gap_ABC_Dagger",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_ABC_Dagger",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1678] = {
+		BaseItem = "Time_Gap_IQ_Knuckle",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_IQ_Knuckle",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1679] = {
+		BaseItem = "Time_Gap_SH_Foxtail",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SH_Foxtail",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1680] = {
+		BaseItem = "Time_Gap_EM_S_Book",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_EM_S_Book",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1681] = {
+		BaseItem = "Time_Gap_SS_Dagger1",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SS_Dagger1",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1682] = {
+		BaseItem = "Time_Gap_SS_Dagger2",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_SS_Dagger2",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[1683] = {
+		BaseItem = "Time_Gap_WH_Bow",
+		Material = {
+			Blacksmith_Blessing = 12,
+			Time_D_Ma_Rune = 2
+		},
+		ResultItem = "Time_Gap_WH_Bow",
+		NeedRefineMin = 9,
+		NeedRefineMax = 11,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 1,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
 	}
 }
 ReformItemList = {
@@ -28668,7 +29109,8 @@ ReformItemList = {
 		10196,
 		10197,
 		10200,
-		10202
+		10202,
+		10203
 	},
 	C_Weapon_Reform_1 = {
 		113,
@@ -29445,7 +29887,34 @@ ReformItemList = {
 		1825,
 		1826,
 		1827,
-		1828
+		1828,
+		1759,
+		1760,
+		1761,
+		1762
 	},
-	C_Boots_LT_Hammer = { 10201 }
+	C_Boots_LT_Hammer = { 10201 },
+	Time_Gap_Refine_Hammer = {
+		1273,
+		1274,
+		1275,
+		1276,
+		1277,
+		1278,
+		1279,
+		1310,
+		1311,
+		1312,
+		1313,
+		1650,
+		1651,
+		1652,
+		1677,
+		1678,
+		1679,
+		1680,
+		1681,
+		1682,
+		1683
+	}
 }

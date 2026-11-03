@@ -5168,7 +5168,14 @@ ItemDBNameTbl = {
 	["Red_Feather"] = 7440,
 	["FA_Feather_TW"] = 1003333,
 	["Fallen_Seraphim_ring"] = 490466,
-	["F_Seraphim_ring_LT"] = 491123
+	["F_Seraphim_ring_LT"] = 491123,
+	["Energy_Xtal_TWC_TW"] = 1003361,
+	["Tele_WG_Cape_UPD"] = 481003,
+	["S_IQ_TP_Earring"] = 1270083,
+	["S_IQ_TP_Pendant"] = 1270084,
+	["S_IQ_FB_Armor"] = 1270085,
+	["S_IQ_FB_Shoes"] = 1270086,
+	["Time_Gap_Refine_Hammer"] = 103308
 }
 
 -- Function #0
