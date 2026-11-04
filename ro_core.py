@@ -35,7 +35,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.88"
+RO_CORE_VERSION = "v0.21.89"
 
 from dataclasses import dataclass, field
 import ast
@@ -673,7 +673,6 @@ def parse_lua_effects_with_variables(
         variables[f"base_equip_{_stat}"] = context.get(f"base_equip_{_stat}", 0)
         variables[f"total_{_stat}"] = context.get(f"total_{_stat}", 0)
 
-    sfct_handled = False  # ✅ 控制是否已處理過 SubSFCTEquipAmount
     skill_delay_accum = {}
     results = []
     condition_met = True
@@ -1441,7 +1440,7 @@ def parse_lua_effects_with_variables(
             r"(Add|Sub)SFCTEquipAmount\(\s*(?:(\d+)\s*,\s*)?(.+?)\s*,\s*(\d+)\s*\)\s*$",
             line
         )
-        if sfct and condition_met and not sfct_handled:
+        if sfct and condition_met:
             op, item_id, expr, dummy = sfct.groups()
 
             # expr 是第二個參數，才是真正的 ms
@@ -1449,31 +1448,38 @@ def parse_lua_effects_with_variables(
 
             sign = "+" if op == "Add" else "-"
             if isinstance(val_ms, int):
-                results.append(f"固定詠唱時間 {sign}{val_ms / 1000:.2f} 秒")
+                # 毫秒 -> 秒：保留三位小數，避免 25ms 被四捨五入成 30ms。
+                results.append(f"固定詠唱時間 {sign}{val_ms / 1000:.3f} 秒")
             else:
                 results.append(f"固定詠唱時間 {sign}({val_ms}) 秒（無法解析）")
 
-            sfct_handled = True
             continue
 
+        # 另一種固定詠唱裝備效果：千分比 (permille) -> 百分比。
+        dependencies.register_function("SubSFCTEquipPermill", "減少固定詠唱時間(千分比)", [
+            {"name": "無意義", "map": "0"},
+            {"name": "數值‰", "type": "value"},
+            {"name": "無意義", "map": "0"},
+        ])
+        dependencies.register_function("AddSFCTEquipPermill", "增加固定詠唱時間(千分比)", [
+            {"name": "無意義", "map": "0"},
+            {"name": "數值‰", "type": "value"},
+            {"name": "無意義", "map": "0"},
+        ])
         sfct_2 = re.match(
             r"(Add|Sub)SFCTEquipPermill\(\s*(?:(\d+)\s*,\s*)?(.+?)\s*,\s*(\d+)\s*\)\s*$",
             line
         )
-        if sfct_2 and condition_met and not sfct_handled:
+        if sfct_2 and condition_met:
             op, item_id, expr, dummy = sfct_2.groups()
 
-            # expr 是第二個參數，才是真正的 ms
-            val = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
-            val = val // 10  # 轉為百分比
+            val_permille = safe_eval_expr(expr, variables, get_values, refine_inputs, grade)
             sign = "+" if op == "Add" else "-"
-            if isinstance(val, int):
-                sign = "+" if op == "Add" else "-"
-                results.append(f"固定詠唱時間 {sign}{val}%")
+            if isinstance(val_permille, int):
+                # 100‰ = 10%，保留可能存在的小數百分比。
+                results.append(f"固定詠唱時間 {sign}{val_permille / 10.0:g}%")
             else:
-                # 保留原本的「無法解析」提示
-                sign = "+" if op == "Add" else "-"
-                results.append(f"固定詠唱時間 {sign}({val})%（無法解析）")
+                results.append(f"固定詠唱時間 {sign}({val_permille})%（無法解析）")
             continue
 
         # 增減「指定技能傷害(裝備段)」合併處理
@@ -1558,6 +1564,12 @@ def parse_lua_effects_with_variables(
             continue
 
         # Add/Sub SpecificSpellCastTime（指定技能變動詠唱時間 %）
+        dependencies.register_function("SubSpecificSpellCastTime", "減少指定技能變動詠唱時間", [
+            {"name": "技能", "map": "skill_map"}, {"name": "數值%", "type": "value"},
+        ])
+        dependencies.register_function("AddSpecificSpellCastTime", "增加指定技能變動詠唱時間", [
+            {"name": "技能", "map": "skill_map"}, {"name": "數值%", "type": "value"},
+        ])
         specific_cast = re.match(r"(Add|Sub)SpecificSpellCastTime\(\s*(\d+)\s*,\s*(.+)\s*\)", line)
         if specific_cast and condition_met:
             op, skill_id, value_expr = specific_cast.groups()
@@ -2691,9 +2703,10 @@ def try_extract_effect(line: str):
     """依舊版 Desktop 語意解析一行已渲染效果文字。"""
     line = str(line)
 
-    match = re.match(r"(.+?)\s*([+-]?[0-9]+)\%$", line)
+    match = re.match(r"(.+?)\s*([+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+))%$", line)
     if match:
-        return match.group(1).strip(), int(match.group(2)), "%"
+        value = float(match.group(2))
+        return match.group(1).strip(), int(value) if value.is_integer() else value, "%"
 
     match = re.match(r"(.+?)\s*([+-]?[0-9.]+)\s*秒$", line)
     if match:
@@ -2892,7 +2905,8 @@ def build_effect_totals(
     ):
         total = sum(value for value, _ in entries)
         if unit == "秒":
-            total = round(total, 1)
+            # 詠唱效果原始資料以毫秒計；總效果顯示不可捨去至 0.1 秒。
+            total = round(total, 3 if "詠唱" in key else 1)
         totals.append(
             EffectTotal(
                 key=key,
@@ -2924,14 +2938,20 @@ def format_effect_dict(
 
     for item in totals:
         if item.unit == "秒":
-            value_str = f"{float(item.total):.1f}{item.unit}"
+            if "詠唱" in item.key:
+                value_str = f"{float(item.total):+.3f}".rstrip("0").rstrip(".") + item.unit
+            else:
+                value_str = f"{float(item.total):.1f}{item.unit}"
         else:
             value_str = f"{item.total:+g}{item.unit}"
 
         if show_source:
             for entry in item.entries:
                 if item.unit == "秒":
-                    val_str = f"{float(entry.value):.1f}{item.unit}"
+                    if "詠唱" in item.key:
+                        val_str = f"{float(entry.value):+.3f}".rstrip("0").rstrip(".") + item.unit
+                    else:
+                        val_str = f"{float(entry.value):.1f}{item.unit}"
                 else:
                     val_str = f"{entry.value:+g}{item.unit}"
                 combined.append(f"{item.key} {val_str}  ← 〔{entry.source}〕")
@@ -6351,17 +6371,12 @@ def _stage24_pick_display_ms(values, skill_level):
 
 
 def _stage24_pick_desktop_runtime_ms(values, skill_level):
-    """完整保留 Desktop CastBar / ASPD 的舊版索引方式。
+    """CastBar 與數字標籤使用同一個 1-based 技能等級。
 
-    ItemSearchApp 過去在 label 文字使用 skill_level-1，但 CastBar / raw GCD 使用
-    skill_level。Core 抽離期間保留此行為，確保 Stage 21.24 只是架構重構，
-    而不是悄悄修改遊戲計算行為。
+    舊版誤將 skill_level 當成 0-based index，造成 Lv.1 詠唱條讀到 Lv.2
+    的時間；與 ``stage24_format_delay_ms`` 保持一致才能正確顯示。
     """
-    values = list(values or [0])
-    if not values:
-        values = [0]
-    index = max(_stage17_int(skill_level, 0), 0)
-    return float(values[index] if index < len(values) else values[-1])
+    return _stage24_pick_display_ms(values, skill_level)
 
 
 def stage24_calculate_skill_timing_values(
@@ -6475,7 +6490,7 @@ def stage24_calculate_skill_timing_values(
         "cooldown_raw_ms": _stage24_pick_display_ms(cooldown_raw, level),
     }
 
-    # 保留 Desktop 歷史上的 CastBar / ASPD-GCD 索引方式，不做變更。
+    # CastBar / ASPD-GCD 與文字標籤統一使用技能等級 Lv.1 -> array[0]。
     desktop_runtime = {
         "fixed_ms": _stage24_pick_desktop_runtime_ms(fixed_ms, skill_level),
         "variable_ms": _stage24_pick_desktop_runtime_ms(variable_ms, skill_level),
@@ -6527,30 +6542,35 @@ def stage24_calculate_skill_timing_values(
 
 
 def stage24_extract_skill_timing_modifiers(effect_dict, skill_name):
-    """一次抽出 Desktop 與 Web 共用的全部裝備時間修正。"""
+    """抽取裝備時間修正；指定技能效果只套用到名稱完全相符的技能。
+
+    變動詠唱百分比可以與一般變動詠唱百分比加總。
+    固定詠唱百分比則沿用單一最強效果規則，不把多個百分比相加。
+    """
     effect_dict = effect_dict or {}
     skill_name = str(skill_name or "")
 
     fixed_flat_seconds = _stage17_sum_effect(effect_dict, "固定詠唱時間", "秒")
+    skill_fixed_name = f"技能【{skill_name}】固定詠唱時間"
+    skill_variable_name = f"技能【{skill_name}】變動詠唱時間"
+    skill_fixed_flat_seconds = _stage17_sum_effect(effect_dict, skill_fixed_name, "秒")
     fixed_percent_values = [
         float(value)
-        for value, _source in effect_dict.get(("固定詠唱時間", "%"), [])
+        for key in (("固定詠唱時間", "%"), (skill_fixed_name, "%"))
+        for value, _source in effect_dict.get(key, [])
         if isinstance(value, (int, float))
     ]
-    # Desktop 語意：固定詠唱百分比不疊加；只採用
-    # 負值中效果最強的一筆。
-    fixed_percent = min(fixed_percent_values, default=0.0)
+    # 固詠百分比不疊加：選最小的修正值（例如 -50% 優先於 -30%）；
+    # 只有增加固詠的正值效果時，也要正常生效。
+    fixed_percent = min(fixed_percent_values) if fixed_percent_values else 0.0
     variable_percent = _stage17_sum_effect(effect_dict, "變動詠唱時間", "%")
+    skill_variable_percent = _stage17_sum_effect(effect_dict, skill_variable_name, "%")
     global_post_percent = _stage17_sum_effect(effect_dict, "技能後延遲", "%")
     cooldown_flat_seconds = _stage17_sum_effect(
-        effect_dict,
-        f"技能【{skill_name}】冷卻時間",
-        "秒",
+        effect_dict, f"技能【{skill_name}】冷卻時間", "秒"
     )
-    selected_variable_flat_seconds = _stage17_sum_effect(
-        effect_dict,
-        f"技能【{skill_name}】變動詠唱時間",
-        "秒",
+    skill_variable_flat_seconds = _stage17_sum_effect(
+        effect_dict, skill_variable_name, "秒"
     )
 
     return {
@@ -6559,7 +6579,16 @@ def stage24_extract_skill_timing_modifiers(effect_dict, skill_name):
         "variable_cast_percent": float(variable_percent),
         "global_post_delay_percent": float(global_post_percent),
         "skill_cooldown_flat_seconds": float(cooldown_flat_seconds),
-        "skill_variable_cast_flat_seconds": float(selected_variable_flat_seconds),
+        "skill_variable_cast_flat_seconds": float(skill_variable_flat_seconds),
+        "skill_variable_cast_percent": float(skill_variable_percent),
+        "skill_fixed_cast_flat_seconds": float(skill_fixed_flat_seconds),
+        "skill_fixed_cast_percent": float(
+            min(
+                (float(value) for value, _source in effect_dict.get((skill_fixed_name, "%"), [])
+                 if isinstance(value, (int, float))),
+                default=0.0,
+            )
+        ),
     }
 
 
@@ -6586,10 +6615,14 @@ def stage24_calculate_skill_timing_from_effects(
         skill_code=skill_code,
         lua_text=lua_text,
         skill_level=skill_level,
-        equip_fixed_ms=modifiers["fixed_cast_flat_seconds"] * 1000.0,
+        equip_fixed_ms=(
+            modifiers["fixed_cast_flat_seconds"] + modifiers["skill_fixed_cast_flat_seconds"]
+        ) * 1000.0,
         equip_fixed_percent=modifiers["fixed_cast_percent"],
         base_stat=_stage17_number(total_dex, 0) + _stage17_number(total_int, 0) / 2.0,
-        equip_variable_percent=modifiers["variable_cast_percent"],
+        equip_variable_percent=(
+            modifiers["variable_cast_percent"] + modifiers["skill_variable_cast_percent"]
+        ),
         equip_global_post_percent=modifiers["global_post_delay_percent"],
         equip_cooldown_ms=modifiers["skill_cooldown_flat_seconds"] * 1000.0,
         selected_variable_cast_ms=modifiers["skill_variable_cast_flat_seconds"] * 1000.0,
@@ -6671,9 +6704,11 @@ def calculate_stage23_skill_timing(*, data_dir, skill_row, skill_level, effect_d
             "global_post_delay_percent": round(modifiers["global_post_delay_percent"], 6),
             "skill_cooldown_flat_seconds": round(modifiers["skill_cooldown_flat_seconds"], 6),
             "skill_variable_cast_flat_seconds": round(
-                modifiers["skill_variable_cast_flat_seconds"],
-                6,
+                modifiers["skill_variable_cast_flat_seconds"], 6,
             ),
+            "skill_variable_cast_percent": round(modifiers["skill_variable_cast_percent"], 6),
+            "skill_fixed_cast_flat_seconds": round(modifiers["skill_fixed_cast_flat_seconds"], 6),
+            "skill_fixed_cast_percent": round(modifiers["skill_fixed_cast_percent"], 6),
         },
     }
 
@@ -8525,8 +8560,22 @@ def stage18_parse_monster_payload(data):
         "water": 1, "earth": 2, "fire": 3, "wind": 4,
         "poison": 5, "holy": 6, "dark": 7, "shadow": 7,
         "ghost": 8, "undead": 9,
+        # Accept-Language: cn 可能使 API 枚舉欄位本地化，仍須正確解析屬性。
+        "無": 0, "无": 0, "無屬性": 0, "无属性": 0, "中性": 0,
+        "水": 1, "水屬性": 1, "水属性": 1,
+        "地": 2, "土": 2, "地屬性": 2, "地属性": 2,
+        "火": 3, "火屬性": 3, "火属性": 3,
+        "風": 4, "风": 4, "風屬性": 4, "风属性": 4,
+        "毒": 5, "毒屬性": 5, "毒属性": 5,
+        "聖": 6, "圣": 6, "聖屬性": 6, "圣属性": 6,
+        "暗": 7, "暗屬性": 7, "暗属性": 7,
+        "念": 8, "念屬性": 8, "念属性": 8,
+        "不死": 9, "不死屬性": 9, "不死属性": 9,
     }
-    size_aliases = {"small": 0, "medium": 1, "large": 2}
+    size_aliases = {
+        "small": 0, "medium": 1, "large": 2,
+        "小": 0, "小型": 0, "中": 1, "中型": 1, "大": 2, "大型": 2,
+    }
     race_aliases = {
         "formless": 0,
         "undead": 1,
@@ -8540,11 +8589,26 @@ def stage18_parse_monster_payload(data):
         "dragon": 9,
         "player human": 10, "player-human": 10,
         "player doram": 11, "doram": 11,
+        "無形": 0, "无形": 0, "無形種族": 0,
+        "不死": 1, "不死型": 1, "不死種族": 1,
+        "動物": 2, "动物": 2, "動物型": 2,
+        "植物": 3, "植物型": 3,
+        "昆蟲": 4, "昆虫": 4, "昆蟲型": 4,
+        "魚貝": 5, "鱼贝": 5, "魚貝型": 5,
+        "惡魔": 6, "恶魔": 6, "惡魔型": 6,
+        "人形": 7, "人型": 7, "人形種族": 7,
+        "天使": 8, "天使型": 8,
+        "龍": 9, "龙": 9, "龍族": 9,
+        "人類": 10, "人类": 10,
+        "杜蘭": 11, "杜兰": 11,
     }
     class_aliases = {
         "normal": 0, "regular": 0,
         "boss": 1, "mvp": 1,
         "guardian": 2,
+        "一般": 0, "普通": 0, "一般怪物": 0,
+        "首領": 1, "首领": 1, "頭目": 1, "头目": 1,
+        "守護者": 2, "守护者": 2,
     }
 
     level = as_int(stats.get("level"))
@@ -10466,6 +10530,10 @@ STAGE21_9_FUNCTION_DEFS = {'EnableSkill': {'desc': '可使用技能', 'args': [{
  'SubSpellDelay': {'desc': '減少技能後延遲', 'args': [{'name': '數值%', 'type': 'value'}]},
  'SubSpellCastTime': {'desc': '減少變動詠唱時間', 'args': [{'name': '數值%', 'type': 'value'}]},
  'AddSpellCastTime': {'desc': '增加變動詠唱時間', 'args': [{'name': '數值%', 'type': 'value'}]},
+ 'SubSpecificSpellCastTime': {'desc': '減少指定技能變動詠唱時間', 'args': [{'name': '技能', 'map': 'skill_map'}, {'name': '數值%', 'type': 'value'}]},
+ 'AddSpecificSpellCastTime': {'desc': '增加指定技能變動詠唱時間', 'args': [{'name': '技能', 'map': 'skill_map'}, {'name': '數值%', 'type': 'value'}]},
+ 'SubSFCTEquipPermill': {'desc': '減少固定詠唱時間(千分比)', 'args': [{'name': '無意義', 'map': '0'}, {'name': '數值‰', 'type': 'value'}, {'name': '無意義', 'map': '0'}]},
+ 'AddSFCTEquipPermill': {'desc': '增加固定詠唱時間(千分比)', 'args': [{'name': '無意義', 'map': '0'}, {'name': '數值‰', 'type': 'value'}, {'name': '無意義', 'map': '0'}]},
  'SubSFCTEquipAmount': {'desc': '減少固定詠唱時間',
                         'args': [{'name': '無意義', 'map': '0'},
                                  {'name': '數值ms', 'type': 'value'},

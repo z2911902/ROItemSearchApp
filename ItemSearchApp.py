@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.49-261102"
+Version = "v0.9.51-261105"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -3582,7 +3582,7 @@ def update_skill_delay_labels(#技能延遲標籤更新
         )
     )
 
-    # Preserve the Desktop CastBar / ASPD-GCD legacy indexing exactly.
+    # CastBar 與文字標籤均按選定技能等級（Lv.1 為陣列第一筆）顯示。
     runtime = shared["desktop_runtime"]
     cast_bar.start(
         int(runtime["cast_total_ms"]),
@@ -6570,10 +6570,23 @@ class ItemSearchApp(QWidget):
         if idx >= 0:
             combo.setCurrentIndex(idx)
 
+    def _update_monster_lookup_buttons(self) -> None:
+        """傷害／減傷兩個查詢按鈕同步顯示目前專案已套用的怪物名稱。"""
+        monster = getattr(self, "_monster_lookup_data", None) or {}
+        name = str(monster.get("name") or "").strip() if isinstance(monster, dict) else ""
+        base_label = tr("button.lookup_monster", "查詢怪物")
+        label = f"{base_label} ({name})" if name else base_label
+        for attr in ("btn_open_monster_lookup", "btn_open_monster_lookup_2"):
+            button = getattr(self, attr, None)
+            if button is not None:
+                button.setText(label)
+                button.setToolTip(label if name else "")
+
     def apply_monster_to_main_ui(self, m: dict):
         # 保留已解析的 API 怪物資料。專案只保存可 JSON 化的怪物欄位，
         # 不保存 API Key / 網路回應 / 本機快取路徑。
         self._monster_lookup_data = dict(m)
+        self._update_monster_lookup_buttons()
         self._set_combo_by_key(self.size_box, m["size_id"])
         self._set_combo_by_key(self.element_box, m["element_id"])
         self.element_lv_input.setText(str(m["element_lv"]))
@@ -11450,6 +11463,9 @@ class ItemSearchApp(QWidget):
     def _collect_monster_project_state(self) -> dict:
         """儲存已套用的怪物資訊，以及減傷試算使用的即時攻擊數值。"""
         monster = dict(getattr(self, "_monster_lookup_data", None) or {})
+        # name 隨 _roitemsearch_combat.monster 一起寫入目前專案 JSON。
+        # 不另存到 data/monster，後者只負責 API 原始怪物資料快取。
+        monster["name"] = str(monster.get("name") or "").strip()
         monster.update({
             "monster_f_atk": str(getattr(self, "monster_f_atk", 0)),
             "monster_c_atk": str(getattr(self, "monster_c_atk", 0)),
@@ -11466,6 +11482,7 @@ class ItemSearchApp(QWidget):
         if not isinstance(monster, dict):
             monster = {}
         self._monster_lookup_data = dict(monster) if monster.get("monster_id") or monster.get("name") else None
+        self._update_monster_lookup_buttons()
         self.monster_f_atk = str(monster.get("monster_f_atk", 0))
         self.monster_c_atk = str(monster.get("monster_c_atk", 0))
         self.monster_f_matk = str(monster.get("monster_f_matk", 0))
@@ -14749,6 +14766,7 @@ class ItemSearchApp(QWidget):
         self.btn_open_monster_lookup_2 = QPushButton(tr("button.lookup_monster"))
         self.btn_open_monster_lookup_2.clicked.connect(self.open_monster_lookup)
         body_layout.addWidget(self.btn_open_monster_lookup_2)
+        self._update_monster_lookup_buttons()
 
         body_target_layout = QHBoxLayout()
 
