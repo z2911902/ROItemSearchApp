@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.51-261105"
+Version = "v0.9.53-261110"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -910,6 +910,1298 @@ from ro_core import (
     stage17_compare_damage_parity as core_stage17_compare_damage_parity,
 
 )
+
+
+# ========= Embedded multi-skill extension: standalone window, one Python file =========
+# This block replaces ro_skill_catalog.py, ro_skill_rotation.py and ro_skill_rotation_ui.py.
+# No additional Python files are required for the *new feature*; original project imports remain.
+"""Search and job-filter skill catalogs for the multi-skill RO UI.
+
+Uses the same job selectskill / skill Code prefix rule as the original
+ItemSearchApp skill selector. No Qt, pandas, or network dependencies.
+"""
+
+import math
+from typing import Any, Mapping
+
+
+def _text(value: Any) -> str:
+    if value is None:
+        return ''
+    if isinstance(value, float) and not math.isfinite(value):
+        return ''
+    result = str(value).strip()
+    return '' if result.lower() in ('nan', 'none', '<na>') else result
+
+
+def _skill_level(value: Any) -> int | None:
+    value = _text(value)
+    if not value:
+        return None
+    try:
+        level = int(float(value))
+    except (ValueError, OverflowError):
+        return None
+    return level if level > 0 else None
+
+
+def build_rotation_catalog(
+    skills: Mapping,
+    jobs: Mapping,
+    job_id: Any,
+    *,
+    job_only: bool = False,
+) -> list[tuple[int, str, int]]:
+    """Return skill ID/name/max-level, optionally limited to selected job.
+
+    Default dropdown: match original single-skill selector's Code prefix and
+    require a valid Slv. Global search: include ALL loaded, named skill IDs,
+    including skills without a damage formula or an Slv (fallback level 1).
+    Search visibility does not imply a damage formula is supported.
+    """
+    job = jobs.get(job_id, {}) if isinstance(jobs, Mapping) else {}
+    prefixes = {
+        part.strip().upper()
+        for part in _text(job.get('selectskill', '')).split('/') if part.strip()
+    }
+    result = []
+    for raw_id, info in skills.items():
+        if not isinstance(info, dict):
+            continue
+        name = _text(info.get('Name'))
+        if not name:
+            continue
+        try:
+            sid = int(raw_id)
+        except (TypeError, ValueError):
+            continue
+        level = _skill_level(info.get('Slv'))
+        if job_only:
+            code = _text(info.get('Code')).upper()
+            if level is None or '_' not in code or code.split('_', 1)[0] not in prefixes:
+                continue
+        result.append((sid, name, level or 1))
+    return sorted(result, key=lambda entry: (entry[1].casefold(), entry[0]))
+
+
+def search_rotation_catalog(
+    catalog: list[tuple[int, str, int]],
+    skills: Mapping,
+    query: str,
+) -> list[tuple[int, str, int]]:
+    """Search ALL skill names, internal Codes and numeric IDs by substring."""
+    term = _text(query).casefold()
+    if not term:
+        return list(catalog)
+    matches = []
+    for sid, name, level in catalog:
+        info = skills.get(sid, {})
+        code = _text(info.get('Code')) if isinstance(info, dict) else ''
+        if term in f'{name} {code} {sid}'.casefold():
+            matches.append((sid, name, level))
+    return matches
+
+"""RO multiple-skill rotation scheduling (pure Python; no Qt dependencies).
+
+All time values are integer milliseconds, including cooldown readiness.
+Manual actions are sequential; A can trigger B so their individual cast,
+global delay, cooldown and ASPD restrictions advance in parallel.
+The next manual action observes the latest of their shared gates.
+
+This is a deterministic simulator, not an optimizer or a claim about server ticks,
+damage travel times, cast interruptions, or skill-specific hidden restrictions.
+"""
+
+from dataclasses import dataclass
+from math import isfinite
+from typing import List, Sequence
+
+MAX_EVENTS = 20000
+
+
+@dataclass(frozen=True)
+class RotationSkill:
+    skill_id: int
+    name: str
+    level: int
+    cast_ms: int
+    gcd_ms: int
+    cooldown_ms: int
+    damage: float
+    min_damage: float = 0.0
+    enabled: bool = True
+    uses_aspd: bool = True
+    entry_id: int = 0
+    auto_cast_target: int | None = None  # target card entry_id, not skill ID
+    auto_only: bool = False             # True = never cast manually; False = manual cast observes cooldown
+
+
+@dataclass(frozen=True)
+class CastEvent:
+    skill_id: int
+    name: str
+    level: int
+    start_ms: int
+    cast_end_ms: int
+    gcd_end_ms: int
+    cooldown_end_ms: int
+    aspd_end_ms: int
+    damage: float
+    min_damage: float
+    triggered_by: int | None = None  # triggering skill ID, or None for manual cast
+
+
+@dataclass(frozen=True)
+class SkillSummary:
+    skill_id: int
+    name: str
+    level: int
+    count: int
+    damage_per_cast: float
+    min_damage_per_cast: float
+    total_damage: float
+    min_total_damage: float
+    share_percent: float
+    manual_count: int = 0
+    auto_count: int = 0
+
+
+@dataclass(frozen=True)
+class RotationResult:
+    duration_ms: int
+    mode: str
+    events: List[CastEvent]
+    by_skill: List[SkillSummary]
+    total_damage: float
+    min_total_damage: float
+    dps: float
+    optimality_proven: bool = False  # bounded search is not an exact global proof
+
+
+def _rotation_result(skills, duration_ms, mode, events):
+    total = sum(e.damage for e in events)
+    min_total = sum(e.min_damage for e in events)
+    summary = []
+    seen = set()
+    for spec in skills:
+        key = (spec.skill_id, spec.level)
+        if key in seen:
+            continue
+        seen.add(key)
+        matched = [e for e in events if (e.skill_id, e.level) == key]
+        count = len(matched)
+        part_total = sum(e.damage for e in matched)
+        min_part = sum(e.min_damage for e in matched)
+        summary.append(SkillSummary(
+            skill_id=spec.skill_id, name=spec.name, level=spec.level,
+            count=count,
+            damage_per_cast=part_total / count if count else spec.damage,
+            min_damage_per_cast=min_part / count if count else spec.min_damage,
+            total_damage=part_total, min_total_damage=min_part,
+            share_percent=(part_total / total * 100) if total > 0 else 0.0,
+            manual_count=sum(e.triggered_by is None for e in matched),
+            auto_count=sum(e.triggered_by is not None for e in matched),
+        ))
+    return RotationResult(
+        duration_ms=duration_ms, mode=mode, events=list(events), by_skill=summary,
+        total_damage=total, min_total_damage=min_total,
+        dps=total * 1000 / duration_ms,
+    )
+
+
+def _rotation_manual_ready(spec, now, ready):
+    """Manual B must wait for cooldown started by either manual or auto casts.
+
+    Automatic casts still bypass the readiness check, but update the shared
+    skill cooldown tracker so subsequent *manual* casts cannot go early.
+    """
+    return not spec.auto_only and now >= ready.get(spec.skill_id, 0)
+
+
+def _rotation_fire(primary, start, ready, by_entry, aspd_ms, duration_ms):
+    """施放主動 A；若設定自詠 B，B 在 A 開始的同一瞬間直接觸發。
+
+    A 須遵守自身詠唱、共延、冷卻與 ASPD；自詠 B 立即造成傷害，
+    不檢查 B 是否正在冷卻，也不佔用詠唱、共延或 ASPD。
+    然而自詠 B 也會啟動／延長 B 的獨立冷卻；主動施放 B 必須等待該冷卻。
+    B 不會再觸發 C（單層觸發）。
+    """
+    if not _rotation_manual_ready(primary, start, ready):
+        return None
+    if start >= duration_ms:
+        return None
+    next_ready = dict(ready)
+    cast_end = start + primary.cast_ms
+    gcd_end = cast_end + primary.gcd_ms
+    aspd_end = cast_end + (aspd_ms if primary.uses_aspd else 0)
+    cooldown_end = cast_end + primary.cooldown_ms
+    next_gate = max(cast_end, gcd_end, aspd_end)
+    next_ready[primary.skill_id] = cooldown_end
+    events = []
+    # 主動 A 要等詠唱完成才計入 A 傷害，但 B 在 A 開始時立即自詠。
+    if cast_end <= duration_ms:
+        events.append(CastEvent(
+        skill_id=primary.skill_id, name=primary.name, level=primary.level,
+        start_ms=start, cast_end_ms=cast_end, gcd_end_ms=gcd_end,
+        cooldown_end_ms=cooldown_end, aspd_end_ms=aspd_end,
+        damage=primary.damage, min_damage=primary.min_damage,
+        triggered_by=None,
+        ))
+    candidate = by_entry.get(primary.auto_cast_target)
+    if candidate is not None and candidate.skill_id != primary.skill_id:
+        # 自詠瞬間生效、不佔共延／ASPD；但獨立冷卻會阻止 B 主動施放。
+        # 若 B 原本仍在冷卻，較早的冷卻結束時間不能被自詠縮短。
+        auto_cooldown_end = max(next_ready.get(candidate.skill_id, 0),
+                                start + candidate.cooldown_ms)
+        next_ready[candidate.skill_id] = auto_cooldown_end
+        events.append(CastEvent(
+            skill_id=candidate.skill_id, name=candidate.name, level=candidate.level,
+            start_ms=start, cast_end_ms=start, gcd_end_ms=start,
+            cooldown_end_ms=auto_cooldown_end, aspd_end_ms=start,
+            damage=candidate.damage, min_damage=candidate.min_damage,
+            triggered_by=primary.skill_id,
+        ))
+    return next_gate, next_ready, tuple(events)
+
+
+def _rotation_policy(manual, by_entry, ready_init, duration_ms, aspd_ms,
+                     max_events, *, order=None, fixed=False):
+    order = list(manual if order is None else order)
+    now = 0
+    ready = dict(ready_init)
+    events = []
+    next_fixed = 0
+    while now < duration_ms:
+        if fixed:
+            spec = order[next_fixed % len(order)]
+            next_fixed += 1
+            now = max(now, ready.get(spec.skill_id, 0))
+        else:
+            spec = next((s for s in order if _rotation_manual_ready(s, now, ready)), None)
+            if spec is None:
+                now = min(ready.get(s.skill_id, 0) for s in order)
+                if now >= duration_ms:
+                    break
+                spec = next(s for s in order if _rotation_manual_ready(s, now, ready))
+        if now >= duration_ms:
+            break
+        outcome = _rotation_fire(spec, now, ready, by_entry, aspd_ms, duration_ms)
+        if outcome is None:
+            break
+        now, ready, new_events = outcome
+        events.extend(new_events)
+        if len(events) >= max_events:
+            raise ValueError(f'事件數超過 {max_events:,} 次，請縮短模擬時間。')
+    return tuple(events)
+
+
+def _rotation_optimize(manual, by_entry, ready_init, duration_ms, aspd_ms,
+                       max_events, baseline):
+    """Bounded beam search + deterministic heuristic candidates.
+
+    This improves practical DPS and includes a possible deliberate WAIT for a
+    high-value cooldown. It is NOT a mathematical guarantee of global optimum.
+    The result is never worse than fixed/priority candidates tested here.
+    """
+    def value(events):
+        return sum(e.damage for e in events)
+
+    best = tuple(baseline)
+    peak = max((s.damage + (by_entry.get(s.auto_cast_target).damage
+              if s.auto_cast_target in by_entry and
+              by_entry[s.auto_cast_target].skill_id != s.skill_id else 0.0)) /
+              max(1, s.cast_ms + max(s.gcd_ms, aspd_ms if s.uses_aspd else 0))
+              for s in manual)
+    # Other plausible schedules provide good lower bounds even for long runs.
+    variants = [
+        sorted(manual, key=lambda s: -(s.damage + (
+            by_entry[s.auto_cast_target].damage if s.auto_cast_target in by_entry else 0))),
+        sorted(manual, key=lambda s: -(s.damage + (
+            by_entry[s.auto_cast_target].damage if s.auto_cast_target in by_entry else 0)) /
+            max(1, s.cast_ms + max(s.gcd_ms, aspd_ms if s.uses_aspd else 0))),
+        sorted(manual, key=lambda s: -(s.damage + (
+            by_entry[s.auto_cast_target].damage if s.auto_cast_target in by_entry else 0)) /
+            max(1, s.cast_ms + max(s.gcd_ms, s.cooldown_ms, aspd_ms if s.uses_aspd else 0))),
+    ]
+    for ordered in variants:
+        candidate = _rotation_policy(manual, by_entry, ready_init, duration_ms,
+                                     aspd_ms, max_events, order=ordered)
+        if value(candidate) > value(best):
+            best = candidate
+    # Beam on the full time window for smaller encounters. Longer simulations
+    # use multiple full-horizon heuristics rather than freezing Qt for minutes.
+    if duration_ms > 20_000 or len(manual) > 9:
+        return best
+    sorted_ids = tuple(sorted({s.skill_id for s in by_entry.values()}))
+    # state: (next_start, cooldown_tuple, accumulated, event_tuple)
+    initial = (0, tuple(ready_init.get(i, 0) for i in sorted_ids), 0.0, ())
+    beam = [initial]
+    width = 44
+    best_total = value(best)
+    for depth in range(min(160, max_events)):
+        candidates = []
+        changed = False
+        for now, cd_values, total, history in beam:
+            if total > best_total:
+                best, best_total = history, total
+            if now >= duration_ms:
+                candidates.append((now, cd_values, total, history))
+                continue
+            ready = dict(zip(sorted_ids, cd_values))
+            options = [s for s in manual if _rotation_manual_ready(s, now, ready)
+                       and now + s.cast_ms <= duration_ms]
+            # Consider waiting for an unready skill even if something else is
+            # castable. Greedy priority often misses such cooldown alignments.
+            future = sorted(set(ready.get(s.skill_id, 0) for s in manual
+                                if now < ready.get(s.skill_id, 0) < duration_ms))
+            for spec in options:
+                outcome = _rotation_fire(spec, now, ready, by_entry, aspd_ms, duration_ms)
+                if outcome is None:
+                    continue
+                next_time, next_ready, new_events = outcome
+                if len(history) + len(new_events) >= max_events:
+                    continue
+                next_total = total + value(new_events)
+                candidates.append((next_time,
+                                   tuple(next_ready.get(i, 0) for i in sorted_ids),
+                                   next_total, history + new_events))
+                changed = True
+            for moment in future[:3]:
+                candidates.append((moment, cd_values, total, history))
+                changed = True
+            if not options and not future:
+                candidates.append((duration_ms, cd_values, total, history))
+        if not changed or not candidates:
+            break
+        # Deduplicate timelines by upcoming time & cooldown state; keep the
+        # path yielding the most accumulated damage.
+        unique = {}
+        for state in candidates:
+            key = state[:2]
+            if key not in unique or state[2] > unique[key][2]:
+                unique[key] = state
+        beam = sorted(unique.values(), key=lambda state: (
+            state[2] + (duration_ms - state[0]) * peak,
+            state[2], -state[0]), reverse=True)[:width]
+    # Finish unfinished candidate paths with a feasible greedy policy; do not
+    # incorrectly score them as if the fight ended at the beam-depth boundary.
+    for now, cd_values, total, history in beam:
+        ready = dict(zip(sorted_ids, cd_values))
+        tail = []
+        # At most width short completions; bound CPU for longer high-ASPD cases.
+        while now < duration_ms:
+            available = [s for s in variants[1] if _rotation_manual_ready(s, now, ready)]
+            if not available:
+                now = min(ready.get(s.skill_id, 0) for s in manual)
+                if now >= duration_ms:
+                    break
+                available = [s for s in variants[1] if _rotation_manual_ready(s, now, ready)]
+            action = _rotation_fire(available[0], now, ready, by_entry, aspd_ms, duration_ms)
+            if action is None:
+                break
+            now, ready, new_events = action
+            tail.extend(new_events)
+            if len(history) + len(tail) >= max_events:
+                break
+        candidate = history + tuple(tail)
+        if value(candidate) > best_total:
+            best, best_total = candidate, value(candidate)
+    return best
+
+
+def simulate_rotation(skills: Sequence[RotationSkill], *, duration_ms: int,
+                      mode: str = 'priority', aspd_ms: int = 0,
+                      max_events: int = MAX_EVENTS) -> RotationResult:
+    """Fixed, priority, and bounded DPS-search scheduling with one-level auto-cast.
+
+    A follows its own cast time, shared delay, ASPD and independent cooldown.
+    Auto-cast B fires immediately at A's start time, bypassing B's cast time,
+    shared delay, existing cooldown and ASPD; it starts/extends B's independent
+    cooldown. Manual B cannot be cast until that timer ends. Automatic B can
+    still trigger while B is cooling. There are no recursive chains (A->B->C).
+    """
+    if mode not in ('fixed', 'priority', 'optimal'):
+        raise ValueError('施放模式必須為 fixed、priority 或 optimal。')
+    if not isinstance(duration_ms, int) or not 1 <= duration_ms <= 3_600_000:
+        raise ValueError('模擬時長必須介於 1 毫秒與 3600 秒。')
+    if not isinstance(aspd_ms, int) or aspd_ms < 0 or max_events < 1:
+        raise ValueError('ASPD / 事件數限制無效。')
+    active = [s for s in skills if s.enabled]
+    if not active:
+        raise ValueError('請先加入至少一個技能。')
+    by_entry = {}
+    for index, spec in enumerate(active, 1):
+        if spec.level < 1 or any(not isinstance(v, int) or v < 0
+                                  for v in (spec.cast_ms, spec.gcd_ms, spec.cooldown_ms)):
+            raise ValueError(f'{spec.name} 的技能等級或施放時間無效。')
+        if not all(isfinite(v) and v >= 0 for v in (spec.damage, spec.min_damage)):
+            raise ValueError(f'{spec.name} 的傷害必須是非負且有限的數值。')
+        key = spec.entry_id or -index
+        if key in by_entry:
+            raise ValueError('技能卡片 ID 重複，無法建立自詠關係。')
+        by_entry[key] = spec
+    manual = [s for s in active if not s.auto_only]
+    if not manual:
+        raise ValueError('請至少保留一張可主動施放的技能卡片。')
+    for spec in manual:
+        aspd = aspd_ms if spec.uses_aspd else 0
+        if spec.cast_ms + max(spec.gcd_ms, spec.cooldown_ms, aspd) == 0:
+            raise ValueError(f'{spec.name} 沒有任何施放間隔，無法模擬無限次瞬發。')
+    ready_init = {s.skill_id: 0 for s in active}
+    # If a trigger target was removed, it silently becomes no trigger; UI also
+    # clears stale target selectors on card deletion.
+    if mode == 'fixed':
+        events = _rotation_policy(manual, by_entry, ready_init, duration_ms,
+                                  aspd_ms, max_events, fixed=True)
+    else:
+        events = _rotation_policy(manual, by_entry, ready_init, duration_ms,
+                                  aspd_ms, max_events)
+        if mode == 'optimal':
+            fixed = _rotation_policy(manual, by_entry, ready_init, duration_ms,
+                                     aspd_ms, max_events, fixed=True)
+            if sum(e.damage for e in fixed) > sum(e.damage for e in events):
+                events = fixed
+            events = _rotation_optimize(manual, by_entry, ready_init, duration_ms,
+                                        aspd_ms, max_events, events)
+    return _rotation_result(active, duration_ms, mode, events)
+
+
+"""Single-file Qt rotation interface: draggable cards, instant auto-casts, bounded DPS search.
+
+The character's equipment, effects, ASPD and target configuration are read from
+ItemSearchApp. Cards only expose a per-skill ELEMENT override; they do not
+recreate manual cast/cooldown/ASPD configuration.
+"""
+
+from PySide6.QtCore import Qt, QMimeData, QTimer, QEvent, QObject
+from PySide6.QtGui import QColor, QFontMetrics, QPainter, QPen, QDrag
+from PySide6.QtWidgets import (
+    QApplication, QComboBox, QDoubleSpinBox, QLineEdit, QFrame, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QScrollArea, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget, QPushButton,
+    QAbstractItemView, QHeaderView, QAbstractSpinBox, QSplitter, QCheckBox,
+)
+
+COLORS = [
+    QColor('#3385D6'), QColor('#0FAE91'), QColor('#C28C30'),
+    QColor('#A767CC'), QColor('#C85A5A'), QColor('#3DA5B5'),
+    QColor('#739947'), QColor('#D7794E'),
+]
+
+
+class PreventWheelValueChanges(QObject):
+    """Ignore unintended wheel edits globally; keep popup-list scrolling usable."""
+    def eventFilter(self, obj, event):
+        if event.type() != QEvent.Type.Wheel:
+            return False
+        if isinstance(obj, (QComboBox, QAbstractSpinBox)):
+            event.ignore()
+            return True
+        # The editable spinbox's internal QLineEdit can forward wheel to the spinbox.
+        if isinstance(obj, QLineEdit) and isinstance(obj.parentWidget(), QAbstractSpinBox):
+            event.ignore()
+            return True
+        return False
+
+
+class RotationDragGrip(QLabel):
+    """Only this grip starts a drag, leaving the element dropdown interactive."""
+    def __init__(self, card):
+        super().__init__('⠿')
+        self.card = card
+        self._pressed = None
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        self.setToolTip('按住這裡拖曳卡片，可直接改變施放順序並自動重算')
+        self.setMinimumWidth(27)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setStyleSheet('font-size: 21px; font-weight: bold;')
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._pressed = event.position().toPoint()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._pressed is None or not (event.buttons() & Qt.MouseButton.LeftButton):
+            return
+        if (event.position().toPoint() - self._pressed).manhattanLength() < QApplication.startDragDistance():
+            return
+        self._pressed = None
+        drag = QDrag(self)
+        mime = QMimeData()
+        mime.setData('application/x-ro-skill-card', b'local-reorder')
+        drag.setMimeData(mime)
+        pixmap = self.card.grab()
+        if not pixmap.isNull():
+            drag.setPixmap(pixmap)
+            drag.setHotSpot(self.mapTo(self.card, event.position().toPoint()))
+        self.setCursor(Qt.CursorShape.ClosedHandCursor)
+        try:
+            drag.exec(Qt.DropAction.MoveAction)
+        finally:
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+    def mouseReleaseEvent(self, event):
+        self._pressed = None
+        super().mouseReleaseEvent(event)
+
+
+class RotationSkillCard(QFrame):
+    """可拖曳、依卡片數量調整高度的技能卡片（無獨立捲動）。"""
+    def __init__(self, owner, skill_id, name, level, parent=None):
+        super().__init__(parent)
+        self.owner = owner
+        self.skill_id = int(skill_id)
+        self.name = str(name)
+        self.level = int(level)
+        self.entry_id = owner.allocate_card_id()
+        self.setObjectName('rotationSkillCard')
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setStyleSheet('QFrame#rotationSkillCard { border: 1px solid palette(mid); border-radius: 8px; }')
+        body = QVBoxLayout(self)
+        self.card_body_layout = body
+        body.setContentsMargins(8, 6, 8, 6)
+        body.setSpacing(3)
+
+        # 第一排：拖曳握把、技能名稱／等級、原始與套用屬性、移除。
+        head = QHBoxLayout()
+        head.setSpacing(4)
+        head.addWidget(RotationDragGrip(self))
+        self.title = QLabel()
+        self.title.setStyleSheet('font-weight: 650; font-size: 12px;')
+        self.title.setMinimumWidth(0)
+        head.addWidget(self.title, 2)
+        self.original = QLabel()
+        self.original.setMinimumWidth(0)
+        self.original.setStyleSheet('font-size: 10px;')
+        head.addWidget(self.original, 2)
+        self.remove_button = QPushButton('×')
+        self.remove_button.setFixedWidth(27)
+        self.remove_button.setToolTip('移除這個技能卡片')
+        self.remove_button.clicked.connect(lambda: owner.remove_card(self))
+        head.addWidget(self.remove_button)
+        body.addLayout(head)
+
+        # 第二排：只設定自訂屬性／自詠關係；時間及技能等級由主程式提供。
+        options = QHBoxLayout()
+        options.setSpacing(4)
+        self.element_label = QLabel('屬性')
+        options.addWidget(self.element_label)
+        self.element = QComboBox()
+        self.element.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        self.element.setMinimumWidth(66)
+        self.element.addItem('自動（技能／主程式）', None)
+        for element_id, element_name in owner.host.rotation_element_catalog():
+            self.element.addItem(str(element_name), int(element_id))
+        self.element.setToolTip('只覆寫此技能的攻擊屬性；保留主程式角色、增傷、減傷及怪物設定。')
+        options.addWidget(self.element, 3)
+        self.auto_label = QLabel('自詠')
+        options.addWidget(self.auto_label)
+        self.auto_skill = QComboBox()
+        self.auto_skill.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        self.auto_skill.setMinimumWidth(66)
+        self.auto_skill.addItem('無', None)
+        self.auto_skill.setToolTip('A 施放時立即自詠 B：不等待 B 冷卻，也不占 B 詠唱／共延／ASPD；但會啟動 B 獨立冷卻，主動施放 B 須等冷卻結束。不串聯觸發。')
+        options.addWidget(self.auto_skill, 3)
+        self.auto_only = QCheckBox('僅自詠')
+        self.auto_only.setToolTip('勾選：本技能只會被自詠觸發，仍會顯示並啟動自身冷卻。\n未勾選：可以手動施放，但必須等待本技能最近一次主動或自詠造成的冷卻結束。自詠本身仍不等待冷卻。')
+        options.addWidget(self.auto_only)
+        body.addLayout(options)
+
+        self.element.currentIndexChanged.connect(owner.schedule_recalculation)
+        self.auto_skill.currentIndexChanged.connect(owner.schedule_recalculation)
+        self.auto_only.toggled.connect(owner.schedule_recalculation)
+        self.auto_only.toggled.connect(lambda checked: self.auto_skill.setEnabled(not checked))
+        self.refresh_display()
+
+    def set_card_density(self, count):
+        """卡片愈多愈緊湊；保留兩排操作，避免出現卡片清單捲動條。"""
+        if count <= 2:
+            height, inset = 99, 9
+        elif count <= 4:
+            height, inset = 91, 7
+        elif count <= 7:
+            height, inset = 83, 5
+        else:
+            height, inset = 76, 3
+        self.card_body_layout.setContentsMargins(8, inset, 8, inset)
+        self.setMinimumHeight(height)
+        self.updateGeometry()
+
+    def selected_id(self):
+        return self.skill_id
+
+    def element_override(self):
+        return self.element.currentData()
+
+    def refresh_auto_targets(self, cards):
+        previous = self.auto_skill.currentData()
+        self.auto_skill.blockSignals(True)
+        try:
+            self.auto_skill.clear()
+            self.auto_skill.addItem('無', None)
+            for card in cards:
+                if card is not self and card.skill_id != self.skill_id:
+                    self.auto_skill.addItem(f'{card.name} Lv.{card.level}', card.entry_id)
+            index = self.auto_skill.findData(previous)
+            self.auto_skill.setCurrentIndex(max(index, 0))
+        finally:
+            self.auto_skill.blockSignals(False)
+
+    def refresh_display(self):
+        self.title.setText(f'{self.name} Lv.{self.level}')
+        attribute = self.owner.host.rotation_skill_attribute(self.skill_id)
+        original = attribute.get('original', '未知')
+        effective = attribute.get('effective', original)
+        description = f'原始：{original} / 套用：{effective}'
+        self.original.setText(description)
+        self.original.setToolTip(description + '\n可用「屬性」下拉選單為本卡片指定自訂攻擊屬性。')
+
+
+class RotationDragArea(QFrame):
+    """Drop area that rearranges QFrame cards without rebuilding their controls."""
+    def __init__(self, owner):
+        super().__init__()
+        self.owner = owner
+        self._insertion = None
+        self.setAcceptDrops(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+
+    def _source_card(self, event):
+        source = event.source()
+        if (isinstance(source, RotationDragGrip) and
+                source.card.owner is self.owner and
+                source.card in self.owner.cards and
+                event.mimeData().hasFormat('application/x-ro-skill-card')):
+            return source.card
+        return None
+
+    def _index_at(self, y):
+        return sum(y >= c.y() + c.height() / 2 for c in self.owner.cards)
+
+    def dragEnterEvent(self, event):
+        if self._source_card(event) is not None:
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if self._source_card(event) is None:
+            event.ignore()
+            return
+        self._insertion = self._index_at(event.position().y())
+        self.update()
+        event.acceptProposedAction()
+
+    def dragLeaveEvent(self, event):
+        self._insertion = None
+        self.update()
+        event.accept()
+
+    def dropEvent(self, event):
+        card = self._source_card(event)
+        if card is None:
+            event.ignore()
+            return
+        index = self._index_at(event.position().y())
+        self._insertion = None
+        self.update()
+        self.owner.move_card_to(card, index)
+        event.acceptProposedAction()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self._insertion is None:
+            return
+        if not self.owner.cards:
+            return
+        if self._insertion >= len(self.owner.cards):
+            y = self.owner.cards[-1].geometry().bottom() + 3
+        else:
+            y = self.owner.cards[self._insertion].geometry().top() - 3
+        painter = QPainter(self)
+        painter.setPen(QPen(self.palette().highlight().color(), 3))
+        painter.drawLine(5, int(y), max(6, self.width()-5), int(y))
+        painter.end()
+
+
+class RotationTimeline(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.result = None
+        self.setMinimumWidth(720)
+        self.setMinimumHeight(140)
+
+    def show_result(self, result):
+        self.result = result
+        self.setMinimumHeight(85 + 34 * len(result.by_skill) if result else 140)
+        self.update()
+
+    def paintEvent(self, _event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.fillRect(self.rect(), self.palette().base().color())
+        result = self.result
+        if result is None:
+            p.setPen(self.palette().text().color())
+            p.drawText(self.rect(), Qt.AlignCenter, '模擬後在此顯示各技能詠唱／冷卻時間軸')
+            return
+        left, right, top = 105, 18, 32
+        width = max(50, self.width() - left - right)
+        duration = result.duration_ms
+        def px(t):
+            return left + (min(duration, max(0, t)) / duration) * width
+
+        text_color = self.palette().text().color()
+        grid_color = self.palette().mid().color()
+        p.setPen(grid_color)
+        for i in range(11):
+            x = int(left + i * width / 10)
+            p.drawLine(x, top - 7, x, self.height() - 12)
+            p.setPen(text_color)
+            p.drawText(x - 18, 8, 42, 17, Qt.AlignHCenter,
+                       f'{duration * i / 10000:g}s')
+            p.setPen(grid_color)
+        for index, spec in enumerate(result.by_skill):
+            y = top + index * 34
+            base = COLORS[index % len(COLORS)]
+            p.setPen(text_color)
+            fm = QFontMetrics(p.font())
+            p.drawText(5, y + 11, fm.elidedText(spec.name, Qt.ElideRight, 95))
+            p.setPen(Qt.NoPen)
+            p.setBrush(self.palette().alternateBase().color())
+            p.drawRoundedRect(left, y, width, 21, 2, 2)
+            for ev in result.events:
+                if (ev.skill_id, ev.level) != (spec.skill_id, spec.level):
+                    continue
+                # Cooldown is skill-specific; other tracks remain available.
+                if ev.cooldown_end_ms > ev.cast_end_ms and ev.cast_end_ms < duration:
+                    shade = QColor(base)
+                    shade.setAlpha(70)
+                    p.setBrush(shade)
+                    start = px(ev.cast_end_ms)
+                    end = px(ev.cooldown_end_ms)
+                    p.drawRect(int(start), y + 4, max(1, int(end - start)), 13)
+                p.setBrush(base)
+                start = px(ev.start_ms)
+                end = px(ev.cast_end_ms)
+                if ev.triggered_by is not None:
+                    # Narrow bar identifies an automatic cast running in parallel.
+                    if ev.cast_end_ms > ev.start_ms:
+                        p.drawRoundedRect(int(start), y + 9, max(3, int(end - start)), 8, 2, 2)
+                    else:
+                        p.drawRect(int(start), y + 9, 3, 8)
+                elif ev.cast_end_ms > ev.start_ms:
+                    p.drawRoundedRect(int(start), y + 3, max(3, int(end - start)), 15, 2, 2)
+                else:
+                    p.drawRect(int(start), y + 2, 3, 18)
+        p.setPen(text_color)
+        p.drawText(5, self.height() - 9, '粗條＝主動施放   細條＝自詠瞬間觸發   淡色＝獨立冷卻（含自詠）')
+        p.end()
+
+
+class MultiSkillRotationWidget(QWidget):
+    """Auto-recalculating card editor; NO manual cast, cooldown or ASPD fields."""
+    def __init__(self, host, parent=None):
+        super().__init__(parent)
+        self.host = host
+        self.cards = []
+        self._next_uid = 1
+        self._catalog_fingerprint = None
+        self._all_catalog = []
+        self._job_catalog = []
+        self._last_result = None
+        self._refreshing = False
+        self._calculating = False
+        self._default_card_added = False
+        self._cache = {}  # cached per-skill formulas; dragging does not recalculate damage formulas
+        self._auto_timer = QTimer(self)
+        self._auto_timer.setSingleShot(True)
+        self._auto_timer.timeout.connect(self.run_simulation)
+        self.setObjectName('multiSkillRotationWindowContent')
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(8, 8, 8, 8)
+        outer.setSpacing(9)
+        heading = QLabel('多技能連段｜拖曳卡片・自詠・最高 DPS 搜尋')
+        font = heading.font()
+        font.setBold(True)
+        font.setPointSize(max(11, font.pointSize() + 1))
+        heading.setFont(font)
+        outer.addWidget(heading)
+        explanation = QLabel('左側拖曳卡片即刻更新；A 施放時立即自詠 B，自詠不檢查 B 冷卻與詠唱／共延／攻速，但會啟動 B 的獨立冷卻，手動施放 B 必須等待。右側顯示主動／自詠傷害與總計。')
+        explanation.setWordWrap(True)
+        outer.addWidget(explanation)
+        self.context_summary = QLabel('角色／增傷／減傷設定：待同步')
+        self.context_summary.setWordWrap(True)
+        self.context_summary.setObjectName('rotationContextSummary')
+        self.context_summary.setStyleSheet('QLabel#rotationContextSummary { padding: 8px; border: 1px solid palette(mid); border-radius: 5px; }')
+        outer.addWidget(self.context_summary)
+
+        controls = QHBoxLayout()
+        controls.addWidget(QLabel('模擬時間'))
+        self.duration = QDoubleSpinBox()
+        self.duration.setRange(0.1, 600.0)
+        self.duration.setDecimals(1)
+        self.duration.setSingleStep(1.0)
+        self.duration.setValue(10.0)
+        self.duration.setSuffix(' 秒')
+        self.duration.setMaximumWidth(105)
+        controls.addWidget(self.duration)
+        controls.addWidget(QLabel('施放方式'))
+        self.mode = QComboBox()
+        self.mode.addItem('優先序自動施放', 'priority')
+        self.mode.addItem('固定順序循環', 'fixed')
+        self.mode.addItem('最高 DPS 自動排程（近似搜尋）', 'optimal')
+        self.mode.setMinimumWidth(230)
+        controls.addWidget(self.mode)
+        controls.addStretch()
+        refresh = QPushButton('↻ 同步角色設定')
+        refresh.clicked.connect(self.refresh_from_host)
+        controls.addWidget(refresh)
+        outer.addLayout(controls)
+        self.duration.valueChanged.connect(self.schedule_recalculation)
+        self.mode.currentIndexChanged.connect(self._on_mode_changed)
+
+        # Left: skill cards and drag sorting. Right: aggregated damage.
+        split = QSplitter(Qt.Orientation.Horizontal)
+        left = QWidget()
+        left_col = QVBoxLayout(left)
+        left_col.setContentsMargins(1, 1, 4, 1)
+        left_col.setSpacing(7)
+        left_col.addWidget(QLabel('① 技能卡片／拖曳順序'))
+        picker = QHBoxLayout()
+        self.picker = QComboBox()
+        self.picker.setMinimumWidth(140)
+        picker.addWidget(self.picker, 1)
+        add = QPushButton('＋ 技能')
+        add.clicked.connect(self.add_picker_skill)
+        picker.addWidget(add)
+        current = QPushButton('＋ 目前技能')
+        current.clicked.connect(self.add_current_skill)
+        picker.addWidget(current)
+        left_col.addLayout(picker)
+        self.picker_search = QLineEdit()
+        self.picker_search.setPlaceholderText('搜尋全部職業技能：名稱 / Code / ID')
+        self.picker_search.setClearButtonEnabled(True)
+        left_col.addWidget(self.picker_search)
+        self.picker_search.textChanged.connect(self._on_skill_search)
+        self.cards_host = RotationDragArea(self)
+        self.cards_layout = QVBoxLayout(self.cards_host)
+        self.cards_layout.setSpacing(7)
+        self.cards_layout.setContentsMargins(5, 5, 5, 5)
+        self.cards_layout.addStretch()
+        # 不建立左側 card_scroll；讓卡片清單自然增高，避免獨立內層捲軸。
+        self.cards_host.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.cards_host.setMinimumHeight(20)
+        left_col.addWidget(self.cards_host, 0)
+        left_col.addStretch(1)
+        left_note = QLabel('A 自詠 B 會啟動 B 的冷卻；B 未勾「僅自詠」時可手動施放，但須等最後一次主動／自詠觸發的冷卻結束。')
+        left_note.setWordWrap(True)
+        left_col.addWidget(left_note)
+        split.addWidget(left)
+
+        right = QWidget()
+        right_col = QVBoxLayout(right)
+        right_col.setContentsMargins(4, 1, 1, 1)
+        right_col.setSpacing(7)
+        right_col.addWidget(QLabel('② 各技能傷害／總計'))
+        self.status = QLabel('新增技能後會自動重算。')
+        self.status.setWordWrap(True)
+        right_col.addWidget(self.status)
+        self.summary = QLabel('總傷害：—    平均 DPS：—    施放次數：—')
+        font = self.summary.font()
+        font.setBold(True)
+        self.summary.setFont(font)
+        self.summary.setWordWrap(True)
+        right_col.addWidget(self.summary)
+        self.results = QTableWidget(0, 8)
+        self.results.setHorizontalHeaderLabels([
+            '技能', '主動', '自詠', '合計次數', '單次傷害', '總傷害', '占比', '最低總傷害'])
+        self.results.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.results.setMinimumHeight(265)
+        self.results.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        right_col.addWidget(self.results, 1)
+        right_note = QLabel('最高 DPS 模式以有限搜尋及多種候選排程比較，非數學上保證的全域最優。')
+        right_note.setWordWrap(True)
+        right_col.addWidget(right_note)
+        split.addWidget(right)
+        split.setStretchFactor(0, 1)
+        split.setStretchFactor(1, 1)
+        split.setSizes([450, 700])
+        split.setMinimumHeight(365)
+        self.cards_splitter = split
+        self.cards_left_panel = left
+        self._adjust_cards_height()
+        outer.addWidget(split, 1)
+
+        outer.addWidget(QLabel('③ 技能時間軸｜粗條主動，細條自詠瞬發，淡色為技能冷卻（含自詠）'))
+        self.timeline = RotationTimeline()
+        self.timeline_scroll = QScrollArea()
+        self.timeline_scroll.setWidgetResizable(True)
+        self.timeline_scroll.setWidget(self.timeline)
+        self.timeline_scroll.setMinimumHeight(195)
+        self.timeline_scroll.setMaximumHeight(390)
+        outer.addWidget(self.timeline_scroll)
+        outer.addWidget(QLabel('④ 施放事件明細（前 300 筆）'))
+        self.events = QTableWidget(0, 7)
+        self.events.setHorizontalHeaderLabels([
+            '序號', '技能', '觸發方式', '開始 s', '完成 s', '共延結束 s', '獨立冷卻結束 s'])
+        self.events.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.events.setMinimumHeight(155)
+        self.events.setMaximumHeight(245)
+        outer.addWidget(self.events)
+        note = QLabel('自詠模擬規則：A 開始時立即自詠 B，不檢查 B 當下冷卻，也不佔用 B 的詠唱／共延／ASPD；每次自詠會啟動或延長 B 的獨立冷卻，淡色區段和事件明細同步顯示。B 未勾「僅自詠」時，主動施放須等最後一次主動或自詠的冷卻結束；自詠仍可在冷卻中觸發。不遞迴觸發 C。此為設定的模擬模型，實際伺服器規則可能不同。')
+        note.setWordWrap(True)
+        outer.addWidget(note)
+        outer.addStretch()
+
+    def allocate_card_id(self):
+        uid = self._next_uid
+        self._next_uid += 1
+        return uid
+
+    def _refresh_autocast_targets(self):
+        for card in self.cards:
+            card.refresh_auto_targets(self.cards)
+        self._adjust_cards_height()
+
+    def _adjust_cards_height(self):
+        """依卡片數量增減左側內容高度，完全不使用左側獨立捲動區。"""
+        count = len(self.cards)
+        for card in self.cards:
+            card.set_card_density(count)
+        spacing = self.cards_layout.spacing()
+        margins = self.cards_layout.contentsMargins()
+        # 用各張卡片的實際 sizeHint，確保高 DPI/字體縮放時也不截斷。
+        card_height = sum(max(card.minimumHeight(), card.sizeHint().height()) for card in self.cards)
+        needed = (card_height + max(0, count - 1) * spacing
+                  + margins.top() + margins.bottom())
+        self.cards_host.setMinimumHeight(max(22, needed))
+        self.cards_host.updateGeometry()
+        if hasattr(self, 'cards_splitter'):
+            # 一次擴展整個左右欄的最小高度；不讓左欄出現第二層捲軸。
+            # 畫面不足時只有最外層視窗捲動（保留右側表格的正常捲動）。
+            self.cards_splitter.setMinimumHeight(max(365, needed + 145))
+            self.cards_splitter.updateGeometry()
+
+    def refresh_from_host(self, *_):
+        """Copy currently active reduction/damage settings, never mutate them."""
+        if self._refreshing:
+            return
+        self._refreshing = True
+        try:
+            self._cache.clear()
+            self.refresh_catalog()
+            base = self.host.build_core_stage17_damage_request()
+            if base is None:
+                self.context_summary.setText('⚠ 角色效果尚未計算完成，請先在主程式完成計算。')
+            else:
+                monster = base.damage.get('monster', {}) or {}
+                special = base.damage.get('special', {}) or {}
+                names = {
+                    'wanzih': '萬字', 'poison_weak': '毒弱化', 'magic_poison': '魔力中毒',
+                    'attribute_seal': '屬性烙印', 'sneak_attack': '偷襲', 'spore_attack': '孢子',
+                    'dark_crow': '黑暗之鴉', 'rush_attack': '突擊', 'oleum_attack': '油',
+                    'lex_aeterna': '天使之怒',
+                }
+                active_special = [v for k, v in names.items() if special.get(k)]
+                buff_count = len(getattr(base.request, 'enabled_skill_names', []) or [])
+                self.context_summary.setText(
+                    f'已沿用目前角色／裝備／卡片／Buff（{buff_count} 項）／怪物／增傷減傷設定\n'
+                    f'目標倍率：{monster.get("damage_multiplier_percent", 100)}%　'
+                    f'亡魂減傷：{monster.get("betelgeuse_reduction_percent", 0)}%　'
+                    f'DEF/RES：{monster.get("def", 0)}/{monster.get("res", 0)}　'
+                    f'MDEF/MRES：{monster.get("mdef", 0)}/{monster.get("mres", 0)}\n'
+                    '特殊效果：' + ('、'.join(active_special) if active_special else '未勾選')
+                )
+            for card in self.cards:
+                card.refresh_display()
+            self._renumber()
+        finally:
+            self._refreshing = False
+        self.schedule_recalculation()
+
+    def refresh_catalog(self):
+        all_catalog = list(self.host.rotation_skill_catalog(job_only=False))
+        job_catalog = list(self.host.rotation_skill_catalog(job_only=True))
+        fingerprint = (tuple(all_catalog), tuple(job_catalog))
+        if fingerprint != self._catalog_fingerprint:
+            self._all_catalog = all_catalog
+            self._job_catalog = job_catalog
+            self._catalog_fingerprint = fingerprint
+            self._populate_picker()
+        if not self.cards and all_catalog and not self._default_card_added:
+            self._default_card_added = True
+            self.add_current_skill()
+        return job_catalog
+
+    def _populate_picker(self):
+        selected = self.picker.currentData()
+        query = self.picker_search.text().strip()
+        options = (self.host.rotation_search_skills(query) if query else self._job_catalog)
+        self.picker.blockSignals(True)
+        try:
+            self.picker.clear()
+            self.picker.addItem('請選擇技能…', None)
+            for sid, name, _ in options:
+                self.picker.addItem(str(name), int(sid))
+            index = self.picker.findData(selected)
+            self.picker.setCurrentIndex(index if index >= 1 else 0)
+        finally:
+            self.picker.blockSignals(False)
+
+    def _on_skill_search(self, *_):
+        self._populate_picker()
+        # A search never alters any existing card, so no damage recalculation.
+
+    def _catalog_info(self, sid):
+        return next((entry for entry in self._all_catalog if int(entry[0]) == int(sid)), None)
+
+    def add_picker_skill(self):
+        sid = self.picker.currentData()
+        if sid is None:
+            self.status.setText('請先在選單選擇技能；搜尋可以查全職業。')
+            return
+        self.add_card(int(sid))
+        self.picker_search.clear()
+
+    def add_card(self, skill_id, level=None):
+        if len(self.cards) >= 12:
+            self.status.setText('最多可加入 12 張卡片。')
+            return
+        info = self._catalog_info(skill_id)
+        if info is None:
+            self.status.setText(f'找不到技能 ID：{skill_id}')
+            return
+        # Read the skill level from the existing skill catalog; main currently
+        # selected skill retains the level the user entered in the main UI.
+        if level is None:
+            current_id, current_level = self.host.rotation_current_skill()
+            level = current_level if current_id == skill_id else info[2]
+        level = max(1, min(int(level), int(info[2])))
+        card = RotationSkillCard(self, skill_id, info[1], level, self.cards_host)
+        self.cards.append(card)
+        self.cards_layout.insertWidget(len(self.cards)-1, card)
+        self._renumber()
+        self._refresh_autocast_targets()
+        self.schedule_recalculation()
+
+    def add_current_skill(self):
+        sid, level = self.host.rotation_current_skill()
+        if sid is None:
+            return
+        if self._catalog_fingerprint is None:
+            self._all_catalog = list(self.host.rotation_skill_catalog(job_only=False))
+            self._job_catalog = list(self.host.rotation_skill_catalog(job_only=True))
+            self._catalog_fingerprint = (tuple(self._all_catalog), tuple(self._job_catalog))
+            self._populate_picker()
+        self.add_card(int(sid), level)
+
+    def remove_card(self, card):
+        if card not in self.cards:
+            return
+        self.cards.remove(card)
+        self.cards_layout.removeWidget(card)
+        card.setParent(None)
+        card.deleteLater()
+        self._renumber()
+        self._refresh_autocast_targets()
+        self.schedule_recalculation()
+
+    def move_card_to(self, card, raw_index):
+        """Move the *existing* QWidget; rebuild neither dropdown nor skill data."""
+        if card not in self.cards:
+            return
+        old = self.cards.index(card)
+        insert = min(max(0, int(raw_index)), len(self.cards))
+        if insert > old:
+            insert -= 1
+        if insert == old:
+            return
+        self.cards.pop(old)
+        self.cards.insert(insert, card)
+        for item in self.cards:
+            self.cards_layout.removeWidget(item)
+        for index, item in enumerate(self.cards):
+            self.cards_layout.insertWidget(index, item)
+        self._renumber()
+        self.schedule_recalculation(immediate=True)
+
+    def _on_mode_changed(self, *_):
+        self._renumber()
+        self.schedule_recalculation()
+
+    def _renumber(self):
+        for i, card in enumerate(self.cards, start=1):
+            card.title.setText(f'{i}. {card.name}  Lv.{card.level}')
+
+    def schedule_recalculation(self, *_, immediate=False):
+        if self._refreshing or self._calculating or not hasattr(self, 'status'):
+            return
+        if self.cards:
+            self.status.setText('正在自動更新時間軸與傷害…')
+            self._auto_timer.start(0 if immediate else 65)
+        else:
+            self._auto_timer.stop()
+            self.clear_results()
+            self.status.setText('請先新增技能卡片。')
+
+    def clear_results(self, *_):
+        """Compatibility with host setting updates; automatically recalculate."""
+        self._cache.clear()
+        if not self.cards:
+            self._last_result = None
+            self.results.setRowCount(0)
+            self.events.setRowCount(0)
+            self.timeline.show_result(None)
+            self.summary.setText('總傷害：—    平均 DPS：—    施放次數：—')
+        else:
+            self.schedule_recalculation()
+
+    @staticmethod
+    def _display_number(number):
+        return f'{number:,.0f}' if float(number).is_integer() else f'{number:,.2f}'
+
+    def run_simulation(self):
+        if self._calculating or self._refreshing:
+            return
+        if not self.cards:
+            self.clear_results()
+            return
+        if not getattr(self.host, '_workspace_startup_ready', False):
+            self.status.setText('⚠ 主程式資料尚未載入完成。')
+            return
+        if (getattr(self.host, '_calc_running', False) or
+                (getattr(self.host, '_calc_timer', None) is not None and self.host._calc_timer.isActive())):
+            self.status.setText('主程式正在更新裝備／增減傷，完成後會自動重新計算。')
+            return
+        self._calculating = True
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            specs = []
+            for card in self.cards:
+                is_auto_only = card.auto_only.isChecked()
+                key = (card.skill_id, card.level, card.element_override(), is_auto_only)
+                if key not in self._cache:
+                    # 「僅自詠」仍需讀取實際 cooldown_ms，否則冷卻會被錯誤歸零。
+                    # 自詠本身的詠唱／共延仍在 _rotation_fire 中視為瞬發。
+                    timing = self.host.rotation_skill_timing(card.skill_id, card.level)
+                    if not timing or not timing.get('available', False):
+                        raise ValueError((timing or {}).get('error', f'{card.name} 的技能時間資料不可用'))
+                    damage = self.host.rotation_skill_damage(card.skill_id, card.level,
+                                                             element_override=card.element_override())
+                    if not damage or not damage.get('available', False):
+                        raise ValueError((damage or {}).get('error', f'{card.name} 的傷害資料不可用'))
+                    self._cache[key] = (timing, damage)
+                timing, damage = self._cache[key]
+                specs.append(RotationSkill(
+                    skill_id=card.skill_id, name=card.name, level=card.level,
+                    cast_ms=int(timing['cast_ms']), gcd_ms=int(timing['gcd_ms']),
+                    cooldown_ms=int(timing['cooldown_ms']),
+                    damage=float(damage['damage']),
+                    min_damage=float(damage.get('min_damage', damage['damage'])),
+                    uses_aspd=True,
+                    entry_id=card.entry_id,
+                    auto_cast_target=card.auto_skill.currentData(),
+                    auto_only=card.auto_only.isChecked(),
+                ))
+            aspd_ms = self.host.rotation_aspd_interval_ms()
+            if aspd_ms is None:
+                raise ValueError('主程式尚未取得 ASPD 間隔；請先在原本的攻速欄完成計算。')
+            result = simulate_rotation(
+                specs, duration_ms=round(self.duration.value() * 1000),
+                mode=self.mode.currentData(), aspd_ms=int(aspd_ms),
+            )
+            self._show_result(result)
+        except Exception as exc:
+            self._last_result = None
+            self.results.setRowCount(0)
+            self.events.setRowCount(0)
+            self.timeline.show_result(None)
+            self.summary.setText('總傷害：—    平均 DPS：—    施放次數：—')
+            self.status.setText(f'⚠ 無法完成自動計算：{exc}')
+        finally:
+            QApplication.restoreOverrideCursor()
+            self._calculating = False
+
+    def _show_result(self, result):
+        self._last_result = result
+        label = '最高 DPS 候選搜尋' if result.mode == 'optimal' else '自動重排'
+        self.status.setText(
+            f'✓ {label}完成；{len(result.events)} 次技能效果（含自詠）。'
+            + (' 此為有限搜尋結果，未保證全域最優。' if result.mode == 'optimal' else '')
+        )
+        manual_count = sum(e.triggered_by is None for e in result.events)
+        auto_count = len(result.events) - manual_count
+        self.summary.setText(
+            f'總傷害：{self._display_number(result.total_damage)}    '
+            f'DPS：{self._display_number(result.dps)}\n'
+            f'主動：{manual_count:,} 次    自詠：{auto_count:,} 次    合計：{len(result.events):,} 次'
+        )
+        self.results.setRowCount(len(result.by_skill) + 1)
+        for i, spec in enumerate(result.by_skill):
+            values = [spec.name, spec.manual_count, spec.auto_count, spec.count,
+                      self._display_number(spec.damage_per_cast),
+                      self._display_number(spec.total_damage), f'{spec.share_percent:.1f}%',
+                      self._display_number(spec.min_total_damage)]
+            for j, value in enumerate(values):
+                self.results.setItem(i, j, QTableWidgetItem(str(value)))
+        i = len(result.by_skill)
+        for j, value in enumerate([
+            '總和', manual_count, auto_count, len(result.events), '—',
+            self._display_number(result.total_damage),
+            '100%' if result.total_damage else '0%',
+            self._display_number(result.min_total_damage),
+        ]):
+            self.results.setItem(i, j, QTableWidgetItem(str(value)))
+        self.results.resizeColumnsToContents()
+        self.timeline.show_result(result)
+        self.events.setRowCount(min(len(result.events), 300))
+        for i, event in enumerate(result.events[:300]):
+            trigger = '主動' if event.triggered_by is None else f'自詠（ID {event.triggered_by} 觸發）'
+            values = [i + 1, event.name, trigger,
+                      f'{event.start_ms / 1000:.3f}',
+                      f'{event.cast_end_ms / 1000:.3f}',
+                      f'{event.gcd_end_ms / 1000:.3f}',
+                      f'{event.cooldown_end_ms / 1000:.3f}']
+            for j, value in enumerate(values):
+                self.events.setItem(i, j, QTableWidgetItem(str(value)))
+        self.events.resizeColumnsToContents()
+
+class MultiSkillRotationWindow(QDialog):
+    """Independent, non-modal window; uses the current ItemSearchApp as read-only host.
+
+    Only the multi-skill plan lives here. ItemSearchApp remains the single source
+    of truth for equipment, buffs, target reductions, and other damage options.
+    """
+    def __init__(self, host):
+        super().__init__(host)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.Window)
+        self.setModal(False)
+        self.setWindowTitle('RO 多技能連段｜自詠／最高 DPS 搜尋｜套用目前角色設定')
+        self.resize(1210, 840)
+        self.setMinimumSize(880, 620)
+        self.simulator = MultiSkillRotationWidget(host, self)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(8, 8, 8, 8)
+        scroller = QScrollArea(self)
+        scroller.setWidgetResizable(True)
+        scroller.setWidget(self.simulator)
+        outer.addWidget(scroller, 1)
+        bar = QHBoxLayout()
+        bar.addWidget(QLabel('注意：此視窗不修改主程式的角色、裝備、增傷或減傷設定。'))
+        bar.addStretch()
+        close = QPushButton('關閉視窗')
+        close.clicked.connect(self.close)
+        bar.addWidget(close)
+        outer.addLayout(bar)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if getattr(self.parent(), '_workspace_startup_ready', False):
+            self.simulator.refresh_from_host()
+
+# ========= End of embedded multi-skill extension =========
 
 # === CORE DEDUP PHASE 8: CHARACTER BUILD ADAPTER ===
 from ro_core import CharacterBuild as CoreCharacterBuild
@@ -10473,6 +11765,145 @@ class ItemSearchApp(QWidget):
             self.last_core_damage_error = str(exc)
             return None
 
+    # === 多技能連段：重用既有傷害與時間核心，不切換單技能 UI ===
+    def open_multi_skill_rotation_window(self):
+        """Keep one separate non-modal window for the whole app; no new module or tab."""
+        if not getattr(self, '_workspace_startup_ready', False):
+            QMessageBox.information(self, '尚未完成載入', '請先完成角色與技能資料載入，再開啟多技能視窗。')
+            return
+        if getattr(self, 'rotation_window', None) is None:
+            self.rotation_window = MultiSkillRotationWindow(self)
+            self.rotation_widget = self.rotation_window.simulator
+        self.rotation_widget.refresh_from_host()
+        self.rotation_window.show()
+        self.rotation_window.raise_()
+        self.rotation_window.activateWindow()
+
+    def rotation_skill_catalog(self, job_only=False):
+        """多技能候選清單：一般依目前職業，全文搜尋時可查全部技能。"""
+        job_box = getattr(self, "input_fields", {}).get("JOB")
+        job_id = job_box.currentData() if job_box is not None else None
+        return build_rotation_catalog(skill_map_all, job_dict, job_id,
+                                      job_only=bool(job_only))
+
+    def rotation_search_skills(self, query):
+        """跨所有已載入技能搜尋名稱、Code 或技能 ID。"""
+        return search_rotation_catalog(self.rotation_skill_catalog(job_only=False),
+                                       skill_map_all, query)
+
+    def rotation_element_catalog(self):
+        """提供技能各自的攻擊屬性覆寫選項（沿用原本屬性清單）。"""
+        return [(index, element_map[index]) for index in range(10) if index in element_map]
+
+    def rotation_skill_attribute(self, skill_id):
+        """Skill's original element and current main-screen override, read-only."""
+        info = skill_map_all.get(int(skill_id), {}) or {}
+        raw = info.get("element")
+        try:
+            element_id = int(float(raw))
+            original = str(element_map.get(element_id, f"未知({element_id})"))
+        except (ValueError, TypeError, OverflowError):
+            element_id = None
+            original = "未設定"
+        effective = original
+        if hasattr(self, "skill_box") and self.skill_box.currentData() == int(skill_id):
+            selected = self.attack_element_box.currentData()
+            effective = str(element_map.get(selected, original))
+        return {"original_id": element_id, "original": original, "effective": effective}
+
+    def rotation_current_skill(self):
+        """目前單技能選擇僅用於新增預設列；不會被連段改動。"""
+        if not hasattr(self, "skill_box"):
+            return None, 1
+        skill_id = self.skill_box.currentData()
+        level = self._core_int_from_widget(self.skill_LV_input, 1)
+        return skill_id, max(1, level)
+
+    def rotation_aspd_interval_ms(self):
+        """與現有 CastBarWidget.set_aspd 轉換一致。"""
+        return getattr(getattr(self, "cast_bar", None), "_aspd_ms", None)
+
+    def rotation_skill_timing(self, skill_id: int, level: int):
+        """直接使用 Stage21.24 時間核心及目前裝備、DEX、INT。"""
+        try:
+            info = skill_map_all.get(skill_id, {})
+            skill_name = info.get("Name") or skill_map.get(skill_id)
+            if not skill_name:
+                return {"available": False, "error": "找不到技能名稱"}
+            raw = _core_stage24_calculate_skill_timing_from_effects(
+                skill_name=str(skill_name),
+                skill_map_all=skill_map_all,
+                lua_text=getattr(self, "lua_text", ""),
+                skill_level=int(level),
+                effect_dict=getattr(self, "effect_dict_raw", {}) or {},
+                total_dex=globals().get("total_DEX", 0),
+                total_int=globals().get("total_INT", 0),
+            )
+            if not raw.get("available"):
+                return {"available": False,
+                        "error": f"時間資料不可用 ({raw.get('error_code', 'unknown')})"}
+            runtime = raw["desktop_runtime"]
+            result = {"available": True}
+            for key, source_key in (("cast_ms", "cast_total_ms"),
+                                    ("gcd_ms", "global_post_ms"),
+                                    ("cooldown_ms", "cooldown_ms")):
+                value = int(runtime[source_key])
+                if value < 0:
+                    raise ValueError(f"{source_key} 為負值")
+                result[key] = value
+            return result
+        except Exception as exc:
+            return {"available": False, "error": str(exc)}
+
+    def rotation_skill_damage(self, skill_id: int, level: int, element_override=None):
+        """每個技能各建立 Stage17 request；沿用目前角色與目標快照。"""
+        base = self.build_core_stage17_damage_request()
+        if base is None:
+            return {"available": False, "error": "角色效果尚未完成計算；請先在傷害試算頁計算。"}
+        # copy only the outgoing damage options; shared character/equipment/target
+        # state remains read-only. No Qt controls are touched.
+        data = dict(base.damage)
+        data["monster"] = dict(base.damage.get("monster", {}) or {})
+        data["special"] = dict(base.damage.get("special", {}) or {})
+        data["skill_id"] = int(skill_id)
+        data["skill_level"] = int(level)
+
+        # 其他技能不能沿用目前單技能的自訂公式，否則會錯套公式。
+        current_id = self.skill_box.currentData()
+        if skill_id != current_id:
+            data["formula_override"] = None
+            data["attack_element"] = None  # fallback to the next skill row
+            # 不沿用另一技能的攻擊屬性與自訂技能公式；依該技能資料決定。
+            raw_element = skill_map_all.get(skill_id, {}).get("element")
+            try:
+                element = int(float(raw_element))
+                if 0 <= element <= 9:
+                    data["attack_element"] = element
+            except (TypeError, ValueError, OverflowError):
+                pass
+        if element_override is not None:
+            data["attack_element"] = int(element_override)
+        try:
+            request = CoreStage17DamageRequest(
+                request=base.request,
+                data=base.data,
+                context=base.context,
+                effect_result=base.effect_result,
+                data_dir=base.data_dir,
+                damage=data,
+            )
+            result = core_calculate_stage17_damage_request(request)
+            payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
+            if payload.get("total_damage") is None:
+                raise ValueError("Stage17 未回傳 total_damage，無法使用正確的技能總傷害。")
+            damage = float(payload["total_damage"])
+            min_damage = payload.get("total_damage_min")
+            if min_damage is None:
+                min_damage = damage
+            return {"available": True, "damage": damage, "min_damage": float(min_damage)}
+        except Exception as exc:
+            return {"available": False, "error": f"技能 {skill_id} Lv.{level}：{exc}"}
+
     # === CORE DEDUP PHASE 6: PARITY-GATED CORE RENDER ===
     @staticmethod
     def _format_core_stage17_value(value, digits=None):
@@ -10857,6 +12288,10 @@ class ItemSearchApp(QWidget):
             )
 
             self.update_total_effect_display()
+
+            # 原裝備／目標改動後，舊的連段傷害與時間軸必須標記失效。
+            if getattr(self, "rotation_widget", None) is not None:
+                self.rotation_widget.refresh_from_host()
 
             if hasattr(self, "calc_status_label"):
                 self.calc_status_label.setText("✓ 已更新")
@@ -14749,7 +16184,13 @@ class ItemSearchApp(QWidget):
         # 新增按鈕
         self.replace_calc_button = QPushButton(tr("button.calculate"))
         self.replace_calc_button.clicked.connect(lambda: (setattr(self, "_last_calc_state", None), self.trigger_total_effect_update()))
-        layout.addWidget(self.replace_calc_button)
+        calc_action_row = QHBoxLayout()
+        calc_action_row.addWidget(self.replace_calc_button)
+        self.open_rotation_button = QPushButton('開啟多技能連段視窗…')
+        self.open_rotation_button.setToolTip('獨立開啟連段時間軸與多技能傷害試算；所有角色、裝備、增傷、減傷選項沿用目前設定。')
+        self.open_rotation_button.clicked.connect(self.open_multi_skill_rotation_window)
+        calc_action_row.addWidget(self.open_rotation_button)
+        layout.addLayout(calc_action_row)
 
         self.sim_tabs.addTab(self.custom_calc_tab, tr("tab.damage_calculation"))
 
@@ -14813,6 +16254,15 @@ class ItemSearchApp(QWidget):
 
         self.sim_tabs.addTab(self.body_custom_calc_tab, tr("tab.damage_reduction", "減傷計算"))
 
+        # 獨立視窗採延遲建立：主程式仍只有原本五個分頁，避免額外負擔。
+        self.rotation_window = None
+        self.rotation_widget = None
+        # 換職業時更新獨立視窗的選單；搜尋加入的跨職業技能不清除。
+        self.input_fields["JOB"].currentIndexChanged.connect(
+            lambda _index: self.rotation_widget.refresh_catalog()
+            if self.rotation_widget is not None else None
+        )
+
 
         # ===== 合併三欄 =====
         #main_layout.addWidget(left_scroll, 2)#已分頁取代
@@ -14828,7 +16278,7 @@ class ItemSearchApp(QWidget):
         tab_hints = (
             (self.left_tabs, ("角色屬性及狀態設定", "裝備與卡片配置", "技能、料理與輔助效果")),
             (self.center_tabs, ("查找與檢視裝備資料", "函數語法與效果編輯", "本機 GRF 木樁與 RO 傷害數字，模擬詠唱／延遲／冷卻")),
-            (self.sim_tabs, ("檢視效果解析", "檢視套裝效果", "檢視總效果", "傷害試算", "減傷試算")),
+            (self.sim_tabs, ("檢視效果解析", "檢視套裝效果", "檢視總效果", "傷害試算（可另開多技能連段視窗）", "減傷試算")),
         )
         for tabs, hints in tab_hints:
             for index, hint in enumerate(hints):
@@ -16761,6 +18211,10 @@ if __name__ == "__main__":
     os.environ["QT_SCALE_FACTOR"] = format_ui_scale_factor(startup_ui_scale)
 
     app = QApplication.instance() or QApplication(sys.argv)
+    # Never change QComboBox or spinbox values by accidentally scrolling over them.
+    # Keep one strong reference for the life of the app; popup lists remain scrollable.
+    _wheel_value_guard = PreventWheelValueChanges(app)
+    app.installEventFilter(_wheel_value_guard)
 
     # QApplication 建立後、任何視窗建立前套用程式自己的字體大小與主題。
     # 如此可忽略 Windows「文字大小」的額外放大，同時保留 Windows DPI 與 UI 縮放。
