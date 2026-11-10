@@ -61923,7 +61923,7 @@ Item = {
 			if temp > 10 then
 				AddGuideAttack(15)
 			end
-			if temp > 7 then
+			if temp > 8 then
 				SubSpellDelay(10)
 			end
 			if temp > 6 then
@@ -67640,9 +67640,8 @@ Item = {
 				AddExtParam(0, 239, 8)
 			end
 			if temp > 8 then
-				AddRangeAttackDamage(1, 10)
-				AddSkillMDamage(10, 10)
-				AddMeleeAttackDamage(1, 10)
+				ClassAddDamage(1, 1, 10)
+				AddMdamage_Class(1, 10)
 			end
 			if temp > 9 then
 				SetIgnoreMdefRace(6, 100)
@@ -81172,40 +81171,7 @@ Item = {
 	},
 	[410665] = {
 		Type = "armor",
-		Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-		OnStartEquip = function()
-			AddExtParam(0, 41, 40)
-			AddExtParam(0, 200, 40)
-			AddExtParam(0, 52, 50)
-			AddExtParam(0, 49, 25)
-			AddExtParam(0, 111, 5)
-			AddExtParam(0, 112, 5)
-			SubSpellDelay(3)
-			AddEXPPercent_KillRace(9999, 20)
-			RaceAddDamage(0, 10)
-			RaceAddDamage(1, 10)
-			RaceAddDamage(2, 10)
-			RaceAddDamage(3, 10)
-			RaceAddDamage(4, 10)
-			RaceAddDamage(5, 10)
-			RaceAddDamage(6, 10)
-			RaceAddDamage(7, 10)
-			RaceAddDamage(8, 10)
-			RaceAddDamage(9, 10)
-			AddMdamage_Race(3, 10)
-			AddMdamage_Race(1, 10)
-			AddMdamage_Race(0, 10)
-			AddMdamage_Race(8, 10)
-			AddMdamage_Race(9, 10)
-			AddMdamage_Race(5, 10)
-			AddMdamage_Race(4, 10)
-			AddMdamage_Race(2, 10)
-			AddMdamage_Race(6, 10)
-			AddMdamage_Race(7, 10)
-			AddDamage_HIT(1, 10)
-			AddDamage_CRI(1, 10)
-			AddSkillMDamage(10, 10)
-		end
+		Stat = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
 	},
 	[410491] = {
 		Type = "armor",
@@ -82289,16 +82255,14 @@ Item = {
 			if temp > 8 then
 			end
 			if temp > 10 then
-				AddDamage_SKID(1, 19, temp_L)
-				AddDamage_SKID(1, 17, temp_L)
-				AddDamage_SKID(1, 81, temp_L)
+				AddDamage_SKID(1, 19, temp_L * 4)
+				AddDamage_SKID(1, 17, temp_L * 4)
+				AddDamage_SKID(1, 81, temp_L * 4)
 			end
 			if temp > 12 then
 				SubSpellDelay(15)
 			end
 			if temp > 13 then
-				SubSpellDelay(15)
-				AddExtParam(0, 140, 30)
 			end
 		end,
 		OnStartPretendEquip = true,
@@ -184563,8 +184527,13 @@ Combiitem = {
 		Item = { 32278, 4318 },
 		OnStartEquip = function()
 			local temp = 0
+			local temp1 = 0
 			temp = GetWeaponClass(4)
+			temp1 = GetWeaponClass(3)
+			SetEquipTempValue(0, temp)
+			SetEquipTempValue(1, temp1)
 			if temp == 1 then
+				temp1 = 0
 				AddExtParam(0, 111, 10)
 				SubSpellDelay(8)
 			end
@@ -184583,7 +184552,8 @@ Combiitem = {
 			end
 			if temp ~= 8 and temp ~= 7 and temp == 6 then
 			end
-		end
+		end,
+		OnStartPretendEquip = true
 	},
 	[2000001570] = {
 		Item = { 28626, 28509 },
