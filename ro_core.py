@@ -35,7 +35,7 @@ Stage 3 為 Lua 裝備 parser 加入明確的 dependency container，並讓遷�
 from __future__ import annotations
 
 # 手動維護的共用核心版本；每次 ro_core.py 計算邏輯變更時都要遞增版本。
-RO_CORE_VERSION = "v0.21.89"
+RO_CORE_VERSION = "v0.21.90"
 
 from dataclasses import dataclass, field
 import ast
@@ -6906,7 +6906,9 @@ def _stage17_build_variables(request, data, context, effect_dict, damage):
     special = damage.get("special", {}) if isinstance(damage, dict) else {}
     if not isinstance(special, dict):
         special = {}
-    variables.setdefault("total_SRL", _stage17_number(special.get("total_srl", 0), 0))
+    # total_SRL：左手裝備精煉值（Desktop slot 3），不再使用特殊狀態手動輸入。
+    refine_inputs = getattr(request, "refine_inputs", {}) or {}
+    variables["total_SRL"] = _stage17_int(refine_inputs.get(3, refine_inputs.get("3", 0)))
     return variables
 
 
@@ -7503,8 +7505,8 @@ def calculate_stage17_damage(*, request, data, context, effect_result, data_dir,
         _stage17_text(row.get("combo")),
         _stage17_text(row.get("combo_Special_Calculation")),
     ])
-    if "total_SRL" in formula_tokens and not _stage17_number(special.get("total_srl", 0), 0):
-        warnings.append("此技能公式使用 total_SRL；目前值為 0，可在特殊狀態欄手動設定。")
+    if "total_SRL" in formula_tokens and variables["total_SRL"] == 0:
+        warnings.append("此技能公式使用 total_SRL（左手精煉）；目前左手精煉值為 0。")
     if attack_type == "shield":
         warnings.append("shield 類型目前只回傳技能公式結果；Desktop 護盾專用顯示將在後續補齊。")
     formula_source = "special" if trigger_special and special_formula else "csv"

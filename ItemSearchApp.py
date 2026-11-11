@@ -1,5 +1,5 @@
 ﻿#部分資料取自ROCalculator,搜尋 ROCalculator 可以知道哪些有使用
-Version = "v0.9.53-261110"
+Version = "v0.9.54-261111"
 UPDATE_NOTES_HTML_URL = "https://z2911902.github.io/ROItemSearchApp/changelog.html"
 Server_area = "TwRO"
 
@@ -11716,7 +11716,9 @@ class ItemSearchApp(QWidget):
                 "rush_attack": special_checked("RUSH_attack_checkbox"),
                 "oleum_attack": special_checked("OLEUM_attack_checkbox"),
                 "lex_aeterna": special_checked("PR_LEXAETERNA_checkbox"),
-                "total_srl": globals().get("total_SRL", 0),
+                "total_srl": self._core_int_from_widget(
+                    self.refine_inputs_ui["左手(盾牌)"]["refine"], 0
+                ),
             },
             "monster": {
                 "size": self.size_box.currentData(),
@@ -13055,8 +13057,8 @@ class ItemSearchApp(QWidget):
                     widget.setChecked(bool(special.get(state_name)))
                 finally:
                     widget.blockSignals(previous)
-        if "total_srl" in special:
-            globals()["total_SRL"] = special.get("total_srl", 0)
+        # if "total_srl" in special:
+        #     globals()["total_SRL"] = special.get("total_srl", 0)
 
         self.last_character_build = build
 
@@ -13117,7 +13119,9 @@ class ItemSearchApp(QWidget):
                 "rush_attack": checked("RUSH_attack_checkbox"),
                 "oleum_attack": checked("OLEUM_attack_checkbox"),
                 "lex_aeterna": checked("PR_LEXAETERNA_checkbox"),
-                "total_srl": globals().get("total_SRL", 0),
+                "total_srl": self._core_int_from_widget(
+                    self.refine_inputs_ui["左手(盾牌)"]["refine"], 0
+                ),
             },
         }
 
