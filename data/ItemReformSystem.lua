@@ -26986,6 +26986,70 @@ ReformInfo = {
 		PreserveGrade = true,
 		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
 	},
+	[1665] = {
+		BaseItem = "S_CD_AR_Earring",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_CD_AR_Earring",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
+	[1666] = {
+		BaseItem = "S_CD_AR_Pendant",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_CD_AR_Pendant",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
+	[1667] = {
+		BaseItem = "S_CD_DF_Armor",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_CD_DF_Armor",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
+	[1668] = {
+		BaseItem = "S_CD_DF_Shoes",
+		Material = {
+			S_Enchant_Essence = 2
+		},
+		ResultItem = "S_CD_DF_Shoes",
+		NeedRefineMin = 0,
+		NeedRefineMax = 10,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = 0,
+		RandomOptionCode = "NSU",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合結果資訊說明</B>", "1) 精煉值 : 不變", "2) 卡片與附魔資訊 : 不變", "3) 隨機能力 : 賦予1~2種", "4) 等級資訊 : 不變" }
+	},
 	[1669] = {
 		BaseItem = "S_AG_FB_Earring",
 		Material = {
@@ -28876,6 +28940,26 @@ ReformInfo = {
 		PreserveSocketItem = true,
 		PreserveGrade = true,
 		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000+1^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
+	},
+	[10204] = {
+		BaseItem = "Morocc_Thief_Shawl",
+		Material = {
+			Armor_Stone_3 = 200,
+			Broken_Crown = 80,
+			Barmund_Soul_Essence = 80,
+			Zelunium = 1000,
+			Energy_Xtal_MT_TW = 1
+		},
+		ResultItem = "Morocc_Thief_S_UPD",
+		NeedRefineMin = 9,
+		NeedRefineMax = 20,
+		NeedOptionNumMin = 0,
+		IsEmptySocket = false,
+		ChangeRefineValue = -5,
+		RandomOptionCode = "",
+		PreserveSocketItem = true,
+		PreserveGrade = true,
+		InformationString = { "<B>組合成果資訊說明</B>", "1) 精煉值 : ^FF0000-5^000000", "2) 隨機能力資訊 : 保留", "3) 卡片及附魔資訊 : 保留" }
 	}
 }
 ReformItemList = {
@@ -29110,7 +29194,8 @@ ReformItemList = {
 		10197,
 		10200,
 		10202,
-		10203
+		10203,
+		10204
 	},
 	C_Weapon_Reform_1 = {
 		113,
@@ -29891,7 +29976,11 @@ ReformItemList = {
 		1759,
 		1760,
 		1761,
-		1762
+		1762,
+		1665,
+		1666,
+		1667,
+		1668
 	},
 	C_Boots_LT_Hammer = { 10201 },
 	Time_Gap_Refine_Hammer = {
