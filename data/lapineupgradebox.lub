@@ -564,7 +564,8 @@ tblLapineUpgradeBox = {
 			NotSocketEnchantItem = false,
 			TargetItems = {
 				{ "Morocc_Thief_Shawl", 480480 },
-				{ "Morocc_Thief_Shawl_LT", 480481 }
+				{ "Morocc_Thief_Shawl_LT", 480481 },
+				{ "Morocc_Thief_S_UPD", 481011 }
 			},
 			NeedSource_String = "夢羅克盜墓者斗篷系列"
 		},
@@ -5067,6 +5068,10 @@ tblLapineUpgradeBox = {
 			NeedOptionNumMin = 0,
 			NotSocketEnchantItem = false,
 			TargetItems = {
+				{ "S_CD_AR_Earring", 24967 },
+				{ "S_CD_AR_Pendant", 24968 },
+				{ "S_CD_DF_Armor", 24969 },
+				{ "S_CD_DF_Shoes", 24970 },
 				{ "S_IQ_TP_Earring", 1270083 },
 				{ "S_IQ_TP_Pendant", 1270084 },
 				{ "S_IQ_FB_Armor", 1270085 },
@@ -6625,6 +6630,10 @@ tblLapineUpgradeBox = {
 			NeedOptionNumMin = 0,
 			NotSocketEnchantItem = false,
 			TargetItems = {
+				{ "S_CD_AR_Earring", 24967 },
+				{ "S_CD_AR_Pendant", 24968 },
+				{ "S_CD_DF_Armor", 24969 },
+				{ "S_CD_DF_Shoes", 24970 },
 				{ "S_IQ_TP_Earring", 1270083 },
 				{ "S_IQ_TP_Pendant", 1270084 },
 				{ "S_IQ_FB_Armor", 1270085 },

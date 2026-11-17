@@ -5175,7 +5175,13 @@ ItemDBNameTbl = {
 	["S_IQ_TP_Pendant"] = 1270084,
 	["S_IQ_FB_Armor"] = 1270085,
 	["S_IQ_FB_Shoes"] = 1270086,
-	["Time_Gap_Refine_Hammer"] = 103308
+	["Time_Gap_Refine_Hammer"] = 103308,
+	["S_CD_AR_Earring"] = 24967,
+	["S_CD_AR_Pendant"] = 24968,
+	["S_CD_DF_Armor"] = 24969,
+	["S_CD_DF_Shoes"] = 24970,
+	["Energy_Xtal_MT_TW"] = 1003377,
+	["Morocc_Thief_S_UPD"] = 481011
 }
 
 -- Function #0

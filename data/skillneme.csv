@@ -985,7 +985,7 @@
 5262,IG_HOLY_SHIELD,抗性聖盾,,,,,,,,0,0,,,,,,,,,,,,,,,
 5263,IG_GRAND_JUDGEMENT,末日審判,physical,1,,,,5,(250+1500*Sklv+total_POW*10)*BaseLv/100,0,-10,0.5,,,,"3,4",,(350+1650*Sklv+total_POW*10)*BaseLv/100,,,,,,,,
 5264,IG_JUDGEMENT_CROSS,交錯審判,magic,,,,,10,(1950*Sklv+total_SPL*10)*BaseLv/100,6,1,,,,,"3,4",,(1950*Sklv+total_SPL*10)*BaseLv/100,,,,,,,,
-5265,IG_SHIELD_SHOOTING,盾牌投擲,physical,1,,,,5,(1000+(3500+150*10)*Sklv+total_POW*10+total_SRL*100+盾牌重量)*BaseLv/100,0,-7,,,,,,,,,,,,,,,
+5265,IG_SHIELD_SHOOTING,盾牌投擲,physical,1,0,0,,5,(1000+(3500+150*10)*Sklv+total_POW*10+total_SRL*100+盾牌重量)*BaseLv/100,0,-7,,,,,,,,,,,0,0,,,
 5266,IG_OVERSLASH,瞬間斬擊,physical,,,,,10,((220+50*GSklv(5259))*Sklv+total_POW*7)*BaseLv/100,0,3,,,,,,,,,,,,,,,
 5267,IG_CROSS_RAIN,聖十字雨,magic,0,,,,10,((450+10*GSklv(5259))*Sklv+total_SPL*7)*BaseLv/100,6,8,,,,,,5262,((650+15*GSklv(5259))*Sklv+total_SPL*7)*BaseLv/100,,,,,,,,
 5268,CD_REPARATIO,聖光治癒,,,,,,,,0,0,,,,,,,,,,,,,,,
