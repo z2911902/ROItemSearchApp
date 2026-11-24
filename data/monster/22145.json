@@ -1,0 +1,651 @@
+{
+  "id": 22145,
+  "name": "深層史汀",
+  "spriteName": "BIO_STING",
+  "availableServers": [
+    "dpRO",
+    "kROM",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22145.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22145.png",
+  "level": 265,
+  "baseExperience": 5596403,
+  "jobExperience": 3917482,
+  "expPenaltyTable": [
+    {
+      "level": 249,
+      "percent": 40,
+      "baseExperience": 2238561,
+      "jobExperience": 1566992
+    },
+    {
+      "level": 250,
+      "percent": 115,
+      "baseExperience": 6435863,
+      "jobExperience": 4505104
+    },
+    {
+      "level": 251,
+      "percent": 120,
+      "baseExperience": 6715683,
+      "jobExperience": 4700978
+    },
+    {
+      "level": 252,
+      "percent": 125,
+      "baseExperience": 6995503,
+      "jobExperience": 4896852
+    },
+    {
+      "level": 253,
+      "percent": 130,
+      "baseExperience": 7275323,
+      "jobExperience": 5092726
+    },
+    {
+      "level": 254,
+      "percent": 135,
+      "baseExperience": 7555144,
+      "jobExperience": 5288600
+    },
+    {
+      "level": 255,
+      "percent": 140,
+      "baseExperience": 7834964,
+      "jobExperience": 5484474
+    },
+    {
+      "level": 256,
+      "percent": 135,
+      "baseExperience": 7555144,
+      "jobExperience": 5288600
+    },
+    {
+      "level": 257,
+      "percent": 130,
+      "baseExperience": 7275323,
+      "jobExperience": 5092726
+    },
+    {
+      "level": 258,
+      "percent": 125,
+      "baseExperience": 6995503,
+      "jobExperience": 4896852
+    },
+    {
+      "level": 259,
+      "percent": 120,
+      "baseExperience": 6715683,
+      "jobExperience": 4700978
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 6435863,
+      "jobExperience": 4505104
+    },
+    {
+      "level": 261,
+      "percent": 110,
+      "baseExperience": 6156043,
+      "jobExperience": 4309230
+    },
+    {
+      "level": 262,
+      "percent": 105,
+      "baseExperience": 5876223,
+      "jobExperience": 4113356
+    },
+    {
+      "level": 265,
+      "percent": 100,
+      "baseExperience": 5596403,
+      "jobExperience": 3917482
+    },
+    {
+      "level": 266,
+      "percent": 100,
+      "baseExperience": 5596403,
+      "jobExperience": 3917482
+    },
+    {
+      "level": 271,
+      "percent": 95,
+      "baseExperience": 5316582,
+      "jobExperience": 3721607
+    },
+    {
+      "level": 276,
+      "percent": 90,
+      "baseExperience": 5036762,
+      "jobExperience": 3525733
+    },
+    {
+      "level": 281,
+      "percent": 85,
+      "baseExperience": 4756942,
+      "jobExperience": 3329859
+    },
+    {
+      "level": 286,
+      "percent": 60,
+      "baseExperience": 3357841,
+      "jobExperience": 2350489
+    },
+    {
+      "level": 291,
+      "percent": 35,
+      "baseExperience": 1958741,
+      "jobExperience": 1371118
+    },
+    {
+      "level": 296,
+      "percent": 10,
+      "baseExperience": 559640,
+      "jobExperience": 391748
+    }
+  ],
+  "race": "Formless",
+  "element": "Earth 4",
+  "elementLevel": 4,
+  "size": "Medium",
+  "type": "Boss",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 101934980,
+  "magicHealth": null,
+  "attackRange": "18.765 - 27.839",
+  "magicAttackRange": "8.955 - 16.102",
+  "range": 1,
+  "def": 292,
+  "mDef": 170,
+  "hit": 714,
+  "flee": 906,
+  "criticalHit": null,
+  "speed": 5,
+  "attackSpeed": 1.89,
+  "res": 1402,
+  "mRes": 1123,
+  "str": 352,
+  "agi": 249,
+  "vit": 335,
+  "int": 352,
+  "dex": 471,
+  "luk": 345,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 0
+    },
+    {
+      "element": "Fire",
+      "percentage": 200
+    },
+    {
+      "element": "Wind",
+      "percentage": 60
+    },
+    {
+      "element": "Poison",
+      "percentage": 125
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 100
+    }
+  ],
+  "drops": [
+    {
+      "itemId": 1001291,
+      "itemName": "深層大地能量",
+      "slots": 0,
+      "displayName": "深層大地能量",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001291",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001299,
+      "itemName": "深層大地結晶體",
+      "slots": 0,
+      "displayName": "深層大地結晶體",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.005,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001299",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000322,
+      "itemName": "乙太星塵",
+      "slots": 0,
+      "displayName": "乙太星塵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.015,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000322",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000636,
+      "itemName": "草原符文碎片",
+      "slots": 0,
+      "displayName": "草原符文碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.008,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000636",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000640,
+      "itemName": "草原符文",
+      "slots": 0,
+      "displayName": "草原符文",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.002,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000640",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001138,
+      "itemName": "草原精華",
+      "slots": 0,
+      "displayName": "草原精華",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.003,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001138",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001331,
+      "itemName": "深層大地標本",
+      "slots": 0,
+      "displayName": "深層大地標本",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001331",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    }
+  ],
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001291,
+        "itemName": "深層大地能量",
+        "slots": 0,
+        "displayName": "深層大地能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001291",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001299,
+        "itemName": "深層大地結晶體",
+        "slots": 0,
+        "displayName": "深層大地結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001299",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000636,
+        "itemName": "草原符文碎片",
+        "slots": 0,
+        "displayName": "草原符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000636",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000640,
+        "itemName": "草原符文",
+        "slots": 0,
+        "displayName": "草原符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000640",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001138,
+        "itemName": "草原精華",
+        "slots": 0,
+        "displayName": "草原精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001138",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001331,
+        "itemName": "深層大地標本",
+        "slots": 0,
+        "displayName": "深層大地標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001331",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001291,
+        "itemName": "深層大地能量",
+        "slots": 0,
+        "displayName": "深層大地能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001291",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001299,
+        "itemName": "深層大地結晶體",
+        "slots": 0,
+        "displayName": "深層大地結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001299",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000636,
+        "itemName": "草原符文碎片",
+        "slots": 0,
+        "displayName": "草原符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000636",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000640,
+        "itemName": "草原符文",
+        "slots": 0,
+        "displayName": "草原符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000640",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001138,
+        "itemName": "草原精華",
+        "slots": 0,
+        "displayName": "草原精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001138",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001331,
+        "itemName": "深層大地標本",
+        "slots": 0,
+        "displayName": "深層大地標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001331",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "bl_depth1",
+      "mapDisplayName": "生物圈深層",
+      "quantity": 25,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/bl_depth1",
+      "respawnTime": 5000
+    }
+  ],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 265,
+      "race": "Formless",
+      "element": "Earth 4",
+      "elementLevel": 4,
+      "size": "Medium",
+      "str": 352,
+      "agi": 249,
+      "vit": 335,
+      "int": 352,
+      "dex": 471,
+      "luk": 345,
+      "health": 101934980,
+      "def": 292,
+      "mDef": 170,
+      "range": 1,
+      "attackRange": "18.765 - 27.839",
+      "magicAttackRange": "8.955 - 16.102",
+      "hit": 714,
+      "flee": 906,
+      "res": 1402,
+      "mRes": 1123,
+      "speed": 5,
+      "attackSpeed": 1.89
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "bl_depth1",
+        "mapDisplayName": "生物圈深層",
+        "quantity": 25,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/bl_depth1",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
+}

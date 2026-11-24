@@ -1,158 +1,734 @@
 {
   "id": 22178,
-  "dbname": "MD_PRI_DRAGON_2",
   "name": "Coral Marine",
-  "sprite": "MD_PRI_DRAGON_2",
-  "stats": {
-    "attackRange": 3,
-    "level": 275,
-    "health": 700000000,
-    "sp": 1,
-    "str": 324,
-    "int": 445,
-    "vit": 330,
-    "dex": 521,
-    "agi": 303,
-    "luk": 520,
-    "rechargeTime": 306,
-    "atk1": 54008,
-    "atk2": 11133,
-    "attack": {
-      "minimum": 43805,
-      "maximum": 65408
-    },
-    "magicAttack": {
-      "minimum": 8513,
-      "maximum": 15192
-    },
-    "defense": 213,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 150.0,
-    "attackSpeed": 1224.0,
-    "attackedSpeed": -1.0,
-    "element": 22,
-    "scale": 2,
-    "race": 5,
-    "magicDefense": 241,
-    "hit": 778,
-    "flee": 966,
-    "ai": "",
-    "mvp": 1,
-    "class": 1,
-    "attr": 1032,
-    "res": 1020,
-    "mres": 1682
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "md_pri_dragon_2_attack.wav",
-    "md_pri_dragon_2_die.wav",
-    "md_pri_dragon_2_move.wav",
-    "md_pri_dragon_2_stand_1.wav",
-    "md_pri_dragon_2_stand_2.wav"
+  "spriteName": "MD_PRI_DRAGON_2",
+  "availableServers": [
+    "dpRO",
+    "kROM"
   ],
-  "questObjective": [
-    12614
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22178.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22178.png",
+  "level": 275,
+  "baseExperience": 0,
+  "jobExperience": 0,
+  "expPenaltyTable": [
+    {
+      "level": 259,
+      "percent": 40,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 261,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 262,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 263,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 264,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 265,
+      "percent": 140,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 266,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 267,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 268,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 269,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 270,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 271,
+      "percent": 110,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 272,
+      "percent": 105,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 275,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 276,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 281,
+      "percent": 95,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 286,
+      "percent": 90,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 291,
+      "percent": 85,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 296,
+      "percent": 60,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 301,
+      "percent": 35,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 306,
+      "percent": 10,
+      "baseExperience": 0,
+      "jobExperience": 0
+    }
+  ],
+  "race": "Fish",
+  "element": "Earth 1",
+  "elementLevel": 1,
+  "size": "Large",
+  "type": "MVP",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 1% of the damage dealt to it"
+  ],
+  "health": 700000000,
+  "magicHealth": null,
+  "attackRange": "43.805 - 65.408",
+  "magicAttackRange": "8.513 - 15.192",
+  "range": 3,
+  "def": 213,
+  "mDef": 241,
+  "hit": 778,
+  "flee": 966,
+  "criticalHit": null,
+  "speed": 6.67,
+  "attackSpeed": 0.82,
+  "res": 1020,
+  "mRes": 1682,
+  "str": 324,
+  "agi": 303,
+  "vit": 330,
+  "int": 445,
+  "dex": 521,
+  "luk": 520,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 25
+    },
+    {
+      "element": "Fire",
+      "percentage": 150
+    },
+    {
+      "element": "Wind",
+      "percentage": 90
+    },
+    {
+      "element": "Poison",
+      "percentage": 150
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 100
+    }
   ],
   "drops": [
     {
       "itemId": 1001441,
-      "chance": 2000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "夏天氣息",
+      "slots": 0,
+      "displayName": "夏天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.2,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001441",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001441,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "夏天氣息",
+      "slots": 0,
+      "displayName": "夏天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001441",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001414,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "次元結界碎片",
+      "slots": 0,
+      "displayName": "次元結界碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001414",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001447,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "珊瑚鯨魔的尾巴",
+      "slots": 0,
+      "displayName": "珊瑚鯨魔的尾巴",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001447",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001448,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "珊瑚鯨魔的珊瑚",
+      "slots": 0,
+      "displayName": "珊瑚鯨魔的珊瑚",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001448",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001449,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "珊瑚鯨魔的鰭",
+      "slots": 0,
+      "displayName": "珊瑚鯨魔的鰭",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001449",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [
+  "mvpDrops": [
     {
       "itemId": 1001441,
-      "chance": 5000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "夏天氣息",
+      "slots": 0,
+      "displayName": "夏天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.5,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1001441",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 616,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "老舊收集冊",
+      "slots": 0,
+      "displayName": "老舊收集冊",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/616",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 12246,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "具有魔力的卡片冊子",
+      "slots": 0,
+      "displayName": "具有魔力的卡片冊子",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/12246",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "spawn": [],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 100,
-    "2": 25,
-    "3": 150,
-    "4": 90,
-    "5": 125,
-    "6": 100,
-    "7": 100,
-    "8": 100,
-    "9": 100
-  }
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001441,
+        "itemName": "夏天氣息",
+        "slots": 0,
+        "displayName": "夏天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001441",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001441,
+        "itemName": "夏天氣息",
+        "slots": 0,
+        "displayName": "夏天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001441",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001414,
+        "itemName": "次元結界碎片",
+        "slots": 0,
+        "displayName": "次元結界碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001414",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001447,
+        "itemName": "珊瑚鯨魔的尾巴",
+        "slots": 0,
+        "displayName": "珊瑚鯨魔的尾巴",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001447",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001448,
+        "itemName": "珊瑚鯨魔的珊瑚",
+        "slots": 0,
+        "displayName": "珊瑚鯨魔的珊瑚",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001448",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001449,
+        "itemName": "珊瑚鯨魔的鰭",
+        "slots": 0,
+        "displayName": "珊瑚鯨魔的鰭",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001449",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001441,
+        "itemName": "夏天氣息",
+        "slots": 0,
+        "displayName": "夏天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001441",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001441,
+        "itemName": "夏天氣息",
+        "slots": 0,
+        "displayName": "夏天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001441",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001414,
+        "itemName": "次元結界碎片",
+        "slots": 0,
+        "displayName": "次元結界碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001414",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001447,
+        "itemName": "珊瑚鯨魔的尾巴",
+        "slots": 0,
+        "displayName": "珊瑚鯨魔的尾巴",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001447",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001448,
+        "itemName": "珊瑚鯨魔的珊瑚",
+        "slots": 0,
+        "displayName": "珊瑚鯨魔的珊瑚",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001448",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001449,
+        "itemName": "珊瑚鯨魔的鰭",
+        "slots": 0,
+        "displayName": "珊瑚鯨魔的鰭",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001449",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {
+    "default": [
+      {
+        "itemId": 1001441,
+        "itemName": "夏天氣息",
+        "slots": 0,
+        "displayName": "夏天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.5,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1001441",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 616,
+        "itemName": "老舊收集冊",
+        "slots": 0,
+        "displayName": "老舊收集冊",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/616",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001441,
+        "itemName": "夏天氣息",
+        "slots": 0,
+        "displayName": "夏天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.5,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1001441",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 616,
+        "itemName": "老舊收集冊",
+        "slots": 0,
+        "displayName": "老舊收集冊",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/616",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 275,
+      "race": "Fish",
+      "element": "Earth 1",
+      "elementLevel": 1,
+      "size": "Large",
+      "str": 324,
+      "agi": 303,
+      "vit": 330,
+      "int": 445,
+      "dex": 521,
+      "luk": 520,
+      "health": 700000000,
+      "def": 213,
+      "mDef": 241,
+      "range": 3,
+      "attackRange": "43.805 - 65.408",
+      "magicAttackRange": "8.513 - 15.192",
+      "hit": 778,
+      "flee": 966,
+      "res": 1020,
+      "mRes": 1682,
+      "speed": 6.67,
+      "attackSpeed": 0.82
+    }
+  },
+  "spawnVersions": {},
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

@@ -1,148 +1,518 @@
 {
   "id": 21064,
-  "dbname": "S_DUMMY_100_SMALL",
   "name": "測試用魔物(小型)",
-  "sprite": "S_DUMMY_DEFAULT",
-  "stats": {
-    "attackRange": 0,
-    "level": 100,
-    "health": 2000000000,
-    "sp": 1,
-    "str": 0,
-    "int": 0,
-    "vit": 0,
-    "dex": 0,
-    "agi": 0,
-    "luk": 0,
-    "rechargeTime": 0,
-    "atk1": 0,
-    "atk2": 0,
-    "attack": {
-      "minimum": 100,
-      "maximum": 100
+  "spriteName": "S_DUMMY_100_SMALL",
+  "availableServers": [
+    "bRO",
+    "cRO",
+    "dpRO",
+    "GZero",
+    "iRO",
+    "kROM",
+    "kROS",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/21064.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/21064.png",
+  "level": 100,
+  "baseExperience": 0,
+  "jobExperience": 0,
+  "expPenaltyTable": [
+    {
+      "level": 84,
+      "percent": 40,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
-    "magicAttack": {
-      "minimum": 100,
-      "maximum": 100
+    {
+      "level": 85,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
-    "defense": 0,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 0,
-    "escapeRange": 0,
-    "movementSpeed": 1000.0,
-    "attackSpeed": 0.0,
-    "attackedSpeed": 0.0,
-    "element": 20,
-    "scale": 0,
-    "race": 0,
-    "magicDefense": 0,
-    "hit": 300,
-    "flee": 270,
-    "ai": "MONSTER_TYPE_06",
-    "mvp": 0,
-    "class": 1,
-    "attr": 96,
-    "res": 0,
-    "mres": 0
+    {
+      "level": 86,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 87,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 88,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 89,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 90,
+      "percent": 140,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 91,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 92,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 93,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 94,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 95,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 96,
+      "percent": 110,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 97,
+      "percent": 105,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 100,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 101,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 106,
+      "percent": 95,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 111,
+      "percent": 90,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 116,
+      "percent": 85,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 121,
+      "percent": 60,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 126,
+      "percent": 35,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 131,
+      "percent": 10,
+      "baseExperience": 0,
+      "jobExperience": 0
+    }
+  ],
+  "race": "Formless",
+  "element": "Neutral 1",
+  "elementLevel": 1,
+  "size": "Small",
+  "type": "Boss",
+  "aiFlags": [
+    "MONSTER_TYPE_06"
+  ],
+  "aiFlagDetails": {
+    "aggressive": false,
+    "assist": false,
+    "looter": false,
+    "changeTarget": false,
+    "changeTargetOnAttack": false,
+    "immobile": true,
+    "castSensor": false,
+    "isNormal": false
   },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [],
-  "questObjective": [],
+  "attributes": [
+    "Immune to knockback",
+    "Immune to teleport (snatch)"
+  ],
+  "health": 2000000000,
+  "magicHealth": null,
+  "attackRange": "100 - 100",
+  "magicAttackRange": "100 - 100",
+  "range": 0,
+  "def": 0,
+  "mDef": 0,
+  "hit": 300,
+  "flee": 270,
+  "criticalHit": null,
+  "speed": 1,
+  "attackSpeed": null,
+  "res": 0,
+  "mRes": 0,
+  "str": 0,
+  "agi": 0,
+  "vit": 0,
+  "int": 0,
+  "dex": 0,
+  "luk": 0,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 100
+    },
+    {
+      "element": "Fire",
+      "percentage": 100
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 100
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 90
+    },
+    {
+      "element": "Undead",
+      "percentage": 100
+    }
+  ],
   "drops": [],
-  "mapDrops": [],
-  "mvpdrops": [],
-  "spawn": [
+  "mvpDrops": [],
+  "dropVersions": {},
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
     {
-      "mapname": "hero_tra",
-      "amount": 1,
+      "mapId": 0,
+      "mapName": "hero_tra",
+      "mapDisplayName": "聖域希羅斯里亞修練場",
+      "quantity": 1,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/hero_tra",
       "respawnTime": 5000
     },
     {
-      "mapname": "tra_fild",
-      "amount": 1,
+      "mapId": 0,
+      "mapName": "tra_fild",
+      "mapDisplayName": "普隆德拉郊外訓練場",
+      "quantity": 1,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/tra_fild",
       "respawnTime": 5000
     },
     {
-      "mapname": "tra_fild01",
-      "amount": 1,
+      "mapId": 0,
+      "mapName": "tra_fild01",
+      "mapDisplayName": "普隆德拉郊外基本訓練場",
+      "quantity": 1,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/tra_fild01",
       "respawnTime": 5000
     }
   ],
-  "skill": [
+  "skills": [
     {
-      "idx": 32338,
       "skillId": 687,
-      "status": "BERSERK_ST",
-      "level": 5,
-      "chance": 1000,
-      "casttime": 0,
-      "delay": 50,
+      "skillName": "生命之流",
+      "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+      "skillLevel": 5,
+      "probabilityPercent": 100,
+      "castTime": 0,
+      "cooldownTime": 50,
       "interruptable": false,
-      "changeTo": null,
-      "condition": "IF_HP",
-      "conditionValue": "90",
-      "sendType": null,
-      "sendValue": null
+      "state": "Attacking",
+      "condition": "If the monster's health drops below 90%.",
+      "description": null
     },
     {
-      "idx": 32339,
       "skillId": 687,
-      "status": "IDLE_ST",
-      "level": 5,
-      "chance": 1000,
-      "casttime": 0,
-      "delay": 50,
+      "skillName": "生命之流",
+      "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+      "skillLevel": 5,
+      "probabilityPercent": 100,
+      "castTime": 0,
+      "cooldownTime": 50,
       "interruptable": false,
-      "changeTo": null,
-      "condition": "IF_HP",
-      "conditionValue": "90",
-      "sendType": null,
-      "sendValue": null
+      "state": "Idling",
+      "condition": "If the monster's health drops below 90%.",
+      "description": null
     },
     {
-      "idx": 40590,
       "skillId": 687,
-      "status": "BERSERK_ST",
-      "level": 1,
-      "chance": 1000,
-      "casttime": 0,
-      "delay": 500,
+      "skillName": "生命之流",
+      "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+      "skillLevel": 1,
+      "probabilityPercent": 100,
+      "castTime": 0,
+      "cooldownTime": 500,
       "interruptable": false,
-      "changeTo": null,
-      "condition": "IF_HP",
-      "conditionValue": "90",
-      "sendType": null,
-      "sendValue": null
+      "state": "Attacking",
+      "condition": "If the monster's health drops below 90%.",
+      "description": null
     },
     {
-      "idx": 40591,
       "skillId": 687,
-      "status": "IDLE_ST",
-      "level": 1,
-      "chance": 1000,
-      "casttime": 0,
-      "delay": 500,
+      "skillName": "生命之流",
+      "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+      "skillLevel": 1,
+      "probabilityPercent": 100,
+      "castTime": 0,
+      "cooldownTime": 500,
       "interruptable": false,
-      "changeTo": null,
-      "condition": "IF_HP",
-      "conditionValue": "90",
-      "sendType": null,
-      "sendValue": null
+      "state": "Idling",
+      "condition": "If the monster's health drops below 90%.",
+      "description": null
     }
   ],
-  "propertyTable": {
-    "0": 100,
-    "1": 100,
-    "2": 100,
-    "3": 100,
-    "4": 100,
-    "5": 100,
-    "6": 100,
-    "7": 100,
-    "8": 70,
-    "9": 100
-  }
+  "statsVersions": {
+    "default": {
+      "level": 100,
+      "race": "Formless",
+      "element": "Neutral 1",
+      "elementLevel": 1,
+      "size": "Small",
+      "str": 0,
+      "agi": 0,
+      "vit": 0,
+      "int": 0,
+      "dex": 0,
+      "luk": 0,
+      "health": 2000000000,
+      "def": 0,
+      "mDef": 0,
+      "range": 0,
+      "attackRange": "100 - 100",
+      "magicAttackRange": "100 - 100",
+      "hit": 300,
+      "flee": 270,
+      "res": 0,
+      "mRes": 0,
+      "speed": 1,
+      "attackSpeed": null
+    },
+    "Zero": {
+      "level": 100,
+      "race": "Formless",
+      "element": "Neutral 1",
+      "elementLevel": 1,
+      "size": "Small",
+      "str": null,
+      "agi": null,
+      "vit": null,
+      "int": null,
+      "dex": null,
+      "luk": null,
+      "health": null,
+      "def": null,
+      "mDef": null,
+      "range": null,
+      "attackRange": null,
+      "magicAttackRange": null,
+      "hit": null,
+      "flee": null,
+      "res": 0,
+      "mRes": 0,
+      "speed": null,
+      "attackSpeed": null
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "hero_tra",
+        "mapDisplayName": "聖域希羅斯里亞修練場",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/hero_tra",
+        "respawnTime": 5000
+      },
+      {
+        "mapId": 0,
+        "mapName": "tra_fild",
+        "mapDisplayName": "普隆德拉郊外訓練場",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/tra_fild",
+        "respawnTime": 5000
+      },
+      {
+        "mapId": 0,
+        "mapName": "tra_fild01",
+        "mapDisplayName": "普隆德拉郊外基本訓練場",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/tra_fild01",
+        "respawnTime": 5000
+      }
+    ],
+    "Zero": [
+      {
+        "mapId": 0,
+        "mapName": "tra_fild",
+        "mapDisplayName": "普隆德拉郊外訓練場",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/tra_fild",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {
+    "default": [
+      {
+        "skillId": 687,
+        "skillName": "生命之流",
+        "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+        "skillLevel": 5,
+        "probabilityPercent": 100,
+        "castTime": 0,
+        "cooldownTime": 50,
+        "interruptable": false,
+        "state": "Attacking",
+        "condition": "If the monster's health drops below 90%.",
+        "description": null
+      },
+      {
+        "skillId": 687,
+        "skillName": "生命之流",
+        "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+        "skillLevel": 5,
+        "probabilityPercent": 100,
+        "castTime": 0,
+        "cooldownTime": 50,
+        "interruptable": false,
+        "state": "Idling",
+        "condition": "If the monster's health drops below 90%.",
+        "description": null
+      },
+      {
+        "skillId": 687,
+        "skillName": "生命之流",
+        "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+        "skillLevel": 1,
+        "probabilityPercent": 100,
+        "castTime": 0,
+        "cooldownTime": 500,
+        "interruptable": false,
+        "state": "Attacking",
+        "condition": "If the monster's health drops below 90%.",
+        "description": null
+      },
+      {
+        "skillId": 687,
+        "skillName": "生命之流",
+        "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+        "skillLevel": 1,
+        "probabilityPercent": 100,
+        "castTime": 0,
+        "cooldownTime": 500,
+        "interruptable": false,
+        "state": "Idling",
+        "condition": "If the monster's health drops below 90%.",
+        "description": null
+      }
+    ],
+    "kRO EP 18": [
+      {
+        "skillId": 687,
+        "skillName": "生命之流",
+        "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+        "skillLevel": 1,
+        "probabilityPercent": 100,
+        "castTime": 0,
+        "cooldownTime": 500,
+        "interruptable": false,
+        "state": "Attacking",
+        "condition": "If the monster's health drops below 90%.",
+        "description": null
+      },
+      {
+        "skillId": 687,
+        "skillName": "生命之流",
+        "iconUrl": "https://static.divine-pride.net/images/skill/687.png",
+        "skillLevel": 1,
+        "probabilityPercent": 100,
+        "castTime": 0,
+        "cooldownTime": 500,
+        "interruptable": false,
+        "state": "Idling",
+        "condition": "If the monster's health drops below 90%.",
+        "description": null
+      }
+    ]
+  },
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

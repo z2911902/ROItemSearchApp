@@ -1,160 +1,734 @@
 {
   "id": 22177,
-  "dbname": "MD_PRI_DRAGON_1",
   "name": "Floral Pegasus",
-  "sprite": "MD_PRI_DRAGON_1",
-  "stats": {
-    "attackRange": 2,
-    "level": 275,
-    "health": 700000000,
-    "sp": 1,
-    "str": 486,
-    "int": 311,
-    "vit": 386,
-    "dex": 552,
-    "agi": 390,
-    "luk": 520,
-    "rechargeTime": 324,
-    "atk1": 55810,
-    "atk2": 10828,
-    "attack": {
-      "minimum": 45409,
-      "maximum": 67733
-    },
-    "magicAttack": {
-      "minimum": 8165,
-      "maximum": 14662
-    },
-    "defense": 347,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 130.0,
-    "attackSpeed": 1080.0,
-    "attackedSpeed": -1.0,
-    "element": 25,
-    "scale": 2,
-    "race": 8,
-    "magicDefense": 134,
-    "hit": 865,
-    "flee": 997,
-    "ai": "",
-    "mvp": 1,
-    "class": 1,
-    "attr": 1032,
-    "res": 1741,
-    "mres": 807
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "goblin_attack.wav",
-    "goblin_damage.wav",
-    "goblin_die.wav",
-    "md_pri_dragon_1_attack.wav",
-    "md_pri_dragon_1_die.wav",
-    "md_pri_dragon_1_move.wav",
-    "md_pri_dragon_1_stand.wav"
+  "spriteName": "MD_PRI_DRAGON_1",
+  "availableServers": [
+    "dpRO",
+    "kROM"
   ],
-  "questObjective": [
-    12613
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22177.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22177.png",
+  "level": 275,
+  "baseExperience": 0,
+  "jobExperience": 0,
+  "expPenaltyTable": [
+    {
+      "level": 259,
+      "percent": 40,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 261,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 262,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 263,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 264,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 265,
+      "percent": 140,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 266,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 267,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 268,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 269,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 270,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 271,
+      "percent": 110,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 272,
+      "percent": 105,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 275,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 276,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 281,
+      "percent": 95,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 286,
+      "percent": 90,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 291,
+      "percent": 85,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 296,
+      "percent": 60,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 301,
+      "percent": 35,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 306,
+      "percent": 10,
+      "baseExperience": 0,
+      "jobExperience": 0
+    }
+  ],
+  "race": "Angel",
+  "element": "Poison 1",
+  "elementLevel": 1,
+  "size": "Large",
+  "type": "MVP",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 1% of the damage dealt to it"
+  ],
+  "health": 700000000,
+  "magicHealth": null,
+  "attackRange": "45.409 - 67.733",
+  "magicAttackRange": "8.165 - 14.662",
+  "range": 2,
+  "def": 347,
+  "mDef": 134,
+  "hit": 865,
+  "flee": 997,
+  "criticalHit": null,
+  "speed": 7.69,
+  "attackSpeed": 0.93,
+  "res": 1741,
+  "mRes": 807,
+  "str": 486,
+  "agi": 390,
+  "vit": 386,
+  "int": 311,
+  "dex": 552,
+  "luk": 520,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 150
+    },
+    {
+      "element": "Earth",
+      "percentage": 150
+    },
+    {
+      "element": "Fire",
+      "percentage": 150
+    },
+    {
+      "element": "Wind",
+      "percentage": 150
+    },
+    {
+      "element": "Poison",
+      "percentage": 0
+    },
+    {
+      "element": "Holy",
+      "percentage": 75
+    },
+    {
+      "element": "Dark",
+      "percentage": 75
+    },
+    {
+      "element": "Ghost",
+      "percentage": 75
+    },
+    {
+      "element": "Undead",
+      "percentage": 75
+    }
   ],
   "drops": [
     {
       "itemId": 1001440,
-      "chance": 2000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "春天氣息",
+      "slots": 0,
+      "displayName": "春天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.2,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001440",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001440,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "春天氣息",
+      "slots": 0,
+      "displayName": "春天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001440",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001414,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "次元結界碎片",
+      "slots": 0,
+      "displayName": "次元結界碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001414",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001444,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "春櫻飛馬鬃毛",
+      "slots": 0,
+      "displayName": "春櫻飛馬鬃毛",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001444",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001445,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "春櫻飛馬的象徵",
+      "slots": 0,
+      "displayName": "春櫻飛馬的象徵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001445",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001446,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "春櫻飛馬翅膀的羽毛",
+      "slots": 0,
+      "displayName": "春櫻飛馬翅膀的羽毛",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001446",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [
+  "mvpDrops": [
     {
       "itemId": 1001440,
-      "chance": 5000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "春天氣息",
+      "slots": 0,
+      "displayName": "春天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.5,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1001440",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 616,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "老舊收集冊",
+      "slots": 0,
+      "displayName": "老舊收集冊",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/616",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 12246,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "具有魔力的卡片冊子",
+      "slots": 0,
+      "displayName": "具有魔力的卡片冊子",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/12246",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "spawn": [],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 100,
-    "2": 100,
-    "3": 100,
-    "4": 100,
-    "5": 0,
-    "6": 100,
-    "7": 50,
-    "8": 100,
-    "9": 50
-  }
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001440,
+        "itemName": "春天氣息",
+        "slots": 0,
+        "displayName": "春天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001440",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001440,
+        "itemName": "春天氣息",
+        "slots": 0,
+        "displayName": "春天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001440",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001414,
+        "itemName": "次元結界碎片",
+        "slots": 0,
+        "displayName": "次元結界碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001414",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001444,
+        "itemName": "春櫻飛馬鬃毛",
+        "slots": 0,
+        "displayName": "春櫻飛馬鬃毛",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001444",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001445,
+        "itemName": "春櫻飛馬的象徵",
+        "slots": 0,
+        "displayName": "春櫻飛馬的象徵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001445",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001446,
+        "itemName": "春櫻飛馬翅膀的羽毛",
+        "slots": 0,
+        "displayName": "春櫻飛馬翅膀的羽毛",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001446",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001440,
+        "itemName": "春天氣息",
+        "slots": 0,
+        "displayName": "春天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001440",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001440,
+        "itemName": "春天氣息",
+        "slots": 0,
+        "displayName": "春天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001440",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001414,
+        "itemName": "次元結界碎片",
+        "slots": 0,
+        "displayName": "次元結界碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001414",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001444,
+        "itemName": "春櫻飛馬鬃毛",
+        "slots": 0,
+        "displayName": "春櫻飛馬鬃毛",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001444",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001445,
+        "itemName": "春櫻飛馬的象徵",
+        "slots": 0,
+        "displayName": "春櫻飛馬的象徵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001445",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001446,
+        "itemName": "春櫻飛馬翅膀的羽毛",
+        "slots": 0,
+        "displayName": "春櫻飛馬翅膀的羽毛",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001446",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {
+    "default": [
+      {
+        "itemId": 1001440,
+        "itemName": "春天氣息",
+        "slots": 0,
+        "displayName": "春天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.5,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1001440",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 616,
+        "itemName": "老舊收集冊",
+        "slots": 0,
+        "displayName": "老舊收集冊",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/616",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001440,
+        "itemName": "春天氣息",
+        "slots": 0,
+        "displayName": "春天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.5,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1001440",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 616,
+        "itemName": "老舊收集冊",
+        "slots": 0,
+        "displayName": "老舊收集冊",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/616",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 275,
+      "race": "Angel",
+      "element": "Poison 1",
+      "elementLevel": 1,
+      "size": "Large",
+      "str": 486,
+      "agi": 390,
+      "vit": 386,
+      "int": 311,
+      "dex": 552,
+      "luk": 520,
+      "health": 700000000,
+      "def": 347,
+      "mDef": 134,
+      "range": 2,
+      "attackRange": "45.409 - 67.733",
+      "magicAttackRange": "8.165 - 14.662",
+      "hit": 865,
+      "flee": 997,
+      "res": 1741,
+      "mRes": 807,
+      "speed": 7.69,
+      "attackSpeed": 0.93
+    }
+  },
+  "spawnVersions": {},
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

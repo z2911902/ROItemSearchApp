@@ -1,158 +1,783 @@
 {
   "id": 21533,
-  "dbname": "EP19_MD_JUNCEA_S",
   "name": "Simulation Juncea",
-  "sprite": "EP19_MD_JUNCEA_S",
-  "stats": {
-    "attackRange": 2,
-    "level": 215,
-    "health": 225503800,
-    "sp": 1,
-    "str": 159,
-    "int": 101,
-    "vit": 276,
-    "dex": 377,
-    "agi": 91,
-    "luk": 110,
-    "rechargeTime": 403,
-    "atk1": 15250,
-    "atk2": 2280,
-    "attack": {
-      "minimum": 12574,
-      "maximum": 18674
-    },
-    "magicAttack": {
-      "minimum": 1912,
-      "maximum": 3280
-    },
-    "defense": 575,
-    "baseExperience": 7798710,
-    "jobExperience": 5430080,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 150.0,
-    "attackSpeed": 1008.0,
-    "attackedSpeed": 576.0,
-    "element": 85,
-    "scale": 2,
-    "race": 0,
-    "magicDefense": 100,
-    "hit": 506,
-    "flee": 762,
-    "ai": "",
-    "mvp": 1,
-    "class": 1,
-    "attr": 8,
-    "res": 376,
-    "mres": 131
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "ep19_md_juncea_attack.wav",
-    "ep19_md_juncea_damage.wav",
-    "ep19_md_juncea_die.wav",
-    "ep19_md_juncea_die2.wav",
-    "ep19_md_juncea_stand.wav"
+  "spriteName": "EP19_MD_JUNCEA_S",
+  "availableServers": [
+    "dpRO",
+    "kROM"
   ],
-  "questObjective": [
-    16662
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/21533.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/21533.png",
+  "level": 215,
+  "baseExperience": 7798710,
+  "jobExperience": 5430080,
+  "expPenaltyTable": [
+    {
+      "level": 199,
+      "percent": 40,
+      "baseExperience": 3119484,
+      "jobExperience": 2172032
+    },
+    {
+      "level": 200,
+      "percent": 115,
+      "baseExperience": 8968516,
+      "jobExperience": 6244592
+    },
+    {
+      "level": 201,
+      "percent": 120,
+      "baseExperience": 9358452,
+      "jobExperience": 6516096
+    },
+    {
+      "level": 202,
+      "percent": 125,
+      "baseExperience": 9748387,
+      "jobExperience": 6787600
+    },
+    {
+      "level": 203,
+      "percent": 130,
+      "baseExperience": 10138323,
+      "jobExperience": 7059104
+    },
+    {
+      "level": 204,
+      "percent": 135,
+      "baseExperience": 10528258,
+      "jobExperience": 7330608
+    },
+    {
+      "level": 205,
+      "percent": 140,
+      "baseExperience": 10918194,
+      "jobExperience": 7602112
+    },
+    {
+      "level": 206,
+      "percent": 135,
+      "baseExperience": 10528258,
+      "jobExperience": 7330608
+    },
+    {
+      "level": 207,
+      "percent": 130,
+      "baseExperience": 10138323,
+      "jobExperience": 7059104
+    },
+    {
+      "level": 208,
+      "percent": 125,
+      "baseExperience": 9748387,
+      "jobExperience": 6787600
+    },
+    {
+      "level": 209,
+      "percent": 120,
+      "baseExperience": 9358452,
+      "jobExperience": 6516096
+    },
+    {
+      "level": 210,
+      "percent": 115,
+      "baseExperience": 8968516,
+      "jobExperience": 6244592
+    },
+    {
+      "level": 211,
+      "percent": 110,
+      "baseExperience": 8578581,
+      "jobExperience": 5973088
+    },
+    {
+      "level": 212,
+      "percent": 105,
+      "baseExperience": 8188645,
+      "jobExperience": 5701584
+    },
+    {
+      "level": 215,
+      "percent": 100,
+      "baseExperience": 7798710,
+      "jobExperience": 5430080
+    },
+    {
+      "level": 216,
+      "percent": 100,
+      "baseExperience": 7798710,
+      "jobExperience": 5430080
+    },
+    {
+      "level": 221,
+      "percent": 95,
+      "baseExperience": 7408774,
+      "jobExperience": 5158576
+    },
+    {
+      "level": 226,
+      "percent": 90,
+      "baseExperience": 7018839,
+      "jobExperience": 4887072
+    },
+    {
+      "level": 231,
+      "percent": 85,
+      "baseExperience": 6628903,
+      "jobExperience": 4615568
+    },
+    {
+      "level": 236,
+      "percent": 60,
+      "baseExperience": 4679226,
+      "jobExperience": 3258048
+    },
+    {
+      "level": 241,
+      "percent": 35,
+      "baseExperience": 2729548,
+      "jobExperience": 1900528
+    },
+    {
+      "level": 246,
+      "percent": 10,
+      "baseExperience": 779871,
+      "jobExperience": 543008
+    }
+  ],
+  "race": "Formless",
+  "element": "Poison 4",
+  "elementLevel": 4,
+  "size": "Large",
+  "type": "MVP",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [],
+  "health": 225503800,
+  "magicHealth": null,
+  "attackRange": "12.574 - 18.674",
+  "magicAttackRange": "1.912 - 3.280",
+  "range": 2,
+  "def": 575,
+  "mDef": 100,
+  "hit": 506,
+  "flee": 762,
+  "criticalHit": null,
+  "speed": 6.67,
+  "attackSpeed": 0.99,
+  "res": 376,
+  "mRes": 131,
+  "str": 159,
+  "agi": 91,
+  "vit": 276,
+  "int": 101,
+  "dex": 377,
+  "luk": 110,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 125
+    },
+    {
+      "element": "Earth",
+      "percentage": 125
+    },
+    {
+      "element": "Fire",
+      "percentage": 125
+    },
+    {
+      "element": "Wind",
+      "percentage": 125
+    },
+    {
+      "element": "Poison",
+      "percentage": 0
+    },
+    {
+      "element": "Holy",
+      "percentage": 50
+    },
+    {
+      "element": "Dark",
+      "percentage": 50
+    },
+    {
+      "element": "Ghost",
+      "percentage": 50
+    },
+    {
+      "element": "Undead",
+      "percentage": 0
+    }
   ],
   "drops": [
     {
       "itemId": 1000834,
-      "chance": 7000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "長又尖的骨頭碎片",
+      "slots": 0,
+      "displayName": "長又尖的骨頭碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.7,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000834",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000814,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "耀眼雪花魔石",
+      "slots": 0,
+      "displayName": "耀眼雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000814",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000813,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "閃爍雪花魔石",
+      "slots": 0,
+      "displayName": "閃爍雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000813",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000812,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "雪花魔石",
+      "slots": 0,
+      "displayName": "雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000812",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000811,
-      "chance": 3500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "雪花魔力原石",
+      "slots": 0,
+      "displayName": "雪花魔力原石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.35,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000811",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000811,
-      "chance": 1500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "雪花魔力原石",
+      "slots": 0,
+      "displayName": "雪花魔力原石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.15,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000811",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 300378,
-      "chance": 1,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "仿真蓉可兒卡片",
+      "slots": 0,
+      "displayName": "仿真蓉可兒卡片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0001,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/300378",
+      "isStealProtected": true,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [
+  "mvpDrops": [
     {
       "itemId": 1000812,
-      "chance": 7000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "雪花魔石",
+      "slots": 0,
+      "displayName": "雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.7,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1000812",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000813,
-      "chance": 2000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "閃爍雪花魔石",
+      "slots": 0,
+      "displayName": "閃爍雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.2,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1000813",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000814,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "耀眼雪花魔石",
+      "slots": 0,
+      "displayName": "耀眼雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1000814",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "spawn": [],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 75,
-    "2": 75,
-    "3": 75,
-    "4": 75,
-    "5": 0,
-    "6": 125,
-    "7": -25,
-    "8": 25,
-    "9": -25
-  }
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1000834,
+        "itemName": "長又尖的骨頭碎片",
+        "slots": 0,
+        "displayName": "長又尖的骨頭碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.7,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000834",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000814,
+        "itemName": "耀眼雪花魔石",
+        "slots": 0,
+        "displayName": "耀眼雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000814",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000813,
+        "itemName": "閃爍雪花魔石",
+        "slots": 0,
+        "displayName": "閃爍雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000813",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000812,
+        "itemName": "雪花魔石",
+        "slots": 0,
+        "displayName": "雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000812",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000811,
+        "itemName": "雪花魔力原石",
+        "slots": 0,
+        "displayName": "雪花魔力原石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.35,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000811",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000811,
+        "itemName": "雪花魔力原石",
+        "slots": 0,
+        "displayName": "雪花魔力原石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.15,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000811",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 300378,
+        "itemName": "仿真蓉可兒卡片",
+        "slots": 0,
+        "displayName": "仿真蓉可兒卡片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0001,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/300378",
+        "isStealProtected": true,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1000834,
+        "itemName": "長又尖的骨頭碎片",
+        "slots": 0,
+        "displayName": "長又尖的骨頭碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.7,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000834",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000814,
+        "itemName": "耀眼雪花魔石",
+        "slots": 0,
+        "displayName": "耀眼雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000814",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000813,
+        "itemName": "閃爍雪花魔石",
+        "slots": 0,
+        "displayName": "閃爍雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000813",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000812,
+        "itemName": "雪花魔石",
+        "slots": 0,
+        "displayName": "雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000812",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000811,
+        "itemName": "雪花魔力原石",
+        "slots": 0,
+        "displayName": "雪花魔力原石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.35,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000811",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000811,
+        "itemName": "雪花魔力原石",
+        "slots": 0,
+        "displayName": "雪花魔力原石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.15,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000811",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 300378,
+        "itemName": "仿真蓉可兒卡片",
+        "slots": 0,
+        "displayName": "仿真蓉可兒卡片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0001,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/300378",
+        "isStealProtected": true,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {
+    "default": [
+      {
+        "itemId": 1000812,
+        "itemName": "雪花魔石",
+        "slots": 0,
+        "displayName": "雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.7,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000812",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000813,
+        "itemName": "閃爍雪花魔石",
+        "slots": 0,
+        "displayName": "閃爍雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000813",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000814,
+        "itemName": "耀眼雪花魔石",
+        "slots": 0,
+        "displayName": "耀眼雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000814",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1000812,
+        "itemName": "雪花魔石",
+        "slots": 0,
+        "displayName": "雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.7,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000812",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000813,
+        "itemName": "閃爍雪花魔石",
+        "slots": 0,
+        "displayName": "閃爍雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000813",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000814,
+        "itemName": "耀眼雪花魔石",
+        "slots": 0,
+        "displayName": "耀眼雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000814",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 215,
+      "race": "Formless",
+      "element": "Poison 4",
+      "elementLevel": 4,
+      "size": "Large",
+      "str": 159,
+      "agi": 91,
+      "vit": 276,
+      "int": 101,
+      "dex": 377,
+      "luk": 110,
+      "health": 225503800,
+      "def": 575,
+      "mDef": 100,
+      "range": 2,
+      "attackRange": "12.574 - 18.674",
+      "magicAttackRange": "1.912 - 3.280",
+      "hit": 506,
+      "flee": 762,
+      "res": 376,
+      "mRes": 131,
+      "speed": 6.67,
+      "attackSpeed": 0.99
+    }
+  },
+  "spawnVersions": {},
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

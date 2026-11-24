@@ -1,140 +1,650 @@
 {
   "id": 22260,
-  "dbname": "BIO_SALAMANDER",
-  "name": "심연의 살라만다",
-  "sprite": "bio_salamander",
-  "stats": {
-    "attackRange": 2,
-    "level": 265,
-    "health": 155742230,
-    "sp": 1,
-    "str": 487,
-    "int": 312,
-    "vit": 387,
-    "dex": 429,
-    "agi": 321,
-    "luk": 414,
-    "rechargeTime": 100,
-    "atk1": 62628,
-    "atk2": 18127,
-    "attack": {
-      "minimum": 50854,
-      "maximum": 75905
-    },
-    "magicAttack": {
-      "minimum": 13265,
-      "maximum": 24142
-    },
-    "defense": 480,
-    "baseExperience": 6575261,
-    "jobExperience": 4579669,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 130.0,
-    "attackSpeed": 300.0,
-    "attackedSpeed": -1.0,
-    "element": 43,
-    "scale": 2,
-    "race": 0,
-    "magicDefense": 185,
-    "hit": 786,
-    "flee": 864,
-    "ai": "",
-    "mvp": 0,
-    "class": 1,
-    "attr": 520,
-    "res": 1987,
-    "mres": 2311
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "salamander_attack.wav",
-    "salamander_damage.wav",
-    "salamander_stand.wav"
+  "name": "深淵火蜥蜴",
+  "spriteName": "BIO_SALAMANDER",
+  "availableServers": [
+    "kROM",
+    "twRO"
   ],
-  "questObjective": [
-    16797
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22260.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22260.png",
+  "level": 265,
+  "baseExperience": 6575261,
+  "jobExperience": 4579669,
+  "expPenaltyTable": [
+    {
+      "level": 249,
+      "percent": 40,
+      "baseExperience": 2630104,
+      "jobExperience": 1831867
+    },
+    {
+      "level": 250,
+      "percent": 115,
+      "baseExperience": 7561550,
+      "jobExperience": 5266619
+    },
+    {
+      "level": 251,
+      "percent": 120,
+      "baseExperience": 7890313,
+      "jobExperience": 5495602
+    },
+    {
+      "level": 252,
+      "percent": 125,
+      "baseExperience": 8219076,
+      "jobExperience": 5724586
+    },
+    {
+      "level": 253,
+      "percent": 130,
+      "baseExperience": 8547839,
+      "jobExperience": 5953569
+    },
+    {
+      "level": 254,
+      "percent": 135,
+      "baseExperience": 8876602,
+      "jobExperience": 6182553
+    },
+    {
+      "level": 255,
+      "percent": 140,
+      "baseExperience": 9205365,
+      "jobExperience": 6411536
+    },
+    {
+      "level": 256,
+      "percent": 135,
+      "baseExperience": 8876602,
+      "jobExperience": 6182553
+    },
+    {
+      "level": 257,
+      "percent": 130,
+      "baseExperience": 8547839,
+      "jobExperience": 5953569
+    },
+    {
+      "level": 258,
+      "percent": 125,
+      "baseExperience": 8219076,
+      "jobExperience": 5724586
+    },
+    {
+      "level": 259,
+      "percent": 120,
+      "baseExperience": 7890313,
+      "jobExperience": 5495602
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 7561550,
+      "jobExperience": 5266619
+    },
+    {
+      "level": 261,
+      "percent": 110,
+      "baseExperience": 7232787,
+      "jobExperience": 5037635
+    },
+    {
+      "level": 262,
+      "percent": 105,
+      "baseExperience": 6904024,
+      "jobExperience": 4808652
+    },
+    {
+      "level": 265,
+      "percent": 100,
+      "baseExperience": 6575261,
+      "jobExperience": 4579669
+    },
+    {
+      "level": 266,
+      "percent": 100,
+      "baseExperience": 6575261,
+      "jobExperience": 4579669
+    },
+    {
+      "level": 271,
+      "percent": 95,
+      "baseExperience": 6246497,
+      "jobExperience": 4350685
+    },
+    {
+      "level": 276,
+      "percent": 90,
+      "baseExperience": 5917734,
+      "jobExperience": 4121702
+    },
+    {
+      "level": 281,
+      "percent": 85,
+      "baseExperience": 5588971,
+      "jobExperience": 3892718
+    },
+    {
+      "level": 286,
+      "percent": 60,
+      "baseExperience": 3945156,
+      "jobExperience": 2747801
+    },
+    {
+      "level": 291,
+      "percent": 35,
+      "baseExperience": 2301341,
+      "jobExperience": 1602884
+    },
+    {
+      "level": 296,
+      "percent": 10,
+      "baseExperience": 657526,
+      "jobExperience": 457966
+    }
+  ],
+  "race": "Formless",
+  "element": "Fire 2",
+  "elementLevel": 2,
+  "size": "Large",
+  "type": "Boss",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 155742230,
+  "magicHealth": null,
+  "attackRange": "50.854 - 75.905",
+  "magicAttackRange": "13.265 - 24.142",
+  "range": 2,
+  "def": 480,
+  "mDef": 185,
+  "hit": 786,
+  "flee": 864,
+  "criticalHit": null,
+  "speed": 7.69,
+  "attackSpeed": 3.33,
+  "res": 1987,
+  "mRes": 2311,
+  "str": 487,
+  "agi": 321,
+  "vit": 387,
+  "int": 312,
+  "dex": 429,
+  "luk": 414,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 175
+    },
+    {
+      "element": "Earth",
+      "percentage": 80
+    },
+    {
+      "element": "Fire",
+      "percentage": 0
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 150
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 80
+    }
   ],
   "drops": [
     {
       "itemId": 7097,
-      "chance": 1500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "燃燒的心臟",
+      "slots": 0,
+      "displayName": "燃燒的心臟",
+      "itemIconUrl": null,
+      "sellPrice": 346,
+      "probability": 0.15,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/7097",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000322,
-      "chance": 200,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "乙太星塵",
+      "slots": 0,
+      "displayName": "乙太星塵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.02,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000322",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001550,
-      "chance": 350,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "深淵寶石破片",
+      "slots": 0,
+      "displayName": "深淵寶石破片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.035,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001550",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001551,
-      "chance": 350,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "時空寶石破片",
+      "slots": 0,
+      "displayName": "時空寶石破片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.035,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001551",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001552,
-      "chance": 75,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "深淵魔力寶石",
+      "slots": 0,
+      "displayName": "深淵魔力寶石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0075,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001552",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001553,
-      "chance": 75,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "時空魔力寶石",
+      "slots": 0,
+      "displayName": "時空魔力寶石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0075,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001553",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001554,
-      "chance": 25,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "深淵魔力符文礦石",
+      "slots": 0,
+      "displayName": "深淵魔力符文礦石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0025,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001554",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [],
-  "spawn": [
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 7097,
+        "itemName": "燃燒的心臟",
+        "slots": 0,
+        "displayName": "燃燒的心臟",
+        "itemIconUrl": null,
+        "sellPrice": 346,
+        "probability": 0.15,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/7097",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.02,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001550,
+        "itemName": "深淵寶石破片",
+        "slots": 0,
+        "displayName": "深淵寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001550",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001551,
+        "itemName": "時空寶石破片",
+        "slots": 0,
+        "displayName": "時空寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001551",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001552,
+        "itemName": "深淵魔力寶石",
+        "slots": 0,
+        "displayName": "深淵魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001552",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001553,
+        "itemName": "時空魔力寶石",
+        "slots": 0,
+        "displayName": "時空魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001553",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001554,
+        "itemName": "深淵魔力符文礦石",
+        "slots": 0,
+        "displayName": "深淵魔力符文礦石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0025,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001554",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 7097,
+        "itemName": "燃燒的心臟",
+        "slots": 0,
+        "displayName": "燃燒的心臟",
+        "itemIconUrl": null,
+        "sellPrice": 346,
+        "probability": 0.15,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/7097",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.02,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001550,
+        "itemName": "深淵寶石破片",
+        "slots": 0,
+        "displayName": "深淵寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001550",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001551,
+        "itemName": "時空寶石破片",
+        "slots": 0,
+        "displayName": "時空寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001551",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001552,
+        "itemName": "深淵魔力寶石",
+        "slots": 0,
+        "displayName": "深淵魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001552",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001553,
+        "itemName": "時空魔力寶石",
+        "slots": 0,
+        "displayName": "時空魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001553",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001554,
+        "itemName": "深淵魔力符文礦石",
+        "slots": 0,
+        "displayName": "深淵魔力符文礦石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0025,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001554",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
     {
-      "mapname": "bl_depth2",
-      "amount": 30,
+      "mapId": 0,
+      "mapName": "bl_depth2",
+      "mapDisplayName": "生物圈深層-深淵",
+      "quantity": 30,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/bl_depth2",
       "respawnTime": 5000
     }
   ],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 175,
-    "2": 90,
-    "3": 0,
-    "4": 100,
-    "5": 125,
-    "6": 100,
-    "7": 100,
-    "8": 75,
-    "9": 75
-  }
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 265,
+      "race": "Formless",
+      "element": "Fire 2",
+      "elementLevel": 2,
+      "size": "Large",
+      "str": 487,
+      "agi": 321,
+      "vit": 387,
+      "int": 312,
+      "dex": 429,
+      "luk": 414,
+      "health": 155742230,
+      "def": 480,
+      "mDef": 185,
+      "range": 2,
+      "attackRange": "50.854 - 75.905",
+      "magicAttackRange": "13.265 - 24.142",
+      "hit": 786,
+      "flee": 864,
+      "res": 1987,
+      "mRes": 2311,
+      "speed": 7.69,
+      "attackSpeed": 3.33
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "bl_depth2",
+        "mapDisplayName": "生物圈深層-深淵",
+        "quantity": 30,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/bl_depth2",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

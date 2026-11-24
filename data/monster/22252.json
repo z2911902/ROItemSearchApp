@@ -1,0 +1,650 @@
+{
+  "id": 22252,
+  "name": "深淵杜尼爾",
+  "spriteName": "BIO_DUNEYRR",
+  "availableServers": [
+    "kROM",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22252.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22252.png",
+  "level": 265,
+  "baseExperience": 6626510,
+  "jobExperience": 4615364,
+  "expPenaltyTable": [
+    {
+      "level": 249,
+      "percent": 40,
+      "baseExperience": 2650604,
+      "jobExperience": 1846145
+    },
+    {
+      "level": 250,
+      "percent": 115,
+      "baseExperience": 7620486,
+      "jobExperience": 5307668
+    },
+    {
+      "level": 251,
+      "percent": 120,
+      "baseExperience": 7951812,
+      "jobExperience": 5538436
+    },
+    {
+      "level": 252,
+      "percent": 125,
+      "baseExperience": 8283137,
+      "jobExperience": 5769205
+    },
+    {
+      "level": 253,
+      "percent": 130,
+      "baseExperience": 8614463,
+      "jobExperience": 5999973
+    },
+    {
+      "level": 254,
+      "percent": 135,
+      "baseExperience": 8945788,
+      "jobExperience": 6230741
+    },
+    {
+      "level": 255,
+      "percent": 140,
+      "baseExperience": 9277114,
+      "jobExperience": 6461509
+    },
+    {
+      "level": 256,
+      "percent": 135,
+      "baseExperience": 8945788,
+      "jobExperience": 6230741
+    },
+    {
+      "level": 257,
+      "percent": 130,
+      "baseExperience": 8614463,
+      "jobExperience": 5999973
+    },
+    {
+      "level": 258,
+      "percent": 125,
+      "baseExperience": 8283137,
+      "jobExperience": 5769205
+    },
+    {
+      "level": 259,
+      "percent": 120,
+      "baseExperience": 7951812,
+      "jobExperience": 5538436
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 7620486,
+      "jobExperience": 5307668
+    },
+    {
+      "level": 261,
+      "percent": 110,
+      "baseExperience": 7289161,
+      "jobExperience": 5076900
+    },
+    {
+      "level": 262,
+      "percent": 105,
+      "baseExperience": 6957835,
+      "jobExperience": 4846132
+    },
+    {
+      "level": 265,
+      "percent": 100,
+      "baseExperience": 6626510,
+      "jobExperience": 4615364
+    },
+    {
+      "level": 266,
+      "percent": 100,
+      "baseExperience": 6626510,
+      "jobExperience": 4615364
+    },
+    {
+      "level": 271,
+      "percent": 95,
+      "baseExperience": 6295184,
+      "jobExperience": 4384595
+    },
+    {
+      "level": 276,
+      "percent": 90,
+      "baseExperience": 5963859,
+      "jobExperience": 4153827
+    },
+    {
+      "level": 281,
+      "percent": 85,
+      "baseExperience": 5632533,
+      "jobExperience": 3923059
+    },
+    {
+      "level": 286,
+      "percent": 60,
+      "baseExperience": 3975906,
+      "jobExperience": 2769218
+    },
+    {
+      "level": 291,
+      "percent": 35,
+      "baseExperience": 2319278,
+      "jobExperience": 1615377
+    },
+    {
+      "level": 296,
+      "percent": 10,
+      "baseExperience": 662651,
+      "jobExperience": 461536
+    }
+  ],
+  "race": "Demi-Human",
+  "element": "Fire 3",
+  "elementLevel": 3,
+  "size": "Large",
+  "type": "Boss",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 166986400,
+  "magicHealth": null,
+  "attackRange": "47.506 - 70.919",
+  "magicAttackRange": "12.034 - 21.895",
+  "range": 2,
+  "def": 443,
+  "mDef": 171,
+  "hit": 739,
+  "flee": 803,
+  "criticalHit": null,
+  "speed": 7.69,
+  "attackSpeed": 2.38,
+  "res": 1725,
+  "mRes": 2009,
+  "str": 414,
+  "agi": 274,
+  "vit": 329,
+  "int": 265,
+  "dex": 368,
+  "luk": 352,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 200
+    },
+    {
+      "element": "Earth",
+      "percentage": 70
+    },
+    {
+      "element": "Fire",
+      "percentage": 0
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 125
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 70
+    }
+  ],
+  "drops": [
+    {
+      "itemId": 6020,
+      "itemName": "銀光毛皮",
+      "slots": 0,
+      "displayName": "銀光毛皮",
+      "itemIconUrl": null,
+      "sellPrice": 264,
+      "probability": 0.15,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/6020",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000322,
+      "itemName": "乙太星塵",
+      "slots": 0,
+      "displayName": "乙太星塵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.02,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000322",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001550,
+      "itemName": "深淵寶石破片",
+      "slots": 0,
+      "displayName": "深淵寶石破片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.035,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001550",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001551,
+      "itemName": "時空寶石破片",
+      "slots": 0,
+      "displayName": "時空寶石破片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.035,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001551",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001552,
+      "itemName": "深淵魔力寶石",
+      "slots": 0,
+      "displayName": "深淵魔力寶石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0075,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001552",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001553,
+      "itemName": "時空魔力寶石",
+      "slots": 0,
+      "displayName": "時空魔力寶石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0075,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001553",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001554,
+      "itemName": "深淵魔力符文礦石",
+      "slots": 0,
+      "displayName": "深淵魔力符文礦石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0025,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001554",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    }
+  ],
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 6020,
+        "itemName": "銀光毛皮",
+        "slots": 0,
+        "displayName": "銀光毛皮",
+        "itemIconUrl": null,
+        "sellPrice": 264,
+        "probability": 0.15,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/6020",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.02,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001550,
+        "itemName": "深淵寶石破片",
+        "slots": 0,
+        "displayName": "深淵寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001550",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001551,
+        "itemName": "時空寶石破片",
+        "slots": 0,
+        "displayName": "時空寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001551",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001552,
+        "itemName": "深淵魔力寶石",
+        "slots": 0,
+        "displayName": "深淵魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001552",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001553,
+        "itemName": "時空魔力寶石",
+        "slots": 0,
+        "displayName": "時空魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001553",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001554,
+        "itemName": "深淵魔力符文礦石",
+        "slots": 0,
+        "displayName": "深淵魔力符文礦石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0025,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001554",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 6020,
+        "itemName": "銀光毛皮",
+        "slots": 0,
+        "displayName": "銀光毛皮",
+        "itemIconUrl": null,
+        "sellPrice": 264,
+        "probability": 0.15,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/6020",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.02,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001550,
+        "itemName": "深淵寶石破片",
+        "slots": 0,
+        "displayName": "深淵寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001550",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001551,
+        "itemName": "時空寶石破片",
+        "slots": 0,
+        "displayName": "時空寶石破片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.035,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001551",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001552,
+        "itemName": "深淵魔力寶石",
+        "slots": 0,
+        "displayName": "深淵魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001552",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001553,
+        "itemName": "時空魔力寶石",
+        "slots": 0,
+        "displayName": "時空魔力寶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0075,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001553",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001554,
+        "itemName": "深淵魔力符文礦石",
+        "slots": 0,
+        "displayName": "深淵魔力符文礦石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0025,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001554",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "bl_depth2",
+      "mapDisplayName": "生物圈深層-深淵",
+      "quantity": 30,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/bl_depth2",
+      "respawnTime": 5000
+    }
+  ],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 265,
+      "race": "Demi-Human",
+      "element": "Fire 3",
+      "elementLevel": 3,
+      "size": "Large",
+      "str": 414,
+      "agi": 274,
+      "vit": 329,
+      "int": 265,
+      "dex": 368,
+      "luk": 352,
+      "health": 166986400,
+      "def": 443,
+      "mDef": 171,
+      "range": 2,
+      "attackRange": "47.506 - 70.919",
+      "magicAttackRange": "12.034 - 21.895",
+      "hit": 739,
+      "flee": 803,
+      "res": 1725,
+      "mRes": 2009,
+      "speed": 7.69,
+      "attackSpeed": 2.38
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "bl_depth2",
+        "mapDisplayName": "生物圈深層-深淵",
+        "quantity": 30,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/bl_depth2",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
+}

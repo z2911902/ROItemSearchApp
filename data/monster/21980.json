@@ -1,161 +1,810 @@
 {
   "id": 21980,
-  "dbname": "EP20_BOSS_CLANER",
-  "name": "성지 청소 반장",
-  "sprite": "EP20_BOSS_CLANER",
-  "stats": {
-    "attackRange": 1,
-    "level": 250,
-    "health": 344751289,
-    "sp": 0,
-    "str": 161,
-    "int": 161,
-    "vit": 154,
-    "dex": 156,
-    "agi": 133,
-    "luk": 154,
-    "rechargeTime": 580,
-    "atk1": 19977,
-    "atk2": 5815,
-    "attack": null,
-    "magicAttack": null,
-    "defense": 386,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 180.0,
-    "attackSpeed": 1152.0,
-    "attackedSpeed": 480.0,
-    "element": 85,
-    "scale": 2,
-    "race": 0,
-    "magicDefense": 215,
-    "hit": 583,
-    "flee": 576,
-    "ai": "",
-    "mvp": 1,
-    "class": 1,
-    "attr": 520,
-    "res": 337,
-    "mres": 263
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "bigfoot_step1.wav",
-    "bigfoot_step2.wav",
-    "ep20_boss_claner_attack.wav",
-    "ep20_boss_claner_damage.wav",
-    "ep20_boss_claner_die.wav",
-    "ep20_boss_claner_stand.wav",
-    "kocot_foot1.wav",
-    "kocot_foot2.wav",
-    "lunatic_attack.wav",
-    "lunatic_die.wav"
+  "name": "聖地清潔隊長",
+  "spriteName": "EP20_BOSS_CLANER",
+  "availableServers": [
+    "iRO",
+    "kROM",
+    "twRO"
   ],
-  "questObjective": [],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/21980.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/21980.png",
+  "level": 250,
+  "baseExperience": 693292,
+  "jobExperience": 485304,
+  "expPenaltyTable": [
+    {
+      "level": 234,
+      "percent": 40,
+      "baseExperience": 277316,
+      "jobExperience": 194121
+    },
+    {
+      "level": 235,
+      "percent": 115,
+      "baseExperience": 797285,
+      "jobExperience": 558099
+    },
+    {
+      "level": 236,
+      "percent": 120,
+      "baseExperience": 831950,
+      "jobExperience": 582364
+    },
+    {
+      "level": 237,
+      "percent": 125,
+      "baseExperience": 866615,
+      "jobExperience": 606630
+    },
+    {
+      "level": 238,
+      "percent": 130,
+      "baseExperience": 901279,
+      "jobExperience": 630895
+    },
+    {
+      "level": 239,
+      "percent": 135,
+      "baseExperience": 935944,
+      "jobExperience": 655160
+    },
+    {
+      "level": 240,
+      "percent": 140,
+      "baseExperience": 970608,
+      "jobExperience": 679425
+    },
+    {
+      "level": 241,
+      "percent": 135,
+      "baseExperience": 935944,
+      "jobExperience": 655160
+    },
+    {
+      "level": 242,
+      "percent": 130,
+      "baseExperience": 901279,
+      "jobExperience": 630895
+    },
+    {
+      "level": 243,
+      "percent": 125,
+      "baseExperience": 866615,
+      "jobExperience": 606630
+    },
+    {
+      "level": 244,
+      "percent": 120,
+      "baseExperience": 831950,
+      "jobExperience": 582364
+    },
+    {
+      "level": 245,
+      "percent": 115,
+      "baseExperience": 797285,
+      "jobExperience": 558099
+    },
+    {
+      "level": 246,
+      "percent": 110,
+      "baseExperience": 762621,
+      "jobExperience": 533834
+    },
+    {
+      "level": 247,
+      "percent": 105,
+      "baseExperience": 727956,
+      "jobExperience": 509569
+    },
+    {
+      "level": 250,
+      "percent": 100,
+      "baseExperience": 693292,
+      "jobExperience": 485304
+    },
+    {
+      "level": 251,
+      "percent": 100,
+      "baseExperience": 693292,
+      "jobExperience": 485304
+    },
+    {
+      "level": 256,
+      "percent": 95,
+      "baseExperience": 658627,
+      "jobExperience": 461038
+    },
+    {
+      "level": 261,
+      "percent": 90,
+      "baseExperience": 623962,
+      "jobExperience": 436773
+    },
+    {
+      "level": 266,
+      "percent": 85,
+      "baseExperience": 589298,
+      "jobExperience": 412508
+    },
+    {
+      "level": 271,
+      "percent": 60,
+      "baseExperience": 415975,
+      "jobExperience": 291182
+    },
+    {
+      "level": 276,
+      "percent": 35,
+      "baseExperience": 242652,
+      "jobExperience": 169856
+    },
+    {
+      "level": 281,
+      "percent": 10,
+      "baseExperience": 69329,
+      "jobExperience": 48530
+    }
+  ],
+  "race": "Formless",
+  "element": "Poison 4",
+  "elementLevel": 4,
+  "size": "Large",
+  "type": "MVP",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 344751289,
+  "magicHealth": null,
+  "attackRange": "16.392 - 24.383",
+  "magicAttackRange": "4.481 - 7.970",
+  "range": 1,
+  "def": 386,
+  "mDef": 215,
+  "hit": 583,
+  "flee": 576,
+  "criticalHit": null,
+  "speed": 5.56,
+  "attackSpeed": 0.87,
+  "res": 337,
+  "mRes": 263,
+  "str": 161,
+  "agi": 133,
+  "vit": 154,
+  "int": 161,
+  "dex": 156,
+  "luk": 154,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 125
+    },
+    {
+      "element": "Earth",
+      "percentage": 125
+    },
+    {
+      "element": "Fire",
+      "percentage": 125
+    },
+    {
+      "element": "Wind",
+      "percentage": 125
+    },
+    {
+      "element": "Poison",
+      "percentage": 0
+    },
+    {
+      "element": "Holy",
+      "percentage": 50
+    },
+    {
+      "element": "Dark",
+      "percentage": 50
+    },
+    {
+      "element": "Ghost",
+      "percentage": 50
+    },
+    {
+      "element": "Undead",
+      "percentage": 0
+    }
+  ],
   "drops": [
     {
       "itemId": 1001235,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "怪異生命體的牙齒",
+      "slots": 0,
+      "displayName": "怪異生命體的牙齒",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.35,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001235",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001233,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "軟綿綿的螢光細胞(甜甜)",
+      "slots": 0,
+      "displayName": "軟綿綿的螢光細胞(甜甜)",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.35,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001233",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001232,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "軟綿綿的螢光細胞(鹹鹹)",
+      "slots": 0,
+      "displayName": "軟綿綿的螢光細胞(鹹鹹)",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.17,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001232",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001248,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "純粹魔力晶石",
+      "slots": 0,
+      "displayName": "純粹魔力晶石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.4,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001248",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001248,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "純粹魔力晶石",
+      "slots": 0,
+      "displayName": "純粹魔力晶石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001248",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001249,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "純粹魔力結晶",
+      "slots": 0,
+      "displayName": "純粹魔力結晶",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001249",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 300474,
-      "chance": 0,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "聖地清潔隊長卡片",
+      "slots": 0,
+      "displayName": "聖地清潔隊長卡片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0001,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/300474",
+      "isStealProtected": true,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [
+  "mvpDrops": [
     {
       "itemId": 23817,
-      "chance": 4000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "神秘咒語集",
+      "slots": 0,
+      "displayName": "神秘咒語集",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.4,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/23817",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 12246,
-      "chance": 4000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "具有魔力的卡片冊子",
+      "slots": 0,
+      "displayName": "具有魔力的卡片冊子",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.4,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/12246",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1000814,
-      "chance": 2000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "耀眼雪花魔石",
+      "slots": 0,
+      "displayName": "耀眼雪花魔石",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.2,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1000814",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "spawn": [
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001235,
+        "itemName": "怪異生命體的牙齒",
+        "slots": 0,
+        "displayName": "怪異生命體的牙齒",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.35,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001235",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001233,
+        "itemName": "軟綿綿的螢光細胞(甜甜)",
+        "slots": 0,
+        "displayName": "軟綿綿的螢光細胞(甜甜)",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.35,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001233",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001232,
+        "itemName": "軟綿綿的螢光細胞(鹹鹹)",
+        "slots": 0,
+        "displayName": "軟綿綿的螢光細胞(鹹鹹)",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.17,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001232",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001248,
+        "itemName": "純粹魔力晶石",
+        "slots": 0,
+        "displayName": "純粹魔力晶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.4,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001248",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001248,
+        "itemName": "純粹魔力晶石",
+        "slots": 0,
+        "displayName": "純粹魔力晶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001248",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001249,
+        "itemName": "純粹魔力結晶",
+        "slots": 0,
+        "displayName": "純粹魔力結晶",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001249",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 300474,
+        "itemName": "聖地清潔隊長卡片",
+        "slots": 0,
+        "displayName": "聖地清潔隊長卡片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0001,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/300474",
+        "isStealProtected": true,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001235,
+        "itemName": "怪異生命體的牙齒",
+        "slots": 0,
+        "displayName": "怪異生命體的牙齒",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.35,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001235",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001233,
+        "itemName": "軟綿綿的螢光細胞(甜甜)",
+        "slots": 0,
+        "displayName": "軟綿綿的螢光細胞(甜甜)",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.35,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001233",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001232,
+        "itemName": "軟綿綿的螢光細胞(鹹鹹)",
+        "slots": 0,
+        "displayName": "軟綿綿的螢光細胞(鹹鹹)",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.17,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001232",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001248,
+        "itemName": "純粹魔力晶石",
+        "slots": 0,
+        "displayName": "純粹魔力晶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.4,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001248",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001248,
+        "itemName": "純粹魔力晶石",
+        "slots": 0,
+        "displayName": "純粹魔力晶石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001248",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001249,
+        "itemName": "純粹魔力結晶",
+        "slots": 0,
+        "displayName": "純粹魔力結晶",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001249",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 300474,
+        "itemName": "聖地清潔隊長卡片",
+        "slots": 0,
+        "displayName": "聖地清潔隊長卡片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0001,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/300474",
+        "isStealProtected": true,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {
+    "default": [
+      {
+        "itemId": 23817,
+        "itemName": "神秘咒語集",
+        "slots": 0,
+        "displayName": "神秘咒語集",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.4,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/23817",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.4,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000814,
+        "itemName": "耀眼雪花魔石",
+        "slots": 0,
+        "displayName": "耀眼雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000814",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 23817,
+        "itemName": "神秘咒語集",
+        "slots": 0,
+        "displayName": "神秘咒語集",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.4,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/23817",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.4,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000814,
+        "itemName": "耀眼雪花魔石",
+        "slots": 0,
+        "displayName": "耀眼雪花魔石",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1000814",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
     {
-      "mapname": "jor_root3",
-      "amount": 1,
+      "mapId": 0,
+      "mapName": "jor_root3",
+      "mapDisplayName": "深邃根部洞穴",
+      "quantity": 1,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/jor_root3",
       "respawnTime": 21600000
     }
   ],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 75,
-    "2": 75,
-    "3": 75,
-    "4": 75,
-    "5": 0,
-    "6": 125,
-    "7": -25,
-    "8": 25,
-    "9": -25
-  }
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 250,
+      "race": "Formless",
+      "element": "Poison 4",
+      "elementLevel": 4,
+      "size": "Large",
+      "str": 161,
+      "agi": 133,
+      "vit": 154,
+      "int": 161,
+      "dex": 156,
+      "luk": 154,
+      "health": 344751289,
+      "def": 386,
+      "mDef": 215,
+      "range": 1,
+      "attackRange": "16.392 - 24.383",
+      "magicAttackRange": "4.481 - 7.970",
+      "hit": 583,
+      "flee": 576,
+      "res": 337,
+      "mRes": 263,
+      "speed": 5.56,
+      "attackSpeed": 0.87
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "jor_root3",
+        "mapDisplayName": "深邃根部洞穴",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/jor_root3",
+        "respawnTime": 21600000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

@@ -1,160 +1,734 @@
 {
   "id": 22179,
-  "dbname": "MD_PRI_DRAGON_3",
   "name": "Maple Tree",
-  "sprite": "MD_PRI_DRAGON_3",
-  "stats": {
-    "attackRange": 2,
-    "level": 275,
-    "health": 700000000,
-    "sp": 1,
-    "str": 415,
-    "int": 485,
-    "vit": 467,
-    "dex": 532,
-    "agi": 428,
-    "luk": 525,
-    "rechargeTime": 288,
-    "atk1": 43450,
-    "atk2": 12337,
-    "attack": {
-      "minimum": 35450,
-      "maximum": 52830
-    },
-    "magicAttack": {
-      "minimum": 9395,
-      "maximum": 16798
-    },
-    "defense": 213,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 150.0,
-    "attackSpeed": 1440.0,
-    "attackedSpeed": -1.0,
-    "element": 24,
-    "scale": 2,
-    "race": 3,
-    "magicDefense": 241,
-    "hit": 903,
-    "flee": 977,
-    "ai": "",
-    "mvp": 1,
-    "class": 1,
-    "attr": 1032,
-    "res": 1399,
-    "mres": 2324
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "goblin_attack.wav",
-    "goblin_damage.wav",
-    "goblin_die.wav",
-    "md_pri_dragon_3_attack.wav",
-    "md_pri_dragon_3_die.wav",
-    "md_pri_dragon_3_move.wav",
-    "md_pri_dragon_3_stand.wav"
+  "spriteName": "MD_PRI_DRAGON_3",
+  "availableServers": [
+    "dpRO",
+    "kROM"
   ],
-  "questObjective": [
-    12615
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22179.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22179.png",
+  "level": 275,
+  "baseExperience": 0,
+  "jobExperience": 0,
+  "expPenaltyTable": [
+    {
+      "level": 259,
+      "percent": 40,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 261,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 262,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 263,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 264,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 265,
+      "percent": 140,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 266,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 267,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 268,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 269,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 270,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 271,
+      "percent": 110,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 272,
+      "percent": 105,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 275,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 276,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 281,
+      "percent": 95,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 286,
+      "percent": 90,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 291,
+      "percent": 85,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 296,
+      "percent": 60,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 301,
+      "percent": 35,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 306,
+      "percent": 10,
+      "baseExperience": 0,
+      "jobExperience": 0
+    }
+  ],
+  "race": "Plant",
+  "element": "Wind 1",
+  "elementLevel": 1,
+  "size": "Large",
+  "type": "MVP",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 1% of the damage dealt to it"
+  ],
+  "health": 700000000,
+  "magicHealth": null,
+  "attackRange": "35.450 - 52.830",
+  "magicAttackRange": "9.395 - 16.798",
+  "range": 2,
+  "def": 213,
+  "mDef": 241,
+  "hit": 903,
+  "flee": 977,
+  "criticalHit": null,
+  "speed": 6.67,
+  "attackSpeed": 0.69,
+  "res": 1399,
+  "mRes": 2324,
+  "str": 415,
+  "agi": 428,
+  "vit": 467,
+  "int": 485,
+  "dex": 532,
+  "luk": 525,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 90
+    },
+    {
+      "element": "Earth",
+      "percentage": 150
+    },
+    {
+      "element": "Fire",
+      "percentage": 100
+    },
+    {
+      "element": "Wind",
+      "percentage": 25
+    },
+    {
+      "element": "Poison",
+      "percentage": 150
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 100
+    }
   ],
   "drops": [
     {
       "itemId": 1001442,
-      "chance": 2000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "秋天氣息",
+      "slots": 0,
+      "displayName": "秋天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.2,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001442",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001442,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "秋天氣息",
+      "slots": 0,
+      "displayName": "秋天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001442",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001414,
-      "chance": 1000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "次元結界碎片",
+      "slots": 0,
+      "displayName": "次元結界碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.1,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001414",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001450,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "楓木朽妖的楓葉",
+      "slots": 0,
+      "displayName": "楓木朽妖的楓葉",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001450",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001451,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "楓木朽妖的樹枝",
+      "slots": 0,
+      "displayName": "楓木朽妖的樹枝",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001451",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 1001452,
-      "chance": 500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
-    },
-    {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "itemName": "楓木朽妖的碎屑",
+      "slots": 0,
+      "displayName": "楓木朽妖的碎屑",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001452",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [
+  "mvpDrops": [
     {
       "itemId": 1001442,
-      "chance": 5000,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "秋天氣息",
+      "slots": 0,
+      "displayName": "秋天氣息",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.5,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/1001442",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 616,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "老舊收集冊",
+      "slots": 0,
+      "displayName": "老舊收集冊",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/616",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     },
     {
       "itemId": 12246,
-      "chance": 2500,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "itemName": "具有魔力的卡片冊子",
+      "slots": 0,
+      "displayName": "具有魔力的卡片冊子",
+      "itemIconUrl": null,
+      "sellPrice": 5000,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "mvp",
+      "itemDetailUrl": "/database/item/12246",
+      "isStealProtected": false,
+      "optionGroup": null,
+      "hasEnchant": false,
+      "enchantTooltip": null
     }
   ],
-  "spawn": [],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 90,
-    "2": 150,
-    "3": 100,
-    "4": 25,
-    "5": 125,
-    "6": 100,
-    "7": 100,
-    "8": 100,
-    "9": 100
-  }
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001442,
+        "itemName": "秋天氣息",
+        "slots": 0,
+        "displayName": "秋天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001442",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001442,
+        "itemName": "秋天氣息",
+        "slots": 0,
+        "displayName": "秋天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001442",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001414,
+        "itemName": "次元結界碎片",
+        "slots": 0,
+        "displayName": "次元結界碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001414",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001450,
+        "itemName": "楓木朽妖的楓葉",
+        "slots": 0,
+        "displayName": "楓木朽妖的楓葉",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001450",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001451,
+        "itemName": "楓木朽妖的樹枝",
+        "slots": 0,
+        "displayName": "楓木朽妖的樹枝",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001451",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001452,
+        "itemName": "楓木朽妖的碎屑",
+        "slots": 0,
+        "displayName": "楓木朽妖的碎屑",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001452",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001442,
+        "itemName": "秋天氣息",
+        "slots": 0,
+        "displayName": "秋天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.2,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001442",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001442,
+        "itemName": "秋天氣息",
+        "slots": 0,
+        "displayName": "秋天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001442",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001414,
+        "itemName": "次元結界碎片",
+        "slots": 0,
+        "displayName": "次元結界碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.1,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001414",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001450,
+        "itemName": "楓木朽妖的楓葉",
+        "slots": 0,
+        "displayName": "楓木朽妖的楓葉",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001450",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001451,
+        "itemName": "楓木朽妖的樹枝",
+        "slots": 0,
+        "displayName": "楓木朽妖的樹枝",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001451",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001452,
+        "itemName": "楓木朽妖的碎屑",
+        "slots": 0,
+        "displayName": "楓木朽妖的碎屑",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001452",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {
+    "default": [
+      {
+        "itemId": 1001442,
+        "itemName": "秋天氣息",
+        "slots": 0,
+        "displayName": "秋天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.5,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1001442",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 616,
+        "itemName": "老舊收集冊",
+        "slots": 0,
+        "displayName": "老舊收集冊",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/616",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001442,
+        "itemName": "秋天氣息",
+        "slots": 0,
+        "displayName": "秋天氣息",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.5,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/1001442",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 616,
+        "itemName": "老舊收集冊",
+        "slots": 0,
+        "displayName": "老舊收集冊",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/616",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 12246,
+        "itemName": "具有魔力的卡片冊子",
+        "slots": 0,
+        "displayName": "具有魔力的卡片冊子",
+        "itemIconUrl": null,
+        "sellPrice": 5000,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "mvp",
+        "itemDetailUrl": "/database/item/12246",
+        "isStealProtected": false,
+        "optionGroup": null,
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 275,
+      "race": "Plant",
+      "element": "Wind 1",
+      "elementLevel": 1,
+      "size": "Large",
+      "str": 415,
+      "agi": 428,
+      "vit": 467,
+      "int": 485,
+      "dex": 532,
+      "luk": 525,
+      "health": 700000000,
+      "def": 213,
+      "mDef": 241,
+      "range": 2,
+      "attackRange": "35.450 - 52.830",
+      "magicAttackRange": "9.395 - 16.798",
+      "hit": 903,
+      "flee": 977,
+      "res": 1399,
+      "mRes": 2324,
+      "speed": 6.67,
+      "attackSpeed": 0.69
+    }
+  },
+  "spawnVersions": {},
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

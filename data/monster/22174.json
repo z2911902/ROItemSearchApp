@@ -1,101 +1,263 @@
 {
   "id": 22174,
-  "dbname": "MD_PRI_RIGEL",
-  "name": "차원 범죄자 리겔#",
-  "sprite": "MD_PRI_RIGEL",
-  "stats": {
-    "attackRange": 3,
-    "level": 275,
-    "health": 800000000,
-    "sp": 1,
-    "str": 515,
-    "int": 408,
-    "vit": 413,
-    "dex": 584,
-    "agi": 330,
-    "luk": 580,
-    "rechargeTime": 345,
-    "atk1": 30260,
-    "atk2": 12603,
-    "attack": {
-      "minimum": 24998,
-      "maximum": 37102
-    },
-    "magicAttack": {
-      "minimum": 9505,
-      "maximum": 17066
-    },
-    "defense": 358,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 10,
-    "escapeRange": 12,
-    "movementSpeed": 120.0,
-    "attackSpeed": 1152.0,
-    "attackedSpeed": -1.0,
-    "element": 40,
-    "scale": 2,
-    "race": 0,
-    "magicDefense": 138,
-    "hit": 805,
-    "flee": 1029,
-    "ai": "",
-    "mvp": 1,
-    "class": 1,
-    "attr": 2056,
-    "res": 1833,
-    "mres": 850
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "goblin_attack.wav",
-    "goblin_damage.wav",
-    "goblin_die.wav",
-    "md_pri_rigel_attack.wav",
-    "md_pri_rigel_die.wav",
-    "md_pri_rigel_move.wav",
-    "md_pri_rigel_stand.wav"
+  "name": "次元罪犯參宿七#",
+  "spriteName": "MD_PRI_RIGEL",
+  "availableServers": [
+    "kROM",
+    "twRO"
   ],
-  "questObjective": [],
-  "drops": [],
-  "mapDrops": [],
-  "mvpdrops": [
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22174.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22174.png",
+  "level": 275,
+  "baseExperience": 0,
+  "jobExperience": 0,
+  "expPenaltyTable": [
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "level": 259,
+      "percent": 40,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": null
+      "level": 261,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 262,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 263,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 264,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 265,
+      "percent": 140,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 266,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 267,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 268,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 269,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 270,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 271,
+      "percent": 110,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 272,
+      "percent": 105,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 275,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 276,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 281,
+      "percent": 95,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 286,
+      "percent": 90,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 291,
+      "percent": 85,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 296,
+      "percent": 60,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 301,
+      "percent": 35,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 306,
+      "percent": 10,
+      "baseExperience": 0,
+      "jobExperience": 0
     }
   ],
-  "spawn": [],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 100,
-    "2": 100,
-    "3": 100,
-    "4": 100,
-    "5": 100,
-    "6": 100,
-    "7": 100,
-    "8": 50,
-    "9": 100
-  }
+  "race": "Formless",
+  "element": "Neutral 2",
+  "elementLevel": 2,
+  "size": "Large",
+  "type": "MVP",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 0.10% of the damage dealt to it"
+  ],
+  "health": 800000000,
+  "magicHealth": null,
+  "attackRange": "24.998 - 37.102",
+  "magicAttackRange": "9.505 - 17.066",
+  "range": 3,
+  "def": 358,
+  "mDef": 138,
+  "hit": 805,
+  "flee": 1029,
+  "criticalHit": null,
+  "speed": 8.33,
+  "attackSpeed": 0.87,
+  "res": 1833,
+  "mRes": 850,
+  "str": 515,
+  "agi": 330,
+  "vit": 413,
+  "int": 408,
+  "dex": 584,
+  "luk": 580,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 100
+    },
+    {
+      "element": "Fire",
+      "percentage": 100
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 100
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 70
+    },
+    {
+      "element": "Undead",
+      "percentage": 100
+    }
+  ],
+  "drops": [],
+  "mvpDrops": [],
+  "dropVersions": {},
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 275,
+      "race": "Formless",
+      "element": "Neutral 2",
+      "elementLevel": 2,
+      "size": "Large",
+      "str": 515,
+      "agi": 330,
+      "vit": 413,
+      "int": 408,
+      "dex": 584,
+      "luk": 580,
+      "health": 800000000,
+      "def": 358,
+      "mDef": 138,
+      "range": 3,
+      "attackRange": "24.998 - 37.102",
+      "magicAttackRange": "9.505 - 17.066",
+      "hit": 805,
+      "flee": 1029,
+      "res": 1833,
+      "mRes": 850,
+      "speed": 8.33,
+      "attackSpeed": 0.87
+    }
+  },
+  "spawnVersions": {},
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

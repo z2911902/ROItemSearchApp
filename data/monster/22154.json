@@ -1,0 +1,651 @@
+{
+  "id": 22154,
+  "name": "深層祈願墮天使",
+  "spriteName": "BIO_PRAY_GIVER",
+  "availableServers": [
+    "dpRO",
+    "kROM",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22154.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22154.png",
+  "level": 263,
+  "baseExperience": 5466195,
+  "jobExperience": 3826337,
+  "expPenaltyTable": [
+    {
+      "level": 247,
+      "percent": 40,
+      "baseExperience": 2186478,
+      "jobExperience": 1530534
+    },
+    {
+      "level": 248,
+      "percent": 115,
+      "baseExperience": 6286124,
+      "jobExperience": 4400287
+    },
+    {
+      "level": 249,
+      "percent": 120,
+      "baseExperience": 6559434,
+      "jobExperience": 4591604
+    },
+    {
+      "level": 250,
+      "percent": 125,
+      "baseExperience": 6832743,
+      "jobExperience": 4782921
+    },
+    {
+      "level": 251,
+      "percent": 130,
+      "baseExperience": 7106053,
+      "jobExperience": 4974238
+    },
+    {
+      "level": 252,
+      "percent": 135,
+      "baseExperience": 7379363,
+      "jobExperience": 5165554
+    },
+    {
+      "level": 253,
+      "percent": 140,
+      "baseExperience": 7652673,
+      "jobExperience": 5356871
+    },
+    {
+      "level": 254,
+      "percent": 135,
+      "baseExperience": 7379363,
+      "jobExperience": 5165554
+    },
+    {
+      "level": 255,
+      "percent": 130,
+      "baseExperience": 7106053,
+      "jobExperience": 4974238
+    },
+    {
+      "level": 256,
+      "percent": 125,
+      "baseExperience": 6832743,
+      "jobExperience": 4782921
+    },
+    {
+      "level": 257,
+      "percent": 120,
+      "baseExperience": 6559434,
+      "jobExperience": 4591604
+    },
+    {
+      "level": 258,
+      "percent": 115,
+      "baseExperience": 6286124,
+      "jobExperience": 4400287
+    },
+    {
+      "level": 259,
+      "percent": 110,
+      "baseExperience": 6012814,
+      "jobExperience": 4208970
+    },
+    {
+      "level": 260,
+      "percent": 105,
+      "baseExperience": 5739504,
+      "jobExperience": 4017653
+    },
+    {
+      "level": 263,
+      "percent": 100,
+      "baseExperience": 5466195,
+      "jobExperience": 3826337
+    },
+    {
+      "level": 264,
+      "percent": 100,
+      "baseExperience": 5466195,
+      "jobExperience": 3826337
+    },
+    {
+      "level": 269,
+      "percent": 95,
+      "baseExperience": 5192885,
+      "jobExperience": 3635020
+    },
+    {
+      "level": 274,
+      "percent": 90,
+      "baseExperience": 4919575,
+      "jobExperience": 3443703
+    },
+    {
+      "level": 279,
+      "percent": 85,
+      "baseExperience": 4646265,
+      "jobExperience": 3252386
+    },
+    {
+      "level": 284,
+      "percent": 60,
+      "baseExperience": 3279717,
+      "jobExperience": 2295802
+    },
+    {
+      "level": 289,
+      "percent": 35,
+      "baseExperience": 1913168,
+      "jobExperience": 1339217
+    },
+    {
+      "level": 294,
+      "percent": 10,
+      "baseExperience": 546619,
+      "jobExperience": 382633
+    }
+  ],
+  "race": "Angel",
+  "element": "Ghost 3",
+  "elementLevel": 3,
+  "size": "Medium",
+  "type": "Boss",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 89002070,
+  "magicHealth": null,
+  "attackRange": "26.893 - 40.022",
+  "magicAttackRange": "9.816 - 17.687",
+  "range": 2,
+  "def": 299,
+  "mDef": 175,
+  "hit": 726,
+  "flee": 929,
+  "criticalHit": null,
+  "speed": 8.33,
+  "attackSpeed": 1.3,
+  "res": 1472,
+  "mRes": 1180,
+  "str": 372,
+  "agi": 263,
+  "vit": 354,
+  "int": 372,
+  "dex": 496,
+  "luk": 365,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 50
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 100
+    },
+    {
+      "element": "Fire",
+      "percentage": 100
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 50
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 175
+    },
+    {
+      "element": "Undead",
+      "percentage": 150
+    }
+  ],
+  "drops": [
+    {
+      "itemId": 1001294,
+      "itemName": "深層靈魂能量",
+      "slots": 0,
+      "displayName": "深層靈魂能量",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001294",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001302,
+      "itemName": "深層靈魂結晶體",
+      "slots": 0,
+      "displayName": "深層靈魂結晶體",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.005,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001302",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000322,
+      "itemName": "乙太星塵",
+      "slots": 0,
+      "displayName": "乙太星塵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.015,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000322",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001181,
+      "itemName": "靈魂符文碎片",
+      "slots": 0,
+      "displayName": "靈魂符文碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.008,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001181",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001182,
+      "itemName": "靈魂符文",
+      "slots": 0,
+      "displayName": "靈魂符文",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.002,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001182",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001185,
+      "itemName": "靈魂精華",
+      "slots": 0,
+      "displayName": "靈魂精華",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.003,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001185",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001334,
+      "itemName": "深層靈魂標本",
+      "slots": 0,
+      "displayName": "深層靈魂標本",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001334",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    }
+  ],
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001294,
+        "itemName": "深層靈魂能量",
+        "slots": 0,
+        "displayName": "深層靈魂能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001294",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001302,
+        "itemName": "深層靈魂結晶體",
+        "slots": 0,
+        "displayName": "深層靈魂結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001302",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001181,
+        "itemName": "靈魂符文碎片",
+        "slots": 0,
+        "displayName": "靈魂符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001181",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001182,
+        "itemName": "靈魂符文",
+        "slots": 0,
+        "displayName": "靈魂符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001182",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001185,
+        "itemName": "靈魂精華",
+        "slots": 0,
+        "displayName": "靈魂精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001185",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001334,
+        "itemName": "深層靈魂標本",
+        "slots": 0,
+        "displayName": "深層靈魂標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001334",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001294,
+        "itemName": "深層靈魂能量",
+        "slots": 0,
+        "displayName": "深層靈魂能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001294",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001302,
+        "itemName": "深層靈魂結晶體",
+        "slots": 0,
+        "displayName": "深層靈魂結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001302",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001181,
+        "itemName": "靈魂符文碎片",
+        "slots": 0,
+        "displayName": "靈魂符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001181",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001182,
+        "itemName": "靈魂符文",
+        "slots": 0,
+        "displayName": "靈魂符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001182",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001185,
+        "itemName": "靈魂精華",
+        "slots": 0,
+        "displayName": "靈魂精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001185",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001334,
+        "itemName": "深層靈魂標本",
+        "slots": 0,
+        "displayName": "深層靈魂標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001334",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "bl_depth1",
+      "mapDisplayName": "生物圈深層",
+      "quantity": 25,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/bl_depth1",
+      "respawnTime": 5000
+    }
+  ],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 263,
+      "race": "Angel",
+      "element": "Ghost 3",
+      "elementLevel": 3,
+      "size": "Medium",
+      "str": 372,
+      "agi": 263,
+      "vit": 354,
+      "int": 372,
+      "dex": 496,
+      "luk": 365,
+      "health": 89002070,
+      "def": 299,
+      "mDef": 175,
+      "range": 2,
+      "attackRange": "26.893 - 40.022",
+      "magicAttackRange": "9.816 - 17.687",
+      "hit": 726,
+      "flee": 929,
+      "res": 1472,
+      "mRes": 1180,
+      "speed": 8.33,
+      "attackSpeed": 1.3
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "bl_depth1",
+        "mapDisplayName": "生物圈深層",
+        "quantity": 25,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/bl_depth1",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
+}

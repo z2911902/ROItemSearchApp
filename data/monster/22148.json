@@ -1,0 +1,651 @@
+{
+  "id": 22148,
+  "name": "深層神聖彩色皮影魔",
+  "spriteName": "BIO_HOLY_FRUS",
+  "availableServers": [
+    "dpRO",
+    "kROM",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22148.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22148.png",
+  "level": 263,
+  "baseExperience": 5525795,
+  "jobExperience": 3848717,
+  "expPenaltyTable": [
+    {
+      "level": 247,
+      "percent": 40,
+      "baseExperience": 2210318,
+      "jobExperience": 1539486
+    },
+    {
+      "level": 248,
+      "percent": 115,
+      "baseExperience": 6354664,
+      "jobExperience": 4426024
+    },
+    {
+      "level": 249,
+      "percent": 120,
+      "baseExperience": 6630954,
+      "jobExperience": 4618460
+    },
+    {
+      "level": 250,
+      "percent": 125,
+      "baseExperience": 6907243,
+      "jobExperience": 4810896
+    },
+    {
+      "level": 251,
+      "percent": 130,
+      "baseExperience": 7183533,
+      "jobExperience": 5003332
+    },
+    {
+      "level": 252,
+      "percent": 135,
+      "baseExperience": 7459823,
+      "jobExperience": 5195767
+    },
+    {
+      "level": 253,
+      "percent": 140,
+      "baseExperience": 7736113,
+      "jobExperience": 5388203
+    },
+    {
+      "level": 254,
+      "percent": 135,
+      "baseExperience": 7459823,
+      "jobExperience": 5195767
+    },
+    {
+      "level": 255,
+      "percent": 130,
+      "baseExperience": 7183533,
+      "jobExperience": 5003332
+    },
+    {
+      "level": 256,
+      "percent": 125,
+      "baseExperience": 6907243,
+      "jobExperience": 4810896
+    },
+    {
+      "level": 257,
+      "percent": 120,
+      "baseExperience": 6630954,
+      "jobExperience": 4618460
+    },
+    {
+      "level": 258,
+      "percent": 115,
+      "baseExperience": 6354664,
+      "jobExperience": 4426024
+    },
+    {
+      "level": 259,
+      "percent": 110,
+      "baseExperience": 6078374,
+      "jobExperience": 4233588
+    },
+    {
+      "level": 260,
+      "percent": 105,
+      "baseExperience": 5802084,
+      "jobExperience": 4041152
+    },
+    {
+      "level": 263,
+      "percent": 100,
+      "baseExperience": 5525795,
+      "jobExperience": 3848717
+    },
+    {
+      "level": 264,
+      "percent": 100,
+      "baseExperience": 5525795,
+      "jobExperience": 3848717
+    },
+    {
+      "level": 269,
+      "percent": 95,
+      "baseExperience": 5249505,
+      "jobExperience": 3656281
+    },
+    {
+      "level": 274,
+      "percent": 90,
+      "baseExperience": 4973215,
+      "jobExperience": 3463845
+    },
+    {
+      "level": 279,
+      "percent": 85,
+      "baseExperience": 4696925,
+      "jobExperience": 3271409
+    },
+    {
+      "level": 284,
+      "percent": 60,
+      "baseExperience": 3315477,
+      "jobExperience": 2309230
+    },
+    {
+      "level": 289,
+      "percent": 35,
+      "baseExperience": 1934028,
+      "jobExperience": 1347050
+    },
+    {
+      "level": 294,
+      "percent": 10,
+      "baseExperience": 552579,
+      "jobExperience": 384871
+    }
+  ],
+  "race": "Angel",
+  "element": "Holy 2",
+  "elementLevel": 2,
+  "size": "Medium",
+  "type": "Boss",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 85467880,
+  "magicHealth": null,
+  "attackRange": "28.004 - 41.691",
+  "magicAttackRange": "7.941 - 14.320",
+  "range": 2,
+  "def": 299,
+  "mDef": 115,
+  "hit": 717,
+  "flee": 856,
+  "criticalHit": null,
+  "speed": 7.69,
+  "attackSpeed": 1.28,
+  "res": 1357,
+  "mRes": 630,
+  "str": 369,
+  "agi": 254,
+  "vit": 293,
+  "int": 236,
+  "dex": 423,
+  "luk": 323,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 100
+    },
+    {
+      "element": "Fire",
+      "percentage": 100
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 75
+    },
+    {
+      "element": "Holy",
+      "percentage": 0
+    },
+    {
+      "element": "Dark",
+      "percentage": 150
+    },
+    {
+      "element": "Ghost",
+      "percentage": 80
+    },
+    {
+      "element": "Undead",
+      "percentage": 150
+    }
+  ],
+  "drops": [
+    {
+      "itemId": 1001295,
+      "itemName": "深層淨化能量",
+      "slots": 0,
+      "displayName": "深層淨化能量",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001295",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001303,
+      "itemName": "深層淨化結晶體",
+      "slots": 0,
+      "displayName": "深層淨化結晶體",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.005,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001303",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000322,
+      "itemName": "乙太星塵",
+      "slots": 0,
+      "displayName": "乙太星塵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.015,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000322",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001177,
+      "itemName": "聖殿符文碎片",
+      "slots": 0,
+      "displayName": "聖殿符文碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.008,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001177",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001178,
+      "itemName": "聖殿符文",
+      "slots": 0,
+      "displayName": "聖殿符文",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.002,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001178",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001183,
+      "itemName": "聖殿精華",
+      "slots": 0,
+      "displayName": "聖殿精華",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.003,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001183",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001335,
+      "itemName": "深層淨化標本",
+      "slots": 0,
+      "displayName": "深層淨化標本",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001335",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    }
+  ],
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001295,
+        "itemName": "深層淨化能量",
+        "slots": 0,
+        "displayName": "深層淨化能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001295",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001303,
+        "itemName": "深層淨化結晶體",
+        "slots": 0,
+        "displayName": "深層淨化結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001303",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001177,
+        "itemName": "聖殿符文碎片",
+        "slots": 0,
+        "displayName": "聖殿符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001177",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001178,
+        "itemName": "聖殿符文",
+        "slots": 0,
+        "displayName": "聖殿符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001178",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001183,
+        "itemName": "聖殿精華",
+        "slots": 0,
+        "displayName": "聖殿精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001183",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001335,
+        "itemName": "深層淨化標本",
+        "slots": 0,
+        "displayName": "深層淨化標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001335",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001295,
+        "itemName": "深層淨化能量",
+        "slots": 0,
+        "displayName": "深層淨化能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001295",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001303,
+        "itemName": "深層淨化結晶體",
+        "slots": 0,
+        "displayName": "深層淨化結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001303",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001177,
+        "itemName": "聖殿符文碎片",
+        "slots": 0,
+        "displayName": "聖殿符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001177",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001178,
+        "itemName": "聖殿符文",
+        "slots": 0,
+        "displayName": "聖殿符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001178",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001183,
+        "itemName": "聖殿精華",
+        "slots": 0,
+        "displayName": "聖殿精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001183",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001335,
+        "itemName": "深層淨化標本",
+        "slots": 0,
+        "displayName": "深層淨化標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001335",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "bl_depth1",
+      "mapDisplayName": "生物圈深層",
+      "quantity": 25,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/bl_depth1",
+      "respawnTime": 5000
+    }
+  ],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 263,
+      "race": "Angel",
+      "element": "Holy 2",
+      "elementLevel": 2,
+      "size": "Medium",
+      "str": 369,
+      "agi": 254,
+      "vit": 293,
+      "int": 236,
+      "dex": 423,
+      "luk": 323,
+      "health": 85467880,
+      "def": 299,
+      "mDef": 115,
+      "range": 2,
+      "attackRange": "28.004 - 41.691",
+      "magicAttackRange": "7.941 - 14.320",
+      "hit": 717,
+      "flee": 856,
+      "res": 1357,
+      "mRes": 630,
+      "speed": 7.69,
+      "attackSpeed": 1.28
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "bl_depth1",
+        "mapDisplayName": "生物圈深層",
+        "quantity": 25,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/bl_depth1",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
+}

@@ -1,137 +1,365 @@
 {
   "id": 2413,
-  "dbname": "DUMMY_10_FIRE",
   "name": "Lv 10 (火屬性)",
-  "sprite": "ANT_EGG",
-  "stats": {
-    "attackRange": 0,
-    "level": 10,
-    "health": 99999999,
-    "sp": 1,
-    "str": 0,
-    "int": 0,
-    "vit": 0,
-    "dex": 0,
-    "agi": 0,
-    "luk": 0,
-    "rechargeTime": 0,
-    "atk1": 0,
-    "atk2": 0,
-    "attack": {
-      "minimum": 10,
-      "maximum": 10
-    },
-    "magicAttack": {
-      "minimum": 10,
-      "maximum": 10
-    },
-    "defense": 0,
-    "baseExperience": 0,
-    "jobExperience": 0,
-    "aggroRange": 0,
-    "escapeRange": 0,
-    "movementSpeed": 200.0,
-    "attackSpeed": 0.0,
-    "attackedSpeed": 0.0,
-    "element": 23,
-    "scale": 1,
-    "race": 0,
-    "magicDefense": 0,
-    "hit": 210,
-    "flee": 180,
-    "ai": "MONSTER_TYPE_06",
-    "mvp": 0,
-    "class": 1,
-    "attr": 96,
-    "res": 0,
-    "mres": 0
-  },
-  "spawnSet": [],
-  "slaves": [],
-  "metamorphosis": [],
-  "sounds": [
-    "ant_egg_die.wav",
-    "monster_shell.wav"
+  "spriteName": "DUMMY_10_FIRE",
+  "availableServers": [
+    "bRO",
+    "cRO",
+    "dpRO",
+    "GZero",
+    "iRO",
+    "kROM",
+    "kROS",
+    "kROZ",
+    "ropEU",
+    "ropRU",
+    "twRO"
   ],
-  "questObjective": [],
-  "drops": [
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/2413.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/2413.png",
+  "level": 10,
+  "baseExperience": 0,
+  "jobExperience": 0,
+  "expPenaltyTable": [
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 1,
+      "percent": 135,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 2,
+      "percent": 130,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 3,
+      "percent": 125,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 4,
+      "percent": 120,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 5,
+      "percent": 115,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 6,
+      "percent": 110,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": false,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 7,
+      "percent": 105,
+      "baseExperience": 0,
+      "jobExperience": 0
     },
     {
-      "itemId": 512,
-      "chance": 0,
-      "stealProtected": true,
-      "serverTypeName": null,
-      "optionGroup": "G0"
+      "level": 10,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 11,
+      "percent": 100,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 16,
+      "percent": 95,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 21,
+      "percent": 90,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 26,
+      "percent": 85,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 31,
+      "percent": 60,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 36,
+      "percent": 35,
+      "baseExperience": 0,
+      "jobExperience": 0
+    },
+    {
+      "level": 41,
+      "percent": 10,
+      "baseExperience": 0,
+      "jobExperience": 0
     }
   ],
-  "mapDrops": [],
-  "mvpdrops": [],
-  "spawn": [
+  "race": "Formless",
+  "element": "Fire 1",
+  "elementLevel": 1,
+  "size": "Medium",
+  "type": "Boss",
+  "aiFlags": [
+    "MONSTER_TYPE_06"
+  ],
+  "aiFlagDetails": {
+    "aggressive": false,
+    "assist": false,
+    "looter": false,
+    "changeTarget": false,
+    "changeTargetOnAttack": false,
+    "immobile": true,
+    "castSensor": false,
+    "isNormal": false
+  },
+  "attributes": [
+    "Immune to knockback",
+    "Immune to teleport (snatch)"
+  ],
+  "health": 99999999,
+  "magicHealth": null,
+  "attackRange": "10 - 10",
+  "magicAttackRange": "10 - 10",
+  "range": 0,
+  "def": 0,
+  "mDef": 0,
+  "hit": 210,
+  "flee": 180,
+  "criticalHit": null,
+  "speed": 5,
+  "attackSpeed": null,
+  "res": 0,
+  "mRes": 0,
+  "str": 0,
+  "agi": 0,
+  "vit": 0,
+  "int": 0,
+  "dex": 0,
+  "luk": 0,
+  "elementResistances": [
     {
-      "mapname": "iz_ac01",
-      "amount": 1,
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 150
+    },
+    {
+      "element": "Earth",
+      "percentage": 90
+    },
+    {
+      "element": "Fire",
+      "percentage": 25
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 150
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 90
+    }
+  ],
+  "drops": [],
+  "mvpDrops": [],
+  "dropVersions": {},
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "iz_ac01",
+      "mapDisplayName": "克里圖拉學院1樓",
+      "quantity": 1,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/iz_ac01",
       "respawnTime": 5000
     }
   ],
-  "skill": [],
-  "propertyTable": {
-    "0": 100,
-    "1": 150,
-    "2": 90,
-    "3": 25,
-    "4": 100,
-    "5": 125,
-    "6": 100,
-    "7": 100,
-    "8": 100,
-    "9": 100
-  }
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 10,
+      "race": "Formless",
+      "element": "Fire 1",
+      "elementLevel": 1,
+      "size": "Medium",
+      "str": 0,
+      "agi": 0,
+      "vit": 0,
+      "int": 0,
+      "dex": 0,
+      "luk": 0,
+      "health": 99999999,
+      "def": 0,
+      "mDef": 0,
+      "range": 0,
+      "attackRange": "10 - 10",
+      "magicAttackRange": "10 - 10",
+      "hit": 210,
+      "flee": 180,
+      "res": 0,
+      "mRes": 0,
+      "speed": 5,
+      "attackSpeed": null
+    },
+    "iRO 17.1": {
+      "level": 10,
+      "race": "Formless",
+      "element": "Fire 1",
+      "elementLevel": 1,
+      "size": "Medium",
+      "str": 0,
+      "agi": 0,
+      "vit": 0,
+      "int": 0,
+      "dex": 0,
+      "luk": 0,
+      "health": 99999999,
+      "def": 0,
+      "mDef": 0,
+      "range": 0,
+      "attackRange": "10 - 10",
+      "magicAttackRange": "10 - 10",
+      "hit": 210,
+      "flee": 180,
+      "res": 0,
+      "mRes": 0,
+      "speed": 5,
+      "attackSpeed": null
+    },
+    "vnRO 16.1 (estimative)": {
+      "level": 10,
+      "race": "Formless",
+      "element": "Fire 1",
+      "elementLevel": 1,
+      "size": "Medium",
+      "str": 0,
+      "agi": 0,
+      "vit": 0,
+      "int": 0,
+      "dex": 0,
+      "luk": 0,
+      "health": 99999999,
+      "def": 0,
+      "mDef": 0,
+      "range": 0,
+      "attackRange": "10 - 10",
+      "magicAttackRange": "10 - 10",
+      "hit": 210,
+      "flee": 180,
+      "res": 0,
+      "mRes": 0,
+      "speed": 5,
+      "attackSpeed": null
+    },
+    "Zero": {
+      "level": 10,
+      "race": "Formless",
+      "element": "Fire 1",
+      "elementLevel": 1,
+      "size": "Medium",
+      "str": null,
+      "agi": null,
+      "vit": null,
+      "int": null,
+      "dex": null,
+      "luk": null,
+      "health": null,
+      "def": null,
+      "mDef": null,
+      "range": null,
+      "attackRange": null,
+      "magicAttackRange": null,
+      "hit": null,
+      "flee": null,
+      "res": 0,
+      "mRes": 0,
+      "speed": null,
+      "attackSpeed": null
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "iz_ac01",
+        "mapDisplayName": "克里圖拉學院1樓",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/iz_ac01",
+        "respawnTime": 5000
+      }
+    ],
+    "Zero": [
+      {
+        "mapId": 0,
+        "mapName": "iz_ac01",
+        "mapDisplayName": "克里圖拉學院1樓",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/iz_ac01",
+        "respawnTime": 5000
+      }
+    ],
+    "kRO Zero": [
+      {
+        "mapId": 0,
+        "mapName": "iz_ac01",
+        "mapDisplayName": "克里圖拉學院1樓",
+        "quantity": 1,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/iz_ac01",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
 }

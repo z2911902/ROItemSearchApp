@@ -1,0 +1,358 @@
+{
+  "id": 22444,
+  "name": "伊帕波利",
+  "spriteName": "CH1_LEAFEING",
+  "availableServers": [
+    "dpRO",
+    "kROM",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22444.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22444.png",
+  "level": 205,
+  "baseExperience": 553394,
+  "jobExperience": 387376,
+  "expPenaltyTable": [
+    {
+      "level": 189,
+      "percent": 40,
+      "baseExperience": 221357,
+      "jobExperience": 154950
+    },
+    {
+      "level": 190,
+      "percent": 115,
+      "baseExperience": 636403,
+      "jobExperience": 445482
+    },
+    {
+      "level": 191,
+      "percent": 120,
+      "baseExperience": 664072,
+      "jobExperience": 464851
+    },
+    {
+      "level": 192,
+      "percent": 125,
+      "baseExperience": 691742,
+      "jobExperience": 484220
+    },
+    {
+      "level": 193,
+      "percent": 130,
+      "baseExperience": 719412,
+      "jobExperience": 503588
+    },
+    {
+      "level": 194,
+      "percent": 135,
+      "baseExperience": 747081,
+      "jobExperience": 522957
+    },
+    {
+      "level": 195,
+      "percent": 140,
+      "baseExperience": 774751,
+      "jobExperience": 542326
+    },
+    {
+      "level": 196,
+      "percent": 135,
+      "baseExperience": 747081,
+      "jobExperience": 522957
+    },
+    {
+      "level": 197,
+      "percent": 130,
+      "baseExperience": 719412,
+      "jobExperience": 503588
+    },
+    {
+      "level": 198,
+      "percent": 125,
+      "baseExperience": 691742,
+      "jobExperience": 484220
+    },
+    {
+      "level": 199,
+      "percent": 120,
+      "baseExperience": 664072,
+      "jobExperience": 464851
+    },
+    {
+      "level": 200,
+      "percent": 115,
+      "baseExperience": 636403,
+      "jobExperience": 445482
+    },
+    {
+      "level": 201,
+      "percent": 110,
+      "baseExperience": 608733,
+      "jobExperience": 426113
+    },
+    {
+      "level": 202,
+      "percent": 105,
+      "baseExperience": 581063,
+      "jobExperience": 406744
+    },
+    {
+      "level": 205,
+      "percent": 100,
+      "baseExperience": 553394,
+      "jobExperience": 387376
+    },
+    {
+      "level": 206,
+      "percent": 100,
+      "baseExperience": 553394,
+      "jobExperience": 387376
+    },
+    {
+      "level": 211,
+      "percent": 95,
+      "baseExperience": 525724,
+      "jobExperience": 368007
+    },
+    {
+      "level": 216,
+      "percent": 90,
+      "baseExperience": 498054,
+      "jobExperience": 348638
+    },
+    {
+      "level": 221,
+      "percent": 85,
+      "baseExperience": 470384,
+      "jobExperience": 329269
+    },
+    {
+      "level": 226,
+      "percent": 60,
+      "baseExperience": 332036,
+      "jobExperience": 232425
+    },
+    {
+      "level": 231,
+      "percent": 35,
+      "baseExperience": 193687,
+      "jobExperience": 135581
+    },
+    {
+      "level": 236,
+      "percent": 10,
+      "baseExperience": 55339,
+      "jobExperience": 38737
+    }
+  ],
+  "race": "Plant",
+  "element": "Earth 1",
+  "elementLevel": 1,
+  "size": "Medium",
+  "type": "Normal",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [],
+  "health": 10788940,
+  "magicHealth": null,
+  "attackRange": "5.160 - 7.591",
+  "magicAttackRange": null,
+  "range": null,
+  "def": 300,
+  "mDef": 161,
+  "hit": 478,
+  "flee": 465,
+  "criticalHit": null,
+  "speed": 8,
+  "attackSpeed": 1.74,
+  "res": 0,
+  "mRes": 0,
+  "str": 94,
+  "agi": 73,
+  "vit": 89,
+  "int": 94,
+  "dex": 90,
+  "luk": 89,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 100
+    },
+    {
+      "element": "Earth",
+      "percentage": 25
+    },
+    {
+      "element": "Fire",
+      "percentage": 150
+    },
+    {
+      "element": "Wind",
+      "percentage": 90
+    },
+    {
+      "element": "Poison",
+      "percentage": 150
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 100
+    }
+  ],
+  "drops": [
+    {
+      "itemId": 1002021,
+      "itemName": "伊格皮",
+      "slots": 0,
+      "displayName": "伊格皮",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": null,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1002021",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 300634,
+      "itemName": "伊帕波利卡片",
+      "slots": 0,
+      "displayName": "伊帕波利卡片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.0001,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/300634",
+      "isStealProtected": true,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    }
+  ],
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1002021,
+        "itemName": "伊格皮",
+        "slots": 0,
+        "displayName": "伊格皮",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": null,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1002021",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 300634,
+        "itemName": "伊帕波利卡片",
+        "slots": 0,
+        "displayName": "伊帕波利卡片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.0001,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/300634",
+        "isStealProtected": true,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "ygg_roots",
+      "mapDisplayName": "扭曲的黑暗之地",
+      "quantity": 10,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/ygg_roots",
+      "respawnTime": 5000
+    }
+  ],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 205,
+      "race": "Plant",
+      "element": "Earth 1",
+      "elementLevel": 1,
+      "size": "Medium",
+      "str": 94,
+      "agi": 73,
+      "vit": 89,
+      "int": 94,
+      "dex": 90,
+      "luk": 89,
+      "health": 10788940,
+      "def": 300,
+      "mDef": 161,
+      "range": null,
+      "attackRange": "5.160 - 7.591",
+      "magicAttackRange": null,
+      "hit": 478,
+      "flee": 465,
+      "res": 0,
+      "mRes": 0,
+      "speed": 8,
+      "attackSpeed": 1.74
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "ygg_roots",
+        "mapDisplayName": "扭曲的黑暗之地",
+        "quantity": 10,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/ygg_roots",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
+}

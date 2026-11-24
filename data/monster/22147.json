@@ -1,0 +1,651 @@
+{
+  "id": 22147,
+  "name": "深層火焰傘蜥",
+  "spriteName": "BIO_FIRE_FRILLDORA",
+  "availableServers": [
+    "dpRO",
+    "kROM",
+    "twRO"
+  ],
+  "spriteUrl": "https://static.divine-pride.net/images/mobs/png/22147.png",
+  "spriteSheetUrl": "https://static.divine-pride.net/images/spritesheets/npc/22147.png",
+  "level": 265,
+  "baseExperience": 5675187,
+  "jobExperience": 3962714,
+  "expPenaltyTable": [
+    {
+      "level": 249,
+      "percent": 40,
+      "baseExperience": 2270074,
+      "jobExperience": 1585085
+    },
+    {
+      "level": 250,
+      "percent": 115,
+      "baseExperience": 6526465,
+      "jobExperience": 4557121
+    },
+    {
+      "level": 251,
+      "percent": 120,
+      "baseExperience": 6810224,
+      "jobExperience": 4755256
+    },
+    {
+      "level": 252,
+      "percent": 125,
+      "baseExperience": 7093983,
+      "jobExperience": 4953392
+    },
+    {
+      "level": 253,
+      "percent": 130,
+      "baseExperience": 7377743,
+      "jobExperience": 5151528
+    },
+    {
+      "level": 254,
+      "percent": 135,
+      "baseExperience": 7661502,
+      "jobExperience": 5349663
+    },
+    {
+      "level": 255,
+      "percent": 140,
+      "baseExperience": 7945261,
+      "jobExperience": 5547799
+    },
+    {
+      "level": 256,
+      "percent": 135,
+      "baseExperience": 7661502,
+      "jobExperience": 5349663
+    },
+    {
+      "level": 257,
+      "percent": 130,
+      "baseExperience": 7377743,
+      "jobExperience": 5151528
+    },
+    {
+      "level": 258,
+      "percent": 125,
+      "baseExperience": 7093983,
+      "jobExperience": 4953392
+    },
+    {
+      "level": 259,
+      "percent": 120,
+      "baseExperience": 6810224,
+      "jobExperience": 4755256
+    },
+    {
+      "level": 260,
+      "percent": 115,
+      "baseExperience": 6526465,
+      "jobExperience": 4557121
+    },
+    {
+      "level": 261,
+      "percent": 110,
+      "baseExperience": 6242705,
+      "jobExperience": 4358985
+    },
+    {
+      "level": 262,
+      "percent": 105,
+      "baseExperience": 5958946,
+      "jobExperience": 4160849
+    },
+    {
+      "level": 265,
+      "percent": 100,
+      "baseExperience": 5675187,
+      "jobExperience": 3962714
+    },
+    {
+      "level": 266,
+      "percent": 100,
+      "baseExperience": 5675187,
+      "jobExperience": 3962714
+    },
+    {
+      "level": 271,
+      "percent": 95,
+      "baseExperience": 5391427,
+      "jobExperience": 3764578
+    },
+    {
+      "level": 276,
+      "percent": 90,
+      "baseExperience": 5107668,
+      "jobExperience": 3566442
+    },
+    {
+      "level": 281,
+      "percent": 85,
+      "baseExperience": 4823908,
+      "jobExperience": 3368306
+    },
+    {
+      "level": 286,
+      "percent": 60,
+      "baseExperience": 3405112,
+      "jobExperience": 2377628
+    },
+    {
+      "level": 291,
+      "percent": 35,
+      "baseExperience": 1986315,
+      "jobExperience": 1386949
+    },
+    {
+      "level": 296,
+      "percent": 10,
+      "baseExperience": 567518,
+      "jobExperience": 396271
+    }
+  ],
+  "race": "Brute",
+  "element": "Fire 3",
+  "elementLevel": 3,
+  "size": "Medium",
+  "type": "Boss",
+  "aiFlags": [],
+  "aiFlagDetails": null,
+  "attributes": [
+    "Taking only 10% of the damage dealt to it"
+  ],
+  "health": 93256470,
+  "magicHealth": null,
+  "attackRange": "18.287 - 27.138",
+  "magicAttackRange": "8.427 - 15.192",
+  "range": 1,
+  "def": 180,
+  "mDef": 103,
+  "hit": 774,
+  "flee": 890,
+  "criticalHit": null,
+  "speed": 8.33,
+  "attackSpeed": 1.85,
+  "res": 701,
+  "mRes": 611,
+  "str": 321,
+  "agi": 309,
+  "vit": 210,
+  "int": 270,
+  "dex": 455,
+  "luk": 340,
+  "elementResistances": [
+    {
+      "element": "Neutral",
+      "percentage": 100
+    },
+    {
+      "element": "Water",
+      "percentage": 200
+    },
+    {
+      "element": "Earth",
+      "percentage": 70
+    },
+    {
+      "element": "Fire",
+      "percentage": 0
+    },
+    {
+      "element": "Wind",
+      "percentage": 100
+    },
+    {
+      "element": "Poison",
+      "percentage": 125
+    },
+    {
+      "element": "Holy",
+      "percentage": 100
+    },
+    {
+      "element": "Dark",
+      "percentage": 100
+    },
+    {
+      "element": "Ghost",
+      "percentage": 100
+    },
+    {
+      "element": "Undead",
+      "percentage": 70
+    }
+  ],
+  "drops": [
+    {
+      "itemId": 1001290,
+      "itemName": "深層火燄能量",
+      "slots": 0,
+      "displayName": "深層火燄能量",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.05,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001290",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001298,
+      "itemName": "深層火燄結晶體",
+      "slots": 0,
+      "displayName": "深層火燄結晶體",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.005,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001298",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000322,
+      "itemName": "乙太星塵",
+      "slots": 0,
+      "displayName": "乙太星塵",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.015,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000322",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000637,
+      "itemName": "火燄符文碎片",
+      "slots": 0,
+      "displayName": "火燄符文碎片",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.008,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000637",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1000641,
+      "itemName": "火燄符文",
+      "slots": 0,
+      "displayName": "火燄符文",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.002,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1000641",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001139,
+      "itemName": "火燄精華",
+      "slots": 0,
+      "displayName": "火燄精華",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.003,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001139",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    },
+    {
+      "itemId": 1001330,
+      "itemName": "深層火燄標本",
+      "slots": 0,
+      "displayName": "深層火燄標本",
+      "itemIconUrl": null,
+      "sellPrice": null,
+      "probability": 0.25,
+      "minQuantity": null,
+      "maxQuantity": null,
+      "dropType": "common",
+      "itemDetailUrl": "/database/item/1001330",
+      "isStealProtected": false,
+      "optionGroup": "G0",
+      "hasEnchant": false,
+      "enchantTooltip": null
+    }
+  ],
+  "mvpDrops": [],
+  "dropVersions": {
+    "default": [
+      {
+        "itemId": 1001290,
+        "itemName": "深層火燄能量",
+        "slots": 0,
+        "displayName": "深層火燄能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001290",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001298,
+        "itemName": "深層火燄結晶體",
+        "slots": 0,
+        "displayName": "深層火燄結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001298",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000637,
+        "itemName": "火燄符文碎片",
+        "slots": 0,
+        "displayName": "火燄符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000637",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000641,
+        "itemName": "火燄符文",
+        "slots": 0,
+        "displayName": "火燄符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000641",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001139,
+        "itemName": "火燄精華",
+        "slots": 0,
+        "displayName": "火燄精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001139",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001330,
+        "itemName": "深層火燄標本",
+        "slots": 0,
+        "displayName": "深層火燄標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001330",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ],
+    "kRO 2023": [
+      {
+        "itemId": 1001290,
+        "itemName": "深層火燄能量",
+        "slots": 0,
+        "displayName": "深層火燄能量",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.05,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001290",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001298,
+        "itemName": "深層火燄結晶體",
+        "slots": 0,
+        "displayName": "深層火燄結晶體",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.005,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001298",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000322,
+        "itemName": "乙太星塵",
+        "slots": 0,
+        "displayName": "乙太星塵",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.015,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000322",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000637,
+        "itemName": "火燄符文碎片",
+        "slots": 0,
+        "displayName": "火燄符文碎片",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.008,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000637",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1000641,
+        "itemName": "火燄符文",
+        "slots": 0,
+        "displayName": "火燄符文",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.002,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1000641",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001139,
+        "itemName": "火燄精華",
+        "slots": 0,
+        "displayName": "火燄精華",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.003,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001139",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      },
+      {
+        "itemId": 1001330,
+        "itemName": "深層火燄標本",
+        "slots": 0,
+        "displayName": "深層火燄標本",
+        "itemIconUrl": null,
+        "sellPrice": null,
+        "probability": 0.25,
+        "minQuantity": null,
+        "maxQuantity": null,
+        "dropType": "common",
+        "itemDetailUrl": "/database/item/1001330",
+        "isStealProtected": false,
+        "optionGroup": "G0",
+        "hasEnchant": false,
+        "enchantTooltip": null
+      }
+    ]
+  },
+  "mvpDropVersions": {},
+  "mapSpecificDrops": [],
+  "mapDropVersions": {
+    "default": []
+  },
+  "spawns": [
+    {
+      "mapId": 0,
+      "mapName": "bl_depth1",
+      "mapDisplayName": "生物圈深層",
+      "quantity": 25,
+      "minLevel": null,
+      "maxLevel": null,
+      "mapDetailUrl": "/database/map/bl_depth1",
+      "respawnTime": 5000
+    }
+  ],
+  "skills": [],
+  "statsVersions": {
+    "default": {
+      "level": 265,
+      "race": "Brute",
+      "element": "Fire 3",
+      "elementLevel": 3,
+      "size": "Medium",
+      "str": 321,
+      "agi": 309,
+      "vit": 210,
+      "int": 270,
+      "dex": 455,
+      "luk": 340,
+      "health": 93256470,
+      "def": 180,
+      "mDef": 103,
+      "range": 1,
+      "attackRange": "18.287 - 27.138",
+      "magicAttackRange": "8.427 - 15.192",
+      "hit": 774,
+      "flee": 890,
+      "res": 701,
+      "mRes": 611,
+      "speed": 8.33,
+      "attackSpeed": 1.85
+    }
+  },
+  "spawnVersions": {
+    "default": [
+      {
+        "mapId": 0,
+        "mapName": "bl_depth1",
+        "mapDisplayName": "生物圈深層",
+        "quantity": 25,
+        "minLevel": null,
+        "maxLevel": null,
+        "mapDetailUrl": "/database/map/bl_depth1",
+        "respawnTime": 5000
+      }
+    ]
+  },
+  "skillVersions": {},
+  "history": [],
+  "otherServers": [],
+  "region": "twRO",
+  "adminData": null
+}
